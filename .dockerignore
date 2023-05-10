@@ -1,0 +1,17 @@
+.git
+Dockerfile
+.DS_Store
+.gitignore
+.dockerignore
+
+# PyCharm specific folder
+
+.idea
+
+# Environments
+
+.env
+.venv
+env/
+venv/
+ENV/
