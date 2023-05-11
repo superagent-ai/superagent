@@ -1,12 +1,7 @@
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 
 from app.lib.auth.prisma import JWTBearer
-
-
-class Agent(BaseModel):
-    name: str
-
+from app.lib.models.agents import Agent
 
 router = APIRouter()
 
