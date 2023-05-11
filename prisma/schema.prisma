@@ -5,7 +5,12 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_MIGRATION_URL")
+}
+
+enum AgentType {
+  REACT
+  PLANSOLVE
 }
 
 model User {
@@ -17,10 +22,19 @@ model User {
   updatedAt DateTime? @default(now())
   deletedAt DateTime?
   profile   Profile?
+  Agent     Agent[]
 }
 
 model Profile {
   id     String @id @default(cuid()) @db.VarChar(255)
   userId String @unique @db.VarChar(255)
   user   User   @relation(fields: [userId], references: [id])
+}
+
+model Agent {
+  id     String    @id @default(cuid()) @db.VarChar(255)
+  userId String    @db.VarChar(255)
+  user   User      @relation(fields: [userId], references: [id])
+  name   String
+  type   AgentType @default(REACT)
 }
