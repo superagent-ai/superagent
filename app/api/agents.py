@@ -34,7 +34,7 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
         )
 
 
-@router.get("/agents/", name="Create agent", description="Create a new agent")
+@router.get("/agents/", name="List all agents", description="List all agents")
 async def read_agents(token=Depends(JWTBearer())):
     """Agents endpoint"""
     decoded = decodeJWT(token)
