@@ -22,5 +22,5 @@ model User {
 model Profile {
   id     String @id @default(cuid()) @db.VarChar(255)
   userId String @unique @db.VarChar(255)
-  User   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 }
