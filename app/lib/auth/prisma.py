@@ -1,11 +1,11 @@
-import bcrypt
-import jwt
-
-from decouple import config
 from datetime import datetime, timedelta, timezone
 from typing import Dict
-from fastapi import Request, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+import bcrypt
+import jwt
+from decouple import config
+from fastapi import HTTPException, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 jwtSecret = config("JWT_SECRET")
 

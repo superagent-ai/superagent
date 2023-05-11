@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+
 from app.lib.auth.prisma import JWTBearer
 
 

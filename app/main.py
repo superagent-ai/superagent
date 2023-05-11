@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import router
-from app.lib.prisma import prisma
 
+from app.lib.prisma import prisma
+from app.routers import router
 
 app = FastAPI(
     title="Superagent",
