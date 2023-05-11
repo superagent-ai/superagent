@@ -14,15 +14,16 @@ enum AgentType {
 }
 
 model User {
-  id        String    @id @default(cuid()) @db.VarChar(255)
-  email     String    @unique @db.VarChar(255)
-  password  String?   @db.VarChar(255)
-  name      String?   @db.VarChar(255)
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @default(now())
+  id        String     @id @default(cuid()) @db.VarChar(255)
+  email     String     @unique @db.VarChar(255)
+  password  String?    @db.VarChar(255)
+  name      String?    @db.VarChar(255)
+  createdAt DateTime?  @default(now())
+  updatedAt DateTime?  @default(now())
   deletedAt DateTime?
   profile   Profile?
   Agent     Agent[]
+  ApiToken  ApiToken[]
 }
 
 model Profile {
@@ -38,4 +39,12 @@ model Agent {
   name   String
   type   AgentType @default(REACT)
   llm    Json      @default("{ \"provider\": \"openai\", \"model\": \"gpt-3.5-turbo\" }")
+}
+
+model ApiToken {
+  id          String @id @default(cuid()) @db.VarChar(255)
+  userId      String @db.VarChar(255)
+  user        User   @relation(fields: [userId], references: [id])
+  description String @db.VarChar(255)
+  token       String
 }
