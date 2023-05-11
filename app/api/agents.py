@@ -9,8 +9,8 @@ from app.lib.prisma import prisma
 router = APIRouter()
 
 
-@router.post("/agents/", name="Agent", description="Agents endpoint")
-async def agents(body: Agent, token=Depends(JWTBearer())):
+@router.post("/agents/", name="Create agent", description="Create a new agent")
+async def create_agent(body: Agent, token=Depends(JWTBearer())):
     """Agents endpoint"""
     decoded = decodeJWT(token)
 
@@ -28,8 +28,56 @@ async def agents(body: Agent, token=Depends(JWTBearer())):
         return {"success": True, "data": agent}
 
     except Exception as e:
-        print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Exception while creating agent",
+            detail=e,
+        )
+
+
+@router.get("/agents/", name="Create agent", description="Create a new agent")
+async def read_agents(token=Depends(JWTBearer())):
+    """Agents endpoint"""
+    decoded = decodeJWT(token)
+    agents = await prisma.agent.find_many(
+        where={"userId": decoded["userId"]}, include={"user": True}
+    )
+
+    if agents:
+        return {"success": True, "data": agents}
+
+    return HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="No agents found",
+    )
+
+
+@router.get("/agents/{agentId}", name="Get agent", description="Get a specific agent")
+async def read_agent(agentId: str, token=Depends(JWTBearer())):
+    """Agent detail endpoint"""
+    agent = await prisma.agent.find_unique(
+        where={"id": agentId}, include={"user": True}
+    )
+
+    if agent:
+        return {"success": True, "data": agent}
+
+    raise HTTPException(
+        status_code=status.HTTP_404_INTERNAL_SERVER_ERROR,
+        detail=f"Agent with id: {agentId} not found",
+    )
+
+
+@router.delete(
+    "/agents/{agentId}", name="Delete agent", description="Delete a specific agent"
+)
+async def delete_agent(agentId: str, token=Depends(JWTBearer())):
+    """Deleta agent endpoint"""
+    try:
+        await prisma.agent.delete(where={"id": agentId})
+
+        return {"success": True, "data": None}
+    except Exception as e:
+        return HTTPException(
+            status_code=status.HTTP_404_INTERNAL_SERVER_ERROR,
+            detail=e,
         )
