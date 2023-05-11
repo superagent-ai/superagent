@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from app.api import agents, auth, users
 
+from app.api import agents, auth, users
 
 router = APIRouter()
 api_prefix = "/api/v1"

@@ -22,6 +22,8 @@ unstructured = "^0.6.4"
 prisma = "^0.8.2"
 bcrypt = "^4.0.1"
 pyjwt = "^2.7.0"
+ruff = "^0.0.265"
+black = "^23.3.0"
 
 
 [build-system]
