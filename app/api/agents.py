@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.lib.auth.prisma import JWTBearer, decodeJWT
@@ -17,6 +19,7 @@ async def agents(body: Agent, token=Depends(JWTBearer())):
             {
                 "name": body.name,
                 "type": body.type,
+                "llm": json.dumps(body.llm),
                 "userId": decoded["userId"],
             },
             include={"user": True},
