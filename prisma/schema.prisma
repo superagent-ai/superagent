@@ -1,0 +1,26 @@
+generator client {
+  provider  = "prisma-client-py"
+  interface = "asyncio"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid()) @db.VarChar(255)
+  email     String    @unique @db.VarChar(255)
+  password  String?   @db.VarChar(255)
+  name      String?   @db.VarChar(255)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now())
+  deletedAt DateTime?
+  profile   Profile?
+}
+
+model Profile {
+  id     String @id @default(cuid()) @db.VarChar(255)
+  userId String @unique @db.VarChar(255)
+  User   User   @relation(fields: [userId], references: [id])
+}
