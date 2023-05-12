@@ -133,6 +133,7 @@ async def run_agent(agentId: str, body: PredictAgent):
             response = StreamingResponse(
                 event_stream(data_queue), media_type="text/event-stream"
             )
+
             return response
 
         agent_definition = AgentDefinition(
