@@ -107,7 +107,7 @@ async def run_agent(
     )
 
     await prisma.agentmemory.create(
-        {"author": "human", "message": input["human_input"], "agentId": agentId}
+        {"author": "HUMAN", "message": input["human_input"], "agentId": agentId}
     )
 
     if agent:
@@ -129,7 +129,7 @@ async def run_agent(
                     ai_message += data
                     if data == "[END]":
                         await prisma.agentmemory.create(
-                            {"author": "ai", "message": ai_message, "agentId": agentId}
+                            {"author": "AI", "message": ai_message, "agentId": agentId}
                         )
                         yield f"data: {data}\n\n"
                         break

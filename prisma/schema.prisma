@@ -13,6 +13,11 @@ enum AgentType {
   PLANSOLVE
 }
 
+enum AgentMemoryAuthorType {
+  HUMAN
+  AI
+}
+
 model User {
   id        String     @id @default(cuid()) @db.VarChar(255)
   email     String     @unique @db.VarChar(255)
@@ -52,12 +57,12 @@ model ApiToken {
 }
 
 model AgentMemory {
-  id        String    @id @default(cuid()) @db.VarChar(255)
-  agentId   String    @db.VarChar(255)
-  agent     Agent     @relation(fields: [agentId], references: [id])
-  author    String    @db.VarChar(255)
-  message   String    @db.VarChar(255)
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @default(now())
+  id        String                @id @default(cuid()) @db.VarChar(255)
+  agentId   String                @db.VarChar(255)
+  agent     Agent                 @relation(fields: [agentId], references: [id])
+  author    AgentMemoryAuthorType @default(HUMAN)
+  message   String                @db.VarChar(255)
+  createdAt DateTime?             @default(now())
+  updatedAt DateTime?             @default(now())
   deletedAt DateTime?
 }
