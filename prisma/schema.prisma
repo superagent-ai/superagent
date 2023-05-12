@@ -38,7 +38,7 @@ model Agent {
   user      User      @relation(fields: [userId], references: [id])
   name      String
   type      AgentType @default(REACT)
-  llm       Json      @default("{ \"provider\": \"openai\", \"model\": \"gpt-3.5-turbo\" }")
+  llm       Json      @default("{ \"provider\": \"openai-chat\", \"model\": \"gpt-3.5-turbo\" }")
   hasMemory Boolean   @default(false)
 }
 
