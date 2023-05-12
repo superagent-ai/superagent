@@ -3,9 +3,11 @@ import threading
 from queue import Queue
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security.api_key import APIKey
 from starlette.responses import StreamingResponse
 
 from app.lib.agents import Agent as AgentDefinition
+from app.lib.auth.api import get_api_key
 from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.models.agents import Agent, PredictAgent
 from app.lib.prisma import prisma
@@ -92,7 +94,9 @@ async def delete_agent(agentId: str, token=Depends(JWTBearer())):
     name="Prompt agent",
     description="Invoke a specific agent",
 )
-async def run_agent(agentId: str, body: PredictAgent):
+async def run_agent(
+    agentId: str, body: PredictAgent, api_key: APIKey = Depends(get_api_key)
+):
     """Agent detail endpoint"""
     input = body.input
     has_streaming = body.has_streaming
