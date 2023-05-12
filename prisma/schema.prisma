@@ -61,7 +61,7 @@ model AgentMemory {
   agentId   String                @db.VarChar(255)
   agent     Agent                 @relation(fields: [agentId], references: [id])
   author    AgentMemoryAuthorType @default(HUMAN)
-  message   String                @db.VarChar(255)
+  message   String                @db.Text()
   createdAt DateTime?             @default(now())
   updatedAt DateTime?             @default(now())
   deletedAt DateTime?
