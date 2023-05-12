@@ -58,7 +58,7 @@ class Agent:
             memories = await prisma.agentmemory.find_many(
                 where={"agentId": self.id},
                 order={"createdAt": "asc"},
-                take=4,
+                take=5,
             )
             history = ChatMessageHistory()
             [
