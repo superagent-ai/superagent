@@ -1,10 +1,10 @@
 from typing import Any, Dict, List, Optional, Union
 
-from langchain.callbacks.base import BaseCallbackHandler
+from langchain.callbacks.base import AsyncCallbackHandler
 from langchain.schema import AgentAction, AgentFinish, LLMResult
 
 
-class StreamingCallbackHandler(BaseCallbackHandler):
+class StreamingCallbackHandler(AsyncCallbackHandler):
     """Callback handler for streaming LLM responses."""
 
     def __init__(self, on_llm_new_token_, on_llm_end_, on_chain_end_) -> None:
@@ -18,13 +18,13 @@ class StreamingCallbackHandler(BaseCallbackHandler):
         """Print out the prompts."""
         pass
 
-    def on_llm_new_token(self, token: str, *args, **kwargs: Any) -> None:
+    async def on_llm_new_token(self, token: str, *args, **kwargs: Any) -> None:
         """Run on new LLM token. Only available when streaming is enabled."""
-        self.on_llm_new_token_(token)
+        await self.on_llm_new_token_(token)
 
-    def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
+    async def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
         """Do nothing."""
-        self.on_llm_end_()
+        await self.on_llm_end_()
 
     def on_llm_error(
         self, error: Union[Exception, KeyboardInterrupt], **kwargs: Any
@@ -38,10 +38,10 @@ class StreamingCallbackHandler(BaseCallbackHandler):
         """Print out that we are entering a chain."""
         pass
 
-    def on_chain_end(self, outputs: Dict[str, Any], **kwargs: Any) -> None:
+    async def on_chain_end(self, outputs: Dict[str, Any], **kwargs: Any) -> None:
         """Print out that we finished a chain."""
         print(outputs, kwargs)
-        self.on_chain_end_(outputs)
+        await self.on_chain_end_(outputs)
 
     def on_chain_error(
         self, error: Union[Exception, KeyboardInterrupt], **kwargs: Any
