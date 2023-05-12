@@ -33,13 +33,14 @@ model Profile {
 }
 
 model Agent {
-  id        String    @id @default(cuid()) @db.VarChar(255)
-  userId    String    @db.VarChar(255)
-  user      User      @relation(fields: [userId], references: [id])
-  name      String
-  type      AgentType @default(REACT)
-  llm       Json      @default("{ \"provider\": \"openai-chat\", \"model\": \"gpt-3.5-turbo\" }")
-  hasMemory Boolean   @default(false)
+  id          String        @id @default(cuid()) @db.VarChar(255)
+  userId      String        @db.VarChar(255)
+  user        User          @relation(fields: [userId], references: [id])
+  name        String
+  type        AgentType     @default(REACT)
+  llm         Json          @default("{ \"provider\": \"openai-chat\", \"model\": \"gpt-3.5-turbo\" }")
+  hasMemory   Boolean       @default(false)
+  AgentMemory AgentMemory[]
 }
 
 model ApiToken {
@@ -48,4 +49,15 @@ model ApiToken {
   user        User   @relation(fields: [userId], references: [id])
   description String @db.VarChar(255)
   token       String
+}
+
+model AgentMemory {
+  id        String    @id @default(cuid()) @db.VarChar(255)
+  agentId   String    @db.VarChar(255)
+  agent     Agent     @relation(fields: [agentId], references: [id])
+  author    String    @db.VarChar(255)
+  message   String    @db.VarChar(255)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now())
+  deletedAt DateTime?
 }

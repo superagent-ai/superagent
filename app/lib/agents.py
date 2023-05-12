@@ -15,6 +15,7 @@ class Agent:
         has_streaming: bool = False,
         on_llm_new_token=None,
         on_llm_end=None,
+        on_chain_end=None,
     ):
         self.id = agent.id
         self.has_memory = agent.hasMemory
@@ -24,6 +25,7 @@ class Agent:
         self.has_streaming = has_streaming
         self.on_llm_new_token = on_llm_new_token
         self.on_llm_end = on_llm_end
+        self.on_chain_end = on_chain_end
 
     def _get_llm(self) -> Any:
         if self.llm["provider"] == "openai-chat":
@@ -33,7 +35,9 @@ class Agent:
                     streaming=self.has_streaming,
                     callbacks=[
                         StreamingCallbackHandler(
-                            on_new_token=self.on_llm_new_token, on_end=self.on_llm_end
+                            on_llm_new_token_=self.on_llm_new_token,
+                            on_llm_end_=self.on_llm_end,
+                            on_chain_end_=self.on_chain_end,
                         )
                     ],
                 )

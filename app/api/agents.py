@@ -1,6 +1,7 @@
 import json
 import threading
 from queue import Queue
+from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security.api_key import APIKey
@@ -99,24 +100,37 @@ async def run_agent(
 ):
     """Agent detail endpoint"""
     input = body.input
+
     has_streaming = body.has_streaming
     agent = await prisma.agent.find_unique(
         where={"id": agentId}, include={"user": True}
     )
 
+    await prisma.agentmemory.create(
+        {"author": "human", "message": input["human_input"], "agentId": agentId}
+    )
+
     if agent:
         if has_streaming:
 
-            def on_llm_new_token(token):
+            def on_llm_new_token(token) -> None:
                 data_queue.put(token)
 
-            def on_llm_end():
+            def on_llm_end() -> None:
                 data_queue.put("[END]")
 
-            def event_stream(data_queue: Queue) -> str:
+            def on_chain_end(outputs: Dict[str, Any]) -> None:
+                pass
+
+            async def event_stream(data_queue: Queue) -> str:
+                ai_message = ""
                 while True:
                     data = data_queue.get()
+                    ai_message += data
                     if data == "[END]":
+                        await prisma.agentmemory.create(
+                            {"author": "ai", "message": ai_message, "agentId": agentId}
+                        )
                         yield f"data: {data}\n\n"
                         break
                     yield f"data: {data}\n\n"
@@ -127,6 +141,7 @@ async def run_agent(
                     has_streaming=has_streaming,
                     on_llm_new_token=on_llm_new_token,
                     on_llm_end=on_llm_end,
+                    on_chain_end=on_chain_end,
                 )
                 agent_executor = agent_definition.get_agent()
                 agent_executor.run(input)
