@@ -25,6 +25,7 @@ pyjwt = "^2.7.0"
 ruff = "^0.0.265"
 black = "^23.3.0"
 uuid = "^1.30"
+flake8 = "^6.0.0"
 
 
 [build-system]

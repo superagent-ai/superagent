@@ -6,8 +6,8 @@ from langchain.llms import OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 
 from app.lib.callbacks import StreamingCallbackHandler
-from app.lib.prompts import default_chat_prompt
 from app.lib.prisma import prisma
+from app.lib.prompts import default_chat_prompt
 
 
 class Agent:
