@@ -6,9 +6,10 @@ Assistant is designed to be able to assist with a wide range of tasks, from answ
 simple questions to providing in-depth explanations and discussions on a wide range of 
 topics.
 
+
 {history}
 Human: {human_input}
-Answer in Markdown:
+Assitant:
 """
 
 default_chat_prompt = PromptTemplate(

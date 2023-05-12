@@ -1,6 +1,7 @@
+import asyncio
 import json
-import threading
 from queue import Queue
+from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security.api_key import APIKey
@@ -99,55 +100,69 @@ async def run_agent(
 ):
     """Agent detail endpoint"""
     input = body.input
+
     has_streaming = body.has_streaming
     agent = await prisma.agent.find_unique(
         where={"id": agentId}, include={"user": True}
     )
 
+    await prisma.agentmemory.create(
+        {"author": "HUMAN", "message": input["human_input"], "agentId": agentId}
+    )
+
     if agent:
         if has_streaming:
 
-            def on_llm_new_token(token):
-                data_queue.put(token)
+            async def on_llm_new_token(token) -> None:
+                await data_queue.put(token)
 
-            def on_llm_end():
-                data_queue.put("[END]")
+            async def on_llm_end() -> None:
+                await data_queue.put("[END]")
 
-            def event_stream(data_queue: Queue) -> str:
+            async def on_chain_end(outputs: Dict[str, Any]) -> None:
+                pass
+
+            async def event_stream(data_queue: Queue) -> str:
+                ai_message = ""
                 while True:
-                    data = data_queue.get()
+                    data = await data_queue.get()
+                    ai_message += data
                     if data == "[END]":
+                        await prisma.agentmemory.create(
+                            {"author": "AI", "message": ai_message, "agentId": agentId}
+                        )
                         yield f"data: {data}\n\n"
                         break
                     yield f"data: {data}\n\n"
 
-            def conversation_run_thread(input: dict) -> None:
+            async def conversation_run_thread(input: dict) -> None:
                 agent_definition = AgentDefinition(
                     agent=agent,
                     has_streaming=has_streaming,
                     on_llm_new_token=on_llm_new_token,
                     on_llm_end=on_llm_end,
+                    on_chain_end=on_chain_end,
                 )
-                agent_executor = agent_definition.get_agent()
-                agent_executor.run(input)
+                agent_executor = await agent_definition.get_agent()
+                await agent_executor.arun(input)
 
-            data_queue = Queue()
-            t = threading.Thread(target=conversation_run_thread, args=(input,))
-            t.start()
+            data_queue = asyncio.Queue()
+            asyncio.create_task(conversation_run_thread(input))
             response = StreamingResponse(
                 event_stream(data_queue), media_type="text/event-stream"
             )
 
             return response
 
-        agent_definition = AgentDefinition(
-            agent=agent,
-            has_streaming=has_streaming,
-        )
-        agent_executor = agent_definition.get_agent()
-        output = await agent_executor.arun(input)
+        else:
+            agent_definition = AgentDefinition(agent=agent, has_streaming=has_streaming)
+            agent_executor = await agent_definition.get_agent()
+            output = await agent_executor.arun(input)
+            await prisma.agentmemory.create(
+                {"author": "AI", "message": output, "agentId": agentId}
+            )
 
-        return {"success": True, "data": output}
+            return {"success": True, "data": output}
 
     return HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
