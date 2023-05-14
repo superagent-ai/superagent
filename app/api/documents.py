@@ -76,7 +76,7 @@ async def read_document(documentId: str, token=Depends(JWTBearer())):
     description="Delete a specific document",
 )
 async def delete_document(documentId: str, token=Depends(JWTBearer())):
-    """Deleta document"""
+    """Delete a document"""
     try:
         await prisma.agent.delete(where={"id": documentId})
 
