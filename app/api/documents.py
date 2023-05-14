@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.models.document import Document
 from app.lib.prisma import prisma
+from app.lib.documents import upsert_document
 
 router = APIRouter()
 
@@ -16,6 +17,10 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
         document_url = body.url
         document = await prisma.document.create(
             {"type": document_type, "url": document_url, "userId": decoded["userId"]}
+        )
+
+        await upsert_document(
+            url=document_url, type=document_type, document_id=document.id
         )
 
         return {"success": True, "data": document}
