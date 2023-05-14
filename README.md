@@ -41,6 +41,7 @@ NOTE: The roadmap is ordered based on prios.
 - [Supabase](https://supabase.com/)
 - [LangChain](https://python.langchain.com/en/latest/)
 - [Prisma](https://www.prisma.io/)
+- [Pinecone](https://www.pinecone.io/)
 
 ## Getting started
 
