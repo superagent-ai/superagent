@@ -22,8 +22,9 @@ NOTE: The roadmap is ordered based on prios.
 - [x] REST API
 - [x] Support for multiplpe LLMs
 - [x] Streaming support
-- [ ] Built-in vectorstore
-- [ ] Built-in document retrieval
+- [x] Built-in vectorstore
+- [x] Built-in document retrieval
+- [ ] Q&A Agents
 - [ ] Tools
 - [ ] ReAct Agents with Tools
 - [ ] Plan-solve Agents with Tools
