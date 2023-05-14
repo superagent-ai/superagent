@@ -1,6 +1,6 @@
 # 🥷 SuperAgent
 
-SuperAgent makes it easy to configure and deploy production ready LLM Agents.
+SuperAgent makes it easy to configure and deploy LLM Agents to production.
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/superagent" />
