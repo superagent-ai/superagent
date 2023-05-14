@@ -1,10 +1,9 @@
-import requests
 import pinecone
-
+import requests
 from decouple import config
 from langchain.document_loaders import PyPDFLoader, TextLoader
-from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores.pinecone import Pinecone
 
 pinecone.init(

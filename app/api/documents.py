@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+
 from app.lib.auth.prisma import JWTBearer, decodeJWT
+from app.lib.documents import upsert_document
 from app.lib.models.document import Document
 from app.lib.prisma import prisma
-from app.lib.documents import upsert_document
 
 router = APIRouter()
 
