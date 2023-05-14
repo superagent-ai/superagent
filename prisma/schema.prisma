@@ -18,6 +18,12 @@ enum AgentMemoryAuthorType {
   AI
 }
 
+enum DocumentType {
+  TXT
+  PDF
+  YOUTUBE
+}
+
 model User {
   id        String     @id @default(cuid()) @db.VarChar(255)
   email     String     @unique @db.VarChar(255)
@@ -29,6 +35,7 @@ model User {
   profile   Profile?
   Agent     Agent[]
   ApiToken  ApiToken[]
+  Document  Document[]
 }
 
 model Profile {
@@ -37,10 +44,24 @@ model Profile {
   user   User   @relation(fields: [userId], references: [id])
 }
 
+model Document {
+  id        String       @id @default(cuid()) @db.VarChar(255)
+  userId    String       @db.VarChar(255)
+  user      User         @relation(fields: [userId], references: [id])
+  type      DocumentType @default(TXT)
+  url       String       @db.Text()
+  createdAt DateTime?    @default(now())
+  updatedAt DateTime?    @default(now())
+  index     Json?
+  Agent     Agent[]
+}
+
 model Agent {
   id          String        @id @default(cuid()) @db.VarChar(255)
   userId      String        @db.VarChar(255)
   user        User          @relation(fields: [userId], references: [id])
+  document    Document?     @relation(fields: [documentId], references: [id])
+  documentId  String?       @db.VarChar(255)
   name        String
   type        AgentType     @default(REACT)
   llm         Json          @default("{ \"provider\": \"openai-chat\", \"model\": \"gpt-3.5-turbo\" }")
