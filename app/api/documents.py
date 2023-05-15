@@ -44,7 +44,7 @@ async def read_documents(token=Depends(JWTBearer())):
     if documents:
         return {"success": True, "data": documents}
 
-    return HTTPException(
+    raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="No agents found",
     )
@@ -82,7 +82,7 @@ async def delete_document(documentId: str, token=Depends(JWTBearer())):
 
         return {"success": True, "data": None}
     except Exception as e:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=e,
         )
