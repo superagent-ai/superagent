@@ -52,6 +52,13 @@ NOTE: The roadmap is ordered based on prios.
    git clone https://github.com/homanp/superagent.git
    ```
 
+1. Create and activate a virtual environmet.
+
+   ```sh
+   virtualenv venv
+   source venv/bin/activate
+   ```
+
 1. Install dependencies with `Poetry`
 
    ```sh
