@@ -24,7 +24,7 @@ NOTE: The roadmap is ordered based on prios.
 - [x] Streaming support
 - [x] Built-in vectorstore
 - [x] Built-in document retrieval
-- [ ] Q&A Agents
+- [x] Q&A Agents
 - [ ] Tools
 - [ ] ReAct Agents with Tools
 - [ ] Plan-solve Agents with Tools

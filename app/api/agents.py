@@ -27,6 +27,7 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
                 "name": body.name,
                 "type": body.type,
                 "llm": json.dumps(body.llm),
+                "hasMemory": body.has_memory,
                 "userId": decoded["userId"],
             },
             include={"user": True},
@@ -100,14 +101,17 @@ async def run_agent(
 ):
     """Agent detail endpoint"""
     input = body.input
-
     has_streaming = body.has_streaming
     agent = await prisma.agent.find_unique(
-        where={"id": agentId}, include={"user": True}
+        where={"id": agentId}, include={"user": True, "document": True}
     )
 
     await prisma.agentmemory.create(
-        {"author": "HUMAN", "message": input["human_input"], "agentId": agentId}
+        {
+            "author": "HUMAN",
+            "message": input.get("human_input", input.get("question", "")),
+            "agentId": agentId,
+        }
     )
 
     if agent:

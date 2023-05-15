@@ -5,6 +5,7 @@ class Agent(BaseModel):
     name: str
     type: str
     llm: dict = None
+    has_memory: bool = False
 
 
 class PredictAgent(BaseModel):
