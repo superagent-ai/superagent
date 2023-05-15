@@ -53,7 +53,7 @@ async def read_agents(token=Depends(JWTBearer())):
     if agents:
         return {"success": True, "data": agents}
 
-    return HTTPException(
+    raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="No agents found",
     )
@@ -85,7 +85,7 @@ async def delete_agent(agentId: str, token=Depends(JWTBearer())):
 
         return {"success": True, "data": None}
     except Exception as e:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_404_INTERNAL_SERVER_ERROR,
             detail=e,
         )
@@ -168,7 +168,7 @@ async def run_agent(
 
             return {"success": True, "data": output}
 
-    return HTTPException(
+    raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Agent with id: {agentId} not found",
     )
