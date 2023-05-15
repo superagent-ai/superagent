@@ -1,4 +1,5 @@
-from langchain import PromptTemplate
+# flake8: noqa
+from langchain.prompts.prompt import PromptTemplate
 
 default_chat_template = """Assistant is a large language model trained by OpenAI.
 
@@ -7,11 +8,11 @@ simple questions to providing in-depth explanations and discussions on a wide ra
 topics.
 
 
-{history}
+{chat_history}
 Human: {human_input}
 Assitant:
 """
 
 default_chat_prompt = PromptTemplate(
-    input_variables=["history", "human_input"], template=default_chat_template
+    input_variables=["chat_history", "human_input"], template=default_chat_template
 )
