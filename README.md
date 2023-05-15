@@ -72,7 +72,7 @@ NOTE: The roadmap is ordered based on prios.
 1. Run the project
 
    ```sh
-   uvicorn main:app --reload
+   uvicorn app.main:app --reload
    ```
 
 ## Deployment
