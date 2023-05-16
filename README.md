@@ -1,6 +1,4 @@
-# 🥷 SuperAgent
-
-SuperAgent makes it easy to configure and deploy LLM Agents to production.
+# SuperAgent 🥷
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/superagent" />
@@ -11,65 +9,82 @@ SuperAgent makes it easy to configure and deploy LLM Agents to production.
 <img alt="Github License" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
 </p>
 
+SuperAgent is a powerful tool that simplifies the configuration and deployment of LLM (Language Model) Agents to production. It provides a range of features and functionalities to make it easier for developers to work with LLMs and create conversational agents.
+
 ## Roadmap
 
-NOTE: The roadmap is ordered based on prios.
+Here's an overview of the roadmap for SuperAgent:
 
-- [x] Bring you own DB
-- [x] Authentication
-- [x] ChatGPT clone
-- [x] Built-in memory
-- [x] REST API
-- [x] Support for multiplpe LLMs
-- [x] Streaming support
-- [x] Built-in vectorstore
-- [x] Built-in document retrieval
-- [x] Q&A Agents
-- [ ] Tools
-- [ ] ReAct Agents with Tools
-- [ ] Plan-solve Agents with Tools
-- [ ] Prompt management
-- [ ] Bring you own LLM
-- [ ] Usage quotas and tracking
-- [ ] Python SDK
-- [ ] Typescript SDK
-- [ ] SuperAgent CLI
-- [ ] One-click deploy (GCP, Amazon, Digitalocean)
+- [x] Bring your own DB: SuperAgent allows you to use your own database to store agent-related data.
+- [x] Authentication: Authentication mechanisms are implemented to secure the SuperAgent application.
+- [x] ChatGPT clone: SuperAgent includes a clone of ChatGPT, a powerful conversational AI model.
+- [x] Built-in memory: SuperAgent has a built-in memory to store context and information during conversations.
+- [x] REST API: SuperAgent provides a REST API to interact with the agents and perform various operations.
+- [x] Support for multiple LLMs: SuperAgent supports multiple Language Models, allowing you to choose the most suitable one for your needs.
+- [x] Streaming support: SuperAgent supports streaming conversations for real-time communication.
+- [x] Built-in vectorstore: SuperAgent includes a built-in vector store for efficient vector-based search and retrieval.
+- [x] Built-in document retrieval: SuperAgent offers document retrieval capabilities for finding relevant information.
+- [x] Q&A Agents: SuperAgent supports the creation of Q&A agents for answering specific questions.
+- [ ] Tools: SuperAgent includes various tools to enhance agent development and management.
+- [ ] ReAct Agents with Tools: SuperAgent enables the creation of reactive agents with the help of provided tools.
+- [ ] Plan-solve Agents with Tools: SuperAgent supports the creation of plan-solve agents with the help of provided tools.
+- [ ] Prompt management: SuperAgent includes features for managing and configuring prompts for the agents.
+- [ ] Bring your own LLM: SuperAgent allows you to bring your own Language Model to use with the platform.
+- [ ] Usage quotas and tracking: SuperAgent provides usage quotas and tracking mechanisms for better resource management.
+- [ ] Python SDK: SuperAgent offers a Python Software Development Kit (SDK) for easier integration and development.
+- [ ] Typescript SDK: SuperAgent provides a Typescript SDK for developers who prefer using Typescript.
+- [ ] SuperAgent CLI: SuperAgent includes a command-line interface (CLI) for managing and deploying agents.
+- [ ] One-click deploy (GCP, Amazon, DigitalOcean): SuperAgent aims to provide a one-click deploy feature for popular cloud platforms like GCP, Amazon, and DigitalOcean.
 
 ## Stack
 
-- [FastAPI](https://fastapi.tiangolo.com/)
-- [Supabase](https://supabase.com/)
-- [LangChain](https://python.langchain.com/en/latest/)
-- [Prisma](https://www.prisma.io/)
-- [Pinecone](https://www.pinecone.io/)
+SuperAgent is built on the following technologies and frameworks:
 
-## Getting started
+- [FastAPI](https://fastapi.tiangolo.com/): A modern, fast (high-performance) web framework for building APIs with Python.
+- [Supabase](https://supabase.com/): An open-source alternative to Firebase that provides a suite of tools for building scalable applications.
+- [LangChain](https://python.langchain.com/en/latest/): A Python library for natural language processing and understanding.
+- [Prisma](https://www.prisma.io/): A modern database toolkit that simplifies database access and management.
+- [Pinecone](https://www.pinecone.io/): A vector database that enables fast similarity search and retrieval.
 
-1. Clone the repo into a public GitHub repository (or fork https://github.com/homanp/superagent/fork). If you plan to distribute the code, keep the source code public.
+## Getting Started
+
+To get started with SuperAgent, follow these steps:
+
+1. Clone the SuperAgent repository into a public GitHub repository or fork it from [https://github.com/homanp/superagent/fork](https://github.com/homanp/superagent/fork). If you plan to distribute the code, keep the source code public.
 
    ```sh
+
+
    git clone https://github.com/homanp/superagent.git
    ```
 
-1. Create and activate a virtual environmet.
+2. Create and activate a virtual environment.
 
    ```sh
    virtualenv venv
    source venv/bin/activate
    ```
 
-1. Install dependencies with `Poetry`
+3. Install dependencies using `Poetry`.
 
    ```sh
    poetry install
    ```
 
-1. Set up your .env file
+4. Set up your `.env` file.
 
-   - Duplicate `.env.example` to `.env`
+   ```sh 
+   cp .env.example .env
+   ```
+   - Configure the environment variables according to your requirements.
 
-1. Run the project
+5. Run database migrations.
+ 
+   ```sh
+   poetry run prisma migrate dev
+   ```
+
+6. Run the SuperAgent project.
 
    ```sh
    uvicorn app.main:app --reload
@@ -77,10 +92,12 @@ NOTE: The roadmap is ordered based on prios.
 
 ## Deployment
 
+You can deploy SuperAgent using the "Deploy to DO" button, which will take you to the DigitalOcean App platform for easy deployment. Click on the button below to deploy:
+
 [![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/homanp/superagent/tree/main)
 
 ## Contributions
 
-Our mission is to make it easy for anyone to create and run LLM Agents in production. We are super happy for any contributions you would like to make. Create new features, fix bugs or improve on infra.
+SuperAgent is an open-source project, and contributions are welcome. If you would like to contribute, you can create new features, fix bugs, or improve the infrastructure. Please refer to the [CONTRIBUTING.md](https://github.com/homanp/superagent/blob/main/.github/CONTRIBUTING.md) file in the repository for more information on how to contribute.
 
-You can read more on how to contribute [here](https://github.com/homanp/superagent/blob/main/.github/CONTRIBUTING.md).
+We appreciate your contributions and aim to make it easy for anyone to create and run LLM Agents in production using SuperAgent.
