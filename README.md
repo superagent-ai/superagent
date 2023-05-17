@@ -19,27 +19,27 @@ Checkout the [full documentation here](https://superagent.mintlify.app/).
 
 Here's an overview of the roadmap for SuperAgent:
 
-- [x] Bring your own DB: SuperAgent allows you to use your own database to store agent-related data.
-- [x] Authentication: Authentication mechanisms are implemented to secure the SuperAgent application.
-- [x] ChatGPT clone: SuperAgent supports chatGPT-like conversational AI.
-- [x] Built-in memory: SuperAgent has a built-in memory to give context and history to the LLM.
-- [x] REST API: All functionality is exposed by a REST API.
-- [x] Support for multiple LLMs: SuperAgent supports multiple Language Models, allowing you to choose the most suitable one for your needs.
-- [x] Streaming support: SuperAgent supports streaming conversations for real-time communication.
-- [x] Built-in vectorstore: SuperAgent includes a built-in vector store for efficient vector-based search and retrieval.
-- [x] Built-in document retrieval: SuperAgent offers document retrieval capabilities.
-- [x] Q&A Agents: SuperAgent supports the creation of Q&A agents for question answering over documents.
-- [ ] Tools: SuperAgent will include a wide variety of tools that enable the LLM to access the outside world.
-- [ ] ReAct Agents with Tools: SuperAgent enables the creation of reactive agents with the help of provided tools.
-- [ ] Plan-solve Agents with Tools: SuperAgent supports the creation of plan-solve agents with the help of provided tools.
-- [ ] Prompt management: SuperAgent includes features for managing and configuring prompts for the agents.
-- [ ] Bring your own LLM: SuperAgent allows you to bring your own Language Model to use with the platform.
-- [ ] Usage quotas and tracking: SuperAgent provides usage quotas and tracking mechanisms for better resource management.
-- [ ] Python SDK: SuperAgent offers a Python Software Development Kit (SDK) for easier integration and development.
-- [ ] Javascript SDK: SuperAgent provides a Javascript SDK for developers who prefer using Javascript.
-- [ ] NodeJS SDK: SuperAgent provides a NodeJS SDK for developers who prefer using Node.
-- [ ] SuperAgent CLI: SuperAgent includes a command-line interface (CLI) for managing and deploying agents.
-- [ ] One-click deploy (GCP, Amazon, DigitalOcean): SuperAgent aims to provide a one-click deploy feature for popular cloud platforms like GCP, Amazon, and DigitalOcean.
+- [x] **Bring your own DB:** SuperAgent allows you to use your own database to store agent-related data.
+- [x] **Authentication:** Authentication mechanisms are implemented to secure the SuperAgent application.
+- [x] **ChatGPT clone:** SuperAgent supports chatGPT-like conversational AI.
+- [x] **Built-in memory:** SuperAgent has a built-in memory to give context and history to the LLM.
+- [x] **REST API:** All functionality is exposed by a REST API.
+- [x] **Support for multiple LLMs:** SuperAgent supports multiple Language Models, allowing you to choose the most suitable one for your needs.
+- [x] **Streaming support:** SuperAgent supports streaming conversations for real-time communication.
+- [x] **Built-in vectorstore:** SuperAgent includes a built-in vector store for efficient vector-based search and retrieval.
+- [x] **Built-in document retrieval:** SuperAgent offers document retrieval capabilities.
+- [x] **Q&A Agents:** SuperAgent supports the creation of Q&A agents for question answering over documents.
+- [ ] **Tools:** SuperAgent will include a wide variety of tools that enable the LLM to access the outside world.
+- [ ] **ReAct Agents with Tools:** SuperAgent enables the creation of reactive agents with the help of provided tools.
+- [ ] **Plan-solve Agents with Tools:** SuperAgent supports the creation of plan-solve agents with the help of provided tools.
+- [ ] **Prompt management:** SuperAgent includes features for managing and configuring prompts for the agents.
+- [ ] **Bring your own LLM:** SuperAgent allows you to bring your own Language Model to use with the platform.
+- [ ] **Usage quotas and tracking:** SuperAgent provides usage quotas and tracking mechanisms for better resource management.
+- [ ] **Python SDK:** SuperAgent offers a Python Software Development Kit (SDK) for easier integration and development.
+- [ ] **Javascript SDK:** SuperAgent provides a Javascript SDK for developers who prefer using Javascript.
+- [ ] **NodeJS SDK:** SuperAgent provides a NodeJS SDK for developers who prefer using Node.
+- [ ] **uperAgent CLI:** SuperAgent includes a command-line interface (CLI) for managing and deploying agents.
+- [ ] **One-click deploy (GCP, Amazon, DigitalOcean):** SuperAgent aims to provide a one-click deploy feature for popular cloud platforms like GCP, Amazon, and DigitalOcean.
 
 ## Stack
 

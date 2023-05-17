@@ -101,6 +101,7 @@ async def run_agent(
 ):
     """Agent detail endpoint"""
     input = body.input
+    input["chat_history"] = []
     has_streaming = body.has_streaming
     agent = await prisma.agent.find_unique(
         where={"id": agentId}, include={"user": True, "document": True}
