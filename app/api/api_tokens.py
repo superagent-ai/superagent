@@ -57,7 +57,7 @@ async def read_api_tokens(token=Depends(JWTBearer())):
     name="Get API token",
     description="Get a specific API token",
 )
-async def read_agent(tokenId: str, token=Depends(JWTBearer())):
+async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
     """Get an api token endpoint"""
     api_token = await prisma.apitoken.find_unique(
         where={"id": tokenId}, include={"user": True}

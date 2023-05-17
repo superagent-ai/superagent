@@ -71,14 +71,14 @@ async def read_document(documentId: str, token=Depends(JWTBearer())):
 
 
 @router.delete(
-    "/agents/{documentId}",
+    "/documents/{documentId}",
     name="Delete document",
     description="Delete a specific document",
 )
 async def delete_document(documentId: str, token=Depends(JWTBearer())):
     """Delete a document"""
     try:
-        await prisma.agent.delete(where={"id": documentId})
+        await prisma.document.delete(where={"id": documentId})
 
         return {"success": True, "data": None}
     except Exception as e:
