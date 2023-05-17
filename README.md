@@ -9,7 +9,11 @@
 <img alt="Github License" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
 </p>
 
-SuperAgent is a powerful tool that simplifies the configuration and deployment of LLM (Language Model) Agents to production. It provides a range of features and functionalities to make it easier for developers to work with LLMs and create conversational agents.
+SuperAgent is a powerful tool that simplifies the configuration and deployment of LLM (Large Language Model) Agents to production. It provides a range of features and functionalities to make it easier for developers to build, manage and deploy AI agents to production.
+
+## Documentation
+
+Checkout the [full documentation here](https://superagent.mintlify.app/).
 
 ## Roadmap
 
@@ -17,22 +21,23 @@ Here's an overview of the roadmap for SuperAgent:
 
 - [x] Bring your own DB: SuperAgent allows you to use your own database to store agent-related data.
 - [x] Authentication: Authentication mechanisms are implemented to secure the SuperAgent application.
-- [x] ChatGPT clone: SuperAgent includes a clone of ChatGPT, a powerful conversational AI model.
-- [x] Built-in memory: SuperAgent has a built-in memory to store context and information during conversations.
-- [x] REST API: SuperAgent provides a REST API to interact with the agents and perform various operations.
+- [x] ChatGPT clone: SuperAgent supports chatGPT-like conversational AI.
+- [x] Built-in memory: SuperAgent has a built-in memory to give context and history to the LLM.
+- [x] REST API: All functionality is exposed by a REST API.
 - [x] Support for multiple LLMs: SuperAgent supports multiple Language Models, allowing you to choose the most suitable one for your needs.
 - [x] Streaming support: SuperAgent supports streaming conversations for real-time communication.
 - [x] Built-in vectorstore: SuperAgent includes a built-in vector store for efficient vector-based search and retrieval.
-- [x] Built-in document retrieval: SuperAgent offers document retrieval capabilities for finding relevant information.
-- [x] Q&A Agents: SuperAgent supports the creation of Q&A agents for answering specific questions.
-- [ ] Tools: SuperAgent includes various tools to enhance agent development and management.
+- [x] Built-in document retrieval: SuperAgent offers document retrieval capabilities.
+- [x] Q&A Agents: SuperAgent supports the creation of Q&A agents for question answering over documents.
+- [ ] Tools: SuperAgent will include a wide variety of tools that enable the LLM to access the outside world.
 - [ ] ReAct Agents with Tools: SuperAgent enables the creation of reactive agents with the help of provided tools.
 - [ ] Plan-solve Agents with Tools: SuperAgent supports the creation of plan-solve agents with the help of provided tools.
 - [ ] Prompt management: SuperAgent includes features for managing and configuring prompts for the agents.
 - [ ] Bring your own LLM: SuperAgent allows you to bring your own Language Model to use with the platform.
 - [ ] Usage quotas and tracking: SuperAgent provides usage quotas and tracking mechanisms for better resource management.
 - [ ] Python SDK: SuperAgent offers a Python Software Development Kit (SDK) for easier integration and development.
-- [ ] Typescript SDK: SuperAgent provides a Typescript SDK for developers who prefer using Typescript.
+- [ ] Javascript SDK: SuperAgent provides a Javascript SDK for developers who prefer using Javascript.
+- [ ] NodeJS SDK: SuperAgent provides a NodeJS SDK for developers who prefer using Node.
 - [ ] SuperAgent CLI: SuperAgent includes a command-line interface (CLI) for managing and deploying agents.
 - [ ] One-click deploy (GCP, Amazon, DigitalOcean): SuperAgent aims to provide a one-click deploy feature for popular cloud platforms like GCP, Amazon, and DigitalOcean.
 
@@ -73,13 +78,14 @@ To get started with SuperAgent, follow these steps:
 
 4. Set up your `.env` file.
 
-   ```sh 
+   ```sh
    cp .env.example .env
    ```
+
    - Configure the environment variables according to your requirements.
 
 5. Run database migrations.
- 
+
    ```sh
    poetry run prisma migrate dev
    ```
@@ -91,8 +97,6 @@ To get started with SuperAgent, follow these steps:
    ```
 
 ## Deployment
-
-You can deploy SuperAgent using the "Deploy to DO" button, which will take you to the DigitalOcean App platform for easy deployment. Click on the button below to deploy:
 
 [![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/homanp/superagent/tree/main)
 
