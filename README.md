@@ -38,7 +38,7 @@ Here's an overview of the roadmap for SuperAgent:
 - [ ] **Python SDK:** SuperAgent offers a Python Software Development Kit (SDK) for easier integration and development.
 - [ ] **Javascript SDK:** SuperAgent provides a Javascript SDK for developers who prefer using Javascript.
 - [ ] **NodeJS SDK:** SuperAgent provides a NodeJS SDK for developers who prefer using Node.
-- [ ] **uperAgent CLI:** SuperAgent includes a command-line interface (CLI) for managing and deploying agents.
+- [ ] **SuperAgent CLI:** SuperAgent includes a command-line interface (CLI) for managing and deploying agents.
 - [ ] **One-click deploy (GCP, Amazon, DigitalOcean):** SuperAgent aims to provide a one-click deploy feature for popular cloud platforms like GCP, Amazon, and DigitalOcean.
 
 ## Stack
