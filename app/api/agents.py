@@ -47,7 +47,7 @@ async def read_agents(token=Depends(JWTBearer())):
     """Agents endpoint"""
     decoded = decodeJWT(token)
     agents = await prisma.agent.find_many(
-        where={"userId": decoded["userId"]}, include={"user": True}
+        where={"userId": decoded["userId"]}, include={"user": True, "document": True}
     )
 
     if agents:
