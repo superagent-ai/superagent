@@ -47,7 +47,12 @@ async def read_agents(token=Depends(JWTBearer())):
     """Agents endpoint"""
     decoded = decodeJWT(token)
     agents = await prisma.agent.find_many(
-        where={"userId": decoded["userId"]}, include={"user": True, "document": True}
+        where={"userId": decoded["userId"]},
+        include={
+            "user": True,
+            "document": True,
+        },
+        order={"createdAt": "desc"},
     )
 
     if agents:
@@ -79,9 +84,25 @@ async def read_agent(agentId: str, token=Depends(JWTBearer())):
     "/agents/{agentId}", name="Delete agent", description="Delete a specific agent"
 )
 async def delete_agent(agentId: str, token=Depends(JWTBearer())):
-    """Deleta agent endpoint"""
+    """Delete agent endpoint"""
     try:
         await prisma.agent.delete(where={"id": agentId})
+
+        return {"success": True, "data": None}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_INTERNAL_SERVER_ERROR,
+            detail=e,
+        )
+
+
+@router.patch(
+    "/agents/{agentId}", name="Delete agent", description="Delete a specific agent"
+)
+async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
+    """Patch agent endpoint"""
+    try:
+        await prisma.agent.update(data=body, where={"id": agentId})
 
         return {"success": True, "data": None}
     except Exception as e:

@@ -50,6 +50,7 @@ model Document {
   user      User         @relation(fields: [userId], references: [id])
   type      DocumentType @default(TXT)
   url       String       @db.Text()
+  name      String
   createdAt DateTime?    @default(now())
   updatedAt DateTime?    @default(now())
   index     Json?
@@ -67,6 +68,8 @@ model Agent {
   llm         Json          @default("{ \"provider\": \"openai-chat\", \"model\": \"gpt-3.5-turbo\" }")
   hasMemory   Boolean       @default(false)
   AgentMemory AgentMemory[]
+  createdAt   DateTime?     @default(now())
+  updatedAt   DateTime?     @default(now())
 }
 
 model ApiToken {

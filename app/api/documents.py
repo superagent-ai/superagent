@@ -16,12 +16,20 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
         decoded = decodeJWT(token)
         document_type = body.type
         document_url = body.url
+        document_name = body.name
         document = await prisma.document.create(
-            {"type": document_type, "url": document_url, "userId": decoded["userId"]}
+            {
+                "type": document_type,
+                "url": document_url,
+                "userId": decoded["userId"],
+                "name": document_name,
+            }
         )
 
         await upsert_document(
-            url=document_url, type=document_type, document_id=document.id
+            url=document_url,
+            type=document_type,
+            document_id=document.id,
         )
 
         return {"success": True, "data": document}
