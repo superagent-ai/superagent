@@ -16,7 +16,8 @@ async def sign_in(signIn: SignIn):
     user = await prisma.user.find_first(
         where={
             "email": signIn.email,
-        }
+        },
+        include={"profile": True},
     )
     validated = validatePassword(signIn.password, user.password)
     del user.password

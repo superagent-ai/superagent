@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_MIGRATION_URL")
 }
 
 enum AgentType {
@@ -39,9 +39,10 @@ model User {
 }
 
 model Profile {
-  id     String @id @default(cuid()) @db.VarChar(255)
-  userId String @unique @db.VarChar(255)
-  user   User   @relation(fields: [userId], references: [id])
+  id       String @id @default(cuid()) @db.VarChar(255)
+  userId   String @unique @db.VarChar(255)
+  user     User   @relation(fields: [userId], references: [id])
+  metadata Json?  @default("{}")
 }
 
 model Document {
