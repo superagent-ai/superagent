@@ -67,7 +67,7 @@ async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
         return {"success": True, "data": api_token}
 
     raise HTTPException(
-        status_code=status.HTTP_404_INTERNAL_SERVER_ERROR,
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail=f"API token with id: {tokenId} not found",
     )
 
@@ -85,6 +85,6 @@ async def delete_api_token(tokenId: str, token=Depends(JWTBearer())):
         return {"success": True, "data": None}
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_404_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=e,
         )
