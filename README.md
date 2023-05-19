@@ -58,42 +58,12 @@ To get started with SuperAgent, follow these steps:
 1. Clone the SuperAgent repository into a public GitHub repository or fork it from [https://github.com/homanp/superagent/fork](https://github.com/homanp/superagent/fork). If you plan to distribute the code, keep the source code public.
 
    ```sh
-
-
    git clone https://github.com/homanp/superagent.git
    ```
 
-2. Create and activate a virtual environment.
-
+2. To run the script, simply execute it using:
    ```sh
-   virtualenv venv
-   source venv/bin/activate
-   ```
-
-3. Install dependencies using `Poetry`.
-
-   ```sh
-   poetry install
-   ```
-
-4. Set up your `.env` file.
-
-   ```sh
-   cp .env.example .env
-   ```
-
-   - Configure the environment variables according to your requirements.
-
-5. Run database migrations.
-
-   ```sh
-   poetry run prisma migrate dev
-   ```
-
-6. Run the SuperAgent project.
-
-   ```sh
-   uvicorn app.main:app --reload
+   bash setup.sh
    ```
 
 ## Deployment
