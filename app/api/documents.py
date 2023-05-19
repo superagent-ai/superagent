@@ -8,7 +8,7 @@ from app.lib.prisma import prisma
 router = APIRouter()
 
 
-@router.post("/documents/", name="Create document", description="Create a new document")
+@router.post("/documents", name="Create document", description="Create a new document")
 async def create_document(body: Document, token=Depends(JWTBearer())):
     """Create document endpoint"""
 
@@ -41,7 +41,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
         )
 
 
-@router.get("/documents/", name="List documents", description="List all documents")
+@router.get("/documents", name="List documents", description="List all documents")
 async def read_documents(token=Depends(JWTBearer())):
     """List documents endpoint"""
     decoded = decodeJWT(token)

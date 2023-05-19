@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/api-tokens/", name="Create API token", description="Create a new API token"
+    "/api-tokens", name="Create API token", description="Create a new API token"
 )
 async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
     """Create api token endpoint"""
@@ -35,7 +35,7 @@ async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
         )
 
 
-@router.get("/api-tokens/", name="List API tokens", description="List all API tokens")
+@router.get("/api-tokens", name="List API tokens", description="List all API tokens")
 async def read_api_tokens(token=Depends(JWTBearer())):
     """List api tokens endpoint"""
     decoded = decodeJWT(token)
