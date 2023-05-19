@@ -1,4 +1,4 @@
-FROM python:3.11 AS builder
+FROM python:3.11
 # Use the python latest image
 
 RUN pip install poetry
@@ -16,14 +16,7 @@ COPY pyproject.toml poetry.lock ./
 # Install the required packages of the application into .venv
 RUN poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR
 
-FROM python:3.11 AS runtime
-
-ENV PATH="/app/.venv/bin:$PATH"
-ENV PORT="8080"
-
-COPY --from=builder /app/.venv /app/.venv
-
 COPY . ./
 
 # Bind the port and refer to the app.py app
-CMD exec gunicorn --bind :$PORT --workers 1 --worker-class uvicorn.workers.UvicornWorker  --threads 8 app.main:app
+CMD exec gunicorn --bind :$PORT --workers 1 --worker-class uvicorn.workers.UvicornWorker --timeout 0 --threads 8 app.main:app
