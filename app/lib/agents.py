@@ -41,20 +41,23 @@ class Agent:
     async def _get_api_key(self) -> str:
         if self.llm["provider"] == "openai-chat" or self.llm["provider"] == "openai":
             return (
-                self.llm["api_key"] if self.llm["api_key"] else config("OPENAI_API_KEY")
+                self.llm["api_key"]
+                if "api_key" in self.llm
+                else config("OPENAI_API_KEY")
             )
         if self.llm["provider"] == "anthropic":
             return (
                 self.llm["api_key"]
-                if self.llm["api_key"]
+                if "api_key" in self.llm
                 else config("ANTHROPIC_API_KEY")
             )
 
     async def _get_llm(self) -> Any:
         if self.llm["provider"] == "openai-chat":
+            print(await self._get_api_key())
             return (
                 ChatOpenAI(
-                    openai_api_key=self._get_api_key(),
+                    openai_api_key=await self._get_api_key(),
                     model_name=self.llm["model"],
                     streaming=self.has_streaming,
                     callbacks=[
@@ -71,20 +74,21 @@ class Agent:
 
         if self.llm["provider"] == "openai":
             return OpenAI(
-                model_name=self.llm["model"], openai_api_key=self._get_api_key()
+                model_name=self.llm["model"], openai_api_key=await self._get_api_key()
             )
 
         if self.llm["provider"] == "anthropic":
             return (
                 ChatAnthropic(
-                    streaming=self.has_streaming, anthropic_api_key=self._get_api_key()
+                    streaming=self.has_streaming,
+                    anthropic_api_key=await self._get_api_key(),
                 )
                 if self.has_streaming
-                else ChatAnthropic(anthropic_api_key=self._get_api_key())
+                else ChatAnthropic(anthropic_api_key=await self._get_api_key())
             )
 
         # Use ChatOpenAI as default llm in agents
-        return ChatOpenAI(temperature=0, openai_api_key=self._get_api_key())
+        return ChatOpenAI(temperature=0, openai_api_key=await self._get_api_key())
 
     async def _get_memory(self) -> Any:
         if self.has_memory:
