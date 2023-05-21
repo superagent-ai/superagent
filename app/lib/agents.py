@@ -1,12 +1,13 @@
 from typing import Any
 
+from decouple import config
 from langchain.chains import ConversationalRetrievalChain, LLMChain
 from langchain.chains.conversational_retrieval.prompts import (
     CONDENSE_QUESTION_PROMPT,
     QA_PROMPT,
 )
 from langchain.chains.question_answering import load_qa_chain
-from langchain.chat_models import ChatOpenAI, ChatAnthropic
+from langchain.chat_models import ChatAnthropic, ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
@@ -37,10 +38,26 @@ class Agent:
         self.on_llm_end = on_llm_end
         self.on_chain_end = on_chain_end
 
+    async def _get_api_key(self) -> str:
+        if self.llm["provider"] == "openai-chat" or self.llm["provider"] == "openai":
+            return (
+                self.llm["api_key"]
+                if "api_key" in self.llm
+                else config("OPENAI_API_KEY")
+            )
+        if self.llm["provider"] == "anthropic":
+            return (
+                self.llm["api_key"]
+                if "api_key" in self.llm
+                else config("ANTHROPIC_API_KEY")
+            )
+
     async def _get_llm(self) -> Any:
         if self.llm["provider"] == "openai-chat":
+            print(await self._get_api_key())
             return (
                 ChatOpenAI(
+                    openai_api_key=await self._get_api_key(),
                     model_name=self.llm["model"],
                     streaming=self.has_streaming,
                     callbacks=[
@@ -56,17 +73,22 @@ class Agent:
             )
 
         if self.llm["provider"] == "openai":
-            return OpenAI(model_name=self.llm["model"])
+            return OpenAI(
+                model_name=self.llm["model"], openai_api_key=await self._get_api_key()
+            )
 
         if self.llm["provider"] == "anthropic":
             return (
-                ChatAnthropic(streaming=self.has_streaming)
+                ChatAnthropic(
+                    streaming=self.has_streaming,
+                    anthropic_api_key=await self._get_api_key(),
+                )
                 if self.has_streaming
-                else ChatAnthropic()
+                else ChatAnthropic(anthropic_api_key=await self._get_api_key())
             )
 
         # Use ChatOpenAI as default llm in agents
-        return ChatOpenAI(temperature=0)
+        return ChatOpenAI(temperature=0, openai_api_key=await self._get_api_key())
 
     async def _get_memory(self) -> Any:
         if self.has_memory:
