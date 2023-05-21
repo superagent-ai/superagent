@@ -6,7 +6,7 @@ from langchain.chains.conversational_retrieval.prompts import (
     QA_PROMPT,
 )
 from langchain.chains.question_answering import load_qa_chain
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models import ChatOpenAI, ChatAnthropic
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
@@ -57,6 +57,9 @@ class Agent:
 
         if self.llm["provider"] == "openai":
             return OpenAI(model_name=self.llm["model"])
+
+        if self.llm["provider"] == "anthropic":
+            return ChatAnthropic()
 
         # Use ChatOpenAI as default llm in agents
         return ChatOpenAI(temperature=0)
