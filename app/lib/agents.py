@@ -1,3 +1,6 @@
+import os
+
+
 from typing import Any
 
 from langchain.chains import ConversationalRetrievalChain, LLMChain
@@ -8,7 +11,8 @@ from langchain.chains.conversational_retrieval.prompts import (
 from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.llms import OpenAI
+from langchain.llms import OpenAI, GPT4All
+
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.vectorstores.pinecone import Pinecone
 
@@ -57,6 +61,18 @@ class Agent:
 
         if self.llm["provider"] == "openai":
             return OpenAI(model_name=self.llm["model"])
+
+        if self.llm["provider"] == "gpt4all":
+            current_directory = os.path.dirname(os.path.abspath(__file__))
+            parent_directory = os.path.abspath(
+                os.path.join(current_directory, "..", "..")
+            )
+            local_path = os.path.join(parent_directory, "models", self.llm["model"])
+
+            return GPT4All(
+                model=local_path,
+                verbose=False,
+            )
 
         # Use ChatOpenAI as default llm in agents
         return ChatOpenAI(temperature=0)
