@@ -1,5 +1,6 @@
 from typing import Any
 
+from decouple import config
 from langchain.chains import ConversationalRetrievalChain, LLMChain
 from langchain.chains.conversational_retrieval.prompts import (
     CONDENSE_QUESTION_PROMPT,
@@ -39,8 +40,15 @@ class Agent:
 
     async def _get_llm(self) -> Any:
         if self.llm["provider"] == "openai-chat":
+            api_key = (
+                self.llm["api_key"]
+                if self.llm["api_key"]
+                else config("ANTHROPIC_API_KEY")
+            )
+
             return (
                 ChatOpenAI(
+                    openai_api_key=api_key,
                     model_name=self.llm["model"],
                     streaming=self.has_streaming,
                     callbacks=[
@@ -56,13 +64,23 @@ class Agent:
             )
 
         if self.llm["provider"] == "openai":
-            return OpenAI(model_name=self.llm["model"])
+            api_key = (
+                self.llm["api_key"]
+                if self.llm["api_key"]
+                else config("ANTHROPIC_API_KEY")
+            )
+            return OpenAI(model_name=self.llm["model"], openai_api_key=api_key)
 
         if self.llm["provider"] == "anthropic":
+            api_key = (
+                self.llm["api_key"]
+                if self.llm["api_key"]
+                else config("ANTHROPIC_API_KEY")
+            )
             return (
-                ChatAnthropic(streaming=self.has_streaming)
+                ChatAnthropic(streaming=self.has_streaming, anthropic_api_key=api_key)
                 if self.has_streaming
-                else ChatAnthropic()
+                else ChatAnthropic(anthropic_api_key=api_key)
             )
 
         # Use ChatOpenAI as default llm in agents
