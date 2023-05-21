@@ -59,7 +59,11 @@ class Agent:
             return OpenAI(model_name=self.llm["model"])
 
         if self.llm["provider"] == "anthropic":
-            return ChatAnthropic()
+            return (
+                ChatAnthropic(streaming=self.has_streaming)
+                if self.has_streaming
+                else ChatAnthropic()
+            )
 
         # Use ChatOpenAI as default llm in agents
         return ChatOpenAI(temperature=0)
