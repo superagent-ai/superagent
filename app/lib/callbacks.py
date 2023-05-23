@@ -12,7 +12,7 @@ class StreamingCallbackHandler(AsyncCallbackHandler):
         self.on_llm_end_ = on_llm_end_
         self.on_chain_end_ = on_chain_end_
 
-    def on_llm_start(
+    async def on_llm_start(
         self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any
     ) -> None:
         """Print out the prompts."""

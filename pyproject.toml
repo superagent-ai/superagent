@@ -11,7 +11,7 @@ python = "^3.9"
 fastapi = {extras = ["all"], version = "^0.95.1"}
 uvicorn = {extras = ["standard"], version = "^0.22.0"}
 gunicorn = "^20.1.0"
-langchain = "^0.0.161"
+langchain = "^0.0.177"
 openai = "^0.27.6"
 requests = "2.29.0"
 python-dotenv = "^1.0.0"

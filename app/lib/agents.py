@@ -1,6 +1,9 @@
 from typing import Any
 
+import langchain
 from decouple import config
+from langchain.agents import AgentType, initialize_agent
+from langchain.agents.agent_toolkits import NLAToolkit
 from langchain.chains import ConversationalRetrievalChain, LLMChain
 from langchain.chains.conversational_retrieval.prompts import (
     CONDENSE_QUESTION_PROMPT,
@@ -15,7 +18,9 @@ from langchain.vectorstores.pinecone import Pinecone
 
 from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.prisma import prisma
-from app.lib.prompts import default_chat_prompt
+from app.lib.prompts import default_chat_prompt, openapi_format_instructions
+
+langchain.debug = False
 
 
 class Agent:
@@ -54,7 +59,6 @@ class Agent:
 
     async def _get_llm(self) -> Any:
         if self.llm["provider"] == "openai-chat":
-            print(await self._get_api_key())
             return (
                 ChatOpenAI(
                     openai_api_key=await self._get_api_key(),
@@ -127,7 +131,8 @@ class Agent:
         llm = await self._get_llm()
         memory = await self._get_memory()
         document = await self._get_document()
-        if document:
+
+        if self.document and self.document.type != "OPENAPI":
             question_generator = LLMChain(
                 llm=OpenAI(temperature=0), prompt=CONDENSE_QUESTION_PROMPT
             )
@@ -141,6 +146,21 @@ class Agent:
                 memory=memory,
                 get_chat_history=lambda h: h,
             )
+
+        elif self.document and self.document.type == "OPENAPI":
+            openapi_toolkit = NLAToolkit.from_llm_and_url(llm, self.document.url)
+            tools = openapi_toolkit.get_tools()
+            mrkl = initialize_agent(
+                tools=tools,
+                llm=llm,
+                agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+                verbose=True,
+                max_iterations=1,
+                early_stopping_method="generate",
+                agent_kwargs={"format_instructions": openapi_format_instructions},
+            )
+
+            return mrkl
 
         else:
             agent = LLMChain(llm=llm, memory=memory, verbose=True, prompt=self.prompt)
