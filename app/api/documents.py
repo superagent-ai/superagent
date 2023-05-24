@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 @router.post("/documents", name="Create document", description="Create a new document")
-def create_document(body: Document, token=Depends(JWTBearer())):
+async def create_document(body: Document, token=Depends(JWTBearer())):
     """Create document endpoint"""
 
     try:
@@ -42,7 +42,7 @@ def create_document(body: Document, token=Depends(JWTBearer())):
 
 
 @router.get("/documents", name="List documents", description="List all documents")
-def read_documents(token=Depends(JWTBearer())):
+async def read_documents(token=Depends(JWTBearer())):
     """List documents endpoint"""
     decoded = decodeJWT(token)
     documents = prisma.document.find_many(
@@ -63,7 +63,7 @@ def read_documents(token=Depends(JWTBearer())):
     name="Get document",
     description="Get a specific document",
 )
-def read_document(documentId: str, token=Depends(JWTBearer())):
+async def read_document(documentId: str, token=Depends(JWTBearer())):
     """Get a single document"""
     document = prisma.document.find_unique(
         where={"id": documentId}, include={"user": True}
@@ -83,7 +83,7 @@ def read_document(documentId: str, token=Depends(JWTBearer())):
     name="Delete document",
     description="Delete a specific document",
 )
-def delete_document(documentId: str, token=Depends(JWTBearer())):
+async def delete_document(documentId: str, token=Depends(JWTBearer())):
     """Delete a document"""
     try:
         prisma.document.delete(where={"id": documentId})

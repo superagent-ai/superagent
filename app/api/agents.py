@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.post("/agents", name="Create agent", description="Create a new agent")
-def create_agent(body: Agent, token=Depends(JWTBearer())):
+async def create_agent(body: Agent, token=Depends(JWTBearer())):
     """Agents endpoint"""
     decoded = decodeJWT(token)
 
@@ -43,7 +43,7 @@ def create_agent(body: Agent, token=Depends(JWTBearer())):
 
 
 @router.get("/agents", name="List all agents", description="List all agents")
-def read_agents(token=Depends(JWTBearer())):
+async def read_agents(token=Depends(JWTBearer())):
     """Agents endpoint"""
     decoded = decodeJWT(token)
     agents = prisma.agent.find_many(
@@ -65,7 +65,7 @@ def read_agents(token=Depends(JWTBearer())):
 
 
 @router.get("/agents/{agentId}", name="Get agent", description="Get a specific agent")
-def read_agent(agentId: str, token=Depends(JWTBearer())):
+async def read_agent(agentId: str, token=Depends(JWTBearer())):
     """Agent detail endpoint"""
     agent = prisma.agent.find_unique(where={"id": agentId}, include={"user": True})
 
@@ -81,7 +81,7 @@ def read_agent(agentId: str, token=Depends(JWTBearer())):
 @router.delete(
     "/agents/{agentId}", name="Delete agent", description="Delete a specific agent"
 )
-def delete_agent(agentId: str, token=Depends(JWTBearer())):
+async def delete_agent(agentId: str, token=Depends(JWTBearer())):
     """Delete agent endpoint"""
     try:
         prisma.agent.delete(where={"id": agentId})
@@ -97,7 +97,7 @@ def delete_agent(agentId: str, token=Depends(JWTBearer())):
 @router.patch(
     "/agents/{agentId}", name="Delete agent", description="Delete a specific agent"
 )
-def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
+async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
     """Patch agent endpoint"""
     try:
         prisma.agent.update(data=body, where={"id": agentId})
@@ -115,7 +115,9 @@ def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
     name="Prompt agent",
     description="Invoke a specific agent",
 )
-def run_agent(agentId: str, body: PredictAgent, api_key: APIKey = Depends(get_api_key)):
+async def run_agent(
+    agentId: str, body: PredictAgent, api_key: APIKey = Depends(get_api_key)
+):
     """Agent detail endpoint"""
     input = body.input
     input["chat_history"] = []

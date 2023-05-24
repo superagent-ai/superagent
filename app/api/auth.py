@@ -14,7 +14,7 @@ router = APIRouter()
 
 
 @router.post("/auth/sign-in")
-def sign_in(signIn: SignIn):
+async def sign_in(signIn: SignIn):
     user = prisma.user.find_first(
         where={
             "email": signIn.email,
@@ -35,7 +35,7 @@ def sign_in(signIn: SignIn):
 
 
 @router.post("/auth/sign-up")
-def sign_up(body: SignUp):
+async def sign_up(body: SignUp):
     encryptPassword(body.password)
     user = prisma.user.create(
         {

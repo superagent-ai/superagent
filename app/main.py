@@ -20,12 +20,12 @@ app.add_middleware(
 
 
 @app.on_event("startup")
-def startup():
+async def startup():
     prisma.connect()
 
 
 @app.on_event("shutdown")
-def shutdown():
+async def shutdown():
     prisma.disconnect()
 
 

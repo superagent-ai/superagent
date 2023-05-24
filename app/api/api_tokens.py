@@ -11,7 +11,7 @@ router = APIRouter()
 @router.post(
     "/api-tokens", name="Create API token", description="Create a new API token"
 )
-def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
+async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
     """Create api token endpoint"""
     decoded = decodeJWT(token)
     token = generate_api_token()
@@ -36,7 +36,7 @@ def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
 
 
 @router.get("/api-tokens", name="List API tokens", description="List all API tokens")
-def read_api_tokens(token=Depends(JWTBearer())):
+async def read_api_tokens(token=Depends(JWTBearer())):
     """List api tokens endpoint"""
     decoded = decodeJWT(token)
     api_tokens = prisma.apitoken.find_many(
@@ -57,7 +57,7 @@ def read_api_tokens(token=Depends(JWTBearer())):
     name="Get API token",
     description="Get a specific API token",
 )
-def read_api_token(tokenId: str, token=Depends(JWTBearer())):
+async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
     """Get an api token endpoint"""
     api_token = prisma.apitoken.find_unique(
         where={"id": tokenId}, include={"user": True}
@@ -77,7 +77,7 @@ def read_api_token(tokenId: str, token=Depends(JWTBearer())):
     name="Delete API token",
     description="Delete a specific API token",
 )
-def delete_api_token(tokenId: str, token=Depends(JWTBearer())):
+async def delete_api_token(tokenId: str, token=Depends(JWTBearer())):
     """Deleta api token endpoint"""
     try:
         prisma.apitoken.delete(where={"id": tokenId})
