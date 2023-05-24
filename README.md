@@ -29,10 +29,10 @@ Here's an overview of the roadmap for SuperAgent:
 - [x] **Built-in vectorstore:** SuperAgent includes a built-in vector store for efficient vector-based search and retrieval.
 - [x] **Built-in document retrieval:** SuperAgent offers document retrieval capabilities.
 - [x] **Q&A Agents:** SuperAgent supports the creation of Q&A agents for question answering over documents.
+- [x] **Prompt management:** SuperAgent includes features for managing and configuring prompts for the agents.
 - [ ] **Tools:** SuperAgent will include a wide variety of tools that enable the LLM to access the outside world.
 - [ ] **ReAct Agents with Tools:** SuperAgent enables the creation of reactive agents with the help of provided tools.
 - [ ] **Plan-solve Agents with Tools:** SuperAgent supports the creation of plan-solve agents with the help of provided tools.
-- [ ] **Prompt management:** SuperAgent includes features for managing and configuring prompts for the agents.
 - [ ] **Bring your own LLM:** SuperAgent allows you to bring your own Language Model to use with the platform.
 - [ ] **Usage quotas and tracking:** SuperAgent provides usage quotas and tracking mechanisms for better resource management.
 - [ ] **Python SDK:** SuperAgent offers a Python Software Development Kit (SDK) for easier integration and development.
