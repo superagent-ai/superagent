@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_MIGRATION_URL")
 }
 
 enum AgentType {
@@ -36,6 +36,7 @@ model User {
   Agent     Agent[]
   ApiToken  ApiToken[]
   Document  Document[]
+  Prompts   Prompts[]
 }
 
 model Profile {
@@ -90,4 +91,16 @@ model AgentMemory {
   createdAt DateTime?             @default(now())
   updatedAt DateTime?             @default(now())
   deletedAt DateTime?
+}
+
+model Prompts {
+  id              String    @id @default(cuid()) @db.VarChar(255)
+  name            String
+  template        String    @db.Text()
+  input_variables Json
+  userId          String    @db.VarChar(255)
+  user            User      @relation(fields: [userId], references: [id])
+  createdAt       DateTime? @default(now())
+  updatedAt       DateTime? @default(now())
+  deletedAt       DateTime?
 }
