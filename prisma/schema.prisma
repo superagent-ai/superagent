@@ -36,7 +36,7 @@ model User {
   Agent     Agent[]
   ApiToken  ApiToken[]
   Document  Document[]
-  Prompts   Prompts[]
+  Prompt    Prompt[]
 }
 
 model Profile {
@@ -65,6 +65,8 @@ model Agent {
   user        User          @relation(fields: [userId], references: [id])
   document    Document?     @relation(fields: [documentId], references: [id], onDelete: Cascade)
   documentId  String?       @db.VarChar(255)
+  prompt      Prompt?       @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  promptId    String?       @db.VarChar(255)
   name        String
   type        AgentType     @default(REACT)
   llm         Json          @default("{ \"provider\": \"openai-chat\", \"model\": \"gpt-3.5-turbo\" }")
@@ -93,7 +95,7 @@ model AgentMemory {
   deletedAt DateTime?
 }
 
-model Prompts {
+model Prompt {
   id              String    @id @default(cuid()) @db.VarChar(255)
   name            String
   template        String    @db.Text()
@@ -103,4 +105,5 @@ model Prompts {
   createdAt       DateTime? @default(now())
   updatedAt       DateTime? @default(now())
   deletedAt       DateTime?
+  Agent           Agent[]
 }
