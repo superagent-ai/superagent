@@ -89,13 +89,34 @@ class Agent:
                 ChatAnthropic(
                     streaming=self.has_streaming,
                     anthropic_api_key=self._get_api_key(),
+                    callbacks=[
+                        StreamingCallbackHandler(
+                            on_llm_new_token_=self.on_llm_new_token,
+                            on_llm_end_=self.on_llm_end,
+                            on_chain_end_=self.on_chain_end,
+                        )
+                    ],
                 )
                 if self.has_streaming
                 else ChatAnthropic(anthropic_api_key=self._get_api_key())
             )
 
         if self.llm["provider"] == "cohere":
-            return Cohere(cohere_api_key=self._get_api_key())
+            return (
+                Cohere(
+                    cohere_api_key=self._get_api_key(),
+                    model=self.llm["model"],
+                    callbacks=[
+                        StreamingCallbackHandler(
+                            on_llm_new_token_=self.on_llm_new_token,
+                            on_llm_end_=self.on_llm_end,
+                            on_chain_end_=self.on_chain_end,
+                        )
+                    ],
+                )
+                if self.has_streaming
+                else Cohere(cohere_api_key=self._get_api_key(), model=self.llm["model"])
+            )
 
         # Use ChatOpenAI as default llm in agents
         return ChatOpenAI(temperature=0, openai_api_key=self._get_api_key())
