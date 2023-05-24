@@ -9,7 +9,7 @@ api_key_header = APIKeyHeader(name="X_SUPERAGENT_API_KEY", auto_error=False)
 
 async def get_api_key(api_key_header: str = Security(api_key_header)):
     try:
-        await prisma.apitoken.find_first(where={"token": api_key_header})
+        prisma.apitoken.find_first(where={"token": api_key_header})
 
         return api_key_header
 

@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 @router.post("/documents", name="Create document", description="Create a new document")
-async def create_document(body: Document, token=Depends(JWTBearer())):
+def create_document(body: Document, token=Depends(JWTBearer())):
     """Create document endpoint"""
 
     try:
@@ -17,7 +17,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
         document_type = body.type
         document_url = body.url
         document_name = body.name
-        document = await prisma.document.create(
+        document = prisma.document.create(
             {
                 "type": document_type,
                 "url": document_url,
@@ -26,7 +26,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
             }
         )
 
-        await upsert_document(
+        upsert_document(
             url=document_url,
             type=document_type,
             document_id=document.id,
@@ -42,10 +42,10 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
 
 
 @router.get("/documents", name="List documents", description="List all documents")
-async def read_documents(token=Depends(JWTBearer())):
+def read_documents(token=Depends(JWTBearer())):
     """List documents endpoint"""
     decoded = decodeJWT(token)
-    documents = await prisma.document.find_many(
+    documents = prisma.document.find_many(
         where={"userId": decoded["userId"]}, include={"user": True}
     )
 
@@ -63,9 +63,9 @@ async def read_documents(token=Depends(JWTBearer())):
     name="Get document",
     description="Get a specific document",
 )
-async def read_document(documentId: str, token=Depends(JWTBearer())):
+def read_document(documentId: str, token=Depends(JWTBearer())):
     """Get a single document"""
-    document = await prisma.document.find_unique(
+    document = prisma.document.find_unique(
         where={"id": documentId}, include={"user": True}
     )
 
@@ -83,10 +83,10 @@ async def read_document(documentId: str, token=Depends(JWTBearer())):
     name="Delete document",
     description="Delete a specific document",
 )
-async def delete_document(documentId: str, token=Depends(JWTBearer())):
+def delete_document(documentId: str, token=Depends(JWTBearer())):
     """Delete a document"""
     try:
-        await prisma.document.delete(where={"id": documentId})
+        prisma.document.delete(where={"id": documentId})
 
         return {"success": True, "data": None}
     except Exception as e:
