@@ -12,7 +12,7 @@ pinecone.init(
 )
 
 
-async def upsert_document(url: str, type: str, document_id: str) -> None:
+def upsert_document(url: str, type: str, document_id: str) -> None:
     """Upserts documents to Pinecone index"""
     pinecone.Index("superagent")
 

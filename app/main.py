@@ -7,7 +7,7 @@ from app.routers import router
 app = FastAPI(
     title="Superagent",
     description="Bring your agents to production",
-    version="0.0.1",
+    version="0.0.7",
 )
 
 app.add_middleware(
@@ -20,13 +20,13 @@ app.add_middleware(
 
 
 @app.on_event("startup")
-async def startup():
-    await prisma.connect()
+def startup():
+    prisma.connect()
 
 
 @app.on_event("shutdown")
-async def shutdown():
-    await prisma.disconnect()
+def shutdown():
+    prisma.disconnect()
 
 
 app.include_router(router)

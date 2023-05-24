@@ -11,13 +11,13 @@ router = APIRouter()
 @router.post(
     "/api-tokens", name="Create API token", description="Create a new API token"
 )
-async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
+def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
     """Create api token endpoint"""
     decoded = decodeJWT(token)
     token = generate_api_token()
 
     try:
-        agent = await prisma.apitoken.create(
+        agent = prisma.apitoken.create(
             {
                 "description": body.description,
                 "token": token,
@@ -36,10 +36,10 @@ async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
 
 
 @router.get("/api-tokens", name="List API tokens", description="List all API tokens")
-async def read_api_tokens(token=Depends(JWTBearer())):
+def read_api_tokens(token=Depends(JWTBearer())):
     """List api tokens endpoint"""
     decoded = decodeJWT(token)
-    api_tokens = await prisma.apitoken.find_many(
+    api_tokens = prisma.apitoken.find_many(
         where={"userId": decoded["userId"]}, include={"user": True}
     )
 
@@ -57,9 +57,9 @@ async def read_api_tokens(token=Depends(JWTBearer())):
     name="Get API token",
     description="Get a specific API token",
 )
-async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
+def read_api_token(tokenId: str, token=Depends(JWTBearer())):
     """Get an api token endpoint"""
-    api_token = await prisma.apitoken.find_unique(
+    api_token = prisma.apitoken.find_unique(
         where={"id": tokenId}, include={"user": True}
     )
 
@@ -77,10 +77,10 @@ async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
     name="Delete API token",
     description="Delete a specific API token",
 )
-async def delete_api_token(tokenId: str, token=Depends(JWTBearer())):
+def delete_api_token(tokenId: str, token=Depends(JWTBearer())):
     """Deleta api token endpoint"""
     try:
-        await prisma.apitoken.delete(where={"id": tokenId})
+        prisma.apitoken.delete(where={"id": tokenId})
 
         return {"success": True, "data": None}
     except Exception as e:
