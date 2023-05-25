@@ -1,0 +1,7 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://github.com/homanp/superagent/discussions/categories/q-a
+    about: Ask questions and discuss with other community members
+  - name: Discuss the Project in Discord
+    url: https://discord.gg/e8j7mgjDUK

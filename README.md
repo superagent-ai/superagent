@@ -7,6 +7,7 @@
 <img alt="GitHub Issues" src="https://img.shields.io/github/issues/homanp/superagent" />
 <img alt="GitHub Pull Requests" src="https://img.shields.io/github/issues-pr/homanp/superagent" />
 <img alt="Github License" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+<img alt="Discord" src="https://img.shields.io/discord/1110910277110743103?label=Discord&logo=discord&logoColor=white&style=plastic&color=d7b023)](https://discord.gg/e8j7mgjDUK" />
 </p>
 
 SuperAgent is a powerful tool that simplifies the configuration and deployment of LLM (Large Language Model) Agents to production. It provides a range of features and functionalities to make it easier for developers to build, manage and deploy AI agents to production including features such as built in memory and document retrieval via vector dbs.
