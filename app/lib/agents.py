@@ -6,12 +6,12 @@ from langchain.chains.conversational_retrieval.prompts import (
     CONDENSE_QUESTION_PROMPT,
     QA_PROMPT,
 )
-from langchain.prompts.prompt import PromptTemplate
 from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import ChatAnthropic, ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
+from langchain.prompts.prompt import PromptTemplate
 from langchain.vectorstores.pinecone import Pinecone
 
 from app.lib.callbacks import StreamingCallbackHandler
@@ -62,7 +62,6 @@ class Agent:
             )
 
     def _get_prompt(self) -> Any:
-        print(self.prompt)
         if self.prompt:
             prompt = PromptTemplate(
                 input_variables=self.prompt.input_variables,
