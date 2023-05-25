@@ -6,6 +6,7 @@ from langchain.chains.conversational_retrieval.prompts import (
     CONDENSE_QUESTION_PROMPT,
     QA_PROMPT,
 )
+from langchain.prompts.prompt import PromptTemplate
 from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import ChatAnthropic, ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -32,7 +33,7 @@ class Agent:
         self.has_memory = agent.hasMemory
         self.type = agent.type
         self.llm = agent.llm
-        self.prompt = default_chat_prompt
+        self.prompt = agent.prompt
         self.has_streaming = has_streaming
         self.on_llm_new_token = on_llm_new_token
         self.on_llm_end = on_llm_end
@@ -59,6 +60,19 @@ class Agent:
                 if "api_key" in self.llm
                 else config("COHERE_API_KEY")
             )
+
+    def _get_prompt(self) -> Any:
+        print(self.prompt)
+        if self.prompt:
+            prompt = PromptTemplate(
+                input_variables=self.prompt.input_variables,
+                template=self.prompt.template,
+            )
+
+            return prompt
+
+        else:
+            return default_chat_prompt
 
     def _get_llm(self) -> Any:
         if self.llm["provider"] == "openai-chat":
@@ -174,6 +188,8 @@ class Agent:
             )
 
         else:
-            agent = LLMChain(llm=llm, memory=memory, verbose=True, prompt=self.prompt)
+            agent = LLMChain(
+                llm=llm, memory=memory, verbose=True, prompt=self._get_prompt()
+            )
 
         return agent
