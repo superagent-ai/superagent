@@ -1,4 +1,4 @@
-# Contributing to LangChain UI
+# Contributing to Superagent
 
 Thanks for being interested in contributing to SuperAgent ❤️.
 We are extremely open to any and all contributions you might be intersted in making.
