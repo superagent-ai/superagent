@@ -72,24 +72,7 @@ body:
         - label: Linux
         - label: macOS
         - label: Windows
-
-  - type: input
-    id: {Programming}-version
-    attributes:
-      label: {Programming} Version
-      description: Which {Programming} version are you using?
-      placeholder: {progVersion}
-    validations:
-      required: true
       
-  - type: input
-    id: superagent-version
-    attributes:
-      label: superagent Version
-      description: Which superagent version are you using?
-      placeholder: {release}
-    validations:
-      required: true
 
   - type: checkboxes
     id: acknowledgements
@@ -97,7 +80,7 @@ body:
       label: 'Acknowledgements'
       description: 'Please confirm the following:'
       options:
-        - label: 'My issue title is concise, descriptive, and in title casing.'
+        - label: 'My issue title is concise, descriptive.'
           required: true
         - label: 'I have searched the existing issues to make sure this bug has not been reported yet.'
           required: true
