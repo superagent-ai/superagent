@@ -63,9 +63,9 @@ model Agent {
   id          String        @id @default(cuid()) @db.VarChar(255)
   userId      String        @db.VarChar(255)
   user        User          @relation(fields: [userId], references: [id])
-  document    Document?     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  document    Document?     @relation(fields: [documentId], references: [id])
   documentId  String?       @db.VarChar(255)
-  prompt      Prompt?       @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  prompt      Prompt?       @relation(fields: [promptId], references: [id])
   promptId    String?       @db.VarChar(255)
   name        String
   type        AgentType     @default(REACT)
@@ -87,7 +87,7 @@ model ApiToken {
 model AgentMemory {
   id        String                @id @default(cuid()) @db.VarChar(255)
   agentId   String                @db.VarChar(255)
-  agent     Agent                 @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  agent     Agent                 @relation(fields: [agentId], references: [id])
   author    AgentMemoryAuthorType @default(HUMAN)
   message   String                @db.Text()
   createdAt DateTime?             @default(now())
