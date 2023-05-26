@@ -14,7 +14,7 @@ SuperAgent is a powerful tool that simplifies the configuration and deployment o
 
 ## Documentation
 
-Checkout the [full documentation here](https://superagent.mintlify.app/).
+Checkout the [full documentation here](https://docs.superagent.sh/).
 
 ## Roadmap
 
