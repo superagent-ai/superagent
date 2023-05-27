@@ -85,6 +85,7 @@ async def read_agent(agentId: str, token=Depends(JWTBearer())):
 async def delete_agent(agentId: str, token=Depends(JWTBearer())):
     """Delete agent endpoint"""
     try:
+        prisma.agentmemory.delete_many(where={"agentId": agentId})
         prisma.agent.delete(where={"id": agentId})
 
         return {"success": True, "data": None}
