@@ -7,6 +7,8 @@ from decouple import config
 from fastapi import HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from app.lib.prisma import prisma
+
 jwtSecret = config("JWT_SECRET")
 
 
@@ -51,16 +53,24 @@ class JWTBearer(HTTPBearer):
         credentials: HTTPAuthorizationCredentials = await super(
             JWTBearer, self
         ).__call__(request)
+
         if credentials:
             if not credentials.scheme == "Bearer":
                 raise HTTPException(
-                    status_code=403, detail="Invalid authentication scheme."
+                    status_code=403, detail="Invalid token or expired token."
                 )
 
             if not self.verify_jwt(credentials.credentials):
-                raise HTTPException(
-                    status_code=403, detail="Invalid token or expired token."
+                tokens_data = prisma.apitoken.find_first(
+                    where={"token": credentials.credentials}
                 )
+
+                if not tokens_data:
+                    raise HTTPException(
+                        status_code=403, detail="Invalid token or expired token."
+                    )
+
+                return signJWT(tokens_data.userId)
 
             return credentials.credentials
 
