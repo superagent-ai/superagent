@@ -190,7 +190,6 @@ class Agent:
 
         elif self.document and self.document.type == "OPENAPI":
             openapi_toolkit = NLAToolkit.from_llm_and_url(llm, self.document.url)
-            print(openapi_toolkit)
             tools = openapi_toolkit.get_tools()
             mrkl = initialize_agent(
                 tools=tools,
