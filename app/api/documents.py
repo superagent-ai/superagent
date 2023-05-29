@@ -26,11 +26,12 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
             }
         )
 
-        upsert_document(
-            url=document_url,
-            type=document_type,
-            document_id=document.id,
-        )
+        if document_type == "TXT" or document_type == "PDF":
+            upsert_document(
+                url=document_url,
+                type=document_type,
+                document_id=document.id,
+            )
 
         return {"success": True, "data": document}
 

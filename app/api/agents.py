@@ -29,6 +29,7 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
                 "llm": json.dumps(body.llm),
                 "hasMemory": body.has_memory,
                 "userId": decoded["userId"],
+                "documentId": body.documentId,
             },
             include={"user": True},
         )

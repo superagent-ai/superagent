@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider          = "postgresql"
-  url               = env("DATABASE_URL")
+  url               = env("DATABASE_MIGRATION_URL")
   shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
@@ -23,6 +23,7 @@ enum DocumentType {
   TXT
   PDF
   YOUTUBE
+  OPENAPI
 }
 
 model User {
