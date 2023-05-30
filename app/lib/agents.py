@@ -174,6 +174,7 @@ class Agent:
         llm = self._get_llm()
         memory = self._get_memory()
         document = self._get_document()
+
         if self.document and self.document.type != "OPENAPI":
             question_generator = LLMChain(
                 llm=OpenAI(temperature=0), prompt=CONDENSE_QUESTION_PROMPT
@@ -199,7 +200,7 @@ class Agent:
                     }
                 )
                 if self.document.authorization
-                else None
+                else Requests()
             )
             openapi_toolkit = NLAToolkit.from_llm_and_url(
                 llm, self.document.url, requests=requests, max_text_length=1800
