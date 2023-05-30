@@ -1,5 +1,6 @@
 <div align="center">
-# SuperAgent 🥷
+
+# Superagent 🥷
 
 **Build, deploy, and manage LLM-powered agents**
 [superagent.sh](https://superagent.sh)
@@ -14,9 +15,11 @@
 <img alt="Discord" src="https://img.shields.io/discord/1110910277110743103?label=Discord&logo=discord&logoColor=white&style=plastic&color=d7b023)](https://discord.gg/e8j7mgjDUK" />
 </p>
 
-SuperAgent is a powerful tool that simplifies the configuration and deployment of LLM (Large Language Model) Agents to production. It provides a range of features and functionalities to make it easier for developers to build, manage and deploy AI agents to production including features such as built in memory and document retrieval via vector dbs.
-
 </div>
+
+## What is this?
+
+SuperAgent is a powerful tool that simplifies the configuration and deployment of LLM (Large Language Model) Agents to production. It provides a range of features and functionalities to make it easier for developers to build, manage and deploy AI agents to production including features such as built in memory and document retrieval via vector dbs, powerful tools, webhooks, cron jobs etc.
 
 ## Documentation
 
