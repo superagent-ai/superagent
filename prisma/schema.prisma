@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider          = "postgresql"
-  url               = env("DATABASE_URL")
+  url               = env("DATABASE_MIGRATION_URL")
   shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
@@ -23,6 +23,7 @@ enum DocumentType {
   TXT
   PDF
   YOUTUBE
+  OPENAPI
 }
 
 model User {
@@ -48,16 +49,17 @@ model Profile {
 }
 
 model Document {
-  id        String       @id @default(cuid()) @db.VarChar(255)
-  userId    String       @db.VarChar(255)
-  user      User         @relation(fields: [userId], references: [id])
-  type      DocumentType @default(TXT)
-  url       String       @db.Text()
-  name      String
-  createdAt DateTime?    @default(now())
-  updatedAt DateTime?    @default(now())
-  index     Json?
-  Agent     Agent[]
+  id            String       @id @default(cuid()) @db.VarChar(255)
+  userId        String       @db.VarChar(255)
+  user          User         @relation(fields: [userId], references: [id])
+  type          DocumentType @default(TXT)
+  url           String       @db.Text()
+  name          String
+  createdAt     DateTime?    @default(now())
+  updatedAt     DateTime?    @default(now())
+  index         Json?
+  authorization Json?
+  Agent         Agent[]
 }
 
 model Agent {

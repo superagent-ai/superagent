@@ -6,6 +6,8 @@ class Agent(BaseModel):
     type: str
     llm: dict = None
     has_memory: bool = False
+    documentId: str = None
+    promptId: str = None
 
 
 class PredictAgent(BaseModel):
