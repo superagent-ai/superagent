@@ -64,6 +64,10 @@ To get started with SuperAgent, follow these steps:
    bash setup.sh
    ```
 
+## SDKs
+
+- [Javascript](https://github.com/homanp/superagent-js)
+
 ## Contributions
 
 SuperAgent is an open-source project, and contributions are welcome. If you would like to contribute, you can create new features, fix bugs, or improve the infrastructure. Please refer to the [CONTRIBUTING.md](https://github.com/homanp/superagent/blob/main/.github/CONTRIBUTING.md) file in the repository for more information on how to contribute.
