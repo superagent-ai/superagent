@@ -34,6 +34,7 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
                 "userId": decoded["userId"],
                 "documentId": body.documentId,
                 "promptId": body.promptId,
+                "toolId": body.toolId,
             },
             include={"user": True},
         )

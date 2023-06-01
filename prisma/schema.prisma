@@ -119,13 +119,12 @@ model Prompt {
 }
 
 model Tool {
-  id          String    @id @default(cuid()) @db.VarChar(255)
-  name        String
-  description String    @db.Text()
-  type        ToolType?
-  userId      String    @db.VarChar(255)
-  user        User      @relation(fields: [userId], references: [id])
-  createdAt   DateTime? @default(now())
-  updatedAt   DateTime? @default(now())
-  Agent       Agent[]
+  id        String    @id @default(cuid()) @db.VarChar(255)
+  name      String
+  type      ToolType?
+  userId    String    @db.VarChar(255)
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now())
+  Agent     Agent[]
 }
