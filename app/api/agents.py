@@ -1,9 +1,9 @@
 import json
 import threading
-import langchain
 from queue import Queue
 from typing import Any, Dict
 
+import langchain
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security.api_key import APIKey
 from starlette.responses import StreamingResponse
@@ -131,7 +131,8 @@ async def run_agent(
     input["chat_history"] = []
     has_streaming = body.has_streaming
     agent = prisma.agent.find_unique(
-        where={"id": agentId}, include={"user": True, "document": True, "prompt": True}
+        where={"id": agentId},
+        include={"user": True, "document": True, "prompt": True, "tool": True},
     )
 
     prisma.agentmemory.create(
