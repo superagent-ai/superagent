@@ -1,5 +1,6 @@
 import json
 import threading
+import langchain
 from queue import Queue
 from typing import Any, Dict
 
@@ -12,6 +13,8 @@ from app.lib.auth.api import get_api_key
 from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.models.agent import Agent, PredictAgent
 from app.lib.prisma import prisma
+
+langchain.debub = True
 
 router = APIRouter()
 

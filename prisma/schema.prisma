@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider          = "postgresql"
-  url               = env("DATABASE_URL")
+  url               = env("DATABASE_MIGRATION_URL")
   shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
@@ -26,6 +26,10 @@ enum DocumentType {
   OPENAPI
 }
 
+enum ToolType {
+  BROWSER
+}
+
 model User {
   id        String     @id @default(cuid()) @db.VarChar(255)
   email     String     @unique @db.VarChar(255)
@@ -39,6 +43,7 @@ model User {
   ApiToken  ApiToken[]
   Document  Document[]
   Prompt    Prompt[]
+  Tool      Tool[]
 }
 
 model Profile {
@@ -68,6 +73,8 @@ model Agent {
   user        User          @relation(fields: [userId], references: [id])
   document    Document?     @relation(fields: [documentId], references: [id])
   documentId  String?       @db.VarChar(255)
+  tool        Tool?         @relation(fields: [toolId], references: [id])
+  toolId      String?       @db.VarChar(255)
   prompt      Prompt?       @relation(fields: [promptId], references: [id])
   promptId    String?       @db.VarChar(255)
   name        String
@@ -109,4 +116,16 @@ model Prompt {
   updatedAt       DateTime? @default(now())
   deletedAt       DateTime?
   Agent           Agent[]
+}
+
+model Tool {
+  id          String    @id @default(cuid()) @db.VarChar(255)
+  name        String
+  description String    @db.Text()
+  type        ToolType?
+  userId      String    @db.VarChar(255)
+  user        User      @relation(fields: [userId], references: [id])
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @default(now())
+  Agent       Agent[]
 }
