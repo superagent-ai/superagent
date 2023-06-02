@@ -1,7 +1,12 @@
 from typing import Any
 
 from decouple import config
-from langchain.agents import AgentType, initialize_agent
+from langchain.agents import (
+    AgentExecutor,
+    AgentType,
+    LLMSingleActionAgent,
+    initialize_agent,
+)
 from langchain.agents.agent_toolkits import NLAToolkit
 from langchain.chains import ConversationalRetrievalChain, LLMChain
 from langchain.chains.conversational_retrieval.prompts import (
@@ -16,10 +21,16 @@ from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
 from langchain.requests import Requests
 from langchain.vectorstores.pinecone import Pinecone
-
 from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.prisma import prisma
-from app.lib.prompts import default_chat_prompt, openapi_format_instructions
+from app.lib.prompts import (
+    CustomPromptTemplate,
+    agent_template,
+    default_chat_prompt,
+    openapi_format_instructions,
+)
+from app.lib.parsers import CustomOutputParser
+from app.lib.tools import get_search_tool
 
 
 class Agent:
@@ -37,6 +48,7 @@ class Agent:
         self.type = agent.type
         self.llm = agent.llm
         self.prompt = agent.prompt
+        self.tool = agent.tool
         self.has_streaming = has_streaming
         self.on_llm_new_token = on_llm_new_token
         self.on_llm_end = on_llm_end
@@ -64,16 +76,43 @@ class Agent:
                 else config("COHERE_API_KEY")
             )
 
+    def _get_tool(self) -> Any:
+        try:
+            if self.tool.type == "SEARCH":
+                tools = get_search_tool()
+
+                return tools
+
+        except Exception:
+            return None
+
     def _get_prompt(self) -> Any:
         if self.prompt:
-            prompt = PromptTemplate(
-                input_variables=self.prompt.input_variables,
-                template=self.prompt.template,
-            )
+            if self.tool:
+                prompt = CustomPromptTemplate(
+                    template=self.prompt.template,
+                    tools=self._get_tool(),
+                    input_variables=self.prompt.input_variables,
+                )
+            else:
+                prompt = PromptTemplate(
+                    input_variables=self.prompt.input_variables,
+                    template=self.prompt.template,
+                )
 
             return prompt
 
         else:
+            if self.tool:
+                return CustomPromptTemplate(
+                    template=agent_template,
+                    tools=self._get_tool(),
+                    input_variables=[
+                        "human_input",
+                        "intermediate_steps",
+                        "chat_history",
+                    ],
+                )
             return default_chat_prompt
 
     def _get_llm(self) -> Any:
@@ -174,49 +213,65 @@ class Agent:
         llm = self._get_llm()
         memory = self._get_memory()
         document = self._get_document()
+        tools = self._get_tool()
 
-        if self.document and self.document.type != "OPENAPI":
-            question_generator = LLMChain(
-                llm=OpenAI(temperature=0), prompt=CONDENSE_QUESTION_PROMPT
-            )
-            doc_chain = load_qa_chain(
-                llm, chain_type="stuff", prompt=QA_PROMPT, verbose=True
-            )
-            agent = ConversationalRetrievalChain(
-                retriever=document.as_retriever(),
-                combine_docs_chain=doc_chain,
-                question_generator=question_generator,
-                memory=memory,
-                get_chat_history=lambda h: h,
-            )
-
-        elif self.document and self.document.type == "OPENAPI":
-            requests = (
-                Requests(
-                    headers={
-                        self.document.authorization["key"]: self.document.authorization[
-                            "value"
-                        ]
-                    }
+        if self.document:
+            if self.document.type != "OPENAPI":
+                question_generator = LLMChain(
+                    llm=OpenAI(temperature=0), prompt=CONDENSE_QUESTION_PROMPT
                 )
-                if self.document.authorization
-                else Requests()
-            )
-            openapi_toolkit = NLAToolkit.from_llm_and_url(
-                llm, self.document.url, requests=requests, max_text_length=1800
-            )
-            tools = openapi_toolkit.get_tools()[:30]
-            mrkl = initialize_agent(
-                tools=tools,
-                llm=llm,
-                agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-                verbose=True,
-                max_iterations=1,
-                early_stopping_method="generate",
-                agent_kwargs={"format_instructions": openapi_format_instructions},
-            )
+                doc_chain = load_qa_chain(
+                    llm, chain_type="stuff", prompt=QA_PROMPT, verbose=True
+                )
+                agent = ConversationalRetrievalChain(
+                    retriever=document.as_retriever(),
+                    combine_docs_chain=doc_chain,
+                    question_generator=question_generator,
+                    memory=memory,
+                    get_chat_history=lambda h: h,
+                )
 
-            return mrkl
+            elif self.document.type == "OPENAPI":
+                requests = (
+                    Requests(
+                        headers={
+                            self.document.authorization[
+                                "key"
+                            ]: self.document.authorization["value"]
+                        }
+                    )
+                    if self.document.authorization
+                    else Requests()
+                )
+                openapi_toolkit = NLAToolkit.from_llm_and_url(
+                    llm, self.document.url, requests=requests, max_text_length=1800
+                )
+                tools = openapi_toolkit.get_tools()[:30]
+                mrkl = initialize_agent(
+                    tools=tools,
+                    llm=llm,
+                    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+                    verbose=True,
+                    max_iterations=1,
+                    early_stopping_method="generate",
+                    agent_kwargs={"format_instructions": openapi_format_instructions},
+                )
+
+                return mrkl
+
+        elif self.tool:
+            output_parser = CustomOutputParser()
+            tool_names = [tool.name for tool in tools]
+            llm_chain = LLMChain(llm=llm, prompt=self._get_prompt())
+            agent_config = LLMSingleActionAgent(
+                llm_chain=llm_chain,
+                output_parser=output_parser,
+                stop=["\nObservation:"],
+                allowed_tools=tool_names,
+            )
+            agent = AgentExecutor.from_agent_and_tools(
+                agent=agent_config, tools=tools, verbose=True, memory=memory
+            )
 
         else:
             agent = LLMChain(
