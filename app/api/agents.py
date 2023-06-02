@@ -3,7 +3,6 @@ import threading
 from queue import Queue
 from typing import Any, Dict
 
-import langchain
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security.api_key import APIKey
 from starlette.responses import StreamingResponse
@@ -13,8 +12,6 @@ from app.lib.auth.api import get_api_key
 from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.models.agent import Agent, PredictAgent
 from app.lib.prisma import prisma
-
-langchain.debub = True
 
 router = APIRouter()
 

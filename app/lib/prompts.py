@@ -1,12 +1,8 @@
 # flake8: noqa
-import re
-
-from typing import List, Union
-
+from typing import List
 from langchain.prompts.prompt import PromptTemplate
 from langchain.prompts import StringPromptTemplate
-from langchain.agents import AgentOutputParser, Tool
-from langchain.schema import AgentAction, AgentFinish
+from langchain.agents import Tool
 
 
 class CustomPromptTemplate(StringPromptTemplate):
@@ -29,26 +25,6 @@ class CustomPromptTemplate(StringPromptTemplate):
         return self.template.format(**kwargs)
 
 
-class CustomOutputParser(AgentOutputParser):
-    def parse(self, llm_output: str) -> Union[AgentAction, AgentFinish]:
-        if "Final Answer:" in llm_output:
-            return AgentFinish(
-                return_values={"output": llm_output.split("Final Answer:")[-1].strip()},
-                log=llm_output,
-            )
-        regex = r"Action\s*\d*\s*:(.*?)\nAction\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)"
-        match = re.search(regex, llm_output, re.DOTALL)
-        if not match:
-            raise ValueError(f"Could not parse LLM output: `{llm_output}`")
-
-        action = match.group(1).strip()
-        action_input = match.group(2)
-
-        return AgentAction(
-            tool=action, tool_input=action_input.strip(" ").strip('"'), log=llm_output
-        )
-
-
 openapi_format_instructions = """Use the following format:
 Question: the input question you must answer
 Thought: you should always think about what to do
@@ -63,12 +39,12 @@ When responding with your Final Answer, use a conversational answer without refe
 
 default_chat_template = """Assistant is designed to be able to assist with a wide range of tasks, from answering 
 simple questions to providing in-depth explanations and discussions on a wide range of 
-topics. Assitant has access to the following {tools} to answer questions.
+topics.
 
 
 {chat_history}
 Human: {human_input}
-Assitant always reply in German:
+Assitant:
 """
 
 agent_template = """Answer the following questions as best you can You have access to the following tools:
@@ -95,6 +71,6 @@ New question: {human_input}
 {agent_scratchpad}"""
 
 default_chat_prompt = PromptTemplate(
-    input_variables=["chat_history", "human_input", "tools"],
+    input_variables=["chat_history", "human_input"],
     template=default_chat_template,
 )
