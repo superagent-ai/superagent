@@ -40,7 +40,7 @@ Here's an overview of the roadmap for SuperAgent:
 - [x] **Q&A Agents**
 - [x] **Prompt management**
 - [x] **Javascript SDK**
-- [ ] **Tools**
+- [x] **Tools**
 - [ ] **ReAct Agents with Tools**
 - [ ] **Plan-solve Agents with Tools**
 - [ ] **Webhook support**
