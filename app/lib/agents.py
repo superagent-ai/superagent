@@ -21,16 +21,15 @@ from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
 from langchain.requests import Requests
 from langchain.vectorstores.pinecone import Pinecone
-
 from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.prisma import prisma
 from app.lib.prompts import (
-    CustomOutputParser,
     CustomPromptTemplate,
     agent_template,
     default_chat_prompt,
     openapi_format_instructions,
 )
+from app.lib.parsers import CustomOutputParser
 from app.lib.tools import get_search_tool
 
 
@@ -78,11 +77,13 @@ class Agent:
             )
 
     def _get_tool(self) -> Any:
-        if self.tool.type == "SEARCH":
-            tools = get_search_tool()
+        try:
+            if self.tool.type == "SEARCH":
+                tools = get_search_tool()
 
-            return tools
-        else:
+                return tools
+
+        except Exception:
             return None
 
     def _get_prompt(self) -> Any:
