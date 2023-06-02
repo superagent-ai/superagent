@@ -142,9 +142,9 @@ class Agent:
             return (
                 AzureChatOpenAI(
                     openai_api_key=self._get_api_key(),
-                    openai_api_base="https://fujitsuesgopenai.openai.azure.com/", 
-                    openai_api_type="azure",
-                    openai_api_version="2023-03-15-preview", 
+                    openai_api_base=config("AZURE_API_BASE"), 
+                    openai_api_type=config("AZURE_API_TYPE"),
+                    openai_api_version=config("AZURE_API_VERSION"), 
                     deployment_name=self.llm["model"],
                     streaming=self.has_streaming,
                     callbacks=[
@@ -159,7 +159,6 @@ class Agent:
                 else AzureChatOpenAI(
                     deployment_name=self.llm["model"],
                     openai_api_key=self._get_api_key(),
-                    #openai_api_key="71d7dba9e0254d048eda1f8d5ef369da",
                     openai_api_base=config("AZURE_API_BASE"),
                     openai_api_type=config("AZURE_API_TYPE"),
                     openai_api_version=config("AZURE_API_VERSION"),
