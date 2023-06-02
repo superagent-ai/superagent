@@ -18,8 +18,6 @@ from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.prisma import prisma
 from app.lib.prompts import default_chat_prompt
 
-import logging
-
 
 class Agent:
     def __init__(
