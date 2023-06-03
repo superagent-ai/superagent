@@ -56,7 +56,7 @@ async def read_prompt(promptId: str, token=Depends(JWTBearer())):
     description="Delete a specific prompt",
 )
 async def delete_prompt(promptId: str, token=Depends(JWTBearer())):
-    """Deleta prompt endpoint"""
+    """Delete prompt endpoint"""
     prisma.prompt.delete(where={"id": promptId})
 
     return {"success": True, "data": None}

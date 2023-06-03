@@ -1,4 +1,9 @@
-# SuperAgent 🥷
+<div align="center">
+
+# Superagent 🥷
+
+**Build, deploy, and manage LLM-powered agents**
+[superagent.sh](https://superagent.sh)
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/superagent" />
@@ -10,47 +15,39 @@
 <img alt="Discord" src="https://img.shields.io/discord/1110910277110743103?label=Discord&logo=discord&logoColor=white&style=plastic&color=d7b023)](https://discord.gg/e8j7mgjDUK" />
 </p>
 
-SuperAgent is a powerful tool that simplifies the configuration and deployment of LLM (Large Language Model) Agents to production. It provides a range of features and functionalities to make it easier for developers to build, manage and deploy AI agents to production including features such as built in memory and document retrieval via vector dbs.
+</div>
+
+## What is this?
+
+SuperAgent is a powerful tool that simplifies the configuration and deployment of LLM (Large Language Model) Agents to production. It provides a range of features and functionalities to make it easier for developers to build, manage and deploy AI agents to production including features such as built in memory and document retrieval via vector dbs, powerful tools, webhooks, cron jobs etc.
 
 ## Documentation
 
-Checkout the [full documentation here](https://superagent.mintlify.app/).
+Checkout the [full documentation here](https://docs.superagent.sh/).
 
 ## Roadmap
 
 Here's an overview of the roadmap for SuperAgent:
 
-- [x] **Bring your own DB:** SuperAgent allows you to use your own database to store agent-related data.
-- [x] **Authentication:** Authentication mechanisms are implemented to secure the SuperAgent application.
-- [x] **ChatGPT clone:** SuperAgent supports chatGPT-like conversational AI.
-- [x] **Built-in memory:** SuperAgent has a built-in memory to give context and history to the LLM.
-- [x] **REST API:** All functionality is exposed by a REST API.
-- [x] **Support for multiple LLMs:** SuperAgent supports multiple Language Models, allowing you to choose the most suitable one for your needs.
-- [x] **Streaming support:** SuperAgent supports streaming conversations for real-time communication.
-- [x] **Built-in vectorstore:** SuperAgent includes a built-in vector store for efficient vector-based search and retrieval.
-- [x] **Built-in document retrieval:** SuperAgent offers document retrieval capabilities.
-- [x] **Q&A Agents:** SuperAgent supports the creation of Q&A agents for question answering over documents.
-- [x] **Prompt management:** SuperAgent includes features for managing and configuring prompts for the agents.
-- [ ] **Tools:** SuperAgent will include a wide variety of tools that enable the LLM to access the outside world.
-- [ ] **ReAct Agents with Tools:** SuperAgent enables the creation of reactive agents with the help of provided tools.
-- [ ] **Plan-solve Agents with Tools:** SuperAgent supports the creation of plan-solve agents with the help of provided tools.
-- [ ] **Bring your own LLM:** SuperAgent allows you to bring your own Language Model to use with the platform.
-- [ ] **Usage quotas and tracking:** SuperAgent provides usage quotas and tracking mechanisms for better resource management.
-- [ ] **Python SDK:** SuperAgent offers a Python Software Development Kit (SDK) for easier integration and development.
-- [ ] **Javascript SDK:** SuperAgent provides a Javascript SDK for developers who prefer using Javascript.
-- [ ] **NodeJS SDK:** SuperAgent provides a NodeJS SDK for developers who prefer using Node.
-- [ ] **SuperAgent CLI:** SuperAgent includes a command-line interface (CLI) for managing and deploying agents.
-- [ ] **One-click deploy (GCP, Amazon, DigitalOcean):** SuperAgent aims to provide a one-click deploy feature for popular cloud platforms like GCP, Amazon, and DigitalOcean.
-
-## Stack
-
-SuperAgent is built on the following technologies and frameworks:
-
-- [FastAPI](https://fastapi.tiangolo.com/): A modern, fast (high-performance) web framework for building APIs with Python.
-- [Supabase](https://supabase.com/): An open-source alternative to Firebase that provides a suite of tools for building scalable applications.
-- [LangChain](https://python.langchain.com/en/latest/): A Python library for natural language processing and understanding.
-- [Prisma](https://www.prisma.io/): A modern database toolkit that simplifies database access and management.
-- [Pinecone](https://www.pinecone.io/): A vector database that enables fast similarity search and retrieval.
+- [x] **Bring your own DB**
+- [x] **Authentication**
+- [x] **Built-in memory**
+- [x] **REST API**
+- [x] **Support for multiple LLMs**
+- [x] **Streaming support**
+- [x] **Built-in vectorstore**
+- [x] **Built-in document retrieval**
+- [x] **Q&A Agents**
+- [x] **Prompt management**
+- [x] **Javascript SDK**
+- [x] **Tools**
+- [ ] **ReAct Agents with Tools**
+- [ ] **Plan-solve Agents with Tools**
+- [ ] **Webhook support**
+- [ ] **Scheduled Agents (run agents on a schedule)**
+- [ ] **Usage quotas and tracking**
+- [ ] **Python SDK**
+- [ ] **SuperAgent CLI**
 
 ## Getting Started
 
@@ -67,12 +64,18 @@ To get started with SuperAgent, follow these steps:
    bash setup.sh
    ```
 
-## Deployment
+## SDKs
 
-[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/homanp/superagent/tree/main)
+- [Javascript](https://github.com/homanp/superagent-js)
 
 ## Contributions
 
 SuperAgent is an open-source project, and contributions are welcome. If you would like to contribute, you can create new features, fix bugs, or improve the infrastructure. Please refer to the [CONTRIBUTING.md](https://github.com/homanp/superagent/blob/main/.github/CONTRIBUTING.md) file in the repository for more information on how to contribute.
 
 We appreciate your contributions and aim to make it easy for anyone to create and run LLM Agents in production using SuperAgent.
+
+## Support
+
+We appreciate all the support you can give us, either with contributions, feedback, bug reports or feature requests. Drop a star and share Superagent to the world!
+
+[![Star History Chart](https://api.star-history.com/svg?repos=homanp/superagent&type=Date)](https://superagent.sh)

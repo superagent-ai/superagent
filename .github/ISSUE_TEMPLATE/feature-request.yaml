@@ -23,24 +23,6 @@ body:
       placeholder: "You should add ..."
 
   - type: textarea
-    id: solution
-    validations:
-      required: true
-    attributes:
-      label: "✔️ Solution"
-      description: "A clear and concise description of what you want to happen, and why."
-      placeholder: "In my use-case, ..."
-
-  - type: textarea
-    id: alternatives
-    validations:
-      required: false
-    attributes:
-      label: "❓ Alternatives"
-      description: "A clear and concise description of any alternative solutions or features you've considered."
-      placeholder: "I have considered ..."
-
-  - type: textarea
     id: additional-context
     validations:
       required: false

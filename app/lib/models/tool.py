@@ -1,8 +1,7 @@
 from pydantic import BaseModel
 
 
-class Document(BaseModel):
-    type: str
-    url: str
+class Tool(BaseModel):
     name: str
+    type: str
     authorization: dict = None

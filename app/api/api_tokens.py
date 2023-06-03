@@ -78,7 +78,7 @@ async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
     description="Delete a specific API token",
 )
 async def delete_api_token(tokenId: str, token=Depends(JWTBearer())):
-    """Deleta api token endpoint"""
+    """Delete api token endpoint"""
     try:
         prisma.apitoken.delete(where={"id": tokenId})
 

@@ -4,8 +4,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_MIGRATION_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
 enum AgentType {
@@ -22,6 +23,12 @@ enum DocumentType {
   TXT
   PDF
   YOUTUBE
+  OPENAPI
+}
+
+enum ToolType {
+  BROWSER
+  SEARCH
 }
 
 model User {
@@ -37,6 +44,7 @@ model User {
   ApiToken  ApiToken[]
   Document  Document[]
   Prompt    Prompt[]
+  Tool      Tool[]
 }
 
 model Profile {
@@ -47,25 +55,28 @@ model Profile {
 }
 
 model Document {
-  id        String       @id @default(cuid()) @db.VarChar(255)
-  userId    String       @db.VarChar(255)
-  user      User         @relation(fields: [userId], references: [id])
-  type      DocumentType @default(TXT)
-  url       String       @db.Text()
-  name      String
-  createdAt DateTime?    @default(now())
-  updatedAt DateTime?    @default(now())
-  index     Json?
-  Agent     Agent[]
+  id            String       @id @default(cuid()) @db.VarChar(255)
+  userId        String       @db.VarChar(255)
+  user          User         @relation(fields: [userId], references: [id])
+  type          DocumentType @default(TXT)
+  url           String       @db.Text()
+  name          String
+  createdAt     DateTime?    @default(now())
+  updatedAt     DateTime?    @default(now())
+  index         Json?
+  authorization Json?
+  Agent         Agent[]
 }
 
 model Agent {
   id          String        @id @default(cuid()) @db.VarChar(255)
   userId      String        @db.VarChar(255)
   user        User          @relation(fields: [userId], references: [id])
-  document    Document?     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  document    Document?     @relation(fields: [documentId], references: [id])
   documentId  String?       @db.VarChar(255)
-  prompt      Prompt?       @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  tool        Tool?         @relation(fields: [toolId], references: [id])
+  toolId      String?       @db.VarChar(255)
+  prompt      Prompt?       @relation(fields: [promptId], references: [id])
   promptId    String?       @db.VarChar(255)
   name        String
   type        AgentType     @default(REACT)
@@ -87,7 +98,7 @@ model ApiToken {
 model AgentMemory {
   id        String                @id @default(cuid()) @db.VarChar(255)
   agentId   String                @db.VarChar(255)
-  agent     Agent                 @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  agent     Agent                 @relation(fields: [agentId], references: [id])
   author    AgentMemoryAuthorType @default(HUMAN)
   message   String                @db.Text()
   createdAt DateTime?             @default(now())
@@ -106,4 +117,15 @@ model Prompt {
   updatedAt       DateTime? @default(now())
   deletedAt       DateTime?
   Agent           Agent[]
+}
+
+model Tool {
+  id        String    @id @default(cuid()) @db.VarChar(255)
+  name      String
+  type      ToolType?
+  userId    String    @db.VarChar(255)
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now())
+  Agent     Agent[]
 }

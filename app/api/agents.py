@@ -29,6 +29,9 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
                 "llm": json.dumps(body.llm),
                 "hasMemory": body.has_memory,
                 "userId": decoded["userId"],
+                "documentId": body.documentId,
+                "promptId": body.promptId,
+                "toolId": body.toolId,
             },
             include={"user": True},
         )
@@ -85,6 +88,7 @@ async def read_agent(agentId: str, token=Depends(JWTBearer())):
 async def delete_agent(agentId: str, token=Depends(JWTBearer())):
     """Delete agent endpoint"""
     try:
+        prisma.agentmemory.delete_many(where={"agentId": agentId})
         prisma.agent.delete(where={"id": agentId})
 
         return {"success": True, "data": None}
@@ -124,7 +128,8 @@ async def run_agent(
     input["chat_history"] = []
     has_streaming = body.has_streaming
     agent = prisma.agent.find_unique(
-        where={"id": agentId}, include={"user": True, "document": True, "prompt": True}
+        where={"id": agentId},
+        include={"user": True, "document": True, "prompt": True, "tool": True},
     )
 
     prisma.agentmemory.create(
