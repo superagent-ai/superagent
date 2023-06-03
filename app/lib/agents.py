@@ -1,13 +1,14 @@
 from typing import Any
 
+import requests
+import yaml
 from decouple import config
 from langchain.agents import (
     AgentExecutor,
-    AgentType,
     LLMSingleActionAgent,
-    initialize_agent,
 )
-from langchain.agents.agent_toolkits import NLAToolkit
+from langchain.agents.agent_toolkits.openapi import planner
+from langchain.agents.agent_toolkits.openapi.spec import reduce_openapi_spec
 from langchain.chains import ConversationalRetrievalChain, LLMChain
 from langchain.chains.conversational_retrieval.prompts import (
     CONDENSE_QUESTION_PROMPT,
@@ -19,17 +20,17 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
-from langchain.requests import Requests
+from langchain.requests import RequestsWrapper
 from langchain.vectorstores.pinecone import Pinecone
+
 from app.lib.callbacks import StreamingCallbackHandler
+from app.lib.parsers import CustomOutputParser
 from app.lib.prisma import prisma
 from app.lib.prompts import (
     CustomPromptTemplate,
     agent_template,
     default_chat_prompt,
-    openapi_format_instructions,
 )
-from app.lib.parsers import CustomOutputParser
 from app.lib.tools import get_search_tool
 
 
@@ -119,6 +120,7 @@ class Agent:
         if self.llm["provider"] == "openai-chat":
             return (
                 ChatOpenAI(
+                    temperature=0,
                     openai_api_key=self._get_api_key(),
                     model_name=self.llm["model"],
                     streaming=self.has_streaming,
@@ -232,32 +234,14 @@ class Agent:
                 )
 
             elif self.document.type == "OPENAPI":
-                requests = (
-                    Requests(
-                        headers={
-                            self.document.authorization[
-                                "key"
-                            ]: self.document.authorization["value"]
-                        }
-                    )
-                    if self.document.authorization
-                    else Requests()
+                yaml_response = requests.get(self.document.url)
+                content = yaml_response.content
+                raw_odds_api_spec = yaml.load(content, Loader=yaml.Loader)
+                odds_api_spec = reduce_openapi_spec(raw_odds_api_spec)
+                requests_wrapper = RequestsWrapper()
+                agent = planner.create_openapi_agent(
+                    odds_api_spec, requests_wrapper, llm
                 )
-                openapi_toolkit = NLAToolkit.from_llm_and_url(
-                    llm, self.document.url, requests=requests, max_text_length=1800
-                )
-                tools = openapi_toolkit.get_tools()[:30]
-                mrkl = initialize_agent(
-                    tools=tools,
-                    llm=llm,
-                    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-                    verbose=True,
-                    max_iterations=1,
-                    early_stopping_method="generate",
-                    agent_kwargs={"format_instructions": openapi_format_instructions},
-                )
-
-                return mrkl
 
         elif self.tool:
             output_parser = CustomOutputParser()
