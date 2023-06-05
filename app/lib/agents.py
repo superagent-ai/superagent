@@ -234,11 +234,21 @@ class Agent:
                 )
 
             elif self.document.type == "OPENAPI":
+                requests_wrapper = (
+                    RequestsWrapper(
+                        headers={
+                            self.document.authorization[
+                                "key"
+                            ]: self.document.authorization["value"]
+                        }
+                    )
+                    if self.document.authorization
+                    else RequestsWrapper()
+                )
                 yaml_response = requests.get(self.document.url)
                 content = yaml_response.content
                 raw_odds_api_spec = yaml.load(content, Loader=yaml.Loader)
                 odds_api_spec = reduce_openapi_spec(raw_odds_api_spec)
-                requests_wrapper = RequestsWrapper()
                 agent = planner.create_openapi_agent(
                     odds_api_spec, requests_wrapper, llm
                 )
