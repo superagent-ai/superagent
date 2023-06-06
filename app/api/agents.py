@@ -55,6 +55,7 @@ async def read_agents(token=Depends(JWTBearer())):
             "user": True,
             "document": True,
             "prompt": True,
+            "tool": True,
         },
         order={"createdAt": "desc"},
     )
