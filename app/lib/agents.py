@@ -15,7 +15,7 @@ from langchain.chains.conversational_retrieval.prompts import (
     QA_PROMPT,
 )
 from langchain.chains.question_answering import load_qa_chain
-from langchain.chat_models import ChatAnthropic, ChatOpenAI, AzureChatOpenAI
+from langchain.chat_models import AzureChatOpenAI, ChatAnthropic, ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
@@ -83,7 +83,7 @@ class Agent:
                 if "api_key" in self.llm
                 else config("AZURE_API_KEY")
             )
-    
+
     def _get_tool(self) -> Any:
         try:
             if self.tool.type == "SEARCH":
@@ -186,9 +186,9 @@ class Agent:
             return (
                 AzureChatOpenAI(
                     openai_api_key=self._get_api_key(),
-                    openai_api_base=config("AZURE_API_BASE"), 
+                    openai_api_base=config("AZURE_API_BASE"),
                     openai_api_type=config("AZURE_API_TYPE"),
-                    openai_api_version=config("AZURE_API_VERSION"), 
+                    openai_api_version=config("AZURE_API_VERSION"),
                     deployment_name=self.llm["model"],
                     streaming=self.has_streaming,
                     callbacks=[
