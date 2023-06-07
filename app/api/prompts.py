@@ -67,6 +67,13 @@ async def delete_prompt(promptId: str, token=Depends(JWTBearer())):
 )
 async def patch_prompt(promptId: str, body: dict, token=Depends(JWTBearer())):
     """Patch prompt endpoint"""
-    prompt = prisma.prompt.update(data=body, where={"id": promptId})
+    input_variables = body["input_variables"]
+    if input_variables:
+        body["input_variables"] = json.dumps(input_variables)
+
+    prompt = prisma.prompt.update(
+        data=body,
+        where={"id": promptId},
+    )
 
     return {"success": True, "data": prompt}
