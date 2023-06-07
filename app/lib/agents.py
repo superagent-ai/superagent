@@ -15,7 +15,7 @@ from langchain.chains.conversational_retrieval.prompts import (
     QA_PROMPT,
 )
 from langchain.chains.question_answering import load_qa_chain
-from langchain.chat_models import ChatAnthropic, ChatOpenAI
+from langchain.chat_models import AzureChatOpenAI, ChatAnthropic, ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
@@ -75,6 +75,13 @@ class Agent:
                 self.llm["api_key"]
                 if "api_key" in self.llm
                 else config("COHERE_API_KEY")
+            )
+
+        if self.llm["provider"] == "azure-openai":
+            return (
+                self.llm["api_key"]
+                if "api_key" in self.llm
+                else config("AZURE_API_KEY")
             )
 
     def _get_tool(self) -> Any:
@@ -173,6 +180,33 @@ class Agent:
                 )
                 if self.has_streaming
                 else Cohere(cohere_api_key=self._get_api_key(), model=self.llm["model"])
+            )
+
+        if self.llm["provider"] == "azure-openai":
+            return (
+                AzureChatOpenAI(
+                    openai_api_key=self._get_api_key(),
+                    openai_api_base=config("AZURE_API_BASE"),
+                    openai_api_type=config("AZURE_API_TYPE"),
+                    openai_api_version=config("AZURE_API_VERSION"),
+                    deployment_name=self.llm["model"],
+                    streaming=self.has_streaming,
+                    callbacks=[
+                        StreamingCallbackHandler(
+                            on_llm_new_token_=self.on_llm_new_token,
+                            on_llm_end_=self.on_llm_end,
+                            on_chain_end_=self.on_chain_end,
+                        )
+                    ],
+                )
+                if self.has_streaming
+                else AzureChatOpenAI(
+                    deployment_name=self.llm["model"],
+                    openai_api_key=self._get_api_key(),
+                    openai_api_base=config("AZURE_API_BASE"),
+                    openai_api_type=config("AZURE_API_TYPE"),
+                    openai_api_version=config("AZURE_API_VERSION"),
+                )
             )
 
         # Use ChatOpenAI as default llm in agents
