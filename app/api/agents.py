@@ -101,7 +101,7 @@ async def delete_agent(agentId: str, token=Depends(JWTBearer())):
 
 
 @router.patch(
-    "/agents/{agentId}", name="Delete agent", description="Delete a specific agent"
+    "/agents/{agentId}", name="Patch agent", description="Patch a specific agent"
 )
 async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
     """Patch agent endpoint"""
