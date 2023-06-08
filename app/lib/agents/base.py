@@ -1,30 +1,14 @@
 from typing import Any
 
-import requests
-import yaml
 from decouple import config
-from langchain.agents import (
-    AgentExecutor,
-    LLMSingleActionAgent,
-)
-from langchain.agents.agent_toolkits.openapi import planner
-from langchain.agents.agent_toolkits.openapi.spec import reduce_openapi_spec
-from langchain.chains import ConversationalRetrievalChain, LLMChain
-from langchain.chains.conversational_retrieval.prompts import (
-    CONDENSE_QUESTION_PROMPT,
-    QA_PROMPT,
-)
-from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import AzureChatOpenAI, ChatAnthropic, ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
-from langchain.requests import RequestsWrapper
 from langchain.vectorstores.pinecone import Pinecone
 
 from app.lib.callbacks import StreamingCallbackHandler
-from app.lib.parsers import CustomOutputParser
 from app.lib.prisma import prisma
 from app.lib.prompts import (
     CustomPromptTemplate,
@@ -34,7 +18,7 @@ from app.lib.prompts import (
 from app.lib.tools import get_search_tool
 
 
-class Agent:
+class AgentBase:
     def __init__(
         self,
         agent: dict,
@@ -246,64 +230,4 @@ class Agent:
         return None
 
     def get_agent(self) -> Any:
-        llm = self._get_llm()
-        memory = self._get_memory()
-        document = self._get_document()
-        tools = self._get_tool()
-
-        if self.document:
-            if self.document.type != "OPENAPI":
-                question_generator = LLMChain(
-                    llm=OpenAI(temperature=0), prompt=CONDENSE_QUESTION_PROMPT
-                )
-                doc_chain = load_qa_chain(
-                    llm, chain_type="stuff", prompt=QA_PROMPT, verbose=True
-                )
-                agent = ConversationalRetrievalChain(
-                    retriever=document.as_retriever(),
-                    combine_docs_chain=doc_chain,
-                    question_generator=question_generator,
-                    memory=memory,
-                    get_chat_history=lambda h: h,
-                )
-
-            elif self.document.type == "OPENAPI":
-                requests_wrapper = (
-                    RequestsWrapper(
-                        headers={
-                            self.document.authorization[
-                                "key"
-                            ]: self.document.authorization["value"]
-                        }
-                    )
-                    if self.document.authorization
-                    else RequestsWrapper()
-                )
-                yaml_response = requests.get(self.document.url)
-                content = yaml_response.content
-                raw_odds_api_spec = yaml.load(content, Loader=yaml.Loader)
-                odds_api_spec = reduce_openapi_spec(raw_odds_api_spec)
-                agent = planner.create_openapi_agent(
-                    odds_api_spec, requests_wrapper, llm
-                )
-
-        elif self.tool:
-            output_parser = CustomOutputParser()
-            tool_names = [tool.name for tool in tools]
-            llm_chain = LLMChain(llm=llm, prompt=self._get_prompt())
-            agent_config = LLMSingleActionAgent(
-                llm_chain=llm_chain,
-                output_parser=output_parser,
-                stop=["\nObservation:"],
-                allowed_tools=tool_names,
-            )
-            agent = AgentExecutor.from_agent_and_tools(
-                agent=agent_config, tools=tools, verbose=True, memory=memory
-            )
-
-        else:
-            agent = LLMChain(
-                llm=llm, memory=memory, verbose=True, prompt=self._get_prompt()
-            )
-
-        return agent
+        pass

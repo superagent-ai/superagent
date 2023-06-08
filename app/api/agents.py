@@ -7,7 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security.api_key import APIKey
 from starlette.responses import StreamingResponse
 
-from app.lib.agents import Agent as AgentDefinition
+from app.lib.agents.base import AgentBase
+from app.lib.agents.factory import AgentFactory
 from app.lib.auth.api import get_api_key
 from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.models.agent import Agent, PredictAgent
@@ -167,14 +168,15 @@ async def run_agent(
                     yield f"data: {data}\n\n"
 
             def conversation_run_thread(input: dict) -> None:
-                agent_definition = AgentDefinition(
+                agent_base = AgentBase(
                     agent=agent,
                     has_streaming=has_streaming,
                     on_llm_new_token=on_llm_new_token,
                     on_llm_end=on_llm_end,
                     on_chain_end=on_chain_end,
                 )
-                agent_executor = agent_definition.get_agent()
+                agent_strategy = AgentFactory.create_agent(agent_base)
+                agent_executor = agent_strategy.get_agent()
                 agent_executor.run(input)
 
             data_queue = Queue()
@@ -186,8 +188,9 @@ async def run_agent(
             return response
 
         else:
-            agent_definition = AgentDefinition(agent=agent, has_streaming=has_streaming)
-            agent_executor = agent_definition.get_agent()
+            agent_base = AgentBase(agent=agent, has_streaming=has_streaming)
+            agent_strategy = AgentFactory.create_agent(agent_base)
+            agent_executor = agent_strategy.get_agent()
             output = agent_executor.run(input)
             prisma.agentmemory.create(
                 {"author": "AI", "message": output, "agentId": agentId}
