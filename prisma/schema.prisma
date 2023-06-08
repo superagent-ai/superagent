@@ -29,6 +29,7 @@ enum DocumentType {
 enum ToolType {
   BROWSER
   SEARCH
+  WOLFRAM_ALPHA
 }
 
 model User {

@@ -77,5 +77,3 @@ We appreciate your contributions and aim to make it easy for anyone to create an
 ## Support
 
 We appreciate all the support you can give us, either with contributions, feedback, bug reports or feature requests. Drop a star and share Superagent to the world!
-
-[![Star History Chart](https://api.star-history.com/svg?repos=homanp/superagent&type=Date)](https://superagent.sh)

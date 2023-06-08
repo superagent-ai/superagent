@@ -15,7 +15,7 @@ from app.lib.prompts import (
     agent_template,
     default_chat_prompt,
 )
-from app.lib.tools import get_search_tool
+from app.lib.tools import get_search_tool, get_wolfram_alpha_tool
 
 
 class AgentBase:
@@ -73,7 +73,10 @@ class AgentBase:
             if self.tool.type == "SEARCH":
                 tools = get_search_tool()
 
-                return tools
+            if self.tool.type == "WOLFRAM_ALPHA":
+                tools = get_wolfram_alpha_tool()
+
+            return tools
 
         except Exception:
             return None

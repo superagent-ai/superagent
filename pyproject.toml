@@ -30,6 +30,7 @@ pinecone-client = "^2.2.1"
 tiktoken = "^0.4.0"
 pypdf = "^3.8.1"
 cohere = "^4.5.1"
+wolframalpha = "^5.0.0"
 
 
 [build-system]
