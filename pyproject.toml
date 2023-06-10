@@ -11,7 +11,6 @@ python = "^3.9"
 fastapi = {extras = ["all"], version = "^0.95.1"}
 uvicorn = {extras = ["standard"], version = "^0.22.0"}
 gunicorn = "^20.1.0"
-langchain = "^0.0.161"
 openai = "^0.27.6"
 requests = "2.29.0"
 python-dotenv = "^1.0.0"
@@ -31,6 +30,7 @@ tiktoken = "^0.4.0"
 pypdf = "^3.8.1"
 cohere = "^4.5.1"
 wolframalpha = "^5.0.0"
+langchain = "^0.0.195"
 
 
 [build-system]
