@@ -76,9 +76,9 @@ class OpenApiDocumentAgent(AgentStrategy):
         )
         yaml_response = requests.get(document.url)
         content = yaml_response.content
-        raw_odds_api_spec = yaml.load(content, Loader=yaml.Loader)
-        odds_api_spec = reduce_openapi_spec(raw_odds_api_spec)
-        agent = planner.create_openapi_agent(odds_api_spec, requests_wrapper, llm)
+        raw_api_spec = yaml.load(content, Loader=yaml.Loader)
+        api_spec = reduce_openapi_spec(raw_api_spec)
+        agent = planner.create_openapi_agent(api_spec, requests_wrapper, llm)
 
         return agent
 

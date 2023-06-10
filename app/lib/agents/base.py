@@ -222,7 +222,7 @@ class AgentBase:
         return None
 
     def _get_document(self) -> Any:
-        if self.document:
+        if self.document.type != "OPENAPI":
             embeddings = OpenAIEmbeddings()
             docsearch = Pinecone.from_existing_index(
                 "superagent", embedding=embeddings, namespace=self.document.id
@@ -230,7 +230,7 @@ class AgentBase:
 
             return docsearch
 
-        return None
+        return self.document
 
     def get_agent(self) -> Any:
         pass
