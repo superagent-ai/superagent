@@ -101,7 +101,11 @@ class ToolAgent(AgentStrategy):
             allowed_tools=tool_names,
         )
         agent = AgentExecutor.from_agent_and_tools(
-            agent=agent_config, tools=tools, verbose=True, memory=memory
+            agent=agent_config,
+            tools=tools,
+            verbose=True,
+            memory=memory,
+            return_intermediate_steps=True,
         )
 
         return agent

@@ -214,7 +214,7 @@ class AgentBase:
                 for memory in memories
             ]
             memory = ConversationBufferMemory(
-                chat_memory=history, memory_key="chat_history"
+                chat_memory=history, memory_key="chat_history", output_key="output"
             )
 
             return memory

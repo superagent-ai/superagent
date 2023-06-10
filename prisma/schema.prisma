@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider          = "postgresql"
-  url               = env("DATABASE_URL")
+  url               = env("DATABASE_MIGRATION_URL")
   shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
@@ -86,6 +86,7 @@ model Agent {
   AgentMemory AgentMemory[]
   createdAt   DateTime?     @default(now())
   updatedAt   DateTime?     @default(now())
+  AgentTrace  AgentTrace[]
 }
 
 model ApiToken {
@@ -105,6 +106,15 @@ model AgentMemory {
   createdAt DateTime?             @default(now())
   updatedAt DateTime?             @default(now())
   deletedAt DateTime?
+}
+
+model AgentTrace {
+  id                String    @id @default(cuid()) @db.VarChar(255)
+  agentId           String    @db.VarChar(255)
+  intermediateSteps Json?
+  agent             Agent     @relation(fields: [agentId], references: [id])
+  createdAt         DateTime? @default(now())
+  updatedAt         DateTime? @default(now())
 }
 
 model Prompt {
