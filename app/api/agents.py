@@ -180,10 +180,10 @@ async def run_agent(
                 agent_executor = agent_strategy.get_agent()
                 result = agent_executor(input)
 
-                """Store agent outputs in DB"""
                 if config("SUPERAGENT_TRACING"):
-                    print(result)
-                    pass
+                    agent_base.save_intermediate_steps(
+                        intermediate_steps=result["intermediate_steps"]
+                    )
 
             data_queue = Queue()
             threading.Thread(target=conversation_run_thread, args=(input,)).start()
@@ -200,10 +200,9 @@ async def run_agent(
             result = agent_executor(input)
             result = agent_executor(input)
 
-            """Store agent outputs in DB"""
             if config("SUPERAGENT_TRACING"):
-                prisma.agenttrace.create(
-                    {"agentId": agentId, "intermediateSteps": result}
+                agent_base.save_intermediate_steps(
+                    intermediate_steps=result["intermediate_steps"]
                 )
 
             prisma.agentmemory.create(

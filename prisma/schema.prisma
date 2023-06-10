@@ -109,12 +109,12 @@ model AgentMemory {
 }
 
 model AgentTrace {
-  id                String    @id @default(cuid()) @db.VarChar(255)
-  agentId           String    @db.VarChar(255)
-  intermediateSteps Json?
-  agent             Agent     @relation(fields: [agentId], references: [id])
-  createdAt         DateTime? @default(now())
-  updatedAt         DateTime? @default(now())
+  id        String    @id @default(cuid()) @db.VarChar(255)
+  agentId   String    @db.VarChar(255)
+  data      Json
+  agent     Agent     @relation(fields: [agentId], references: [id])
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now())
 }
 
 model Prompt {

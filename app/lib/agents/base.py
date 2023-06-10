@@ -1,3 +1,4 @@
+import json
 from typing import Any
 
 from decouple import config
@@ -231,6 +232,25 @@ class AgentBase:
             return docsearch
 
         return self.document
+
+    def save_intermediate_steps(self, intermediate_steps: list) -> None:
+        json_array = json.dumps(
+            [
+                {
+                    "action": step[0].tool,
+                    "input": step[0].tool_input,
+                    "log": step[0].log,
+                    "observation": step[1],
+                }
+                for step in intermediate_steps
+            ]
+        )
+        prisma.agenttrace.create(
+            {
+                "agentId": self.id,
+                "data": json_array,
+            }
+        )
 
     def get_agent(self) -> Any:
         pass
