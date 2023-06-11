@@ -181,9 +181,7 @@ async def run_agent(
                 result = agent_executor(input)
 
                 if config("SUPERAGENT_TRACING"):
-                    agent_base.save_intermediate_steps(
-                        intermediate_steps=result["intermediate_steps"]
-                    )
+                    agent_base.save_intermediate_steps(trace=result)
 
             data_queue = Queue()
             threading.Thread(target=conversation_run_thread, args=(input,)).start()
@@ -198,12 +196,9 @@ async def run_agent(
             agent_strategy = AgentFactory.create_agent(agent_base)
             agent_executor = agent_strategy.get_agent()
             result = agent_executor(input)
-            result = agent_executor(input)
 
             if config("SUPERAGENT_TRACING"):
-                agent_base.save_intermediate_steps(
-                    intermediate_steps=result["intermediate_steps"]
-                )
+                agent_base.save_intermediate_steps(trace=result)
 
             prisma.agentmemory.create(
                 {"author": "AI", "message": result["output"], "agentId": agentId}

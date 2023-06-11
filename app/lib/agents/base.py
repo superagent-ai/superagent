@@ -214,8 +214,17 @@ class AgentBase:
                 else history.add_user_message(memory.message)
                 for memory in memories
             ]
-            memory = ConversationBufferMemory(
-                chat_memory=history, memory_key="chat_history", output_key="output"
+
+            memory_key = "chat_history"
+            output_key = "output"
+            memory = (
+                ConversationBufferMemory(
+                    chat_memory=history, memory_key=memory_key, output_key=output_key
+                )
+                if (self.document and self.document.type == "OPENAPI") or self.tool
+                else ConversationBufferMemory(
+                    chat_memory=history, memory_key=memory_key
+                )
             )
 
             return memory
@@ -233,18 +242,24 @@ class AgentBase:
 
         return self.document
 
-    def save_intermediate_steps(self, intermediate_steps: list) -> None:
-        json_array = json.dumps(
-            [
-                {
-                    "action": step[0].tool,
-                    "input": step[0].tool_input,
-                    "log": step[0].log,
-                    "observation": step[1],
-                }
-                for step in intermediate_steps
-            ]
-        )
+    def save_intermediate_steps(self, trace: Any) -> None:
+        if (self.document and self.document.type == "OPENAPI") or self.tool:
+            json_array = json.dumps(
+                [
+                    {
+                        "action": step[0].tool,
+                        "input": step[0].tool_input,
+                        "log": step[0].log,
+                        "observation": step[1],
+                    }
+                    for step in trace["intermediate_steps"]
+                ]
+            )
+
+        else:
+            json_array = json.dumps([trace])
+            print(json_array)
+
         prisma.agenttrace.create(
             {
                 "agentId": self.id,
