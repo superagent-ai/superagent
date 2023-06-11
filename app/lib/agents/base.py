@@ -29,6 +29,7 @@ class AgentBase:
         on_chain_end=None,
     ):
         self.id = agent.id
+        self.userId = agent.userId
         self.document = agent.document
         self.has_memory = agent.hasMemory
         self.type = agent.type
@@ -258,10 +259,10 @@ class AgentBase:
 
         else:
             json_array = json.dumps([trace])
-            print(json_array)
 
         prisma.agenttrace.create(
             {
+                "userId": self.userId,
                 "agentId": self.id,
                 "data": json_array,
             }

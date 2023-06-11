@@ -33,19 +33,20 @@ enum ToolType {
 }
 
 model User {
-  id        String     @id @default(cuid()) @db.VarChar(255)
-  email     String     @unique @db.VarChar(255)
-  password  String?    @db.VarChar(255)
-  name      String?    @db.VarChar(255)
-  createdAt DateTime?  @default(now())
-  updatedAt DateTime?  @default(now())
-  deletedAt DateTime?
-  profile   Profile?
-  Agent     Agent[]
-  ApiToken  ApiToken[]
-  Document  Document[]
-  Prompt    Prompt[]
-  Tool      Tool[]
+  id         String       @id @default(cuid()) @db.VarChar(255)
+  email      String       @unique @db.VarChar(255)
+  password   String?      @db.VarChar(255)
+  name       String?      @db.VarChar(255)
+  createdAt  DateTime?    @default(now())
+  updatedAt  DateTime?    @default(now())
+  deletedAt  DateTime?
+  profile    Profile?
+  Agent      Agent[]
+  ApiToken   ApiToken[]
+  Document   Document[]
+  Prompt     Prompt[]
+  Tool       Tool[]
+  AgentTrace AgentTrace[]
 }
 
 model Profile {
@@ -110,6 +111,8 @@ model AgentMemory {
 
 model AgentTrace {
   id        String    @id @default(cuid()) @db.VarChar(255)
+  userId    String    @db.VarChar(255)
+  user      User      @relation(fields: [userId], references: [id])
   agentId   String    @db.VarChar(255)
   data      Json
   agent     Agent     @relation(fields: [agentId], references: [id])
