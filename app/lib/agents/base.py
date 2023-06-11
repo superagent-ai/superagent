@@ -1,3 +1,4 @@
+import json
 from typing import Any
 
 from decouple import config
@@ -28,6 +29,7 @@ class AgentBase:
         on_chain_end=None,
     ):
         self.id = agent.id
+        self.userId = agent.userId
         self.document = agent.document
         self.has_memory = agent.hasMemory
         self.type = agent.type
@@ -213,8 +215,17 @@ class AgentBase:
                 else history.add_user_message(memory.message)
                 for memory in memories
             ]
-            memory = ConversationBufferMemory(
-                chat_memory=history, memory_key="chat_history"
+
+            memory_key = "chat_history"
+            output_key = "output"
+            memory = (
+                ConversationBufferMemory(
+                    chat_memory=history, memory_key=memory_key, output_key=output_key
+                )
+                if (self.document and self.document.type == "OPENAPI") or self.tool
+                else ConversationBufferMemory(
+                    chat_memory=history, memory_key=memory_key
+                )
             )
 
             return memory
@@ -231,6 +242,34 @@ class AgentBase:
             return docsearch
 
         return self.document
+
+    def save_intermediate_steps(self, trace: Any) -> None:
+        if (self.document and self.document.type == "OPENAPI") or self.tool:
+            json_array = json.dumps(
+                {
+                    "output": trace["output"],
+                    "steps": [
+                        {
+                            "action": step[0].tool,
+                            "input": step[0].tool_input,
+                            "log": step[0].log,
+                            "observation": step[1],
+                        }
+                        for step in trace["intermediate_steps"]
+                    ],
+                }
+            )
+
+        else:
+            json_array = json.dumps({"output": trace["output"], "steps": [trace]})
+
+        prisma.agenttrace.create(
+            {
+                "userId": self.userId,
+                "agentId": self.id,
+                "data": json_array,
+            }
+        )
 
     def get_agent(self) -> Any:
         pass
