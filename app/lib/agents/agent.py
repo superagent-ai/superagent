@@ -2,8 +2,8 @@ from typing import Any
 
 from langchain.agents import (
     AgentExecutor,
-    LLMSingleActionAgent,
     AgentType,
+    LLMSingleActionAgent,
     initialize_agent,
 )
 from langchain.agents.agent_toolkits import NLAToolkit
@@ -16,9 +16,9 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
 from langchain.requests import RequestsWrapper
 
-from app.lib.prompts import openapi_format_instructions
 from app.lib.agents.strategy import AgentStrategy
 from app.lib.parsers import CustomOutputParser
+from app.lib.prompts import openapi_format_instructions
 
 
 class DefaultAgent(AgentStrategy):
