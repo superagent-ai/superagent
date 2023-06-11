@@ -19,6 +19,7 @@ async def list_agent_traces(token=Depends(JWTBearer())):
         include={
             "agent": True,
         },
+        order={"createdAt": "desc"},
     )
 
     return {"success": True, "data": agent_traces}

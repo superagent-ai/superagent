@@ -246,19 +246,22 @@ class AgentBase:
     def save_intermediate_steps(self, trace: Any) -> None:
         if (self.document and self.document.type == "OPENAPI") or self.tool:
             json_array = json.dumps(
-                [
-                    {
-                        "action": step[0].tool,
-                        "input": step[0].tool_input,
-                        "log": step[0].log,
-                        "observation": step[1],
-                    }
-                    for step in trace["intermediate_steps"]
-                ]
+                {
+                    "output": trace["output"],
+                    "steps": [
+                        {
+                            "action": step[0].tool,
+                            "input": step[0].tool_input,
+                            "log": step[0].log,
+                            "observation": step[1],
+                        }
+                        for step in trace["intermediate_steps"]
+                    ],
+                }
             )
 
         else:
-            json_array = json.dumps([trace])
+            json_array = json.dumps({"output": trace["output"], "steps": [trace]})
 
         prisma.agenttrace.create(
             {
