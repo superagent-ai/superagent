@@ -48,6 +48,10 @@ To get started with SuperAgent, follow these steps:
    bash setup.sh
    ```
 
+## 💡 Examples
+
+- Runing Superagent with [NextJS](https://github.com/homanp/nextjs-superagent)
+
 ## 👨🏽‍💻 SDKs
 
 - [Javascript](https://github.com/homanp/superagent-js)
