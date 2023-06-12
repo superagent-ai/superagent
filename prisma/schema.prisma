@@ -24,6 +24,7 @@ enum DocumentType {
   PDF
   YOUTUBE
   OPENAPI
+  URL
 }
 
 enum ToolType {
