@@ -31,6 +31,7 @@ pypdf = "^3.8.1"
 cohere = "^4.5.1"
 wolframalpha = "^5.0.0"
 langchain = "^0.0.195"
+huggingface-hub = "^0.15.1"
 
 
 [build-system]
