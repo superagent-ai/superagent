@@ -17,39 +17,23 @@
 
 </div>
 
-## What is this?
+## 🧐 What is this?
 
 SuperAgent is a powerful tool that simplifies the configuration and deployment of LLM (Large Language Model) Agents to production. It provides a range of features and functionalities to make it easier for developers to build, manage and deploy AI agents to production including features such as built in memory and document retrieval via vector dbs, powerful tools, webhooks, cron jobs etc.
 
-## Documentation
+## 🥷 Superagent Cloud
+
+If you are looking for a plug-n-play way getting started be sure to checkout [superagent.sh](https://superagent.sh).
+
+## 🔎 Documentation
 
 Checkout the [full documentation here](https://docs.superagent.sh/).
 
-## Roadmap
+## 🚧 Roadmap
 
-Here's an overview of the roadmap for SuperAgent:
+You can follow the [roadmap here](https://github.com/users/homanp/projects/4)
 
-- [x] **Bring your own DB**
-- [x] **Authentication**
-- [x] **Built-in memory**
-- [x] **REST API**
-- [x] **Support for multiple LLMs**
-- [x] **Streaming support**
-- [x] **Built-in vectorstore**
-- [x] **Built-in document retrieval**
-- [x] **Q&A Agents**
-- [x] **Prompt management**
-- [x] **Javascript SDK**
-- [x] **Tools**
-- [ ] **ReAct Agents with Tools**
-- [ ] **Plan-solve Agents with Tools**
-- [ ] **Webhook support**
-- [ ] **Scheduled Agents (run agents on a schedule)**
-- [ ] **Usage quotas and tracking**
-- [ ] **Python SDK**
-- [ ] **SuperAgent CLI**
-
-## Getting Started
+## 🛠️ Getting Started
 
 To get started with SuperAgent, follow these steps:
 
@@ -64,16 +48,16 @@ To get started with SuperAgent, follow these steps:
    bash setup.sh
    ```
 
-## SDKs
+## 👨🏽‍💻 SDKs
 
 - [Javascript](https://github.com/homanp/superagent-js)
 
-## Contributions
+## 🫶 Contributions
 
 SuperAgent is an open-source project, and contributions are welcome. If you would like to contribute, you can create new features, fix bugs, or improve the infrastructure. Please refer to the [CONTRIBUTING.md](https://github.com/homanp/superagent/blob/main/.github/CONTRIBUTING.md) file in the repository for more information on how to contribute.
 
 We appreciate your contributions and aim to make it easy for anyone to create and run LLM Agents in production using SuperAgent.
 
-## Support
+## 🙏 Support
 
 We appreciate all the support you can give us, either with contributions, feedback, bug reports or feature requests. Drop a star and share Superagent to the world!
