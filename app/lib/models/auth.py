@@ -13,7 +13,7 @@ class SignIn(BaseModel):
 class SignUp(BaseModel):
     email: str
     password: str
-    name: Optional[str] = (None,)
+    name: str = None
     metadata: dict = None
 
 
