@@ -10,7 +10,6 @@ from langchain.agents.agent_toolkits import NLAToolkit
 from langchain.chains import ConversationalRetrievalChain, LLMChain
 from langchain.chains.conversational_retrieval.prompts import (
     CONDENSE_QUESTION_PROMPT,
-    QA_PROMPT,
 )
 from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
@@ -53,7 +52,7 @@ class DocumentAgent(AgentStrategy):
         doc_chain = load_qa_chain(
             llm,
             chain_type="stuff",
-            prompt=QA_PROMPT,
+            prompt=self.agent_base._get_prompt(),
             verbose=True,
         )
         agent = ConversationalRetrievalChain(

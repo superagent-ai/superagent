@@ -16,6 +16,7 @@ from app.lib.prompts import (
     CustomPromptTemplate,
     agent_template,
     default_chat_prompt,
+    qa_prompt,
 )
 from app.lib.tools import get_search_tool, get_wolfram_alpha_tool
 
@@ -118,6 +119,9 @@ class AgentBase:
                         "chat_history",
                     ],
                 )
+            elif self.document:
+                return qa_prompt
+
             return default_chat_prompt
 
     def _get_llm(self) -> Any:
