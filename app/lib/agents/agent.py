@@ -99,6 +99,26 @@ class OpenApiDocumentAgent(AgentStrategy):
         return agent
 
 
+class OpenAIAgent(AgentStrategy):
+    def __init__(self, agent_base):
+        self.agent_base = agent_base
+
+    def get_agent(self) -> Any:
+        llm = self.agent_base._get_llm()
+        tools = self.agent_base._get_tool()
+        memory = self.agent_base._get_memory()
+        agent = initialize_agent(
+            tools=tools,
+            llm=llm,
+            agent=AgentType.OPENAI_FUNCTIONS,
+            verbose=True,
+            memory=memory,
+            return_intermediate_steps=True,
+        )
+
+        return agent
+
+
 class ToolAgent(AgentStrategy):
     def __init__(self, agent_base):
         self.agent_base = agent_base
