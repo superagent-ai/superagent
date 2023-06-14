@@ -30,9 +30,9 @@ tiktoken = "^0.4.0"
 pypdf = "^3.8.1"
 cohere = "^4.5.1"
 wolframalpha = "^5.0.0"
-langchain = "^0.0.195"
 huggingface-hub = "^0.15.1"
 bs4 = "^0.0.1"
+langchain = "^0.0.200"
 
 
 [build-system]
