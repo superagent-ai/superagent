@@ -98,7 +98,11 @@ class AgentBase:
                 prompt = CustomPromptTemplate(
                     template=self.prompt.template,
                     tools=self._get_tool(),
-                    input_variables=self.prompt.input_variables,
+                    input_variables=[
+                        "human_input",
+                        "intermediate_steps",
+                        "chat_history",
+                    ],
                 )
             else:
                 prompt = PromptTemplate(
