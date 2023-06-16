@@ -16,7 +16,9 @@ pinecone.init(
 valid_ingestion_types = ["TXT", "PDF", "URL"]
 
 
-def upsert_document(url: str, type: str, document_id: str, from_page: int, to_page: int) -> None:
+def upsert_document(
+    url: str, type: str, document_id: str, from_page: int, to_page: int
+) -> None:
     """Upserts documents to Pinecone index"""
     pinecone.Index("superagent")
 
@@ -35,7 +37,9 @@ def upsert_document(url: str, type: str, document_id: str, from_page: int, to_pa
 
     if type == "PDF":
         file_response = requests.get(url)
-        loader = CustomPDFPlumberLoader(file_path=url, from_page=from_page, to_page=to_page)
+        loader = CustomPDFPlumberLoader(
+            file_path=url, from_page=from_page, to_page=to_page
+        )
         documents = loader.load()
         text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
         docs = text_splitter.split_documents(documents)

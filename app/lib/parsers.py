@@ -34,10 +34,10 @@ class CustomPDFPlumberLoader(BasePDFLoader):
 
     def __init__(
         self,
-        file_path: str, 
-        from_page: int = 1, 
+        file_path: str,
+        from_page: int = 1,
         to_page: Optional[int] = None,
-        text_kwargs: Optional[Mapping[str, Any]] = None
+        text_kwargs: Optional[Mapping[str, Any]] = None,
     ) -> None:
         """Initialize with file path."""
         try:
@@ -57,24 +57,23 @@ class CustomPDFPlumberLoader(BasePDFLoader):
         """Load file."""
 
         parser = CustomPDFPlumberParser(
-            text_kwargs=self.text_kwargs, 
-            from_page=self.from_page,
-            to_page=self.to_page
+            text_kwargs=self.text_kwargs, from_page=self.from_page, to_page=self.to_page
         )
         blob = Blob.from_path(self.file_path)
         return parser.parse(blob)
 
 
-
 class CustomPDFPlumberParser(BaseBlobParser):
-    """Custom PDF Parser which optionally takes in account the min page number to process"""
+    """
+    Custom PDF Parser which takes in account the min page number to process
+    """
 
     def __init__(
-            self, 
-            text_kwargs: Optional[Mapping[str, Any]] = None, 
-            from_page: int = 1,
-            to_page: Optional[int] = None
-        ) -> None:
+        self,
+        text_kwargs: Optional[Mapping[str, Any]] = None,
+        from_page: int = 1,
+        to_page: Optional[int] = None,
+    ) -> None:
         """Initialize the parser.
 
         Args:
@@ -96,11 +95,12 @@ class CustomPDFPlumberParser(BaseBlobParser):
                 if self.to_page > 0:
                     """Parse till the maximum page number provided"""
                     doc = pdfplumber.open(
-                        file_path, 
-                        pages=list(range(self.from_page, self.to_page))
+                        file_path, pages=list(range(self.from_page, self.to_page))
                     )
                 else:
-                    raise ValueError("Value of to_page should be greater than equal to 1.")
+                    raise ValueError(
+                        "Value of to_page should be greater than equal to 1."
+                    )
 
             yield from [
                 Document(

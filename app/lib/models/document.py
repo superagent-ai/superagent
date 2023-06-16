@@ -6,5 +6,5 @@ class Document(BaseModel):
     url: str
     name: str
     authorization: dict = None
-    from_page: int = 1,
+    from_page: int = (1,)
     to_page: int = None
