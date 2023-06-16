@@ -9,7 +9,6 @@ from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
 
-
 from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.prisma import prisma
 from app.lib.prompts import (
@@ -20,6 +19,7 @@ from app.lib.prompts import (
 )
 from app.lib.tools import get_search_tool, get_wolfram_alpha_tool
 from app.lib.vectorstores.base import VectorStoreBase
+
 
 class AgentBase:
     def __init__(
@@ -256,8 +256,10 @@ class AgentBase:
     def _get_document(self) -> Any:
         if self.document.type != "OPENAPI":
             embeddings = OpenAIEmbeddings()
-            docsearch = VectorStoreBase().get_database().from_existing_index(
-                embeddings, self.document.id
+            docsearch = (
+                VectorStoreBase()
+                .get_database()
+                .from_existing_index(embeddings, self.document.id)
             )
 
             return docsearch

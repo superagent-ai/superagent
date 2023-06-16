@@ -9,12 +9,12 @@ pinecone.init(
 
 pinecone.Index("superagent")
 
-class PineconeVS:
+
+class PineconeVectorstore:
     def __init__(self):
         pass
 
     def from_documents(self, docs, embeddings, index_name, namespace):
-
         Pinecone.from_documents(
             docs, embeddings, index_name="superagent", namespace=namespace
         )
