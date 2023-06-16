@@ -36,7 +36,6 @@ def upsert_document(
         )
 
     if type == "PDF":
-        file_response = requests.get(url)
         loader = CustomPDFPlumberLoader(
             file_path=url, from_page=from_page, to_page=to_page
         )
