@@ -1,10 +1,12 @@
 import pinecone
 import requests
 from decouple import config
-from langchain.document_loaders import PyPDFLoader, TextLoader, WebBaseLoader
+from langchain.document_loaders import TextLoader, WebBaseLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores.pinecone import Pinecone
+
+from app.lib.parsers import CustomPDFPlumberLoader
 
 pinecone.init(
     api_key=config("PINECONE_API_KEY"),  # find at app.pinecone.io
@@ -14,7 +16,7 @@ pinecone.init(
 valid_ingestion_types = ["TXT", "PDF", "URL"]
 
 
-def upsert_document(url: str, type: str, document_id: str) -> None:
+def upsert_document(url: str, type: str, document_id: str, from_page: int, to_page: int) -> None:
     """Upserts documents to Pinecone index"""
     pinecone.Index("superagent")
 
@@ -33,7 +35,7 @@ def upsert_document(url: str, type: str, document_id: str) -> None:
 
     if type == "PDF":
         file_response = requests.get(url)
-        loader = PyPDFLoader(file_path=url)
+        loader = CustomPDFPlumberLoader(file_path=url, from_page=from_page, to_page=to_page)
         documents = loader.load()
         text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
         docs = text_splitter.split_documents(documents)
