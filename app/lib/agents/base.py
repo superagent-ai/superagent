@@ -8,7 +8,6 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
-from langchain.vectorstores.pinecone import Pinecone
 
 from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.prisma import prisma
@@ -19,6 +18,7 @@ from app.lib.prompts import (
     qa_prompt,
 )
 from app.lib.tools import get_search_tool, get_wolfram_alpha_tool
+from app.lib.vectorstores.base import VectorStoreBase
 
 
 class AgentBase:
@@ -256,8 +256,10 @@ class AgentBase:
     def _get_document(self) -> Any:
         if self.document.type != "OPENAPI":
             embeddings = OpenAIEmbeddings()
-            docsearch = Pinecone.from_existing_index(
-                "superagent", embedding=embeddings, namespace=self.document.id
+            docsearch = (
+                VectorStoreBase()
+                .get_database()
+                .from_existing_index(embeddings, self.document.id)
             )
 
             return docsearch
