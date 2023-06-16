@@ -31,6 +31,8 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
                 url=body.url,
                 type=body.type,
                 document_id=document.id,
+                from_page=body.from_page,
+                to_page=body.to_page,
             )
 
         return {"success": True, "data": document}
