@@ -8,3 +8,4 @@ class Document(BaseModel):
     authorization: dict = None
     from_page: int = (1,)
     to_page: int = None
+    splitter: dict = None

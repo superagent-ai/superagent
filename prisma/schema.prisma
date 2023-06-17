@@ -65,6 +65,7 @@ model Document {
   type          DocumentType @default(TXT)
   url           String       @db.Text()
   name          String
+  splitter      Json?
   createdAt     DateTime?    @default(now())
   updatedAt     DateTime?    @default(now())
   index         Json?
