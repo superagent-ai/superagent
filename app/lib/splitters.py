@@ -90,7 +90,9 @@ class TextSplitters:
         return docs
 
     def huggingface_splitter(self):
-        """Splits a document into chunks of tokens using the huggingface text splitter"""
+        """
+        Splits a document into chunks of tokens using the huggingface text splitter
+        """
 
         try:
             from transformers import GPT2TokenizerFast
