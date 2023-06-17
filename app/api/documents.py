@@ -22,6 +22,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
                 "url": body.url,
                 "userId": decoded["userId"],
                 "name": body.name,
+                "splitter": json.dumps(body.splitter),
                 "authorization": json.dumps(body.authorization),
             }
         )
