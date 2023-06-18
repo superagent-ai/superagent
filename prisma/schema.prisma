@@ -59,38 +59,40 @@ model Profile {
 }
 
 model Document {
-  id            String       @id @default(cuid()) @db.VarChar(255)
-  userId        String       @db.VarChar(255)
-  user          User         @relation(fields: [userId], references: [id])
-  type          DocumentType @default(TXT)
-  url           String       @db.Text()
+  id            String          @id @default(cuid()) @db.VarChar(255)
+  userId        String          @db.VarChar(255)
+  user          User            @relation(fields: [userId], references: [id])
+  type          DocumentType    @default(TXT)
+  url           String          @db.Text()
   name          String
   splitter      Json?
-  createdAt     DateTime?    @default(now())
-  updatedAt     DateTime?    @default(now())
+  createdAt     DateTime?       @default(now())
+  updatedAt     DateTime?       @default(now())
   index         Json?
   authorization Json?
   Agent         Agent[]
+  AgentDocument AgentDocument[]
 }
 
 model Agent {
-  id          String        @id @default(cuid()) @db.VarChar(255)
-  userId      String        @db.VarChar(255)
-  user        User          @relation(fields: [userId], references: [id])
-  document    Document?     @relation(fields: [documentId], references: [id])
-  documentId  String?       @db.VarChar(255)
-  tool        Tool?         @relation(fields: [toolId], references: [id])
-  toolId      String?       @db.VarChar(255)
-  prompt      Prompt?       @relation(fields: [promptId], references: [id])
-  promptId    String?       @db.VarChar(255)
-  name        String
-  type        AgentType     @default(REACT)
-  llm         Json          @default("{ \"provider\": \"openai-chat\", \"model\": \"gpt-3.5-turbo\" }")
-  hasMemory   Boolean       @default(false)
-  AgentMemory AgentMemory[]
-  createdAt   DateTime?     @default(now())
-  updatedAt   DateTime?     @default(now())
-  AgentTrace  AgentTrace[]
+  id            String          @id @default(cuid()) @db.VarChar(255)
+  userId        String          @db.VarChar(255)
+  user          User            @relation(fields: [userId], references: [id])
+  document      Document?       @relation(fields: [documentId], references: [id])
+  documentId    String?         @db.VarChar(255)
+  tool          Tool?           @relation(fields: [toolId], references: [id])
+  toolId        String?         @db.VarChar(255)
+  prompt        Prompt?         @relation(fields: [promptId], references: [id])
+  promptId      String?         @db.VarChar(255)
+  name          String
+  type          AgentType       @default(REACT)
+  llm           Json            @default("{ \"provider\": \"openai-chat\", \"model\": \"gpt-3.5-turbo\" }")
+  hasMemory     Boolean         @default(false)
+  AgentMemory   AgentMemory[]
+  createdAt     DateTime?       @default(now())
+  updatedAt     DateTime?       @default(now())
+  AgentTrace    AgentTrace[]
+  AgentDocument AgentDocument[]
 }
 
 model ApiToken {
@@ -134,6 +136,17 @@ model Prompt {
   updatedAt       DateTime? @default(now())
   deletedAt       DateTime?
   Agent           Agent[]
+}
+
+model AgentDocument {
+  id         String    @id @default(cuid()) @db.VarChar(255)
+  document   Document? @relation(fields: [documentId], references: [id])
+  documentId String?   @db.VarChar(255)
+  agentId    String    @db.VarChar(255)
+  agent      Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @default(now())
+  deletedAt  DateTime?
 }
 
 model Tool {
