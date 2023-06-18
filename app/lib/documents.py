@@ -1,13 +1,13 @@
 import pinecone
 import requests
-from langchain.document_loaders import TextLoader, WebBaseLoader
+from langchain.document_loaders import TextLoader, WebBaseLoader, YoutubeLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 
 from app.lib.parsers import CustomPDFPlumberLoader
 from app.lib.splitters import TextSplitters
 from app.lib.vectorstores.base import VectorStoreBase
 
-valid_ingestion_types = ["TXT", "PDF", "URL"]
+valid_ingestion_types = ["TXT", "PDF", "URL", "YOUTUBE"]
 
 
 def upsert_document(
@@ -58,6 +58,20 @@ def upsert_document(
         newDocuments = [
             document.metadata.update({"namespace": document_id, "language": "en"})
             or document
+            for document in documents
+        ]
+        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
+
+        VectorStoreBase().get_database().from_documents(
+            docs, embeddings, index_name="superagent", namespace=document_id
+        )
+
+    if type == "YOUTUBE":
+        video_id = url.split("youtube.com/watch?v=")[-1]
+        loader = YoutubeLoader(video_id=video_id)
+        documents = loader.load()
+        newDocuments = [
+            document.metadata.update({"namespace": document_id}) or document
             for document in documents
         ]
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
