@@ -13,6 +13,7 @@ from langchain.chains.conversational_retrieval.prompts import (
 )
 from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
+from langchain.retrievers import MergerRetriever
 from langchain.requests import RequestsWrapper
 
 from app.lib.agents.strategy import AgentStrategy
@@ -27,42 +28,39 @@ class DefaultAgent(AgentStrategy):
     def get_agent(self) -> Any:
         llm = self.agent_base._get_llm()
         memory = self.agent_base._get_memory()
-        agent = LLMChain(
-            llm=llm,
-            memory=memory,
-            verbose=True,
-            prompt=self.agent_base._get_prompt(),
-            output_key="output",
-        )
+        agent_documents = self.agent_base.documents
+        retrievers = [
+            agent_document["vectorstore"].as_retriever()
+            for agent_document in agent_documents
+        ]
 
-        return agent
-
-
-class DocumentAgent(AgentStrategy):
-    def __init__(self, agent_base):
-        self.agent_base = agent_base
-
-    def get_agent(self) -> Any:
-        llm = self.agent_base._get_llm()
-        memory = self.agent_base._get_memory()
-        document = self.agent_base._get_document()
-        question_generator = LLMChain(
-            llm=OpenAI(temperature=0), prompt=CONDENSE_QUESTION_PROMPT
-        )
-        doc_chain = load_qa_chain(
-            llm,
-            chain_type="stuff",
-            prompt=self.agent_base._get_prompt(),
-            verbose=True,
-        )
-        agent = ConversationalRetrievalChain(
-            retriever=document.as_retriever(),
-            combine_docs_chain=doc_chain,
-            question_generator=question_generator,
-            memory=memory,
-            get_chat_history=lambda h: h,
-            output_key="output",
-        )
+        if agent_documents:
+            document_retrievers = MergerRetriever(retrievers)
+            question_generator = LLMChain(
+                llm=OpenAI(temperature=0), prompt=CONDENSE_QUESTION_PROMPT
+            )
+            doc_chain = load_qa_chain(
+                llm,
+                chain_type="stuff",
+                prompt=self.agent_base._get_prompt(),
+                verbose=True,
+            )
+            agent = ConversationalRetrievalChain(
+                retriever=document_retrievers,
+                combine_docs_chain=doc_chain,
+                question_generator=question_generator,
+                memory=memory,
+                get_chat_history=lambda h: h,
+                output_key="output",
+            )
+        else:
+            agent = LLMChain(
+                llm=llm,
+                memory=memory,
+                verbose=True,
+                prompt=self.agent_base._get_prompt(),
+                output_key="output",
+            )
 
         return agent
 
@@ -73,12 +71,14 @@ class OpenApiDocumentAgent(AgentStrategy):
 
     def get_agent(self) -> Any:
         llm = self.agent_base._get_llm()
-        document = self.agent_base._get_document()
+        document = self.agent_base._get_documents()
         requests_wrapper = (
             RequestsWrapper(
-                headers={document.authorization["key"]: document.authorization["value"]}
+                headers={
+                    document[0].authorization["key"]: document[0].authorization["value"]
+                }
             )
-            if document.authorization
+            if document[0].authorization
             else RequestsWrapper()
         )
         openapi_toolkit = NLAToolkit.from_llm_and_url(

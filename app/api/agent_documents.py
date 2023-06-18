@@ -29,7 +29,6 @@ def parse_filter_params(request: Request):
 )
 async def create_agent_document(body: AgentDocument, token=Depends(JWTBearer())):
     """Create api token endpoint"""
-    print(body)
     agent_document = prisma.agentdocument.create(
         {"agentId": body.agentId, "documentId": body.documentId}
     )
@@ -46,7 +45,6 @@ async def read_agent_documents(
     filters: dict = Depends(parse_filter_params), token=Depends(JWTBearer())
 ):
     """List api tokens endpoint"""
-    print(filters)
     agent_documents = prisma.agentdocument.find_many(where=filters)
 
     return {"success": True, "data": agent_documents}

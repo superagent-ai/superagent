@@ -42,6 +42,7 @@ class AgentBase:
         self.on_llm_new_token = on_llm_new_token
         self.on_llm_end = on_llm_end
         self.on_chain_end = on_chain_end
+        self.documents = self._get_documents()
 
     def _get_api_key(self) -> str:
         if self.llm["provider"] == "openai-chat" or self.llm["provider"] == "openai":
@@ -123,7 +124,7 @@ class AgentBase:
                         "chat_history",
                     ],
                 )
-            elif self.document:
+            elif self.documents:
                 return qa_prompt
 
             return default_chat_prompt
@@ -253,18 +254,31 @@ class AgentBase:
 
         return None
 
-    def _get_document(self) -> Any:
-        if self.document.type != "OPENAPI":
-            embeddings = OpenAIEmbeddings()
-            docsearch = (
-                VectorStoreBase()
-                .get_database()
-                .from_existing_index(embeddings, self.document.id)
-            )
+    def _get_documents(self) -> Any:
+        docs = []
+        agent_documents = prisma.agentdocument.find_many(
+            where={"agentId": self.id}, include={"document": True}
+        )
 
-            return docsearch
+        for agent_document in agent_documents:
+            if agent_document.document.type != "OPENAPI":
+                embeddings = OpenAIEmbeddings()
+                docsearch = (
+                    VectorStoreBase()
+                    .get_database()
+                    .from_existing_index(embeddings, agent_document.id)
+                )
 
-        return self.document
+                docs.append(
+                    {
+                        "name": agent_document.document.name,
+                        "type": agent_document.document.type,
+                        "vectorstore": docsearch,
+                    }
+                )
+            else:
+                docs.append(agent_document)
+        return docs
 
     def save_intermediate_steps(self, trace: Any) -> None:
         if (self.document and self.document.type == "OPENAPI") or self.tool:
@@ -284,7 +298,12 @@ class AgentBase:
             )
 
         else:
-            json_array = json.dumps({"output": trace["output"], "steps": [trace]})
+            json_array = json.dumps(
+                {
+                    "output": trace.get("output") or trace.get("result"),
+                    "steps": [trace],
+                }
+            )
 
         prisma.agenttrace.create(
             {

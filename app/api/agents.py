@@ -196,15 +196,20 @@ async def run_agent(
             agent_strategy = AgentFactory.create_agent(agent_base)
             agent_executor = agent_strategy.get_agent()
             result = agent_executor(input)
+            output = result.get("output") or result.get("result")
 
             if config("SUPERAGENT_TRACING"):
                 agent_base.save_intermediate_steps(trace=result)
 
             prisma.agentmemory.create(
-                {"author": "AI", "message": result["output"], "agentId": agentId}
+                {
+                    "author": "AI",
+                    "message": output,
+                    "agentId": agentId,
+                }
             )
 
-            return {"success": True, "data": result["output"]}
+            return {"success": True, "data": output}
 
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
