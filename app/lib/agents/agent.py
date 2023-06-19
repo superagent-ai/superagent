@@ -1,24 +1,27 @@
 from typing import Any
+from pydantic import BaseModel, Field
+
 
 from langchain.agents import (
     AgentExecutor,
     AgentType,
     LLMSingleActionAgent,
     initialize_agent,
+    Tool,
 )
 from langchain.agents.agent_toolkits import NLAToolkit
-from langchain.chains import ConversationalRetrievalChain, LLMChain
-from langchain.chains.conversational_retrieval.prompts import (
-    CONDENSE_QUESTION_PROMPT,
-)
-from langchain.chains.question_answering import load_qa_chain
-from langchain.llms import OpenAI
-from langchain.retrievers import MergerRetriever
+from langchain.chains import LLMChain, RetrievalQA
 from langchain.requests import RequestsWrapper
+from langchain.embeddings.openai import OpenAIEmbeddings
 
 from app.lib.agents.strategy import AgentStrategy
 from app.lib.parsers import CustomOutputParser
 from app.lib.prompts import openapi_format_instructions
+from app.lib.vectorstores.base import VectorStoreBase
+
+
+class DocumentInput(BaseModel):
+    question: str = Field()
 
 
 class DefaultAgent(AgentStrategy):
@@ -29,30 +32,34 @@ class DefaultAgent(AgentStrategy):
         llm = self.agent_base._get_llm()
         memory = self.agent_base._get_memory()
         agent_documents = self.agent_base.documents
-        retrievers = [
-            agent_document["vectorstore"].as_retriever()
-            for agent_document in agent_documents
-        ]
-
         if agent_documents:
-            document_retrievers = MergerRetriever(retrievers)
-            question_generator = LLMChain(
-                llm=OpenAI(temperature=0), prompt=CONDENSE_QUESTION_PROMPT
-            )
-            doc_chain = load_qa_chain(
-                llm,
-                chain_type="stuff",
-                prompt=self.agent_base._get_prompt(),
+            embeddings = OpenAIEmbeddings()
+            tools = [
+                Tool(
+                    name=agent_document.document.id,
+                    args_schema=DocumentInput,
+                    description=f"useful when you want to answer questions about {agent_document.document.name}",
+                    func=RetrievalQA.from_chain_type(
+                        llm=llm,
+                        chain_type="stuff",
+                        retriever=(
+                            VectorStoreBase()
+                            .get_database()
+                            .from_existing_index(embeddings, agent_document.document.id)
+                        ).as_retriever(),
+                    ),
+                )
+                for agent_document in agent_documents
+            ]
+            agent = initialize_agent(
+                agent=AgentType.OPENAI_FUNCTIONS,
+                tools=tools,
+                llm=llm,
                 verbose=True,
-            )
-            agent = ConversationalRetrievalChain(
-                retriever=document_retrievers,
-                combine_docs_chain=doc_chain,
-                question_generator=question_generator,
+                return_intermediate_steps=True,
                 memory=memory,
-                get_chat_history=lambda h: h,
-                output_key="output",
             )
+
         else:
             agent = LLMChain(
                 llm=llm,
@@ -105,7 +112,7 @@ class OpenAIAgent(AgentStrategy):
 
     def get_agent(self) -> Any:
         llm = self.agent_base._get_llm()
-        tools = self.agent_base._get_tool()
+        tools = self.agent_base._get_tools()
         memory = self.agent_base._get_memory()
         agent = initialize_agent(
             tools=tools,
@@ -119,7 +126,7 @@ class OpenAIAgent(AgentStrategy):
         return agent
 
 
-class ToolAgent(AgentStrategy):
+class ReactAgent(AgentStrategy):
     def __init__(self, agent_base):
         self.agent_base = agent_base
 

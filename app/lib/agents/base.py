@@ -3,9 +3,11 @@ from typing import Any
 
 from decouple import config
 from langchain import HuggingFaceHub
+from langchain.agents import Tool
+from langchain.chains import RetrievalQA
 from langchain.chat_models import AzureChatOpenAI, ChatAnthropic, ChatOpenAI
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import Cohere, OpenAI
+from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
 
@@ -17,7 +19,9 @@ from app.lib.prompts import (
     default_chat_prompt,
     qa_prompt,
 )
-from app.lib.tools import get_search_tool, get_wolfram_alpha_tool
+from app.lib.tools import get_search_tool, get_wolfram_alpha_tool, ToolDescription
+from app.lib.models.document import DocumentInput
+from app.lib.models.tool import ToolInput
 from app.lib.vectorstores.base import VectorStoreBase
 
 
@@ -43,6 +47,7 @@ class AgentBase:
         self.on_llm_end = on_llm_end
         self.on_chain_end = on_chain_end
         self.documents = self._get_documents()
+        self.tools = self._get_tools()
 
     def _get_api_key(self) -> str:
         if self.llm["provider"] == "openai-chat" or self.llm["provider"] == "openai":
@@ -93,12 +98,12 @@ class AgentBase:
         except Exception:
             return None
 
-    def _get_prompt(self) -> Any:
+    def _get_prompt(self, tools: list) -> Any:
         if self.prompt:
-            if self.tool:
+            if self.tool or self.documents:
                 prompt = CustomPromptTemplate(
                     template=self.prompt.template,
-                    tools=self._get_tool(),
+                    tools=tools or self._get_tool(),
                     input_variables=[
                         "human_input",
                         "intermediate_steps",
@@ -114,10 +119,10 @@ class AgentBase:
             return prompt
 
         else:
-            if self.tool:
+            if self.tool or self.documents:
                 return CustomPromptTemplate(
                     template=agent_template,
-                    tools=self._get_tool(),
+                    tools=tools or self._get_tool(),
                     input_variables=[
                         "human_input",
                         "intermediate_steps",
@@ -244,7 +249,9 @@ class AgentBase:
                 ConversationBufferMemory(
                     chat_memory=history, memory_key=memory_key, output_key=output_key
                 )
-                if (self.document and self.document.type == "OPENAPI") or self.tool
+                if (self.document and self.document.type == "OPENAPI")
+                or self.documents
+                or self.tool
                 else ConversationBufferMemory(
                     chat_memory=history, memory_key=memory_key
                 )
@@ -255,36 +262,76 @@ class AgentBase:
         return None
 
     def _get_documents(self) -> Any:
-        docs = []
         agent_documents = prisma.agentdocument.find_many(
             where={"agentId": self.id}, include={"document": True}
         )
 
-        for agent_document in agent_documents:
-            if agent_document.document.type != "OPENAPI":
-                embeddings = OpenAIEmbeddings()
-                docsearch = (
-                    VectorStoreBase()
-                    .get_database()
-                    .from_existing_index(embeddings, agent_document.id)
-                )
+        return agent_documents
 
-                docs.append(
-                    {
-                        "name": agent_document.document.name,
-                        "type": agent_document.document.type,
-                        "vectorstore": docsearch,
-                    }
+    def _get_tool_by_name(self, name: str) -> Any:
+        if name == "SEARCH":
+            return get_search_tool
+        if name == "WOLFRAM_ALPHA":
+            return get_wolfram_alpha_tool
+
+    def _get_tools(self) -> list:
+        tools = []
+        embeddings = OpenAIEmbeddings()
+
+        for agent_document in self.documents:
+            description = (
+                f"useful when you want to answer questions about {agent_document.document.name}"
+                if self.type == "OPENAI"
+                else None
+            )
+            args_schema = DocumentInput if self.type == "OPENAI" else None
+            tools.append(
+                Tool(
+                    name=agent_document.document.id,
+                    description=description,
+                    args_schema=args_schema,
+                    func=RetrievalQA.from_chain_type(
+                        llm=self._get_llm(),
+                        chain_type="stuff",
+                        retriever=(
+                            VectorStoreBase()
+                            .get_database()
+                            .from_existing_index(embeddings, agent_document.document.id)
+                        ).as_retriever(),
+                    ),
                 )
-            else:
-                docs.append(agent_document)
-        return docs
+            )
+
+        for agent_tool in self.tools:
+            args_schema = ToolInput if self.type == "OPENAI" else None
+            tool = self._get_tool_from_name(name=agent_tool.tool.name)
+            tools.append(
+                Tool(
+                    name=agent_tool.tool.name,
+                    description=ToolDescription["SEARCH"].value,
+                    args_schema=args_schema,
+                    func=tool.run,
+                )
+            )
+
+        return tools
+
+    def _get_agent_tools(self) -> Any:
+        tools = prisma.agenttool.find_many(
+            where={"agentId": self.id}, include={"tool": True}
+        )
+
+        return tools
 
     def save_intermediate_steps(self, trace: Any) -> None:
-        if (self.document and self.document.type == "OPENAPI") or self.tool:
+        if (
+            (self.document and self.document.type == "OPENAPI")
+            or self.documents
+            or self.tool
+        ):
             json_array = json.dumps(
                 {
-                    "output": trace["output"],
+                    "output": trace.get("output") or trace.get("result"),
                     "steps": [
                         {
                             "action": step[0].tool,

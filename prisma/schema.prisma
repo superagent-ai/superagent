@@ -40,7 +40,7 @@ model User {
   password   String?      @db.VarChar(255)
   name       String?      @db.VarChar(255)
   createdAt  DateTime?    @default(now())
-  updatedAt  DateTime?    @default(now())
+  updatedAt  DateTime?    @updatedAt
   deletedAt  DateTime?
   profile    Profile?
   Agent      Agent[]
@@ -67,7 +67,7 @@ model Document {
   name          String
   splitter      Json?
   createdAt     DateTime?       @default(now())
-  updatedAt     DateTime?       @default(now())
+  updatedAt     DateTime?       @updatedAt
   index         Json?
   authorization Json?
   Agent         Agent[]
@@ -90,9 +90,10 @@ model Agent {
   hasMemory     Boolean         @default(false)
   AgentMemory   AgentMemory[]
   createdAt     DateTime?       @default(now())
-  updatedAt     DateTime?       @default(now())
+  updatedAt     DateTime?       @updatedAt
   AgentTrace    AgentTrace[]
   AgentDocument AgentDocument[]
+  AgentTool     AgentTool[]
 }
 
 model ApiToken {
@@ -110,7 +111,7 @@ model AgentMemory {
   author    AgentMemoryAuthorType @default(HUMAN)
   message   String                @db.Text()
   createdAt DateTime?             @default(now())
-  updatedAt DateTime?             @default(now())
+  updatedAt DateTime?             @updatedAt
   deletedAt DateTime?
 }
 
@@ -122,7 +123,7 @@ model AgentTrace {
   data      Json
   agent     Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
   createdAt DateTime? @default(now())
-  updatedAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
 }
 
 model Prompt {
@@ -133,7 +134,7 @@ model Prompt {
   userId          String    @db.VarChar(255)
   user            User      @relation(fields: [userId], references: [id])
   createdAt       DateTime? @default(now())
-  updatedAt       DateTime? @default(now())
+  updatedAt       DateTime? @updatedAt
   deletedAt       DateTime?
   Agent           Agent[]
 }
@@ -145,17 +146,29 @@ model AgentDocument {
   agentId    String    @db.VarChar(255)
   agent      Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
   createdAt  DateTime? @default(now())
-  updatedAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
   deletedAt  DateTime?
 }
 
 model Tool {
-  id        String    @id @default(cuid()) @db.VarChar(255)
+  id        String      @id @default(cuid()) @db.VarChar(255)
   name      String
   type      ToolType?
-  userId    String    @db.VarChar(255)
-  user      User      @relation(fields: [userId], references: [id])
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @default(now())
+  userId    String      @db.VarChar(255)
+  user      User        @relation(fields: [userId], references: [id])
+  createdAt DateTime?   @default(now())
+  updatedAt DateTime?   @updatedAt
   Agent     Agent[]
+  AgentTool AgentTool[]
+}
+
+model AgentTool {
+  id        String    @id @default(cuid()) @db.VarChar(255)
+  tool      Tool?     @relation(fields: [toolId], references: [id])
+  toolId    String?   @db.VarChar(255)
+  agentId   String    @db.VarChar(255)
+  agent     Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+  deletedAt DateTime?
 }
