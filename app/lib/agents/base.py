@@ -22,9 +22,7 @@ from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.models.document import DocumentInput
 from app.lib.models.tool import ToolInput
 from app.lib.prisma import prisma
-from app.lib.prompts import (
-    CustomPromptTemplate,
-)
+from app.lib.prompts import CustomPromptTemplate, DEFAULT_CHAT_PROMPT
 from app.lib.tools import ToolDescription, get_search_tool, get_wolfram_alpha_tool
 from app.lib.vectorstores.base import VectorStoreBase
 
@@ -102,32 +100,31 @@ class AgentBase:
         except Exception:
             return None
 
-    def _get_prompt(self, tools: list) -> Any:
-        prompt = None
-
-        if self.prompt and self.type == "REACT":
-            if self.tools or self.documents:
-                prompt = CustomPromptTemplate(
-                    template=self.prompt.template,
-                    tools=tools or self._get_tools(),
-                    input_variables=[
-                        "human_input",
-                        "intermediate_steps",
-                        "chat_history",
-                    ],
-                )
-
-            else:
-                prompt = PromptTemplate(
+    def _get_prompt(self, tools: list = None) -> Any:
+        if not self.tools and not self.documents:
+            return (
+                PromptTemplate(
                     input_variables=self.prompt.input_variables,
                     template=self.prompt.template,
                 )
+                if self.prompt
+                else DEFAULT_CHAT_PROMPT
+            )
 
-        if self.prompt and self.type == "OPENAI":
-            if self.tools or self.documents:
-                prompt = SystemMessage(content=self.prompt.template)
+        if self.type == "REACT":
+            return CustomPromptTemplate(
+                template=self.prompt.template,
+                tools=tools or self._get_tools(),
+                input_variables=["human_input", "intermediate_steps", "chat_history"],
+            )
 
-        return prompt
+        if self.type == "OPENAI":
+            if self.prompt:
+                return SystemMessage(content=self.prompt.template)
+            else:
+                return None
+
+        return DEFAULT_CHAT_PROMPT
 
     def _get_llm(self) -> Any:
         if self.llm["provider"] == "openai-chat":
@@ -224,31 +221,33 @@ class AgentBase:
         return ChatOpenAI(temperature=0, openai_api_key=self._get_api_key())
 
     def _get_memory(self) -> Any:
-        memory = None
-        memories = prisma.agentmemory.find_many(
-            where={"agentId": self.id},
-            order={"createdAt": "desc"},
-            take=3,
-        )
-        history = ChatMessageHistory()
-        [
-            history.add_ai_message(memory.message)
-            if memory.agent == "AI"
-            else history.add_user_message(memory.message)
-            for memory in memories
-        ]
-
-        if self.has_memory and self.type == "REACT":
-            memory = ConversationBufferMemory(
-                chat_memory=history, memory_key="chat_history", output_key="output"
+        if self.has_memory:
+            memories = prisma.agentmemory.find_many(
+                where={"agentId": self.id},
+                order={"createdAt": "desc"},
+                take=3,
             )
+            history = ChatMessageHistory()
+            [
+                history.add_ai_message(memory.message)
+                if memory.author == "AI"
+                else history.add_user_message(memory.message)
+                for memory in memories
+            ]
 
-        if self.has_memory and self.type == "OPENAI":
-            memory = ConversationBufferMemory(
-                memory_key="chat_history", chat_memory=history, return_messages=True
+            if (self.documents or self.tools) and self.type == "OPENAI":
+                return ConversationBufferMemory(
+                    chat_memory=history,
+                    memory_key="chat_history",
+                    output_key="output",
+                    return_messages=True,
+                )
+
+            return ConversationBufferMemory(
+                chat_memory=history,
+                memory_key="chat_history",
+                output_key="output",
             )
-
-        return memory
 
     def _get_agent_documents(self) -> Any:
         agent_documents = prisma.agentdocument.find_many(
@@ -274,6 +273,12 @@ class AgentBase:
                 else None
             )
             args_schema = DocumentInput if self.type == "OPENAI" else None
+            embeddings = OpenAIEmbeddings()
+            retriever = (
+                VectorStoreBase()
+                .get_database()
+                .from_existing_index(embeddings, agent_document.document.id)
+            ).as_retriever()
             tools.append(
                 Tool(
                     name=agent_document.document.id,
@@ -281,12 +286,7 @@ class AgentBase:
                     args_schema=args_schema,
                     func=RetrievalQA.from_chain_type(
                         llm=self._get_llm(),
-                        chain_type="stuff",
-                        retriever=(
-                            VectorStoreBase()
-                            .get_database()
-                            .from_existing_index(embeddings, agent_document.document.id)
-                        ).as_retriever(),
+                        retriever=retriever,
                     ),
                 )
             )

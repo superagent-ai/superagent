@@ -138,7 +138,7 @@ async def run_agent(
     prisma.agentmemory.create(
         {
             "author": "HUMAN",
-            "message": input.get("human_input", input.get("question", "")),
+            "message": input.get("input"),
             "agentId": agentId,
         }
     )

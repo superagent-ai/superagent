@@ -12,4 +12,4 @@ class Document(BaseModel):
 
 
 class DocumentInput(BaseModel):
-    question: str = Field
+    question: str = Field()
