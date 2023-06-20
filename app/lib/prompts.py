@@ -31,11 +31,11 @@ topics.
 
 
 {chat_history}
-Human: {human_input}
+Human: {input}
 Assitant:
 """
 
 DEFAULT_CHAT_PROMPT = PromptTemplate(
-    input_variables=["chat_history", "human_input"],
+    input_variables=["chat_history", "input"],
     template=default_chat_template,
 )
