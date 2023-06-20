@@ -66,7 +66,7 @@ class ReactAgent(AgentStrategy):
     def get_agent(self) -> Any:
         llm = self.agent_base._get_llm()
         memory = self.agent_base._get_memory()
-        tools = self.agent_base._get_tool()
+        tools = self.agent_base._get_tools()
         output_parser = CustomOutputParser()
         tool_names = [tool.name for tool in tools]
         prompt = self.agent_base._get_prompt()

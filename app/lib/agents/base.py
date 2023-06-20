@@ -22,7 +22,11 @@ from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.models.document import DocumentInput
 from app.lib.models.tool import SearchToolInput, WolframToolInput
 from app.lib.prisma import prisma
-from app.lib.prompts import CustomPromptTemplate, DEFAULT_CHAT_PROMPT
+from app.lib.prompts import (
+    CustomPromptTemplate,
+    DEFAULT_CHAT_PROMPT,
+    DEFAULT_AGENT_PROMPT,
+)
 from app.lib.tools import ToolDescription, get_search_tool, get_wolfram_alpha_tool
 from app.lib.vectorstores.base import VectorStoreBase
 
@@ -113,16 +117,13 @@ class AgentBase:
 
         if self.type == "REACT":
             return CustomPromptTemplate(
-                template=self.prompt.template,
+                template=self.prompt.template if self.prompt else DEFAULT_AGENT_PROMPT,
                 tools=tools or self._get_tools(),
-                input_variables=["human_input", "intermediate_steps", "chat_history"],
+                input_variables=["input", "intermediate_steps", "chat_history"],
             )
 
         if self.type == "OPENAI":
-            if self.prompt:
-                return SystemMessage(content=self.prompt.template)
-            else:
-                return None
+            return SystemMessage(content=self.prompt.template) if self.prompt else None
 
         return DEFAULT_CHAT_PROMPT
 
@@ -252,7 +253,7 @@ class AgentBase:
                 output_key="output",
             )
 
-        return ConversationBufferMemory(memory_key="chat_history")
+        return ConversationBufferMemory(memory_key="chat_history", output_key="output")
 
     def _get_agent_documents(self) -> Any:
         agent_documents = prisma.agentdocument.find_many(
@@ -272,11 +273,7 @@ class AgentBase:
         embeddings = OpenAIEmbeddings()
 
         for agent_document in self.documents:
-            description = (
-                f"useful when you want to answer questions about {agent_document.document.name}"
-                if self.type == "OPENAI"
-                else None
-            )
+            description = f"useful when you want to answer questions about {agent_document.document.name}"
             args_schema = DocumentInput if self.type == "OPENAI" else None
             embeddings = OpenAIEmbeddings()
             retriever = (
@@ -286,7 +283,9 @@ class AgentBase:
             ).as_retriever()
             tools.append(
                 Tool(
-                    name=agent_document.document.id,
+                    name=agent_document.document.id
+                    if self.type == "OPENAI"
+                    else agent_document.document.name,
                     description=description,
                     args_schema=args_schema,
                     func=RetrievalQA.from_chain_type(
@@ -297,16 +296,12 @@ class AgentBase:
             )
 
         for agent_tool in self.tools:
-            tool, args_schema = (
-                self._get_tool_and_input_by_type(agent_tool.tool.type)
-                if self.type == "OPENAI"
-                else None
-            )
+            tool, args_schema = self._get_tool_and_input_by_type(agent_tool.tool.type)
             tools.append(
                 Tool(
                     name=agent_tool.tool.id,
                     description=ToolDescription[agent_tool.tool.type].value,
-                    args_schema=args_schema,
+                    args_schema=args_schema if self.type == "OPENAI" else None,
                     func=tool.run,
                 )
             )
