@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 from starlette.requests import Request
 
-
 from app.lib.auth.prisma import JWTBearer
 from app.lib.models.agent_document import AgentDocument
 from app.lib.prisma import prisma

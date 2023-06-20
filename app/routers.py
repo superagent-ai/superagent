@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 
 from app.api import (
-    agents,
     agent_documents,
+    agents,
     api_tokens,
     auth,
     documents,

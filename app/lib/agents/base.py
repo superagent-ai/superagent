@@ -1,3 +1,4 @@
+# flake8: noqa
 import json
 from typing import Any
 
@@ -9,21 +10,22 @@ from langchain.chat_models import (
     AzureChatOpenAI,
     ChatAnthropic,
     ChatOpenAI,
-    SystemMessage,
 )
-from langchain.llms import Cohere, OpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
+from langchain.schema import SystemMessage
+
 
 from app.lib.callbacks import StreamingCallbackHandler
+from app.lib.models.document import DocumentInput
+from app.lib.models.tool import ToolInput
 from app.lib.prisma import prisma
 from app.lib.prompts import (
     CustomPromptTemplate,
 )
-from app.lib.tools import get_search_tool, get_wolfram_alpha_tool, ToolDescription
-from app.lib.models.document import DocumentInput
-from app.lib.models.tool import ToolInput
+from app.lib.tools import ToolDescription, get_search_tool, get_wolfram_alpha_tool
 from app.lib.vectorstores.base import VectorStoreBase
 
 
