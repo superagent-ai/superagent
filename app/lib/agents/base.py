@@ -1,6 +1,6 @@
 # flake8: noqa
 import json
-from typing import Any
+from typing import Any, Tuple
 
 from decouple import config
 from langchain import HuggingFaceHub
@@ -221,13 +221,16 @@ class AgentBase:
         return ChatOpenAI(temperature=0, openai_api_key=self._get_api_key())
 
     def _get_memory(self) -> Any:
+        history = ChatMessageHistory()
+        memory = ConversationBufferMemory(memory_key="chat_history")
+
         if self.has_memory:
             memories = prisma.agentmemory.find_many(
                 where={"agentId": self.id},
                 order={"createdAt": "desc"},
                 take=3,
             )
-            history = ChatMessageHistory()
+
             [
                 history.add_ai_message(memory.message)
                 if memory.author == "AI"
@@ -249,6 +252,8 @@ class AgentBase:
                 output_key="output",
             )
 
+        return ConversationBufferMemory(memory_key="chat_history")
+
     def _get_agent_documents(self) -> Any:
         agent_documents = prisma.agentdocument.find_many(
             where={"agentId": self.id}, include={"document": True}
@@ -256,17 +261,11 @@ class AgentBase:
 
         return agent_documents
 
-    def _get_tool_by_type(self, type: str) -> Any:
+    def _get_tool_and_input_by_type(self, type: str) -> Tuple[Any, Any]:
         if type == "SEARCH":
-            return get_search_tool()
+            return get_search_tool(), SearchToolInput
         if type == "WOLFRAM_ALPHA":
-            return get_wolfram_alpha_tool
-
-    def _get_tool_input_by_type(self, type: str) -> Any:
-        if type == "SEARCH":
-            return SearchToolInput
-        if type == "WOLFRAM_ALPHA":
-            return WolframToolInput
+            return get_wolfram_alpha_tool(), WolframToolInput
 
     def _get_tools(self) -> list:
         tools = []
@@ -298,8 +297,11 @@ class AgentBase:
             )
 
         for agent_tool in self.tools:
-            args_schema = self._get_tool_input_by_type(type=agent_tool.tool.type)
-            tool = self._get_tool_by_type(type=agent_tool.tool.type)
+            tool, args_schema = (
+                self._get_tool_and_input_by_type(agent_tool.tool.type)
+                if self.type == "OPENAI"
+                else None
+            )
             tools.append(
                 Tool(
                     name=agent_tool.tool.id,

@@ -29,8 +29,8 @@ default_chat_template = """Assistant is designed to be able to assist with a wid
 simple questions to providing in-depth explanations and discussions on a wide range of 
 topics.
 
-
 {chat_history}
+
 Human: {input}
 Assitant:
 """
