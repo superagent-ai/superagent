@@ -1,5 +1,6 @@
 # flake8: noqa
-from typing import List
+from typing import Any
+from pydantic import BaseModel, Field
 from enum import Enum
 from decouple import config
 from langchain.agents import Tool
@@ -12,30 +13,16 @@ class ToolDescription(Enum):
     WOLFRAM_ALPHA = "useful for when you need to do computation or calculation."
 
 
-def get_search_tool() -> List:
+def get_search_tool() -> Any:
     search = BingSearchAPIWrapper(
         bing_search_url=config("BING_SEARCH_URL"),
         bing_subscription_key=config("BING_SUBSCRIPTION_KEY"),
     )
-    tools = [
-        Tool(
-            name="Search",
-            func=search.run,
-            description=ToolDescription.SEARCH,
-        )
-    ]
 
-    return tools
+    return search
 
 
-def get_wolfram_alpha_tool() -> List:
+def get_wolfram_alpha_tool() -> Any:
     wolfram = WolframAlphaAPIWrapper()
-    tools = [
-        Tool(
-            name="Wolfram Alpha",
-            func=wolfram.run,
-            description=ToolDescription.WOLFRAM_ALPHA,
-        )
-    ]
 
-    return tools
+    return wolfram

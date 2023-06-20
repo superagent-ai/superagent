@@ -7,5 +7,9 @@ class Tool(BaseModel):
     authorization: dict = None
 
 
-class ToolInput(BaseModel):
-    input: str = Field
+class SearchToolInput(BaseModel):
+    input: str = Field()
+
+
+class WolframToolInput(BaseModel):
+    question: str = Field()

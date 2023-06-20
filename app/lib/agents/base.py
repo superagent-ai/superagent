@@ -20,7 +20,7 @@ from langchain.schema import SystemMessage
 
 from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.models.document import DocumentInput
-from app.lib.models.tool import ToolInput
+from app.lib.models.tool import SearchToolInput, WolframToolInput
 from app.lib.prisma import prisma
 from app.lib.prompts import CustomPromptTemplate, DEFAULT_CHAT_PROMPT
 from app.lib.tools import ToolDescription, get_search_tool, get_wolfram_alpha_tool
@@ -256,11 +256,17 @@ class AgentBase:
 
         return agent_documents
 
-    def _get_tool_by_name(self, name: str) -> Any:
-        if name == "SEARCH":
-            return get_search_tool
-        if name == "WOLFRAM_ALPHA":
+    def _get_tool_by_type(self, type: str) -> Any:
+        if type == "SEARCH":
+            return get_search_tool()
+        if type == "WOLFRAM_ALPHA":
             return get_wolfram_alpha_tool
+
+    def _get_tool_input_by_type(self, type: str) -> Any:
+        if type == "SEARCH":
+            return SearchToolInput
+        if type == "WOLFRAM_ALPHA":
+            return WolframToolInput
 
     def _get_tools(self) -> list:
         tools = []
@@ -292,12 +298,12 @@ class AgentBase:
             )
 
         for agent_tool in self.tools:
-            args_schema = ToolInput if self.type == "OPENAI" else None
-            tool = self._get_tool_from_name(name=agent_tool.tool.name)
+            args_schema = self._get_tool_input_by_type(type=agent_tool.tool.type)
+            tool = self._get_tool_by_type(type=agent_tool.tool.type)
             tools.append(
                 Tool(
-                    name=agent_tool.tool.name,
-                    description=ToolDescription["SEARCH"].value,
+                    name=agent_tool.tool.id,
+                    description=ToolDescription[agent_tool.tool.type].value,
                     args_schema=args_schema,
                     func=tool.run,
                 )
