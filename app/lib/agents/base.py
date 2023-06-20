@@ -5,7 +5,12 @@ from decouple import config
 from langchain import HuggingFaceHub
 from langchain.agents import Tool
 from langchain.chains import RetrievalQA
-from langchain.chat_models import AzureChatOpenAI, ChatAnthropic, ChatOpenAI
+from langchain.chat_models import (
+    AzureChatOpenAI,
+    ChatAnthropic,
+    ChatOpenAI,
+    SystemMessage,
+)
 from langchain.llms import Cohere, OpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
@@ -15,9 +20,6 @@ from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.prisma import prisma
 from app.lib.prompts import (
     CustomPromptTemplate,
-    agent_template,
-    default_chat_prompt,
-    qa_prompt,
 )
 from app.lib.tools import get_search_tool, get_wolfram_alpha_tool, ToolDescription
 from app.lib.models.document import DocumentInput
@@ -46,8 +48,8 @@ class AgentBase:
         self.on_llm_new_token = on_llm_new_token
         self.on_llm_end = on_llm_end
         self.on_chain_end = on_chain_end
-        self.documents = self._get_documents()
-        self.tools = self._get_tools()
+        self.documents = self._get_agent_documents()
+        self.tools = self._get_agent_tools()
 
     def _get_api_key(self) -> str:
         if self.llm["provider"] == "openai-chat" or self.llm["provider"] == "openai":
@@ -99,40 +101,31 @@ class AgentBase:
             return None
 
     def _get_prompt(self, tools: list) -> Any:
-        if self.prompt:
-            if self.tool or self.documents:
+        prompt = None
+
+        if self.prompt and self.type == "REACT":
+            if self.tools or self.documents:
                 prompt = CustomPromptTemplate(
                     template=self.prompt.template,
-                    tools=tools or self._get_tool(),
+                    tools=tools or self._get_tools(),
                     input_variables=[
                         "human_input",
                         "intermediate_steps",
                         "chat_history",
                     ],
                 )
+
             else:
                 prompt = PromptTemplate(
                     input_variables=self.prompt.input_variables,
                     template=self.prompt.template,
                 )
 
-            return prompt
+        if self.prompt and self.type == "OPENAI":
+            if self.tools or self.documents:
+                prompt = SystemMessage(content=self.prompt.template)
 
-        else:
-            if self.tool or self.documents:
-                return CustomPromptTemplate(
-                    template=agent_template,
-                    tools=tools or self._get_tool(),
-                    input_variables=[
-                        "human_input",
-                        "intermediate_steps",
-                        "chat_history",
-                    ],
-                )
-            elif self.documents:
-                return qa_prompt
-
-            return default_chat_prompt
+        return prompt
 
     def _get_llm(self) -> Any:
         if self.llm["provider"] == "openai-chat":
@@ -229,39 +222,33 @@ class AgentBase:
         return ChatOpenAI(temperature=0, openai_api_key=self._get_api_key())
 
     def _get_memory(self) -> Any:
-        if self.has_memory:
-            memories = prisma.agentmemory.find_many(
-                where={"agentId": self.id},
-                order={"createdAt": "desc"},
-                take=5,
-            )
-            history = ChatMessageHistory()
-            [
-                history.add_ai_message(memory.message)
-                if memory.agent == "AI"
-                else history.add_user_message(memory.message)
-                for memory in memories
-            ]
+        memory = None
+        memories = prisma.agentmemory.find_many(
+            where={"agentId": self.id},
+            order={"createdAt": "desc"},
+            take=3,
+        )
+        history = ChatMessageHistory()
+        [
+            history.add_ai_message(memory.message)
+            if memory.agent == "AI"
+            else history.add_user_message(memory.message)
+            for memory in memories
+        ]
 
-            memory_key = "chat_history"
-            output_key = "output"
-            memory = (
-                ConversationBufferMemory(
-                    chat_memory=history, memory_key=memory_key, output_key=output_key
-                )
-                if (self.document and self.document.type == "OPENAPI")
-                or self.documents
-                or self.tool
-                else ConversationBufferMemory(
-                    chat_memory=history, memory_key=memory_key
-                )
+        if self.has_memory and self.type == "REACT":
+            memory = ConversationBufferMemory(
+                chat_memory=history, memory_key="chat_history", output_key="output"
             )
 
-            return memory
+        if self.has_memory and self.type == "OPENAI":
+            memory = ConversationBufferMemory(
+                memory_key="chat_history", chat_memory=history, return_messages=True
+            )
 
-        return None
+        return memory
 
-    def _get_documents(self) -> Any:
+    def _get_agent_documents(self) -> Any:
         agent_documents = prisma.agentdocument.find_many(
             where={"agentId": self.id}, include={"document": True}
         )

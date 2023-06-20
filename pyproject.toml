@@ -32,10 +32,10 @@ cohere = "^4.5.1"
 wolframalpha = "^5.0.0"
 huggingface-hub = "^0.15.1"
 bs4 = "^0.0.1"
-langchain = "^0.0.200"
 pdfplumber = "^0.9.0"
 transformers = "^4.30.2"
 youtube-transcript-api = "^0.6.1"
+langchain = "^0.0.206"
 
 
 [build-system]
