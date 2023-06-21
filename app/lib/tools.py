@@ -9,7 +9,7 @@ from langchain.utilities.wolfram_alpha import WolframAlphaAPIWrapper
 
 
 class ToolDescription(Enum):
-    SEARCH = "useful for when you need to answer questions about current events. You should ask targeted questions."
+    SEARCH = "useful for when you need to search for answers on the internet. You should ask targeted questions."
     WOLFRAM_ALPHA = "useful for when you need to do computation or calculation."
 
 
