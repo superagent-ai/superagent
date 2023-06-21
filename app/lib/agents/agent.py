@@ -45,6 +45,7 @@ class OpenAIAgent(AgentStrategy):
             tools=tools,
             llm=llm,
             agent=AgentType.OPENAI_FUNCTIONS,
+            system_message=prompt,
             agent_kwargs={
                 "system_message": prompt,
                 "extra_prompt_messages": [
