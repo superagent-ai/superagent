@@ -223,7 +223,6 @@ class AgentBase:
 
     def _get_memory(self) -> Any:
         history = ChatMessageHistory()
-        memory = ConversationBufferMemory(memory_key="chat_history")
 
         if self.has_memory:
             memories = prisma.agentmemory.find_many(
@@ -316,11 +315,7 @@ class AgentBase:
         return tools
 
     def save_intermediate_steps(self, trace: Any) -> None:
-        if (
-            (self.document and self.document.type == "OPENAPI")
-            or self.documents
-            or self.tool
-        ):
+        if self.documents or self.tools:
             json_array = json.dumps(
                 {
                     "output": trace.get("output") or trace.get("result"),

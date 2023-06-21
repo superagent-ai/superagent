@@ -50,7 +50,9 @@ class OpenAIAgent(AgentStrategy):
                 "system_message": prompt,
                 "extra_prompt_messages": [
                     MessagesPlaceholder(variable_name="chat_history")
-                ],
+                ]
+                if self.agent_base.has_memory
+                else None,
             },
             verbose=True,
             memory=memory,
