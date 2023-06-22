@@ -44,7 +44,9 @@ async def read_agent_documents(
     filters: dict = Depends(parse_filter_params), token=Depends(JWTBearer())
 ):
     """List api tokens endpoint"""
-    agent_documents = prisma.agentdocument.find_many(where=filters)
+    agent_documents = prisma.agentdocument.find_many(
+        where=filters, include={"document": True}
+    )
 
     return {"success": True, "data": agent_documents}
 

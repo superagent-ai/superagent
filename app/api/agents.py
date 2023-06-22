@@ -128,7 +128,7 @@ async def run_agent(
     has_streaming = body.has_streaming
     agent = prisma.agent.find_unique(
         where={"id": agentId},
-        include={"user": True, "document": True, "prompt": True, "tool": True},
+        include={"prompt": True},
     )
 
     prisma.agentmemory.create(
@@ -195,7 +195,7 @@ async def run_agent(
             output = result.get("output") or result.get("result")
 
             if config("SUPERAGENT_TRACING"):
-                agent_base.save_intermediate_steps(trace=result)
+                trace = agent_base.save_intermediate_steps(trace=result)
 
             prisma.agentmemory.create(
                 {
@@ -205,7 +205,7 @@ async def run_agent(
                 }
             )
 
-            return {"success": True, "data": output}
+            return {"success": True, "data": output, "trace": trace}
 
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,

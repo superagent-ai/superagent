@@ -339,13 +339,15 @@ class AgentBase:
                 }
             )
 
-        prisma.agenttrace.create(
+        trace = prisma.agenttrace.create(
             {
                 "userId": self.userId,
                 "agentId": self.id,
                 "data": json_array,
             }
         )
+
+        return trace
 
     def get_agent(self) -> Any:
         pass
