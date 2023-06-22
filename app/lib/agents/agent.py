@@ -72,7 +72,7 @@ class ReactAgent(AgentStrategy):
         tools = self.agent_base._get_tools()
         output_parser = CustomOutputParser()
         tool_names = [tool.name for tool in tools]
-        prompt = self.agent_base._get_prompt()
+        prompt = self.agent_base._get_prompt(tools=tools)
         llm_chain = LLMChain(llm=llm, prompt=prompt)
         agent_config = LLMSingleActionAgent(
             llm_chain=llm_chain,

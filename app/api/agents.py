@@ -4,7 +4,7 @@ from queue import Queue
 from typing import Any, Dict
 
 from decouple import config
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security.api_key import APIKey
 from starlette.responses import StreamingResponse
 
@@ -121,7 +121,10 @@ async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
     description="Invoke a specific agent",
 )
 async def run_agent(
-    agentId: str, body: PredictAgent, api_key: APIKey = Depends(get_api_key)
+    agentId: str,
+    body: PredictAgent,
+    background_tasks: BackgroundTasks,
+    api_key: APIKey = Depends(get_api_key),
 ):
     """Agent detail endpoint"""
     input = body.input
@@ -129,14 +132,6 @@ async def run_agent(
     agent = prisma.agent.find_unique(
         where={"id": agentId},
         include={"prompt": True},
-    )
-
-    prisma.agentmemory.create(
-        {
-            "author": "HUMAN",
-            "message": input.get("input"),
-            "agentId": agentId,
-        }
     )
 
     if agent:
@@ -157,8 +152,8 @@ async def run_agent(
                     data = data_queue.get()
                     ai_message += data
                     if data == "[END]":
-                        prisma.agentmemory.create(
-                            {"author": "AI", "message": ai_message, "agentId": agentId}
+                        background_tasks.add_task(
+                            agent_base.create_agent_memory, agentId, "AI", ai_message
                         )
                         yield f"data: {data}\n\n"
                         break
@@ -177,7 +172,8 @@ async def run_agent(
                 result = agent_executor(input)
 
                 if config("SUPERAGENT_TRACING"):
-                    agent_base.save_intermediate_steps(trace=result)
+                    trace = agent_base._format_trace(trace=result)
+                    background_tasks.add_task(agent_base.save_intermediate_steps, trace)
 
             data_queue = Queue()
             threading.Thread(target=conversation_run_thread, args=(input,)).start()
@@ -193,19 +189,20 @@ async def run_agent(
             agent_executor = agent_strategy.get_agent()
             result = agent_executor(input)
             output = result.get("output") or result.get("result")
-
-            if config("SUPERAGENT_TRACING"):
-                trace = agent_base.save_intermediate_steps(trace=result)
-
-            prisma.agentmemory.create(
-                {
-                    "author": "AI",
-                    "message": output,
-                    "agentId": agentId,
-                }
+            background_tasks.add_task(
+                agent_base.create_agent_memory, agentId, "HUMAN", input.get("input")
+            )
+            background_tasks.add_task(
+                agent_base.create_agent_memory, agentId, "AI", output
             )
 
-            return {"success": True, "data": output, "trace": trace}
+            if config("SUPERAGENT_TRACING"):
+                trace = agent_base._format_trace(trace=result)
+                background_tasks.add_task(agent_base.save_intermediate_steps, trace)
+
+                return {"success": True, "data": output, "trace": json.loads(trace)}
+
+            return {"success": True, "data": output}
 
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,

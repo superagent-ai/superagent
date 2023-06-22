@@ -118,7 +118,7 @@ class AgentBase:
         if self.type == "REACT":
             return CustomPromptTemplate(
                 template=self.prompt.template if self.prompt else DEFAULT_AGENT_PROMPT,
-                tools=tools or self._get_tools(),
+                tools=tools,
                 input_variables=["input", "intermediate_steps", "chat_history"],
             )
 
@@ -314,9 +314,9 @@ class AgentBase:
 
         return tools
 
-    def save_intermediate_steps(self, trace: Any) -> None:
+    def _format_trace(self, trace: Any) -> dict:
         if self.documents or self.tools:
-            json_array = json.dumps(
+            return json.dumps(
                 {
                     "output": trace.get("output") or trace.get("result"),
                     "steps": [
@@ -331,23 +331,30 @@ class AgentBase:
                 }
             )
 
-        else:
-            json_array = json.dumps(
-                {
-                    "output": trace.get("output") or trace.get("result"),
-                    "steps": [trace],
-                }
-            )
-
-        trace = prisma.agenttrace.create(
+        return json.dumps(
             {
-                "userId": self.userId,
-                "agentId": self.id,
-                "data": json_array,
+                "output": trace.get("output") or trace.get("result"),
+                "steps": [trace],
             }
         )
 
-        return trace
+    def create_agent_memory(self, agentId: str, author: str, message: str):
+        prisma.agentmemory.create(
+            {
+                "author": author,
+                "message": message,
+                "agentId": agentId,
+            }
+        )
+
+    def save_intermediate_steps(self, trace: dict) -> None:
+        prisma.agenttrace.create(
+            {
+                "userId": self.userId,
+                "agentId": self.id,
+                "data": trace,
+            }
+        )
 
     def get_agent(self) -> Any:
         pass
