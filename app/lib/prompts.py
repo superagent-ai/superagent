@@ -25,30 +25,17 @@ class CustomPromptTemplate(StringPromptTemplate):
         return self.template.format(**kwargs)
 
 
-openapi_format_instructions = """Use the following format:
-
-Question: the input question you must answer
-Thought: you should always think about what to do
-Action: the action to take, should be one of [{tool_names}]
-Action Input: what to instruct the AI Action representative.
-Observation: The Agent's response
-... (this Thought/Action/Action Input/Observation can repeat N times)
-Thought: I now know the final answer. User can't see any of my observations, API responses, links, or tools.
-Final Answer: the final answer to the original input question
-
-When responding with your Final Answer, make the response short but conversational."""
-
 default_chat_template = """Assistant is designed to be able to assist with a wide range of tasks, from answering 
 simple questions to providing in-depth explanations and discussions on a wide range of 
 topics.
 
-
 {chat_history}
-Human: {human_input}
+
+Human: {input}
 Assitant:
 """
 
-agent_template = """Answer the following questions as best you can. You have access to the following tools:
+DEFAULT_AGENT_PROMPT = """Answer the following questions as best you can. You have access to the following tools:
 
 {tools}
 
@@ -68,21 +55,10 @@ Begin!
 Previous conversation history:
 {chat_history}
 
-New question: {human_input}
+New question: {input}
 {agent_scratchpad}"""
 
-qa_prompt_template = """Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
-
-{context}
-
-Question: {question}
-Helpful Answer:"""
-
-qa_prompt = PromptTemplate(
-    template=qa_prompt_template, input_variables=["context", "question"]
-)
-
-default_chat_prompt = PromptTemplate(
-    input_variables=["chat_history", "human_input"],
+DEFAULT_CHAT_PROMPT = PromptTemplate(
+    input_variables=["chat_history", "input"],
     template=default_chat_template,
 )

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Document(BaseModel):
@@ -9,3 +9,7 @@ class Document(BaseModel):
     from_page: int = (1,)
     to_page: int = None
     splitter: dict = None
+
+
+class DocumentInput(BaseModel):
+    question: str = Field()

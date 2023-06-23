@@ -1,23 +1,33 @@
+# flake8: noqa
 import json
-from typing import Any
+from typing import Any, Tuple
 
 from decouple import config
 from langchain import HuggingFaceHub
-from langchain.chat_models import AzureChatOpenAI, ChatAnthropic, ChatOpenAI
+from langchain.agents import Tool
+from langchain.chains import RetrievalQA
+from langchain.chat_models import (
+    AzureChatOpenAI,
+    ChatAnthropic,
+    ChatOpenAI,
+)
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
+from langchain.schema import SystemMessage
+
 
 from app.lib.callbacks import StreamingCallbackHandler
+from app.lib.models.document import DocumentInput
+from app.lib.models.tool import SearchToolInput, WolframToolInput
 from app.lib.prisma import prisma
 from app.lib.prompts import (
     CustomPromptTemplate,
-    agent_template,
-    default_chat_prompt,
-    qa_prompt,
+    DEFAULT_CHAT_PROMPT,
+    DEFAULT_AGENT_PROMPT,
 )
-from app.lib.tools import get_search_tool, get_wolfram_alpha_tool
+from app.lib.tools import ToolDescription, get_search_tool, get_wolfram_alpha_tool
 from app.lib.vectorstores.base import VectorStoreBase
 
 
@@ -42,6 +52,8 @@ class AgentBase:
         self.on_llm_new_token = on_llm_new_token
         self.on_llm_end = on_llm_end
         self.on_chain_end = on_chain_end
+        self.documents = self._get_agent_documents()
+        self.tools = self._get_agent_tools()
 
     def _get_api_key(self) -> str:
         if self.llm["provider"] == "openai-chat" or self.llm["provider"] == "openai":
@@ -92,41 +104,28 @@ class AgentBase:
         except Exception:
             return None
 
-    def _get_prompt(self) -> Any:
-        if self.prompt:
-            if self.tool:
-                prompt = CustomPromptTemplate(
-                    template=self.prompt.template,
-                    tools=self._get_tool(),
-                    input_variables=[
-                        "human_input",
-                        "intermediate_steps",
-                        "chat_history",
-                    ],
-                )
-            else:
-                prompt = PromptTemplate(
+    def _get_prompt(self, tools: list = None) -> Any:
+        if not self.tools and not self.documents:
+            return (
+                PromptTemplate(
                     input_variables=self.prompt.input_variables,
                     template=self.prompt.template,
                 )
+                if self.prompt
+                else DEFAULT_CHAT_PROMPT
+            )
 
-            return prompt
+        if self.type == "REACT":
+            return CustomPromptTemplate(
+                template=self.prompt.template if self.prompt else DEFAULT_AGENT_PROMPT,
+                tools=tools,
+                input_variables=["input", "intermediate_steps", "chat_history"],
+            )
 
-        else:
-            if self.tool:
-                return CustomPromptTemplate(
-                    template=agent_template,
-                    tools=self._get_tool(),
-                    input_variables=[
-                        "human_input",
-                        "intermediate_steps",
-                        "chat_history",
-                    ],
-                )
-            elif self.document:
-                return qa_prompt
+        if self.type == "OPENAI":
+            return SystemMessage(content=self.prompt.template) if self.prompt else None
 
-            return default_chat_prompt
+        return DEFAULT_CHAT_PROMPT
 
     def _get_llm(self) -> Any:
         if self.llm["provider"] == "openai-chat":
@@ -223,54 +222,103 @@ class AgentBase:
         return ChatOpenAI(temperature=0, openai_api_key=self._get_api_key())
 
     def _get_memory(self) -> Any:
+        history = ChatMessageHistory()
+
         if self.has_memory:
             memories = prisma.agentmemory.find_many(
                 where={"agentId": self.id},
                 order={"createdAt": "desc"},
-                take=5,
+                take=3,
             )
-            history = ChatMessageHistory()
+
             [
                 history.add_ai_message(memory.message)
-                if memory.agent == "AI"
+                if memory.author == "AI"
                 else history.add_user_message(memory.message)
                 for memory in memories
             ]
 
-            memory_key = "chat_history"
-            output_key = "output"
-            memory = (
-                ConversationBufferMemory(
-                    chat_memory=history, memory_key=memory_key, output_key=output_key
+            if (self.documents or self.tools) and self.type == "OPENAI":
+                return ConversationBufferMemory(
+                    chat_memory=history,
+                    memory_key="chat_history",
+                    output_key="output",
+                    return_messages=True,
                 )
-                if (self.document and self.document.type == "OPENAPI") or self.tool
-                else ConversationBufferMemory(
-                    chat_memory=history, memory_key=memory_key
-                )
+
+            return ConversationBufferMemory(
+                chat_memory=history,
+                memory_key="chat_history",
+                output_key="output",
             )
 
-            return memory
+        return ConversationBufferMemory(memory_key="chat_history", output_key="output")
 
-        return None
+    def _get_agent_documents(self) -> Any:
+        agent_documents = prisma.agentdocument.find_many(
+            where={"agentId": self.id}, include={"document": True}
+        )
 
-    def _get_document(self) -> Any:
-        if self.document.type != "OPENAPI":
+        return agent_documents
+
+    def _get_tool_and_input_by_type(self, type: str) -> Tuple[Any, Any]:
+        if type == "SEARCH":
+            return get_search_tool(), SearchToolInput
+        if type == "WOLFRAM_ALPHA":
+            return get_wolfram_alpha_tool(), WolframToolInput
+
+    def _get_tools(self) -> list:
+        tools = []
+        embeddings = OpenAIEmbeddings()
+
+        for agent_document in self.documents:
+            description = f"useful when you want to answer questions about {agent_document.document.name}"
+            args_schema = DocumentInput if self.type == "OPENAI" else None
             embeddings = OpenAIEmbeddings()
-            docsearch = (
+            retriever = (
                 VectorStoreBase()
                 .get_database()
-                .from_existing_index(embeddings, self.document.id)
+                .from_existing_index(embeddings, agent_document.document.id)
+            ).as_retriever()
+            tools.append(
+                Tool(
+                    name=agent_document.document.id
+                    if self.type == "OPENAI"
+                    else agent_document.document.name,
+                    description=description,
+                    args_schema=args_schema,
+                    func=RetrievalQA.from_chain_type(
+                        llm=self._get_llm(),
+                        retriever=retriever,
+                    ),
+                )
             )
 
-            return docsearch
+        for agent_tool in self.tools:
+            tool, args_schema = self._get_tool_and_input_by_type(agent_tool.tool.type)
+            tools.append(
+                Tool(
+                    name=agent_tool.tool.id,
+                    description=ToolDescription[agent_tool.tool.type].value,
+                    args_schema=args_schema if self.type == "OPENAI" else None,
+                    func=tool.run,
+                )
+            )
 
-        return self.document
+        return tools
 
-    def save_intermediate_steps(self, trace: Any) -> None:
-        if (self.document and self.document.type == "OPENAPI") or self.tool:
-            json_array = json.dumps(
+    def _get_agent_tools(self) -> Any:
+        tools = prisma.agenttool.find_many(
+            where={"agentId": self.id}, include={"tool": True}
+        )
+
+        return tools
+
+    def _format_trace(self, trace: Any) -> dict:
+        if self.documents or self.tools:
+            return json.dumps(
                 {
-                    "output": trace["output"],
+                    "output": trace.get("output") or trace.get("result"),
                     "steps": [
                         {
                             "action": step[0].tool,
@@ -283,14 +331,28 @@ class AgentBase:
                 }
             )
 
-        else:
-            json_array = json.dumps({"output": trace["output"], "steps": [trace]})
+        return json.dumps(
+            {
+                "output": trace.get("output") or trace.get("result"),
+                "steps": [trace],
+            }
+        )
 
+    def create_agent_memory(self, agentId: str, author: str, message: str):
+        prisma.agentmemory.create(
+            {
+                "author": author,
+                "message": message,
+                "agentId": agentId,
+            }
+        )
+
+    def save_intermediate_steps(self, trace: dict) -> None:
         prisma.agenttrace.create(
             {
                 "userId": self.userId,
                 "agentId": self.id,
-                "data": json_array,
+                "data": trace,
             }
         )
 
