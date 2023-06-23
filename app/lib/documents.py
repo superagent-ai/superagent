@@ -1,11 +1,12 @@
+from tempfile import NamedTemporaryFile
+
 import pinecone
 import requests
-from tempfile import NamedTemporaryFile
 from langchain.document_loaders import (
     TextLoader,
+    UnstructuredMarkdownLoader,
     WebBaseLoader,
     YoutubeLoader,
-    UnstructuredMarkdownLoader,
 )
 from langchain.embeddings.openai import OpenAIEmbeddings
 
@@ -91,7 +92,6 @@ def upsert_document(
         with NamedTemporaryFile(suffix=".md", delete=True) as temp_file:
             temp_file.write(file_response.text.encode())
             temp_file.flush()
-
             loader = UnstructuredMarkdownLoader(file_path=temp_file.name)
             documents = loader.load()
 
