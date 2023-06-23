@@ -26,6 +26,7 @@ enum DocumentType {
   YOUTUBE
   OPENAPI
   URL
+  MARKDOWN
 }
 
 enum ToolType {

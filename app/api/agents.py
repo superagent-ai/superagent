@@ -4,7 +4,7 @@ from queue import Queue
 from typing import Any, Dict
 
 from decouple import config
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security.api_key import APIKey
 from starlette.responses import StreamingResponse
 
