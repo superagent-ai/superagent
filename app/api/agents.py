@@ -29,7 +29,7 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
                 "name": body.name,
                 "type": body.type,
                 "llm": json.dumps(body.llm),
-                "hasMemory": body.has_memory,
+                "hasMemory": body.hasMemory,
                 "userId": decoded["userId"],
                 "promptId": body.promptId,
             },
