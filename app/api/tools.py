@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, Depends
 
 from app.lib.auth.prisma import JWTBearer, decodeJWT
@@ -16,6 +17,7 @@ async def create_tool(body: Tool, token=Depends(JWTBearer())):
         {
             "name": body.name,
             "type": body.type,
+            "metadata": json.dumps(body.metadata),
             "userId": decoded["userId"],
         },
         include={"user": True},

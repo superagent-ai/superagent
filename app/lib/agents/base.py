@@ -27,7 +27,12 @@ from app.lib.prompts import (
     DEFAULT_CHAT_PROMPT,
     DEFAULT_AGENT_PROMPT,
 )
-from app.lib.tools import ToolDescription, get_search_tool, get_wolfram_alpha_tool
+from app.lib.tools import (
+    ToolDescription,
+    get_search_tool,
+    get_wolfram_alpha_tool,
+    get_replicate_tool,
+)
 from app.lib.vectorstores.base import VectorStoreBase
 
 
@@ -91,15 +96,19 @@ class AgentBase:
                 else config("HUGGINGFACEHUB_API_TOKEN")
             )
 
-    def _get_tool(self) -> Any:
+    def _get_tool(self, *args) -> Any:
+        print(args)
         try:
             if self.tool.type == "SEARCH":
-                tools = get_search_tool()
+                tool = get_search_tool()
 
             if self.tool.type == "WOLFRAM_ALPHA":
-                tools = get_wolfram_alpha_tool()
+                tool = get_wolfram_alpha_tool()
 
-            return tools
+            if self.tool.type == "REPLICATE":
+                tool = get_replicate_tool()
+
+            return tool
 
         except Exception:
             return None
@@ -301,7 +310,7 @@ class AgentBase:
                     name=agent_tool.tool.id,
                     description=ToolDescription[agent_tool.tool.type].value,
                     args_schema=args_schema if self.type == "OPENAI" else None,
-                    func=tool.run,
+                    func=tool.run if agent_tool.too.type != "REPLICATE" else tool,
                 )
             )
 
