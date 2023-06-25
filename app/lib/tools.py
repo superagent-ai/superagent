@@ -33,7 +33,6 @@ def get_wolfram_alpha_tool() -> Any:
 def get_replicate_tool(metadata: dict) -> Any:
     model = metadata["model"]
     api_token = metadata["api_key"]
-    print(api_token)
     input = metadata["arguments"]
     model = Replicate(
         model=model,
