@@ -1,4 +1,5 @@
 import json
+
 from fastapi import APIRouter, Depends
 
 from app.lib.auth.prisma import JWTBearer, decodeJWT
