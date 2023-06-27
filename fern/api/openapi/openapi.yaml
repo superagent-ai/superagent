@@ -1,0 +1,1121 @@
+openapi: 3.0.2
+info:
+  title: Superagent
+  description: Bring your agents to production
+  version: 0.0.7
+paths:
+  /api/v1/agents:
+    get:
+      tags:
+        - Agent
+      summary: List All Agents
+      description: List all agents
+      operationId: List_all_agents_api_v1_agents_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - JWTBearer: []
+    post:
+      tags:
+        - Agent
+      summary: Create Agent
+      description: Create a new agent
+      operationId: Create_agent_api_v1_agents_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Agent'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/agents/{agentId}:
+    get:
+      tags:
+        - Agent
+      summary: Get Agent
+      description: Get a specific agent
+      operationId: Get_agent_api_v1_agents__agentId__get
+      parameters:
+        - required: true
+          schema:
+            title: Agentid
+            type: string
+          name: agentId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+    delete:
+      tags:
+        - Agent
+      summary: Delete Agent
+      description: Delete a specific agent
+      operationId: Delete_agent_api_v1_agents__agentId__delete
+      parameters:
+        - required: true
+          schema:
+            title: Agentid
+            type: string
+          name: agentId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+    patch:
+      tags:
+        - Agent
+      summary: Patch Agent
+      description: Patch a specific agent
+      operationId: Patch_agent_api_v1_agents__agentId__patch
+      parameters:
+        - required: true
+          schema:
+            title: Agentid
+            type: string
+          name: agentId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: Body
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/agents/{agentId}/predict:
+    post:
+      tags:
+        - Agent
+      summary: Prompt Agent
+      description: Invoke a specific agent
+      operationId: Prompt_agent_api_v1_agents__agentId__predict_post
+      parameters:
+        - required: true
+          schema:
+            title: Agentid
+            type: string
+          name: agentId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictAgent'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - APIKeyHeader: []
+  /api/v1/agent-documents:
+    get:
+      tags:
+        - Agent documents
+      summary: List Agent Documents
+      description: List all agent documents
+      operationId: List_agent_documents_api_v1_agent_documents_get
+      parameters:
+        - required: false
+          schema:
+            title: Expand
+            type: boolean
+            default: false
+          name: expand
+          in: query
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+    post:
+      tags:
+        - Agent documents
+      summary: Create Agent Document
+      description: Create a agent document
+      operationId: Create_agent_document_api_v1_agent_documents_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentDocument'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/agent-documents/{agentDocumentId}:
+    get:
+      tags:
+        - Agent documents
+      summary: Get Agent Document
+      description: Get a specific agent document
+      operationId: Get_agent_document_api_v1_agent_documents__agentDocumentId__get
+      parameters:
+        - required: true
+          schema:
+            title: Agentdocumentid
+            type: string
+          name: agentDocumentId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+    delete:
+      tags:
+        - Agent documents
+      summary: Delete Agent Document
+      description: Delete a specific agent document
+      operationId: Delete_agent_document_api_v1_agent_documents__agentDocumentId__delete
+      parameters:
+        - required: true
+          schema:
+            title: Agentdocumentid
+            type: string
+          name: agentDocumentId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/agent-tools:
+    get:
+      tags:
+        - Agent tools
+      summary: List Agent Tools
+      description: List all agent tools
+      operationId: List_agent_tools_api_v1_agent_tools_get
+      parameters:
+        - required: false
+          schema:
+            title: Expand
+            type: boolean
+            default: false
+          name: expand
+          in: query
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+    post:
+      tags:
+        - Agent tools
+      summary: Create Agent Tool
+      description: Create a agent tool
+      operationId: Create_agent_tool_api_v1_agent_tools_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentTool'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/agent-tools/{agentToolId}:
+    get:
+      tags:
+        - Agent tools
+      summary: Get Agent Tool
+      description: Get a specific agent tool
+      operationId: Get_agent_tool_api_v1_agent_tools__agentToolId__get
+      parameters:
+        - required: true
+          schema:
+            title: Agenttoolid
+            type: string
+          name: agentToolId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+    delete:
+      tags:
+        - Agent tools
+      summary: Delete Agent Tool
+      description: Delete a specific agent tool
+      operationId: Delete_agent_tool_api_v1_agent_tools__agentToolId__delete
+      parameters:
+        - required: true
+          schema:
+            title: Agenttoolid
+            type: string
+          name: agentToolId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/auth/sign-in:
+    post:
+      tags:
+        - Auth
+      summary: Sign In
+      operationId: sign_in_api_v1_auth_sign_in_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignIn'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/auth/sign-up:
+    post:
+      tags:
+        - Auth
+      summary: Sign Up
+      operationId: sign_up_api_v1_auth_sign_up_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/users/me:
+    get:
+      tags:
+        - User
+      summary: Read User Me
+      operationId: read_user_me_api_v1_users_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - JWTBearer: []
+  /api/v1/users/{userId}:
+    get:
+      tags:
+        - User
+      summary: Read User
+      operationId: read_user_api_v1_users__userId__get
+      parameters:
+        - required: true
+          schema:
+            title: Userid
+            type: string
+          name: userId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/api-tokens:
+    get:
+      tags:
+        - Api token
+      summary: List Api Tokens
+      description: List all API tokens
+      operationId: List_API_tokens_api_v1_api_tokens_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - JWTBearer: []
+    post:
+      tags:
+        - Api token
+      summary: Create Api Token
+      description: Create a new API token
+      operationId: Create_API_token_api_v1_api_tokens_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiToken'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/api-tokens/{tokenId}:
+    get:
+      tags:
+        - Api token
+      summary: Get Api Token
+      description: Get a specific API token
+      operationId: Get_API_token_api_v1_api_tokens__tokenId__get
+      parameters:
+        - required: true
+          schema:
+            title: Tokenid
+            type: string
+          name: tokenId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+    delete:
+      tags:
+        - Api token
+      summary: Delete Api Token
+      description: Delete a specific API token
+      operationId: Delete_API_token_api_v1_api_tokens__tokenId__delete
+      parameters:
+        - required: true
+          schema:
+            title: Tokenid
+            type: string
+          name: tokenId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/documents:
+    get:
+      tags:
+        - Documents
+      summary: List Documents
+      description: List all documents
+      operationId: List_documents_api_v1_documents_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - JWTBearer: []
+    post:
+      tags:
+        - Documents
+      summary: Create Document
+      description: Create a new document
+      operationId: Create_document_api_v1_documents_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Document'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/documents/{documentId}:
+    get:
+      tags:
+        - Documents
+      summary: Get Document
+      description: Get a specific document
+      operationId: Get_document_api_v1_documents__documentId__get
+      parameters:
+        - required: true
+          schema:
+            title: Documentid
+            type: string
+          name: documentId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+    delete:
+      tags:
+        - Documents
+      summary: Delete Document
+      description: Delete a specific document
+      operationId: Delete_document_api_v1_documents__documentId__delete
+      parameters:
+        - required: true
+          schema:
+            title: Documentid
+            type: string
+          name: documentId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/prompts:
+    get:
+      tags:
+        - Prompts
+      summary: List Prompts
+      description: List all prompts
+      operationId: List_prompts_api_v1_prompts_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - JWTBearer: []
+    post:
+      tags:
+        - Prompts
+      summary: Create A Prompt
+      description: Create a new prompt
+      operationId: Create_a_prompt_api_v1_prompts_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Prompt'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/prompts/{promptId}:
+    get:
+      tags:
+        - Prompts
+      summary: Get Prompt
+      description: Get a specific prompt
+      operationId: Get_prompt_api_v1_prompts__promptId__get
+      parameters:
+        - required: true
+          schema:
+            title: Promptid
+            type: string
+          name: promptId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+    delete:
+      tags:
+        - Prompts
+      summary: Delete Prompt
+      description: Delete a specific prompt
+      operationId: Delete_prompt_api_v1_prompts__promptId__delete
+      parameters:
+        - required: true
+          schema:
+            title: Promptid
+            type: string
+          name: promptId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+    patch:
+      tags:
+        - Prompts
+      summary: Patch Prompt
+      description: Patch a specific prompt
+      operationId: Patch_prompt_api_v1_prompts__promptId__patch
+      parameters:
+        - required: true
+          schema:
+            title: Promptid
+            type: string
+          name: promptId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: Body
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/tools:
+    get:
+      tags:
+        - Tools
+      summary: List Tools
+      description: List all tools
+      operationId: List_tools_api_v1_tools_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - JWTBearer: []
+    post:
+      tags:
+        - Tools
+      summary: Create A Tool
+      description: Create a new tool
+      operationId: Create_a_tool_api_v1_tools_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Tool'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/tools/{toolId}:
+    get:
+      tags:
+        - Tools
+      summary: Get Tool
+      description: Get a specific tool
+      operationId: Get_tool_api_v1_tools__toolId__get
+      parameters:
+        - required: true
+          schema:
+            title: Toolid
+            type: string
+          name: toolId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+    delete:
+      tags:
+        - Tools
+      summary: Delete Tool
+      description: Delete a specific tool
+      operationId: Delete_tool_api_v1_tools__toolId__delete
+      parameters:
+        - required: true
+          schema:
+            title: Toolid
+            type: string
+          name: toolId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/traces:
+    get:
+      tags:
+        - Traces
+      summary: List Agent Traces
+      description: List all agent traces
+      operationId: List_agent_traces_api_v1_traces_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - JWTBearer: []
+components:
+  schemas:
+    Agent:
+      title: Agent
+      required:
+        - name
+        - type
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        type:
+          title: Type
+          type: string
+        llm:
+          title: Llm
+          type: object
+        hasMemory:
+          title: Hasmemory
+          type: boolean
+          default: false
+        promptId:
+          title: Promptid
+          type: string
+    AgentDocument:
+      title: AgentDocument
+      required:
+        - agentId
+        - documentId
+      type: object
+      properties:
+        agentId:
+          title: Agentid
+          type: string
+        documentId:
+          title: Documentid
+          type: string
+    AgentTool:
+      title: AgentTool
+      required:
+        - agentId
+        - toolId
+      type: object
+      properties:
+        agentId:
+          title: Agentid
+          type: string
+        toolId:
+          title: Toolid
+          type: string
+    ApiToken:
+      title: ApiToken
+      required:
+        - description
+      type: object
+      properties:
+        description:
+          title: Description
+          type: string
+    Document:
+      title: Document
+      required:
+        - type
+        - url
+        - name
+      type: object
+      properties:
+        type:
+          title: Type
+          type: string
+        url:
+          title: Url
+          type: string
+        name:
+          title: Name
+          type: string
+        authorization:
+          title: Authorization
+          type: object
+        from_page:
+          title: From Page
+          type: integer
+          default:
+            - 1
+        to_page:
+          title: To Page
+          type: integer
+        splitter:
+          title: Splitter
+          type: object
+    HTTPValidationError:
+      title: HTTPValidationError
+      type: object
+      properties:
+        detail:
+          title: Detail
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+    PredictAgent:
+      title: PredictAgent
+      required:
+        - input
+      type: object
+      properties:
+        input:
+          title: Input
+          type: object
+        has_streaming:
+          title: Has Streaming
+          type: boolean
+          default: false
+    Prompt:
+      title: Prompt
+      required:
+        - name
+        - input_variables
+        - template
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        input_variables:
+          title: Input Variables
+          type: array
+          items: {}
+        template:
+          title: Template
+          type: string
+    SignIn:
+      title: SignIn
+      required:
+        - email
+        - password
+      type: object
+      properties:
+        email:
+          title: Email
+          type: string
+        password:
+          title: Password
+          type: string
+    SignUp:
+      title: SignUp
+      required:
+        - email
+        - password
+      type: object
+      properties:
+        email:
+          title: Email
+          type: string
+        password:
+          title: Password
+          type: string
+        name:
+          title: Name
+          type: string
+        metadata:
+          title: Metadata
+          type: object
+    Tool:
+      title: Tool
+      required:
+        - name
+        - type
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        type:
+          title: Type
+          type: string
+        authorization:
+          title: Authorization
+          type: object
+        metadata:
+          title: Metadata
+          type: object
+    ValidationError:
+      title: ValidationError
+      required:
+        - loc
+        - msg
+        - type
+      type: object
+      properties:
+        loc:
+          title: Location
+          type: array
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+  securitySchemes:
+    JWTBearer:
+      type: http
+      scheme: bearer
+    APIKeyHeader:
+      type: apiKey
+      in: header
+      name: X_SUPERAGENT_API_KEY

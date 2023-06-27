@@ -1,0 +1,13 @@
+groups:
+  publish:
+    generators:
+      - name: fernapi/fern-python-sdk
+        version: 0.3.7
+        output:
+          location: pypi
+          package-name: superagent-py
+          token: ${PYPI_TOKEN}
+        github:
+          repository: homanp/superagent-py
+        config:
+          client_class_name: Superagent
