@@ -38,6 +38,7 @@ class OpenAIAgent(AgentStrategy):
 
     def get_agent(self) -> Any:
         llm = self.agent_base._get_llm()
+        print(llm)
         tools = self.agent_base._get_tools()
         memory = self.agent_base._get_memory()
         prompt = self.agent_base._get_prompt()
