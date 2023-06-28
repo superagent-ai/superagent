@@ -24,7 +24,9 @@ class StreamingCallbackHandler(BaseCallbackHandler):
 
     def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
         """Do nothing."""
-        self.on_llm_end_()
+        is_empty = response.generations[0][0].text == ""
+        if is_empty is False:
+            self.on_llm_end_()
 
     def on_llm_error(
         self, error: Union[Exception, KeyboardInterrupt], **kwargs: Any
@@ -40,6 +42,7 @@ class StreamingCallbackHandler(BaseCallbackHandler):
 
     def on_chain_end(self, outputs: Dict[str, Any], **kwargs: Any) -> None:
         """Print out that we finished a chain."""
+        print(outputs)
         self.on_chain_end_(outputs)
 
     def on_chain_error(
@@ -86,4 +89,5 @@ class StreamingCallbackHandler(BaseCallbackHandler):
     def on_agent_finish(self, finish: AgentFinish, **kwargs: Any) -> None:
         """Run on agent end."""
         # st.write requires two spaces before a newline to render it
-        pass
+        print(finish)
+        print(kwargs)

@@ -136,6 +136,7 @@ async def run_agent(
         if has_streaming:
 
             def on_llm_new_token(token) -> None:
+                print(token)
                 data_queue.put(token)
 
             def on_llm_end() -> None:
@@ -150,24 +151,28 @@ async def run_agent(
                     data = data_queue.get()
                     ai_message += data
                     if data == "[END]":
-                        background_tasks.add_task(
-                            agent_base.create_agent_memory, agentId, "AI", ai_message
-                        )
                         yield f"data: {data}\n\n"
                         break
                     yield f"data: {data}\n\n"
 
-            def conversation_run_thread(input: dict) -> None:
-                agent_base = AgentBase(
+            def get_agent_base() -> Any:
+                return AgentBase(
                     agent=agent,
                     has_streaming=has_streaming,
                     on_llm_new_token=on_llm_new_token,
                     on_llm_end=on_llm_end,
                     on_chain_end=on_chain_end,
                 )
+
+            def conversation_run_thread(input: dict) -> None:
+                agent_base = get_agent_base()
                 agent_strategy = AgentFactory.create_agent(agent_base)
                 agent_executor = agent_strategy.get_agent()
                 result = agent_executor(input)
+                output = result.get("output") or result.get("result")
+                background_tasks.add_task(
+                    agent_base.create_agent_memory, agentId, "AI", output
+                )
 
                 if config("SUPERAGENT_TRACING"):
                     trace = agent_base._format_trace(trace=result)
