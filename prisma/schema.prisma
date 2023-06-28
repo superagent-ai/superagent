@@ -27,6 +27,7 @@ enum DocumentType {
   OPENAPI
   URL
   MARKDOWN
+  FIRESTORE
 }
 
 enum ToolType {
