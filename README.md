@@ -54,7 +54,8 @@ To get started with Superagent, follow these steps:
 
 ## 👨🏽‍💻 SDKs
 
-- [Javascript](https://github.com/homanp/Superagent-js)
+- [Javascript](https://github.com/homanp/superagent-js)
+- [Python](https://github.com/homanp/superagent-py)
 
 ## 🫶 Contributions
 
