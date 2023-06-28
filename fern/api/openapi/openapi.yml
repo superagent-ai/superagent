@@ -1112,9 +1112,6 @@ components:
           title: Error Type
           type: string
   securitySchemes:
-    JWTBearer:
-      type: http
-      scheme: bearer
     APIKeyHeader:
       type: apiKey
       in: header
