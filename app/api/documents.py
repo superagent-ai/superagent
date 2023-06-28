@@ -24,6 +24,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
                 "name": body.name,
                 "splitter": json.dumps(body.splitter),
                 "authorization": json.dumps(body.authorization),
+                "metadata": json.dumps(body.metadata),
             }
         )
 
@@ -32,6 +33,8 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
                 url=body.url,
                 type=body.type,
                 document_id=document.id,
+                authorization=body.authorization,
+                metadata=body.metadata,
                 text_splitter=body.splitter,
                 from_page=body.from_page,
                 to_page=body.to_page,

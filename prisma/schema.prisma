@@ -73,6 +73,7 @@ model Document {
   updatedAt     DateTime?       @updatedAt
   index         Json?
   authorization Json?
+  metadata      Json?
   Agent         Agent[]
   AgentDocument AgentDocument[]
 }

@@ -2,6 +2,8 @@ from tempfile import NamedTemporaryFile
 
 import pinecone
 import requests
+
+from llama_index.readers.schema.base import Document
 from langchain.document_loaders import (
     TextLoader,
     UnstructuredMarkdownLoader,
@@ -14,7 +16,7 @@ from app.lib.parsers import CustomPDFPlumberLoader
 from app.lib.splitters import TextSplitters
 from app.lib.vectorstores.base import VectorStoreBase
 
-valid_ingestion_types = ["TXT", "PDF", "URL", "YOUTUBE", "MARKDOWN"]
+valid_ingestion_types = ["TXT", "PDF", "URL", "YOUTUBE", "MARKDOWN", "FIRESTORE"]
 
 
 def upsert_document(
@@ -24,6 +26,8 @@ def upsert_document(
     from_page: int,
     to_page: int,
     text_splitter: dict = None,
+    authorization: dict = None,
+    metadata: dict = None,
 ) -> None:
     """Upserts documents to Pinecone index"""
     pinecone.Index("superagent")
@@ -103,4 +107,25 @@ def upsert_document(
 
         VectorStoreBase().get_database().from_documents(
             docs, embeddings, index_name="superagent", namespace=document_id
+        )
+
+    if type == "FIRESTORE":
+        from google.cloud import firestore
+        from google.oauth2 import service_account
+
+        credentials = service_account.Credentials.from_service_account_info(
+            authorization
+        )
+        db = firestore.Client(
+            credentials=credentials, project=authorization["project_id"]
+        )
+        documents = []
+        col_ref = db.collection(metadata["collection"])
+        
+        for doc in col_ref.stream():
+            doc_str = ", ".join([f"{k}: {v}" for k, v in doc.to_dict().items()])
+            documents.append(Document(text=doc_str))
+
+        VectorStoreBase().get_database().from_documents(
+            documents, embeddings, index_name="superagent", namespace=document_id
         )
