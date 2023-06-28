@@ -136,7 +136,6 @@ async def run_agent(
         if has_streaming:
 
             def on_llm_new_token(token) -> None:
-                print(token)
                 data_queue.put(token)
 
             def on_llm_end() -> None:
