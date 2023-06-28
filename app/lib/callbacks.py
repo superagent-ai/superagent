@@ -42,7 +42,6 @@ class StreamingCallbackHandler(BaseCallbackHandler):
 
     def on_chain_end(self, outputs: Dict[str, Any], **kwargs: Any) -> None:
         """Print out that we finished a chain."""
-        print(outputs)
         self.on_chain_end_(outputs)
 
     def on_chain_error(
