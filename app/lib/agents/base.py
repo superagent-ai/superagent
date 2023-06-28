@@ -98,7 +98,6 @@ class AgentBase:
             )
 
     def _get_tool(self, *args) -> Any:
-        print(args)
         try:
             if self.tool.type == "SEARCH":
                 tool = get_search_tool()
