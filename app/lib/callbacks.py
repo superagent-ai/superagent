@@ -24,7 +24,9 @@ class StreamingCallbackHandler(BaseCallbackHandler):
 
     def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
         """Do nothing."""
-        self.on_llm_end_()
+        is_empty = response.generations[0][0].text == ""
+        if is_empty is False:
+            self.on_llm_end_()
 
     def on_llm_error(
         self, error: Union[Exception, KeyboardInterrupt], **kwargs: Any
