@@ -2,6 +2,7 @@
 import json
 from typing import Any, Tuple
 
+from slugify import slugify
 from decouple import config
 from langchain import HuggingFaceHub
 from langchain.agents import Tool
@@ -97,7 +98,6 @@ class AgentBase:
             )
 
     def _get_tool(self, *args) -> Any:
-        print(args)
         try:
             if self.tool.type == "SEARCH":
                 tool = get_search_tool()
@@ -153,7 +153,11 @@ class AgentBase:
                     ],
                 )
                 if self.has_streaming
-                else ChatOpenAI(model_name=self.llm["model"])
+                else ChatOpenAI(
+                    model_name=self.llm["model"],
+                    openai_api_key=self._get_api_key(),
+                    temperature=0,
+                )
             )
 
         if self.llm["provider"] == "openai":
@@ -295,7 +299,7 @@ class AgentBase:
             ).as_retriever()
             tools.append(
                 Tool(
-                    name=agent_document.document.id
+                    name=slugify(agent_document.document.name)
                     if self.type == "OPENAI"
                     else agent_document.document.name,
                     description=description,
@@ -313,7 +317,7 @@ class AgentBase:
             )
             tools.append(
                 Tool(
-                    name=agent_tool.tool.id,
+                    name=slugify(agent_tool.tool.name),
                     description=ToolDescription[agent_tool.tool.type].value,
                     args_schema=args_schema if self.type == "OPENAI" else None,
                     func=tool.run if agent_tool.tool.type != "REPLICATE" else tool,
