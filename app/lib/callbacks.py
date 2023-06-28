@@ -89,5 +89,4 @@ class StreamingCallbackHandler(BaseCallbackHandler):
     def on_agent_finish(self, finish: AgentFinish, **kwargs: Any) -> None:
         """Run on agent end."""
         # st.write requires two spaces before a newline to render it
-        print(finish)
-        print(kwargs)
+        pass
