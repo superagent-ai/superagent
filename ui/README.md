@@ -1,34 +1,77 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<div align="center">
 
-## Getting Started
+# Superagent 🥷
 
-First, run the development server:
+**Build, deploy, and manage LLM-powered agents**
+[Superagent.sh](https://Superagent.sh)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-```
+<p>
+<img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/Superagent" />
+<img alt="GitHub Last Commit" src="https://img.shields.io/github/last-commit/homanp/Superagent" />
+<img alt="" src="https://img.shields.io/github/repo-size/homanp/Superagent" />
+<img alt="GitHub Issues" src="https://img.shields.io/github/issues/homanp/Superagent" />
+<img alt="GitHub Pull Requests" src="https://img.shields.io/github/issues-pr/homanp/Superagent" />
+<img alt="Github License" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+<img alt="Discord" src="https://img.shields.io/discord/1110910277110743103?label=Discord&logo=discord&logoColor=white&style=plastic&color=d7b023)](https://discord.gg/e8j7mgjDUK" />
+</p>
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+</div>
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 🧐 What is this?
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Superagent provides a GUI which makes it easy for anyone to manage agents, documents, prompts etc. through a no-code interface.
 
-## Learn More
+## 🥷 Superagent Cloud
 
-To learn more about Next.js, take a look at the following resources:
+If you are looking for a plug-n-play way getting started be sure to checkout [Superagent.sh](https://Superagent.sh).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔎 Documentation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Checkout the [full documentation here](https://docs.Superagent.sh/).
 
-## Deploy on Vercel
+## 🚧 Roadmap
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+You can follow the [roadmap here](https://github.com/users/homanp/projects/4)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## 🛠️ Getting Started
+
+To get started with Superagent UI, follow these steps:
+
+1. Clone the Superagent repository into a public GitHub repository or fork it from [https://github.com/homanp/Superagent/fork](https://github.com/homanp/Superagent/fork). If you plan to distribute the code, keep the source code public.
+
+   ```sh
+   git clone https://github.com/homanp/Superagent.git
+   ```
+
+2. Go tho the `ui` folder:
+
+   ```sh
+   cd ui
+   ```
+
+3. Go tho the `ui` folder:
+
+   ```
+   rename `.env-example` to `.env` and fill in all variables.
+   ```
+
+4. Install dependencies:
+
+   ```sh
+   npm i
+   ```
+
+5. Run dev server:
+   ```sh
+   npm run dev
+   ```
+
+## 🫶 Contributions
+
+Superagent is an open-source project, and contributions are welcome. If you would like to contribute, you can create new features, fix bugs, or improve the infrastructure. Please refer to the [CONTRIBUTING.md](https://github.com/homanp/Superagent/blob/main/.github/CONTRIBUTING.md) file in the repository for more information on how to contribute.
+
+We appreciate your contributions and aim to make it easy for anyone to create and run LLM Agents in production using Superagent.
+
+## 🙏 Support
+
+We appreciate all the support you can give us, either with contributions, feedback, bug reports or feature requests. Drop a star and share Superagent to the world!
