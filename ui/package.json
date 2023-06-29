@@ -42,5 +42,7 @@
     "remark-gfm": "^3.0.1",
     "stripe": "^12.5.0",
     "titleize": "^3.0.0"
-  }
+  },
+  "author": "Ismail Pelaseyed",
+  "license": "MIT"
 }

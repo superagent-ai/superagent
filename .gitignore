@@ -8,7 +8,7 @@ superenv/
 ## GUI IGNORE
 
 # dependencies
-/node_modules
+node_modules
 /.pnp
 .pnp.js
 
@@ -16,14 +16,13 @@ superenv/
 /coverage
 
 # next.js
-/.next/
+.next/
 /out/
 
 # production
 /build
 
 # misc
-.DS_Store
 *.pem
 
 # debug
