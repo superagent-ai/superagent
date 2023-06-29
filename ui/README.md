@@ -5,8 +5,6 @@
 **Build, deploy, and manage LLM-powered agents**
 [Superagent.sh](https://Superagent.sh)
 
-<img alt="Superagent UI" src="./public/ui.png" />
-
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/Superagent" />
 <img alt="GitHub Last Commit" src="https://img.shields.io/github/last-commit/homanp/Superagent" />
@@ -16,6 +14,8 @@
 <img alt="Github License" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
 <img alt="Discord" src="https://img.shields.io/discord/1110910277110743103?label=Discord&logo=discord&logoColor=white&style=plastic&color=d7b023)](https://discord.gg/e8j7mgjDUK" />
 </p>
+
+<img alt="Superagent UI" src="./public/ui.png" />
 
 </div>
 
