@@ -48,9 +48,12 @@ To get started with Superagent, follow these steps:
    ```
 
 2. To run the script, simply execute it using:
+
    ```sh
    bash setup.sh
    ```
+
+3. See the setup instructions for the UI in the `ui` folder.
 
 ## 💡 Examples
 
