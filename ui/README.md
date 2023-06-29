@@ -5,6 +5,8 @@
 **Build, deploy, and manage LLM-powered agents**
 [Superagent.sh](https://Superagent.sh)
 
+<img alt="Superagent UI" src="./public/ui.png" />
+
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/Superagent" />
 <img alt="GitHub Last Commit" src="https://img.shields.io/github/last-commit/homanp/Superagent" />
@@ -16,8 +18,6 @@
 </p>
 
 </div>
-
-[<img src="https://img.youtube.com/vi/<VIDEO ID>/maxresdefault.jpg" width="50%">](https://youtu.be/<VIDEO ID>)
 
 ## 🧐 What is this?
 
