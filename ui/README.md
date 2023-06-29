@@ -17,6 +17,8 @@
 
 </div>
 
+[<img src="https://img.youtube.com/vi/<VIDEO ID>/maxresdefault.jpg" width="50%">](https://youtu.be/<VIDEO ID>)
+
 ## 🧐 What is this?
 
 Superagent provides a GUI which makes it easy for anyone to manage agents, documents, prompts etc. through a no-code interface.
