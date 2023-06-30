@@ -4,7 +4,7 @@ import LogsClientPage from "./client-page";
 import Api from "@/lib/api";
 
 export const metadata = {
-  title: "Logs | Superagent",
+  title: "Logs | Aidosys",
   description: "Manage your logs",
 };
 

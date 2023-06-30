@@ -48,7 +48,7 @@ export default function Sidebar() {
       <Stack spacing={4} flex={1} divider={<StackDivider />}>
         <HStack spacing={4}>
           <Text as="strong" color="white" fontSize="lg">
-            Superagent
+            Aidosys
           </Text>
           <Tag size="sm">{SUPERAGENT_VERSION}</Tag>
         </HStack>

@@ -40,7 +40,7 @@ def upsert_document(
     metadata: dict = None,
 ) -> None:
     """Upserts documents to Pinecone index"""
-    pinecone.Index("superagent")
+    pinecone.Index("aidosys")
 
     embeddings = OpenAIEmbeddings()
 
@@ -58,7 +58,7 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, index_name="aidosys", namespace=document_id
         )
 
     if type == "PDF":
@@ -73,7 +73,7 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, index_name="aidosys", namespace=document_id
         )
 
     if type == "URL":
@@ -87,7 +87,7 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, index_name="aidosys", namespace=document_id
         )
 
     if type == "YOUTUBE":
@@ -101,7 +101,7 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, index_name="aidosys", namespace=document_id
         )
 
     if type == "MARKDOWN":
@@ -119,7 +119,7 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, index_name="aidosys", namespace=document_id
         )
 
     if type == "PSYCHIC":

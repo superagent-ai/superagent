@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
-  title: Superagent
-  description: Build, deploy, and manage LLM-powered agents
+  title: Aidosys
+  description: LLM agents for education
   version: 0.0.23
 paths:
   /api/v1/agents:

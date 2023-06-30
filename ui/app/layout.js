@@ -9,8 +9,8 @@ import { options } from "@/lib/next-auth";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Superagent",
-  description: "Build, deploy and manage AI Agents in seconds",
+  title: "Aidosys",
+  description: "LLM agents for education",
   openGraph: {
     images: ["/og-image.png"],
   },

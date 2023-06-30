@@ -7,7 +7,7 @@ pinecone.init(
     environment=config("PINECONE_ENVIRONMENT"),  # next to api key in console
 )
 
-pinecone.Index("superagent")
+pinecone.Index("aidosys")
 
 
 class PineconeVectorstore:
@@ -16,10 +16,10 @@ class PineconeVectorstore:
 
     def from_documents(self, docs, embeddings, index_name, namespace):
         Pinecone.from_documents(
-            docs, embeddings, index_name="superagent", namespace=namespace
+            docs, embeddings, index_name="aidosys", namespace=namespace
         )
 
     def from_existing_index(self, embeddings, namespeace):
         return Pinecone.from_existing_index(
-            "superagent", embedding=embeddings, namespace=namespeace
+            "aidosys", embedding=embeddings, namespace=namespeace
         )

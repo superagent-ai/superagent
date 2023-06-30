@@ -23,5 +23,5 @@ Depends on
 
 - [ ] My code follows the code style of this project and passes `make format`.
 - [ ] My change requires a change to the documentation.
-- [ ] I have [updated the documentation](https://docs.superagent.sh/) accordingly.
+- [ ] I have [updated the documentation](https://docs.aidosys.com/) accordingly.
 - [ ] My change has adequate unit test coverage.

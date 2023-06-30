@@ -4,7 +4,7 @@ import ToolsClientPage from "./client-page";
 import Api from "@/lib/api";
 
 export const metadata = {
-  title: "Tools | Superagent",
+  title: "Tools | Aidosys",
   description: "Manage your tools",
 };
 

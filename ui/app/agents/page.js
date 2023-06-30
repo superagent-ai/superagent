@@ -4,7 +4,7 @@ import AgentsClientPage from "./client-page";
 import Api from "@/lib/api";
 
 export const metadata = {
-  title: "Agents | Superagent",
+  title: "Agents | Aidosys",
   description: "Manage your agents",
 };
 

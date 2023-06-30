@@ -5,9 +5,9 @@ groups:
         version: 0.3.7
         output:
           location: pypi
-          package-name: superagent-py
+          package-name: aidosys-py
           token: ${PYPI_TOKEN}
         github:
-          repository: homanp/superagent-py
+          repository: aiden-technologies/aidosys-py
         config:
-          client_class_name: Superagent
+          client_class_name: Aidosys

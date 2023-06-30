@@ -79,7 +79,7 @@ export default function Register() {
       <Stack spacing={8}>
         <HStack spacing={4} justifyContent="center" alignItems="center">
           <Text as="strong" color={fontColor} fontSize="2xl">
-            Superagent
+            Aidosys
           </Text>
           <Tag size="sm">{SUPERAGENT_VERSION}</Tag>
         </HStack>

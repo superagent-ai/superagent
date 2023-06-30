@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "superagent"
+name = "aidosys"
 version = "0.0.1"
 description = ""
 authors = ["Ismail Pelaseyed"]

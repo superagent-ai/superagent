@@ -3,7 +3,7 @@ import { options } from "@/lib/next-auth";
 import NewAgentClientPage from "./client-page";
 
 export const metadata = {
-  title: "New Agent | Superagent",
+  title: "New Agent | Aidosys",
   description: "Create new agent",
 };
 

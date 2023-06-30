@@ -75,7 +75,7 @@ export const FOOTER_MENU = [
   {
     id: "docs",
     label: "Documentation",
-    path: "https://docs.superagent.sh",
+    path: "https://docs.aidosys.com",
     icon: TbBook,
   },
   {

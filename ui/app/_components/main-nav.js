@@ -19,7 +19,7 @@ export default function MainNav() {
     <HStack paddingY={6} justifyContent="space-between">
       <HStack spacing={4}>
         <Text as="strong" color={fontColor} fontSize="lg">
-          Superagent
+          Aidosys
         </Text>
         <Tag size="sm">{SUPERAGENT_VERSION}</Tag>
       </HStack>
@@ -27,16 +27,16 @@ export default function MainNav() {
         <Link href="https://discord.gg/mhmJUTjW4b" color={fontColor}>
           Discord
         </Link>
-        <Link href="https://github.com/homanp/superagent" color={fontColor}>
+        <Link href="https://github.com/aiden-technologies/aidosys" color={fontColor}>
           Github
         </Link>
         <Link
           color={fontColor}
-          href="https://github.com/homanp/superagent/blob/main/.github/CONTRIBUTING.md"
+          href="https://github.com/aiden-technologies/aidosys/blob/main/.github/CONTRIBUTING.md"
         >
           Contribute
         </Link>
-        <Link color={fontColor} href="https://docs.superagent.sh">
+        <Link color={fontColor} href="https://docs.aidosys.com">
           Docs
         </Link>
         <NextLink passHref href="/login">

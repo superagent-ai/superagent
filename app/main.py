@@ -7,8 +7,8 @@ from app.lib.prisma import prisma
 from app.routers import router
 
 app = FastAPI(
-    title="Superagent",
-    description="Bring your agents to production",
+    title="Aidosys",
+    description="LLM agents for education",
     version="0.0.7",
 )
 

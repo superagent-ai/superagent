@@ -15,7 +15,7 @@ body:
       label: "Please check that this issue hasn't been reported before."
       description: "The **Label filters** may help make your search more focussed."
       options:
-        - label: "I searched previous [Bug Reports](https://github.com/homanp/superagent/labels/bug) didn't find any similar reports."
+        - label: "I searched previous [Bug Reports](https://github.com/aiden-technologies/aidosys/labels/bug) didn't find any similar reports."
           required: true
 
   - type: textarea
@@ -84,7 +84,7 @@ body:
           required: true
         - label: 'I have searched the existing issues to make sure this bug has not been reported yet.'
           required: true
-        - label: 'I am using the latest version of superagent.'
+        - label: 'I am using the latest version of Aidosys.'
           required: true
         - label: 'I have provided enough information for the maintainers to reproduce and diagnose the issue.'
           required: true

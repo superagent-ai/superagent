@@ -28,24 +28,24 @@ export default function HomeClientPage() {
           borderWidth="1px"
           borderRadius="md"
         >
-          Superagent is in public beta, expect rapid updates. All feedback
+          Aidosys is in public beta, expect rapid updates. All feedback
           appreciated.
         </Alert>
         <Stack>
           <HStack>
             <Heading as="h1" fontSize="2xl">
-              Welcome to Superagent
+              Welcome to Aidosys
             </Heading>
             <Tag size="sm">Beta</Tag>
           </HStack>
           <Text color="gray.400">
-            Superagent is a platform that enables you to create, manage and run
+            Aidosys is a platform that enables you to create, manage and run
             AI Agents in seconds. We are currently in open beta so bare with us.
             Make sure the read the documentation on how to integrate Superagent
             with your app.
           </Text>
         </Stack>
-        <NextLink passHref href="https://docs.superagent.sh">
+        <NextLink passHref href="https://docs.aidosys.com">
           <Stack
             minHeight="200px"
             bgGradient="linear(to-l, gray.600, gray.800)"
@@ -60,7 +60,7 @@ export default function HomeClientPage() {
                 Documentation
               </Heading>
               <Text>
-                Read more on how to get started with integrating Superagent in
+                Read more on how to get started with integrating Aidosys in
                 your apps here.
               </Text>
             </Stack>
@@ -70,7 +70,7 @@ export default function HomeClientPage() {
           Contribute on{" "}
           <Link
             textDecoration="underline"
-            href="https://github.com/homanp/superagent"
+            href="https://github.com/aiden-technologies/aidosys"
           >
             Github
           </Link>

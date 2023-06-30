@@ -1,7 +1,7 @@
 spec:
-  name: superagent
+  name: aidosys
   services:
     - name: web
       git:
         branch: main
-        repo_clone_url: https://github.com/homanp/superagent.git
+        repo_clone_url: https://github.com/aiden-technologies/aidosys.git
