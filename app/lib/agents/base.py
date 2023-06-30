@@ -17,7 +17,9 @@ from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
 from langchain.schema import SystemMessage
-
+from langchain.callbacks.streaming_stdout_final_only import (
+    FinalStreamingStdOutCallbackHandler,
+)
 
 from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.models.document import DocumentInput
@@ -146,11 +148,12 @@ class AgentBase:
                     model_name=self.llm["model"],
                     streaming=self.has_streaming,
                     callbacks=[
+                        FinalStreamingStdOutCallbackHandler(),
                         StreamingCallbackHandler(
                             on_llm_new_token_=self.on_llm_new_token,
                             on_llm_end_=self.on_llm_end,
                             on_chain_end_=self.on_chain_end,
-                        )
+                        ),
                     ],
                 )
                 if self.has_streaming
