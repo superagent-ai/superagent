@@ -1,4 +1,5 @@
 import HomeClientPage from "./client-page";
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata = {
   title: "Home | Superagent",
@@ -6,5 +7,10 @@ export const metadata = {
 };
 
 export default async function Dashboard() {
-  return <HomeClientPage />;
+  return (
+  <>
+    <Analytics />
+    <HomeClientPage />
+  </>
+  );
 }
