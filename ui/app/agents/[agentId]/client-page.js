@@ -113,7 +113,7 @@ function AgentDocument({ session, id, document }) {
       paddingX={4}
       spacing={4}
     >
-      <Text fontSize="sm">{document.name}</Text>
+      <Text fontSize="sm">{document?.name}</Text>
       <IconButton
         size="xs"
         icon={isDeletingDocument ? <Spinner size="xs" /> : <Icon as={TbX} />}
