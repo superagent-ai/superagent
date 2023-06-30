@@ -139,8 +139,7 @@ async def run_agent(
                 data_queue.put(token)
 
             def on_llm_end() -> None:
-                # data_queue.put("[END]")
-                pass
+                data_queue.put("[END]")
 
             def on_chain_end(outputs: Dict[str, Any]) -> None:
                 pass
