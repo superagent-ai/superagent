@@ -33,6 +33,7 @@ from app.lib.tools import (
     get_search_tool,
     get_wolfram_alpha_tool,
     get_replicate_tool,
+    DocSummarizerTool,
 )
 from app.lib.vectorstores.base import VectorStoreBase
 
@@ -292,11 +293,12 @@ class AgentBase:
             description = f"useful when you want to answer questions about {agent_document.document.name}"
             args_schema = DocumentInput if self.type == "OPENAI" else None
             embeddings = OpenAIEmbeddings()
-            retriever = (
+            docsearch = (
                 VectorStoreBase()
                 .get_database()
                 .from_existing_index(embeddings, agent_document.document.id)
-            ).as_retriever()
+            )
+            summary_tool = DocSummarizerTool(docsearch=docsearch, llm=self._get_llm())
             tools.append(
                 Tool(
                     name=slugify(agent_document.document.name)
@@ -306,8 +308,15 @@ class AgentBase:
                     args_schema=args_schema,
                     func=RetrievalQA.from_chain_type(
                         llm=self._get_llm(),
-                        retriever=retriever,
+                        retriever=docsearch.as_retriever(),
                     ),
+                )
+            )
+            tools.append(
+                Tool.from_function(
+                    func=summary_tool.run,
+                    name="document-summarizer",
+                    description="useful for when you need to summarize documents",
                 )
             )
 
