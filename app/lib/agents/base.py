@@ -312,7 +312,7 @@ class AgentBase:
                     description=description,
                     args_schema=args_schema,
                     func=RetrievalQA.from_chain_type(
-                        llm=self._get_llm(),
+                        llm=self._get_llm(has_streaming=False),
                         retriever=docsearch.as_retriever(),
                     ),
                 )
