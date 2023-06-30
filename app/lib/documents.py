@@ -32,8 +32,11 @@ def upsert_document(
 
     if type == "TXT":
         file_response = requests.get(url)
-        loader = TextLoader(file_response.content)
-        documents = loader.load()
+        with NamedTemporaryFile(suffix=".txt", delete=True) as temp_file:
+            temp_file.write(file_response.text.encode())
+            temp_file.flush()
+            loader = TextLoader(file_path=temp_file.name)
+            documents = loader.load()
         newDocuments = [
             document.metadata.update({"namespace": document_id}) or document
             for document in documents
