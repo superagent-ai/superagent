@@ -18,6 +18,7 @@
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
     "@microsoft/fetch-event-source": "^2.0.1",
+    "@psychic-api/link": "^1.1.1",
     "@uiw/codemirror-theme-github": "^4.21.3",
     "@uiw/codemirror-theme-xcode": "^4.19.16",
     "@uiw/react-codemirror": "^4.19.16",
