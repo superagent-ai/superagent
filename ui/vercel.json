@@ -2,6 +2,9 @@
     "functions": {
       "app/api/auth/**/*.js": {
         "maxDuration": 60
+      },
+      "app/lib/*.js": {
+        "maxDuration": 60
       }
     }
   }
