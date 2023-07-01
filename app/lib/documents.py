@@ -16,7 +16,7 @@ from app.lib.parsers import CustomPDFPlumberLoader
 from app.lib.splitters import TextSplitters
 from app.lib.vectorstores.base import VectorStoreBase
 
-valid_ingestion_types = ["TXT", "PDF", "URL", "YOUTUBE", "MARKDOWN", "API"]
+valid_ingestion_types = ["TXT", "PDF", "URL", "YOUTUBE", "MARKDOWN", "PSYCHIC"]
 
 
 def upsert_document(
@@ -111,7 +111,7 @@ def upsert_document(
             docs, embeddings, index_name="superagent", namespace=document_id
         )
     
-    if type == "API":
+    if type == "PSYCHIC":
         loader = PsychicLoader(api_key=config("PSYCHIC_API_KEY"), account_id=user_id)
         documents = loader.load()
         newDocuments = [

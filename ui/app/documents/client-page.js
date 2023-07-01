@@ -221,7 +221,7 @@ export default function DocumentsClientPage({ data, session }) {
                     <option value="URL">URL</option>
                     <option value="YOUTUBE">Youtube</option>
                     <option value="MARKDOWN">Markdown</option>
-                    <option value="API">API</option>
+                    <option value="PSYCHIC">Psychic API</option>
                   </Select>
                   {errors?.type && (
                     <FormErrorMessage>Invalid type</FormErrorMessage>
@@ -259,10 +259,10 @@ export default function DocumentsClientPage({ data, session }) {
                     </Stack>
                   </FormControl>
                 )}
-                {documentType === "API" && (
+                {documentType === "PSYCHIC" && (
                   <FormControl>
                     <Stack marginTop={4}>
-                    <Button type="submit" disabled={!isPsychicReady} onClick={onConnectAPI} isLoading={isPsychicLoading}>
+                    <Button type="submit" disabled={!isPsychicReady} onClick={onConnectPsychic} isLoading={isPsychicLoading}>
                       Connect
                     </Button>
                     </Stack>
