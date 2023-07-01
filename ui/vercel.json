@@ -1,6 +1,6 @@
 {
     "functions": {
-      "pages/api/ai/**/*.js": {
+      "app/api/auth/**/*.js": {
         "maxDuration": 60
       }
     }
