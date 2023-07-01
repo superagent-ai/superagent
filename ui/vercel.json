@@ -1,0 +1,7 @@
+{
+    "functions": {
+      "pages/api/ai/**/*.js": {
+        "maxDuration": 60
+      }
+    }
+  }

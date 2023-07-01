@@ -2,7 +2,7 @@
 name = "aidosys"
 version = "0.0.1"
 description = ""
-authors = ["Ismail Pelaseyed"]
+authors = ["Simon Weniger (Aiden Technologies), Ismail Pelaseyed"]
 readme = "README.md"
 packages = [{include = "app"}]
 
