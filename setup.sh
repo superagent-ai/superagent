@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# Create and activate the virtual environment
-virtualenv venv
-source venv/bin/activate
-
 # Read the variable names from the `env.example` file
 for var in $(cat .env.example); do
   # Ask the user for input
@@ -16,6 +12,9 @@ done
 
 # Install dependencies using Poetry
 poetry install
+
+# Move into poetry shell
+poetry shell
 
 # Run Prisma migration
 poetry run prisma migrate dev
