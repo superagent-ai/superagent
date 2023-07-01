@@ -215,6 +215,7 @@ export default function DocumentsClientPage({ data, session }) {
                     <option value="URL">URL</option>
                     <option value="YOUTUBE">Youtube</option>
                     <option value="MARKDOWN">Markdown</option>
+                    <option value="API">API</option>
                   </Select>
                   {errors?.type && (
                     <FormErrorMessage>Invalid type</FormErrorMessage>

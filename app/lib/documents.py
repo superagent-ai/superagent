@@ -3,6 +3,7 @@ from tempfile import NamedTemporaryFile
 import pinecone
 import requests
 from langchain.document_loaders import (
+    PsychicLoader,
     TextLoader,
     UnstructuredMarkdownLoader,
     WebBaseLoader,
@@ -10,11 +11,12 @@ from langchain.document_loaders import (
 )
 from langchain.embeddings.openai import OpenAIEmbeddings
 
+from decouple import config
 from app.lib.parsers import CustomPDFPlumberLoader
 from app.lib.splitters import TextSplitters
 from app.lib.vectorstores.base import VectorStoreBase
 
-valid_ingestion_types = ["TXT", "PDF", "URL", "YOUTUBE", "MARKDOWN"]
+valid_ingestion_types = ["TXT", "PDF", "URL", "YOUTUBE", "MARKDOWN", "API"]
 
 
 def upsert_document(
@@ -24,6 +26,7 @@ def upsert_document(
     from_page: int,
     to_page: int,
     text_splitter: dict = None,
+    user_id: str = None,
 ) -> None:
     """Upserts documents to Pinecone index"""
     pinecone.Index("superagent")
@@ -98,6 +101,19 @@ def upsert_document(
             loader = UnstructuredMarkdownLoader(file_path=temp_file.name)
             documents = loader.load()
 
+        newDocuments = [
+            document.metadata.update({"namespace": document_id}) or document
+            for document in documents
+        ]
+        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
+
+        VectorStoreBase().get_database().from_documents(
+            docs, embeddings, index_name="superagent", namespace=document_id
+        )
+    
+    if type == "API":
+        loader = PsychicLoader(api_key=config("PSYCHIC_API_KEY"), account_id=user_id)
+        documents = loader.load()
         newDocuments = [
             document.metadata.update({"namespace": document_id}) or document
             for document in documents
