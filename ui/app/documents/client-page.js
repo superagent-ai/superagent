@@ -68,14 +68,16 @@ function DocumentRow({ id, name, type, url, onDelete }) {
         </HStack>
       </Td>
       <Td>
-        <HStack>
-          <Text noOfLines={1}>{url}</Text>
-          <IconButton
-            size="sm"
-            icon={<Icon color="orange.500" fontSize="lg" as={TbCopy} />}
-            onClick={() => copyToClipboard(url)}
-          />
-        </HStack>
+        {url && (
+          <HStack>
+            <Text noOfLines={1}>{url}</Text>
+            <IconButton
+              size="sm"
+              icon={<Icon color="orange.500" fontSize="lg" as={TbCopy} />}
+              onClick={() => copyToClipboard(url)}
+            />
+          </HStack>
+        )}
       </Td>
       <Td>{type}</Td>
       <Td textAlign="right">
@@ -94,6 +96,7 @@ export default function DocumentsClientPage({ data, session }) {
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
   const api = new API(session);
+  const toast = useToast();
   const {
     formState: { isSubmitting, errors },
     handleSubmit,
@@ -105,12 +108,12 @@ export default function DocumentsClientPage({ data, session }) {
   const documentType = watch("type");
   const { open, isReady, isLoading } = usePsychicLink(
     process.env.NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY,
-    async (newConnection) => {
-      await api.createDocument({
-        name: `Psychic: ${newConnection.connectId}`,
+    (newConnection) => {
+      api.createDocument({
+        name: `Psychic: ${newConnection.connectorId}`,
         type: "PSYCHIC",
         metadata: {
-          connectorId: newConnection.connectId,
+          connectorId: newConnection.connectorId,
         },
       });
 
@@ -119,6 +122,9 @@ export default function DocumentsClientPage({ data, session }) {
         position: "top",
         colorScheme: "gray",
       });
+
+      onClose();
+      router.refresh();
     }
   );
   const shouldShowPsychic = process.env.NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY;
