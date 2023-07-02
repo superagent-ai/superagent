@@ -27,6 +27,7 @@ enum DocumentType {
   OPENAPI
   URL
   MARKDOWN
+  FIRESTORE
 }
 
 enum ToolType {
@@ -72,6 +73,7 @@ model Document {
   updatedAt     DateTime?       @updatedAt
   index         Json?
   authorization Json?
+  metadata      Json?
   Agent         Agent[]
   AgentDocument AgentDocument[]
 }

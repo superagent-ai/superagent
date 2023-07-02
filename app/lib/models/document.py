@@ -6,6 +6,7 @@ class Document(BaseModel):
     url: str
     name: str
     authorization: dict = None
+    metadata: dict = None
     from_page: int = (1,)
     to_page: int = None
     splitter: dict = None
