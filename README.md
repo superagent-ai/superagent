@@ -15,6 +15,10 @@
 <img alt="Discord" src="https://img.shields.io/discord/1110910277110743103?label=Discord&logo=discord&logoColor=white&style=plastic&color=d7b023)](https://discord.gg/e8j7mgjDUK" />
 </p>
 
+<br />
+
+<img alt="Superagent UI" src="./ui/public/superagent.png" />
+
 </div>
 
 ## 🧐 What is this?
@@ -44,9 +48,12 @@ To get started with Superagent, follow these steps:
    ```
 
 2. To run the script, simply execute it using:
+
    ```sh
    bash setup.sh
    ```
+
+3. See the setup instructions for the UI in the `ui` folder.
 
 ## 💡 Examples
 

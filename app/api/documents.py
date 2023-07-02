@@ -13,7 +13,19 @@ router = APIRouter()
 @router.post("/documents", name="Create document", description="Create a new document")
 async def create_document(body: Document, token=Depends(JWTBearer())):
     """Create document endpoint"""
+    decoded = decodeJWT(token)
+    document = prisma.document.create(
+        {
+            "type": body.type,
+            "url": body.url,
+            "userId": decoded["userId"],
+            "name": body.name,
+            "splitter": json.dumps(body.splitter),
+            "authorization": json.dumps(body.authorization),
+        }
+    )
 
+<<<<<<< HEAD
     try:
         decoded = decodeJWT(token)
         document = prisma.document.create(
@@ -47,6 +59,19 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=e,
         )
+=======
+    if body.type in valid_ingestion_types:
+        upsert_document(
+            url=body.url,
+            type=body.type,
+            document_id=document.id,
+            text_splitter=body.splitter,
+            from_page=body.from_page,
+            to_page=body.to_page,
+        )
+
+    return {"success": True, "data": document}
+>>>>>>> main
 
 
 @router.get("/documents", name="List documents", description="List all documents")
