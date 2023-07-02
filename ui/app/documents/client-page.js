@@ -105,8 +105,9 @@ export default function DocumentsClientPage({ data, session }) {
   const { open, isReady, isLoading } = usePsychicLink(
     process.env.NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY,
     async (newConnection) => {
-      api.createDocument({
+      await api.createDocument({
         name: newConnection.connectId,
+        type: "PSYCHIC",
       });
     }
   );

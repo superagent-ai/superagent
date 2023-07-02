@@ -50,7 +50,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
                 text_splitter=body.splitter,
                 from_page=body.from_page,
                 to_page=body.to_page,
-                user_id=decoded["userId"]
+                user_id=decoded["userId"],
             )
 
         return {"success": True, "data": document}

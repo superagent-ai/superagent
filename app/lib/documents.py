@@ -2,6 +2,7 @@ from tempfile import NamedTemporaryFile
 
 import pinecone
 import requests
+from decouple import config
 from langchain.document_loaders import (
     PsychicLoader,
     TextLoader,
@@ -12,12 +13,19 @@ from langchain.document_loaders import (
 from langchain.embeddings.openai import OpenAIEmbeddings
 from llama_index.readers.schema.base import Document
 
-from decouple import config
 from app.lib.parsers import CustomPDFPlumberLoader
 from app.lib.splitters import TextSplitters
 from app.lib.vectorstores.base import VectorStoreBase
 
-valid_ingestion_types = ["TXT", "PDF", "URL", "YOUTUBE", "MARKDOWN", "FIRESTORE", "PSYCHIC"]
+valid_ingestion_types = [
+    "TXT",
+    "PDF",
+    "URL",
+    "YOUTUBE",
+    "MARKDOWN",
+    "FIRESTORE",
+    "PSYCHIC",
+]
 
 
 def upsert_document(
@@ -113,7 +121,7 @@ def upsert_document(
         VectorStoreBase().get_database().from_documents(
             docs, embeddings, index_name="superagent", namespace=document_id
         )
-    
+
     if type == "PSYCHIC":
         loader = PsychicLoader(api_key=config("PSYCHIC_API_KEY"), account_id=user_id)
         documents = loader.load()
