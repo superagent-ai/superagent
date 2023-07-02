@@ -2,8 +2,6 @@ from tempfile import NamedTemporaryFile
 
 import pinecone
 import requests
-
-from llama_index.readers.schema.base import Document
 from langchain.document_loaders import (
     TextLoader,
     UnstructuredMarkdownLoader,
@@ -11,6 +9,7 @@ from langchain.document_loaders import (
     YoutubeLoader,
 )
 from langchain.embeddings.openai import OpenAIEmbeddings
+from llama_index.readers.schema.base import Document
 
 from app.lib.parsers import CustomPDFPlumberLoader
 from app.lib.splitters import TextSplitters
