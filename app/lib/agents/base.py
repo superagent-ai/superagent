@@ -289,7 +289,9 @@ class AgentBase:
         embeddings = OpenAIEmbeddings()
 
         for agent_document in self.documents:
-            description = f"useful for finding information about {agent_document.document.name}"
+            description = (
+                f"useful for finding information about {agent_document.document.name}"
+            )
             args_schema = DocumentInput if self.type == "OPENAI" else None
             embeddings = OpenAIEmbeddings()
             retriever = (
@@ -359,9 +361,9 @@ class AgentBase:
 
     def process_payload(self, payload):
         if isinstance(payload, dict):
-            if self.type == 'OPENAI':
+            if self.type == "OPENAI":
                 payload = str(payload)
-     
+
         return payload
 
     def create_agent_memory(self, agentId: str, author: str, message: str):

@@ -192,7 +192,10 @@ async def run_agent(
             result = agent_executor(agent_base.process_payload(payload=input))
             output = result.get("output") or result.get("result")
             background_tasks.add_task(
-                agent_base.create_agent_memory, agentId, "HUMAN", json.dumps(input.get("input"))
+                agent_base.create_agent_memory,
+                agentId,
+                "HUMAN",
+                json.dumps(input.get("input")),
             )
             background_tasks.add_task(
                 agent_base.create_agent_memory, agentId, "AI", output
