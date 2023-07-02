@@ -123,7 +123,11 @@ def upsert_document(
         )
 
     if type == "PSYCHIC":
-        loader = PsychicLoader(api_key=config("PSYCHIC_API_KEY"), account_id=user_id)
+        loader = PsychicLoader(
+            api_key=config("PSYCHIC_API_KEY"),
+            account_id=user_id,
+            connector_id=metadata["connectorId"],
+        )
         documents = loader.load()
         newDocuments = [
             document.metadata.update({"namespace": document_id}) or document

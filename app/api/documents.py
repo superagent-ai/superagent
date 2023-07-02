@@ -27,7 +27,6 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
     )
 
     try:
-        decoded = decodeJWT(token)
         document = prisma.document.create(
             {
                 "type": body.type,
@@ -110,8 +109,8 @@ async def delete_document(documentId: str, token=Depends(JWTBearer())):
         prisma.document.delete(where={"id": documentId})
 
         return {"success": True, "data": None}
-    except Exception as e:
+    except Exception as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=e,
+            detail=error,
         )

@@ -30,6 +30,7 @@ import {
   IconButton,
   useToast,
   Box,
+  Tag,
 } from "@chakra-ui/react";
 import NextImage from "next/image";
 import { useRouter } from "next/navigation";
@@ -106,8 +107,17 @@ export default function DocumentsClientPage({ data, session }) {
     process.env.NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY,
     async (newConnection) => {
       await api.createDocument({
-        name: newConnection.connectId,
+        name: `Psychic: ${newConnection.connectId}`,
         type: "PSYCHIC",
+        metadata: {
+          connectorId: newConnection.connectId,
+        },
+      });
+
+      toast({
+        description: "Psychic connection created!",
+        position: "top",
+        colorScheme: "gray",
       });
     }
   );
@@ -202,7 +212,7 @@ export default function DocumentsClientPage({ data, session }) {
             <Stack spacing={4}>
               {shouldShowPsychic && (
                 <HStack
-                  backgroundColor="#222"
+                  backgroundColor="gray.800"
                   borderRadius="md"
                   padding={4}
                   spacing={5}
@@ -216,8 +226,14 @@ export default function DocumentsClientPage({ data, session }) {
                       height="40"
                     />
                     <Stack spacing={0}>
-                      <Text>Psychic</Text>
-                      <Text fontSize="sm" noOfLines={1}>
+                      <HStack>
+                        <Text as="b">Psychic</Text>{" "}
+                        <Tag colorScheme="green" size="sm" borderRadius="full">
+                          New
+                        </Tag>
+                      </HStack>
+
+                      <Text fontSize="sm" noOfLines={1} color="gray.500">
                         Connect to Google, Jira, Zendesk, Dropox etc.
                       </Text>
                     </Stack>

@@ -5,5 +5,9 @@
     "editor.formatOnType": true,
     "[javascript]": {
       "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
-    }
+    },
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none"
   }
