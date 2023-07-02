@@ -124,7 +124,7 @@ def upsert_document(
         )
         documents = []
         col_ref = db.collection(metadata["collection"])
-        
+
         for doc in col_ref.stream():
             doc_str = ", ".join([f"{k}: {v}" for k, v in doc.to_dict().items()])
             documents.append(Document(text=doc_str))
