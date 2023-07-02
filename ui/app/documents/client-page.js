@@ -320,20 +320,6 @@ export default function DocumentsClientPage({ data, session }) {
                     </Stack>
                   </FormControl>
                 )}
-                {documentType === "PSYCHIC" && (
-                  <FormControl>
-                    <Stack marginTop={4}>
-                      <Button
-                        type="submit"
-                        disabled={!isPsychicReady}
-                        onClick={onConnectAPI}
-                        isLoading={isPsychicLoading}
-                      >
-                        Connect
-                      </Button>
-                    </Stack>
-                  </FormControl>
-                )}
               </Stack>
             </Stack>
           </ModalBody>
