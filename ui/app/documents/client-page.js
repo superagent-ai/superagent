@@ -29,9 +29,9 @@ import {
   FormErrorMessage,
   IconButton,
   useToast,
-  Tag,
   Box,
 } from "@chakra-ui/react";
+import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import { TbPlus, TbCopy, TbTrash } from "react-icons/tb";
 import { useForm } from "react-hook-form";
@@ -102,7 +102,15 @@ export default function DocumentsClientPage({ data, session }) {
   } = useForm();
 
   const documentType = watch("type");
-  const { openPsychic, isPsychicReady, isPsychicLoading} = usePsychicLink(publicKey, () => {});
+  const { open, isReady, isLoading } = usePsychicLink(
+    process.env.NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY,
+    async (newConnection) => {
+      api.createDocument({
+        name: newConnection.connectId,
+      });
+    }
+  );
+  const shouldShowPsychic = process.env.NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY;
 
   const onSubmit = async (values) => {
     const { type, name, url, auth_type, auth_key, auth_value } = values;
@@ -133,7 +141,7 @@ export default function DocumentsClientPage({ data, session }) {
   };
 
   const onConnectAPI = async () => {
-    openPsychic(session.user.user.id);
+    open(session.user.user.id);
   };
 
   return (
@@ -184,13 +192,44 @@ export default function DocumentsClientPage({ data, session }) {
           </Tbody>
         </Table>
       </Stack>
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
           <ModalHeader>New document</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Stack spacing={4}>
+              {shouldShowPsychic && (
+                <HStack
+                  backgroundColor="#222"
+                  borderRadius="md"
+                  padding={4}
+                  spacing={5}
+                  justifyContent="space-between"
+                >
+                  <HStack spacing={6}>
+                    <NextImage
+                      src="/psychic-logo.png"
+                      alt="Psychic"
+                      width="40"
+                      height="40"
+                    />
+                    <Stack spacing={0}>
+                      <Text>Psychic</Text>
+                      <Text fontSize="sm" noOfLines={1}>
+                        Connect to Google, Jira, Zendesk, Dropox etc.
+                      </Text>
+                    </Stack>
+                  </HStack>
+                  <Button
+                    isDisabled={!isReady}
+                    onClick={onConnectAPI}
+                    isLoading={isLoading}
+                  >
+                    Connect
+                  </Button>
+                </HStack>
+              )}
               <Stack>
                 <FormControl isRequired isInvalid={errors?.name}>
                   <FormLabel>Name</FormLabel>
@@ -262,9 +301,14 @@ export default function DocumentsClientPage({ data, session }) {
                 {documentType === "PSYCHIC" && (
                   <FormControl>
                     <Stack marginTop={4}>
-                    <Button type="submit" disabled={!isPsychicReady} onClick={onConnectPsychic} isLoading={isPsychicLoading}>
-                      Connect
-                    </Button>
+                      <Button
+                        type="submit"
+                        disabled={!isPsychicReady}
+                        onClick={onConnectAPI}
+                        isLoading={isPsychicLoading}
+                      >
+                        Connect
+                      </Button>
                     </Stack>
                   </FormControl>
                 )}
