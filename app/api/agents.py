@@ -167,7 +167,7 @@ async def run_agent(
                 agent_base = get_agent_base()
                 agent_strategy = AgentFactory.create_agent(agent_base)
                 agent_executor = agent_strategy.get_agent()
-                result = agent_executor(input)
+                result = agent_executor(agent_base.process_payload(payload=input))
                 output = result.get("output") or result.get("result")
                 background_tasks.add_task(
                     agent_base.create_agent_memory, agentId, "AI", output
@@ -189,10 +189,13 @@ async def run_agent(
             agent_base = AgentBase(agent=agent, has_streaming=has_streaming)
             agent_strategy = AgentFactory.create_agent(agent_base)
             agent_executor = agent_strategy.get_agent()
-            result = agent_executor(input)
+            result = agent_executor(agent_base.process_payload(payload=input))
             output = result.get("output") or result.get("result")
             background_tasks.add_task(
-                agent_base.create_agent_memory, agentId, "HUMAN", input.get("input")
+                agent_base.create_agent_memory,
+                agentId,
+                "HUMAN",
+                json.dumps(input.get("input")),
             )
             background_tasks.add_task(
                 agent_base.create_agent_memory, agentId, "AI", output
