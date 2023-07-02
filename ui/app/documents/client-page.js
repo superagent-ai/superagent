@@ -29,14 +29,16 @@ import {
   FormErrorMessage,
   IconButton,
   useToast,
-  Tag,
   Box,
+  Tag,
 } from "@chakra-ui/react";
+import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import { TbPlus, TbCopy, TbTrash } from "react-icons/tb";
 import { useForm } from "react-hook-form";
 import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
+import { usePsychicLink } from "@psychic-api/link";
 
 function DocumentRow({ id, name, type, url, onDelete }) {
   const toast = useToast();
@@ -66,14 +68,16 @@ function DocumentRow({ id, name, type, url, onDelete }) {
         </HStack>
       </Td>
       <Td>
-        <HStack>
-          <Text noOfLines={1}>{url}</Text>
-          <IconButton
-            size="sm"
-            icon={<Icon color="orange.500" fontSize="lg" as={TbCopy} />}
-            onClick={() => copyToClipboard(url)}
-          />
-        </HStack>
+        {url && (
+          <HStack>
+            <Text noOfLines={1}>{url}</Text>
+            <IconButton
+              size="sm"
+              icon={<Icon color="orange.500" fontSize="lg" as={TbCopy} />}
+              onClick={() => copyToClipboard(url)}
+            />
+          </HStack>
+        )}
       </Td>
       <Td>{type}</Td>
       <Td textAlign="right">
@@ -92,6 +96,7 @@ export default function DocumentsClientPage({ data, session }) {
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
   const api = new API(session);
+  const toast = useToast();
   const {
     formState: { isSubmitting, errors },
     handleSubmit,
@@ -101,6 +106,28 @@ export default function DocumentsClientPage({ data, session }) {
   } = useForm();
 
   const documentType = watch("type");
+  const { open, isReady, isLoading } = usePsychicLink(
+    process.env.NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY,
+    (newConnection) => {
+      api.createDocument({
+        name: `Psychic: ${newConnection.connectorId}`,
+        type: "PSYCHIC",
+        metadata: {
+          connectorId: newConnection.connectorId,
+        },
+      });
+
+      toast({
+        description: "Psychic connection created!",
+        position: "top",
+        colorScheme: "gray",
+      });
+
+      onClose();
+      router.refresh();
+    }
+  );
+  const shouldShowPsychic = process.env.NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY;
 
   const onSubmit = async (values) => {
     const { type, name, url, auth_type, auth_key, auth_value } = values;
@@ -128,6 +155,10 @@ export default function DocumentsClientPage({ data, session }) {
 
     analytics.track("Deleted Document", { id });
     router.refresh();
+  };
+
+  const onConnectAPI = async () => {
+    open(session.user.user.id);
   };
 
   return (
@@ -178,13 +209,50 @@ export default function DocumentsClientPage({ data, session }) {
           </Tbody>
         </Table>
       </Stack>
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
           <ModalHeader>New document</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Stack spacing={4}>
+              {shouldShowPsychic && (
+                <HStack
+                  backgroundColor="gray.800"
+                  borderRadius="md"
+                  padding={4}
+                  spacing={5}
+                  justifyContent="space-between"
+                >
+                  <HStack spacing={6}>
+                    <NextImage
+                      src="/psychic-logo.png"
+                      alt="Psychic"
+                      width="40"
+                      height="40"
+                    />
+                    <Stack spacing={0}>
+                      <HStack>
+                        <Text as="b">Psychic</Text>{" "}
+                        <Tag colorScheme="green" size="sm" borderRadius="full">
+                          New
+                        </Tag>
+                      </HStack>
+
+                      <Text fontSize="sm" noOfLines={1} color="gray.500">
+                        Connect to Google Drive, Jira, Zendesk, Dropox etc.
+                      </Text>
+                    </Stack>
+                  </HStack>
+                  <Button
+                    isDisabled={!isReady}
+                    onClick={onConnectAPI}
+                    isLoading={isLoading}
+                  >
+                    Connect
+                  </Button>
+                </HStack>
+              )}
               <Stack>
                 <FormControl isRequired isInvalid={errors?.name}>
                   <FormLabel>Name</FormLabel>

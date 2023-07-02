@@ -26,39 +26,20 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
         }
     )
 
-    try:
-        decoded = decodeJWT(token)
-        document = prisma.document.create(
-            {
-                "type": body.type,
-                "url": body.url,
-                "userId": decoded["userId"],
-                "name": body.name,
-                "splitter": json.dumps(body.splitter),
-                "authorization": json.dumps(body.authorization),
-                "metadata": json.dumps(body.metadata),
-            }
+    if body.type in valid_ingestion_types:
+        upsert_document(
+            url=body.url,
+            type=body.type,
+            document_id=document.id,
+            authorization=body.authorization,
+            metadata=body.metadata,
+            text_splitter=body.splitter,
+            from_page=body.from_page,
+            to_page=body.to_page,
+            user_id=decoded["userId"],
         )
 
-        if body.type in valid_ingestion_types:
-            upsert_document(
-                url=body.url,
-                type=body.type,
-                document_id=document.id,
-                authorization=body.authorization,
-                metadata=body.metadata,
-                text_splitter=body.splitter,
-                from_page=body.from_page,
-                to_page=body.to_page,
-            )
-
-        return {"success": True, "data": document}
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=e,
-        )
+    return {"success": True, "data": document}
 
 
 @router.get("/documents", name="List documents", description="List all documents")

@@ -2332,6 +2332,20 @@ files = [
 ]
 
 [[package]]
+name = "psychicapi"
+version = "0.8.0"
+description = "Psychic.dev is an open-source data integration platform for LLMs. This is the Python client for Psychic"
+optional = false
+python-versions = "*"
+files = [
+    {file = "psychicapi-0.8.0-py2-none-any.whl", hash = "sha256:4f8e776eb9bc7e3f9243021cff1d840f60aa7923bb2a941d0a37dfc5936b5fa3"},
+    {file = "psychicapi-0.8.0.tar.gz", hash = "sha256:6af053734c848f0c9865f430794c9a8a48b5f9f72663247b11647829d1dbc27f"},
+]
+
+[package.dependencies]
+requests = "*"
+
+[[package]]
 name = "pyasn1"
 version = "0.5.0"
 description = "Pure-Python implementation of ASN.1 types and DER/BER/CER codecs (X.208)"
@@ -3971,4 +3985,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "1d25c30d1983b561b2a920d58d0c32e8653c590d576bd9e27bb51dcf569daba9"
+content-hash = "0e288a84a9e9b2cf9c13cc32be34bb3b211ebf7bd719e2cf373a15f30b55df03"

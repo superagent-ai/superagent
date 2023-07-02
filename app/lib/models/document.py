@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 class Document(BaseModel):
     type: str
-    url: str
+    url: str = None
     name: str
     authorization: dict = None
     metadata: dict = None

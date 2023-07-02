@@ -2,7 +2,9 @@ from tempfile import NamedTemporaryFile
 
 import pinecone
 import requests
+from decouple import config
 from langchain.document_loaders import (
+    PsychicLoader,
     TextLoader,
     UnstructuredMarkdownLoader,
     WebBaseLoader,
@@ -15,7 +17,15 @@ from app.lib.parsers import CustomPDFPlumberLoader
 from app.lib.splitters import TextSplitters
 from app.lib.vectorstores.base import VectorStoreBase
 
-valid_ingestion_types = ["TXT", "PDF", "URL", "YOUTUBE", "MARKDOWN", "FIRESTORE"]
+valid_ingestion_types = [
+    "TXT",
+    "PDF",
+    "URL",
+    "YOUTUBE",
+    "MARKDOWN",
+    "FIRESTORE",
+    "PSYCHIC",
+]
 
 
 def upsert_document(
@@ -25,6 +35,7 @@ def upsert_document(
     from_page: int,
     to_page: int,
     text_splitter: dict = None,
+    user_id: str = None,
     authorization: dict = None,
     metadata: dict = None,
 ) -> None:
@@ -101,6 +112,23 @@ def upsert_document(
             loader = UnstructuredMarkdownLoader(file_path=temp_file.name)
             documents = loader.load()
 
+        newDocuments = [
+            document.metadata.update({"namespace": document_id}) or document
+            for document in documents
+        ]
+        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
+
+        VectorStoreBase().get_database().from_documents(
+            docs, embeddings, index_name="superagent", namespace=document_id
+        )
+
+    if type == "PSYCHIC":
+        loader = PsychicLoader(
+            api_key=config("PSYCHIC_API_KEY"),
+            account_id=user_id,
+            connector_id=metadata["connectorId"],
+        )
+        documents = loader.load()
         newDocuments = [
             document.metadata.update({"namespace": document_id}) or document
             for document in documents

@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider          = "postgresql"
-  url               = env("DATABASE_URL")
+  url               = env("DATABASE_MIGRATION_URL")
   shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
@@ -28,6 +28,7 @@ enum DocumentType {
   URL
   MARKDOWN
   FIRESTORE
+  PSYCHIC
 }
 
 enum ToolType {
@@ -66,7 +67,7 @@ model Document {
   userId        String          @db.VarChar(255)
   user          User            @relation(fields: [userId], references: [id])
   type          DocumentType    @default(TXT)
-  url           String          @db.Text()
+  url           String?         @db.Text()
   name          String
   splitter      Json?
   createdAt     DateTime?       @default(now())
