@@ -90,8 +90,8 @@ async def delete_document(documentId: str, token=Depends(JWTBearer())):
         prisma.document.delete(where={"id": documentId})
 
         return {"success": True, "data": None}
-    except Exception as error:
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error,
+            detail=e,
         )
