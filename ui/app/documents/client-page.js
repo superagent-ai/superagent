@@ -240,7 +240,7 @@ export default function DocumentsClientPage({ data, session }) {
                       </HStack>
 
                       <Text fontSize="sm" noOfLines={1} color="gray.500">
-                        Connect to Google, Jira, Zendesk, Dropox etc.
+                        Connect to Google Drive, Jira, Zendesk, Dropox etc.
                       </Text>
                     </Stack>
                   </HStack>
@@ -283,7 +283,6 @@ export default function DocumentsClientPage({ data, session }) {
                     <option value="URL">URL</option>
                     <option value="YOUTUBE">Youtube</option>
                     <option value="MARKDOWN">Markdown</option>
-                    <option value="PSYCHIC">Psychic API</option>
                   </Select>
                   {errors?.type && (
                     <FormErrorMessage>Invalid type</FormErrorMessage>
