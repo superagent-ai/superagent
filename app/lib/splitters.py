@@ -6,7 +6,6 @@ from langchain.text_splitter import (
     TokenTextSplitter,
 )
 
-
 class TextSplitters:
     def __init__(self, documents, text_splitter):
         self.documents = documents
