@@ -55,6 +55,36 @@ To get started with Superagent, follow these steps:
 
 3. See the setup instructions for the UI in the `ui` folder.
 
+## 🌎 Environment variables
+To run this project, you will need to add the following environment variables to your .env file
+
+**Mandatory variables**
+`DATABASE_URL` - A database connection string (with pooling)
+`DATABASE_MIGRATION_URL` - A database connection (without pooling), used when creating/applying migrations.
+`OPENAI_API_KEY` - An OpenAI API key
+`JWT_SECRET` - A secret key/string
+`VECTORSTORE` - Change this if you plan on supporting other vector databases.
+`PINECONE_ENVIRONMENT` - Pinecone environment (found in the pinecone dashboard)
+`PINECONE_API_KEY` - Pinecone API key (found in the pinecone dashboard)
+`SUPERAGENT_TRACING` - If you want to enable agent tracing
+
+**Optional variables**
+`PSYCHIC_API_KEY` - [Psychic.dev](https://psychic.dev) API key
+`BING_SUBSCRIPTION_KEY` - Bing Search subscription key (found in the Azure dashboard)
+`BING_SEARCH_URL` - Bing Search url (found in the Azure dashboard)
+`WOLFRAM_ALPHA_APPID` - Wolfram Alpha App ID (found in your Wolfram Alpha dashboard)
+`REPLICATE_API_TOKEN` - Replicate API token (found in uour [replicate](https://replication.com) dashboard)
+
+**If you plan on using other Language Models**
+`ANTHROPIC_API_KEY`
+`COHERE_API_KEY`
+`HUGGINGFACEHUB_API_TOKEN`
+`AZURE_API_KEY`
+`AZURE_API_TYPE`
+`AZURE_API_BASE`
+`AZURE_API_VERSION`
+
+
 ## 💡 Examples
 
 - Runing Superagent with [NextJS](https://github.com/homanp/nextjs-Superagent)
