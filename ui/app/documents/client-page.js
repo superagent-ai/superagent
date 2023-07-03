@@ -144,7 +144,10 @@ export default function DocumentsClientPage({ data, session }) {
 
     await api.createDocument(payload);
 
-    analytics.track("Created Document", { ...payload });
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Created Document", { ...payload });
+    }
+
     router.refresh();
     reset();
     onClose();
@@ -153,7 +156,10 @@ export default function DocumentsClientPage({ data, session }) {
   const handleDelete = async (id) => {
     await api.deleteDocument({ id });
 
-    analytics.track("Deleted Document", { id });
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Deleted Document", { id });
+    }
+
     router.refresh();
   };
 

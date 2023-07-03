@@ -86,7 +86,10 @@ export default function ApiTokensClientPage({ data, session }) {
   const onSubmit = async (values) => {
     await api.createApiToken(values);
 
-    analytics.track("Created API Token");
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Created API Token");
+    }
+
     router.refresh();
     reset();
     onClose();
@@ -95,7 +98,10 @@ export default function ApiTokensClientPage({ data, session }) {
   const handleDelete = async (id) => {
     await api.deleteApiToken({ id });
 
-    analytics.track("Deleted API Token");
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Deleted API Token");
+    }
+
     router.refresh();
   };
 
