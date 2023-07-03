@@ -5,7 +5,7 @@ from typing import Any, Tuple
 from slugify import slugify
 from decouple import config
 from langchain import HuggingFaceHub
-from langchain.agents import Tool
+from langchain.agents import Tool, create_csv_agent, AgentType
 from langchain.chains import RetrievalQA
 from langchain.chat_models import (
     AzureChatOpenAI,
@@ -306,26 +306,45 @@ class AgentBase:
             summary_tool = DocSummarizerTool(
                 docsearch=docsearch, llm=self._get_llm(has_streaming=False)
             )
-            tools.append(
-                Tool(
-                    name=slugify(agent_document.document.name)
+
+            if agent_document.document.type == "CSV":
+                csv_agent = create_csv_agent(
+                    llm=self._get_llm(has_streaming=False),
+                    path=agent_document.document.url,
+                    verbose=True,
+                    agent_type=AgentType.OPENAI_FUNCTIONS
                     if self.type == "OPENAI"
-                    else agent_document.document.name,
-                    description=description,
-                    args_schema=args_schema,
-                    func=RetrievalQA.from_chain_type(
-                        llm=self._get_llm(has_streaming=False),
-                        retriever=docsearch.as_retriever(),
-                    ),
+                    else AgentType.ZERO_SHOT_REACT_DESCRIPTION,
                 )
-            )
-            tools.append(
-                Tool.from_function(
-                    func=summary_tool.run,
-                    name="document-summarizer",
-                    description="useful for summarizing a whole document",
+                tools.append(
+                    Tool(
+                        name=slugify(agent_document.document.name),
+                        description=description,
+                        args_schema=args_schema,
+                        func=csv_agent.run,
+                    )
                 )
-            )
+            else:
+                tools.append(
+                    Tool(
+                        name=slugify(agent_document.document.name)
+                        if self.type == "OPENAI"
+                        else agent_document.document.name,
+                        description=description,
+                        args_schema=args_schema,
+                        func=RetrievalQA.from_chain_type(
+                            llm=self._get_llm(has_streaming=False),
+                            retriever=docsearch.as_retriever(),
+                        ),
+                    )
+                )
+                tools.append(
+                    Tool.from_function(
+                        func=summary_tool.run,
+                        name="document-summarizer",
+                        description="useful for summarizing a whole document",
+                    )
+                )
 
         for agent_tool in self.tools:
             tool, args_schema = self._get_tool_and_input_by_type(

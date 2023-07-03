@@ -23,6 +23,7 @@ enum AgentMemoryAuthorType {
 enum DocumentType {
   TXT
   PDF
+  CSV
   YOUTUBE
   OPENAPI
   URL
