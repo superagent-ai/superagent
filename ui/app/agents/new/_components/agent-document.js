@@ -65,6 +65,31 @@ export default function AgentDocument({ onSubmit, session }) {
                     <Spinner size="sm" />
                   </Center>
                 )}
+                {!isLoading && documents.length === 0 && (
+                  <Center
+                    flex={1}
+                    borderWidth="0.5px"
+                    borderRadius="md"
+                    padding={4}
+                  >
+                    <Stack alignItems="center" spacing={4}>
+                      <Stack alignItems="center">
+                        <Text as="b">Add your first document</Text>
+                        <Text color="gray.500">
+                          You haven&apos;t added any documents.{" "}
+                        </Text>
+                      </Stack>
+                      <NextLink passHref href="/documents">
+                        <Button
+                          leftIcon={<Icon as={TbPlus} />}
+                          variant="outline"
+                        >
+                          Create document
+                        </Button>
+                      </NextLink>
+                    </Stack>
+                  </Center>
+                )}
                 {!isLoading &&
                   documents.map(({ id, name, type }) => (
                     <HStack
@@ -87,23 +112,6 @@ export default function AgentDocument({ onSubmit, session }) {
                       />
                     </HStack>
                   ))}
-                {!isLoading && documents.length === 0 && (
-                  <Center flex={1} borderWidth="0.5px" borderRadius="md">
-                    <Stack alignItems="center" spacing={4}>
-                      <Text color="gray.500">
-                        You haven&apos;t added any documents.{" "}
-                      </Text>
-                      <NextLink passHref href="/documents">
-                        <Button
-                          leftIcon={<Icon as={TbPlus} />}
-                          variant="outline"
-                        >
-                          Create document
-                        </Button>
-                      </NextLink>
-                    </Stack>
-                  </Center>
-                )}
               </Stack>
               <Box
                 position="absolute"

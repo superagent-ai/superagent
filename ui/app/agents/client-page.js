@@ -26,7 +26,10 @@ export default function AgentsClientPage({ data, session }) {
   const handleDelete = async (id) => {
     await api.deleteAgent({ id });
 
-    analytics.track("Deleted Agent", { id });
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Deleted Agent", { id });
+    }
+
     router.refresh();
   };
 

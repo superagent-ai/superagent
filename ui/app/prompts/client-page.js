@@ -66,11 +66,14 @@ export default function PromptsClientPage({ data, session }) {
     if (selectedPrompt) {
       await api.patchPrompt(selectedPrompt, payload);
 
-      analytics.track("Updated Prompt", { ...payload });
+      if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+        analytics.track("Updated Prompt", { ...payload });
+      }
     } else {
       await api.createPrompt(payload);
-
-      analytics.track("Created Prompt", { ...payload });
+      if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+        analytics.track("Created Prompt", { ...payload });
+      }
     }
 
     router.refresh();
@@ -82,7 +85,10 @@ export default function PromptsClientPage({ data, session }) {
   const handleDelete = async (id) => {
     await api.deletePrompt({ id });
 
-    analytics.track("Deleted Prompt", { id });
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Deleted Prompt", { id });
+    }
+
     router.refresh();
   };
 
