@@ -16,17 +16,19 @@ function AnalyticsProvider({ children }) {
   const previousSession = usePrevious(session);
 
   useEffect(() => {
-    if (pathname !== previousPathname) {
-      analytics.page({ name: pathname });
-    }
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      if (pathname !== previousPathname) {
+        analytics.page({ name: pathname });
+      }
 
-    if (
-      session.status === "authenticated" &&
-      previousSession?.status !== "authenticated"
-    ) {
-      analytics.identify(session.data.user.user.id, {
-        ...session.data.user.user,
-      });
+      if (
+        session.status === "authenticated" &&
+        previousSession?.status !== "authenticated"
+      ) {
+        analytics.identify(session.data.user.user.id, {
+          ...session.data.user.user,
+        });
+      }
     }
   }, [previousSession, session, pathname, previousPathname]);
 
