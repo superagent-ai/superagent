@@ -18,7 +18,6 @@ from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
 from langchain.schema import SystemMessage
 
-
 from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.models.document import DocumentInput
 from app.lib.models.tool import SearchToolInput, WolframToolInput, ReplicateToolInput
@@ -33,6 +32,7 @@ from app.lib.tools import (
     get_search_tool,
     get_wolfram_alpha_tool,
     get_replicate_tool,
+    DocSummarizerTool,
 )
 from app.lib.vectorstores.base import VectorStoreBase
 
@@ -136,7 +136,7 @@ class AgentBase:
 
         return DEFAULT_CHAT_PROMPT
 
-    def _get_llm(self) -> Any:
+    def _get_llm(self, has_streaming: bool = True) -> Any:
         if self.llm["provider"] == "openai-chat":
             return (
                 ChatOpenAI(
@@ -146,13 +146,14 @@ class AgentBase:
                     streaming=self.has_streaming,
                     callbacks=[
                         StreamingCallbackHandler(
+                            agent_type=self.type,
                             on_llm_new_token_=self.on_llm_new_token,
                             on_llm_end_=self.on_llm_end,
                             on_chain_end_=self.on_chain_end,
-                        )
+                        ),
                     ],
                 )
-                if self.has_streaming
+                if self.has_streaming and has_streaming != False
                 else ChatOpenAI(
                     model_name=self.llm["model"],
                     openai_api_key=self._get_api_key(),
@@ -172,13 +173,14 @@ class AgentBase:
                     anthropic_api_key=self._get_api_key(),
                     callbacks=[
                         StreamingCallbackHandler(
+                            agent_type=self.type,
                             on_llm_new_token_=self.on_llm_new_token,
                             on_llm_end_=self.on_llm_end,
                             on_chain_end_=self.on_chain_end,
                         )
                     ],
                 )
-                if self.has_streaming
+                if self.has_streaming and has_streaming != False
                 else ChatAnthropic(anthropic_api_key=self._get_api_key())
             )
 
@@ -189,13 +191,14 @@ class AgentBase:
                     model=self.llm["model"],
                     callbacks=[
                         StreamingCallbackHandler(
+                            agent_type=self.type,
                             on_llm_new_token_=self.on_llm_new_token,
                             on_llm_end_=self.on_llm_end,
                             on_chain_end_=self.on_chain_end,
                         )
                     ],
                 )
-                if self.has_streaming
+                if self.has_streaming and has_streaming != False
                 else Cohere(cohere_api_key=self._get_api_key(), model=self.llm["model"])
             )
 
@@ -210,6 +213,7 @@ class AgentBase:
                     streaming=self.has_streaming,
                     callbacks=[
                         StreamingCallbackHandler(
+                            agent_type=self.type,
                             on_llm_new_token_=self.on_llm_new_token,
                             on_llm_end_=self.on_llm_end,
                             on_chain_end_=self.on_chain_end,
@@ -294,11 +298,14 @@ class AgentBase:
             )
             args_schema = DocumentInput if self.type == "OPENAI" else None
             embeddings = OpenAIEmbeddings()
-            retriever = (
+            docsearch = (
                 VectorStoreBase()
                 .get_database()
                 .from_existing_index(embeddings, agent_document.document.id)
-            ).as_retriever()
+            )
+            summary_tool = DocSummarizerTool(
+                docsearch=docsearch, llm=self._get_llm(has_streaming=False)
+            )
             tools.append(
                 Tool(
                     name=slugify(agent_document.document.name)
@@ -307,9 +314,16 @@ class AgentBase:
                     description=description,
                     args_schema=args_schema,
                     func=RetrievalQA.from_chain_type(
-                        llm=self._get_llm(),
-                        retriever=retriever,
+                        llm=self._get_llm(has_streaming=False),
+                        retriever=docsearch.as_retriever(),
                     ),
+                )
+            )
+            tools.append(
+                Tool.from_function(
+                    func=summary_tool.run,
+                    name="document-summarizer",
+                    description="useful for summarizing a whole document",
                 )
             )
 
