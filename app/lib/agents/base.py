@@ -323,7 +323,7 @@ class AgentBase:
                 Tool.from_function(
                     func=summary_tool.run,
                     name="document-summarizer",
-                    description="useful for when you are asked o summarize documents",
+                    description="useful for summarizing a whole document",
                 )
             )
 
