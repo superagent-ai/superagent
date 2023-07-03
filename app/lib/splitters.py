@@ -11,8 +11,8 @@ class TextSplitters:
     def __init__(self, documents, text_splitter):
         self.documents = documents
         if text_splitter is None:
-            self.split_type = "character"
-            self.chunk_size = 256
+            self.split_type = "recursive"
+            self.chunk_size = 1000
             self.chunk_overlap = 0
 
         else:
@@ -41,7 +41,6 @@ class TextSplitters:
         Splits a document into chunks of characters using the
         character text splitter (default)
         """
-
         text_splitter = CharacterTextSplitter(
             chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap
         )
