@@ -30,30 +30,35 @@ export default function Register() {
     handleSubmit,
   } = useForm();
   const onSubmit = async (data) => {
-    const { id: stripeCustomerId } = await stripe.customers.create({
-      email: data.email,
-      name: data.name,
-    });
+    let payload = { ...data };
 
-    const subscription = await stripe.subscriptions.create({
-      customer: stripeCustomerId,
-      items: [{ price: process.env.NEXT_PUBLIC_STRIPE_FREE_PLAN_ID }],
-    });
+    if (process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY) {
+      const { id: stripeCustomerId } = await stripe.customers.create({
+        email: data.email,
+        name: data.name,
+      });
+
+      const subscription = await stripe.subscriptions.create({
+        customer: stripeCustomerId,
+        items: [{ price: process.env.NEXT_PUBLIC_STRIPE_FREE_PLAN_ID }],
+      });
+
+      payload.metadata = { stripe_customer_id: stripeCustomerId, subscription };
+    }
 
     await ky
       .post(`${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/auth/sign-up`, {
-        json: {
-          ...data,
-          metadata: { stripe_customer_id: stripeCustomerId, subscription },
-        },
+        json: payload,
       })
       .json();
 
-    analytics.track("Signed Up", {
-      email: data.email,
-      name: data.name,
-      stripe_customer_id: stripeCustomerId,
-    });
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Signed Up", {
+        email: data.email,
+        name: data.name,
+        stripe_customer_id: payload.metadata?.stripeCustomerId,
+      });
+    }
 
     await signIn("credentials", {
       email: data.email,

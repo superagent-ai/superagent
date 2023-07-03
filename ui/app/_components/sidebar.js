@@ -65,7 +65,10 @@ export default function Sidebar() {
         </Stack>
       </Stack>
       <Stack spacing={0}>
-        {FOOTER_MENU.map(({ icon, id, label, path, ...properties }) => (
+        {FOOTER_MENU.filter(
+          ({ id }) =>
+            process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY || id !== "billing"
+        ).map(({ icon, id, label, path, ...properties }) => (
           <MenuButton
             key={id}
             label={label}

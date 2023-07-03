@@ -31,7 +31,9 @@ export default function Login() {
     handleSubmit,
   } = useForm();
   const onSubmit = async (data) => {
-    analytics.track("Signed In");
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Signed In");
+    }
 
     await signIn("credentials", {
       ...data,

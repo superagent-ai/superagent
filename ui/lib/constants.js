@@ -1,4 +1,4 @@
-export const SUPERAGENT_VERSION = "v.0.0.23";
+export const SUPERAGENT_VERSION = "v.0.0.28";
 
 export const TOOL_ICONS = {
   SEARCH: "/bing-icon.png",

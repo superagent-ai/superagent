@@ -64,11 +64,13 @@ export default function NewAgentClientPage({ session }) {
       });
     }
 
-    analytics.track("Created Agent", {
-      ...agent,
-      hasTools: tools.length > 0,
-      hasDocuments: documents.length > 0,
-    });
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Created Agent", {
+        ...agent,
+        hasTools: tools.length > 0,
+        hasDocuments: documents.length > 0,
+      });
+    }
 
     toast({
       description: "New agent created",

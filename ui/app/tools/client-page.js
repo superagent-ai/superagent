@@ -51,7 +51,10 @@ export default function ToolsClientPage({ data, session }) {
   const onSubmit = async (values) => {
     await api.createTool({ ...values });
 
-    analytics.track("Created Tool", { ...values });
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Created Tool", { ...values });
+    }
+
     router.refresh();
     onClose();
   };
@@ -59,7 +62,10 @@ export default function ToolsClientPage({ data, session }) {
   const handleDelete = async (id) => {
     await api.deleteTool({ id });
 
-    analytics.track("Deleted Tool", { id });
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Deleted Tool", { id });
+    }
+
     router.refresh();
   };
 
