@@ -56,7 +56,7 @@ export default function Register() {
       analytics.track("Signed Up", {
         email: data.email,
         name: data.name,
-        stripe_customer_id: stripeCustomerId,
+        stripe_customer_id: payload.metadata?.stripeCustomerId,
       });
     }
 
