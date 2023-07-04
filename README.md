@@ -39,7 +39,7 @@ You can follow the [roadmap here](https://github.com/users/homanp/projects/4)
 
 ## 🛠️ Getting Started
 
-<img alt="Getting started" src="https://www.loom.com/share/7869ed5dc7614205b62249bedfbc49e0" />
+<img alt="Getting started" src="https://cdn.loom.com/sessions/thumbnails/7869ed5dc7614205b62249bedfbc49e0-1688459140526-with-play.gif" />
 
 To get started with Superagent, follow these steps:
 
