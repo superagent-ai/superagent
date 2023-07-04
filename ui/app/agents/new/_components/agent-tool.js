@@ -108,6 +108,7 @@ export default function AgentTool({ onSubmit, session }) {
                           src={
                             type === "AGENT" ? "/logo.png" : TOOL_ICONS[type]
                           }
+                          name={name}
                           size="xs"
                         />
                         <Text fontWeight="bold">{name}</Text>

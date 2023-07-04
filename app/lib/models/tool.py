@@ -26,3 +26,7 @@ class ZapierToolInput(BaseModel):
 
 class AgentToolInput(BaseModel):
     query: str = Field()
+
+
+class OpenApiToolInput(BaseModel):
+    input: str = Field()

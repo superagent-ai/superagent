@@ -26,6 +26,7 @@ from app.lib.models.tool import (
     ReplicateToolInput,
     ZapierToolInput,
     AgentToolInput,
+    OpenApiToolInput,
 )
 from app.lib.prisma import prisma
 from app.lib.prompts import (
@@ -39,6 +40,7 @@ from app.lib.tools import (
     get_wolfram_alpha_tool,
     get_replicate_tool,
     get_zapier_nla_tool,
+    get_openapi_tool,
     AgentTool,
     DocSummarizerTool,
 )
@@ -293,6 +295,8 @@ class AgentBase:
                 AgentTool(metadata=metadata, api_key=self.api_key),
                 AgentToolInput,
             )
+        if type == "OPENAPI":
+            return (get_openapi_tool(metadata=metadata), OpenApiToolInput)
 
     def _get_tools(self) -> list:
         tools = []

@@ -1,4 +1,5 @@
 # flake8: noqa
+import json
 
 from typing import Any, Optional, Type
 from enum import Enum
@@ -11,6 +12,7 @@ from langchain.llms.replicate import Replicate
 from langchain.agents.agent_toolkits import ZapierToolkit
 from langchain.agents import AgentType, initialize_agent
 from langchain.utilities.zapier import ZapierNLAWrapper
+from langchain.chains.openai_functions.openapi import get_openapi_chain
 
 from superagent.client import Superagent
 
@@ -21,6 +23,7 @@ class ToolDescription(Enum):
     REPLICATE = "useful for when you need to create an image."
     ZAPIER_NLA = "useful for when you need to do tasks."
     AGENT = "useful for when you need help completing something."
+    OPENAPI = "useful for when you need to do API requests to a third-party service."
 
 
 def get_search_tool() -> Any:
@@ -60,6 +63,14 @@ def get_zapier_nla_tool(metadata: dict, llm: Any) -> Any:
         agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
         verbose=True,
     )
+
+    return agent
+
+
+def get_openapi_tool(metadata: dict) -> Any:
+    openapi_url = metadata["openApiUrl"]
+    headers = metadata["headers"]
+    agent = get_openapi_chain(spec=openapi_url, headers=json.loads(headers))
 
     return agent
 
