@@ -285,6 +285,7 @@ export default function DocumentsClientPage({ data, session }) {
                   <FormLabel>Type</FormLabel>
                   <Select {...register("type", { required: true })}>
                     <option value="PDF">PDF</option>
+                    <option value="CSV">CSV</option>
                     <option value="TXT">TXT</option>
                     <option value="URL">URL</option>
                     <option value="YOUTUBE">Youtube</option>
