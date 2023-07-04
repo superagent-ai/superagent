@@ -154,6 +154,7 @@ function AgentTool({ id, tool, session }) {
       <Avatar
         src={tool?.type === "AGENT" ? "/logo.png" : TOOL_ICONS[tool?.type]}
         size="xs"
+        name={tool?.name}
         borderRadius="none"
       />
       <Text fontSize="sm">{tool?.name}</Text>

@@ -39,6 +39,7 @@ enum ToolType {
   REPLICATE
   ZAPIER_NLA
   AGENT
+  OPENAPI
 }
 
 model User {

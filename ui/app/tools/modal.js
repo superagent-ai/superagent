@@ -33,6 +33,7 @@ import API from "@/lib/api";
 import { useEffect } from "react";
 
 const REPLICATE_ARGUMENTS = { image_dimensions: "512x512" };
+const AUTHENTICATION_ARGUMENTS = { authorization: "Bearer: " };
 
 export default function ToolsModal({ onSubmit, onClose, isOpen }) {
   const {
@@ -103,11 +104,46 @@ export default function ToolsModal({ onSubmit, onClose, isOpen }) {
                   <option value="WOLFRAM_ALPHA">Wolfram Alpha</option>
                   <option value="REPLICATE">Replicate</option>
                   <option value="ZAPIER_NLA">Zapier</option>
+                  <option value="OPENAPI">APIs</option>
                 </Select>
                 {errors?.type && (
                   <FormErrorMessage>Invalid type</FormErrorMessage>
                 )}
               </FormControl>
+              {type === "OPENAPI" && (
+                <>
+                  <FormControl isRequired>
+                    <FormLabel>OpenAPI spec URL</FormLabel>
+                    <Input
+                      type="text"
+                      {...register("openApiUrl", { required: true })}
+                      placeholder="Enter a URL the OpenAPI spec"
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>Authentication headers</FormLabel>
+                    <Box borderRadius="md" overflow="hidden">
+                      <CodeMirror
+                        onChange={(value) => setValue("headers", value)}
+                        editable={true}
+                        extensions={[
+                          json({
+                            base: jsonLanguage,
+                            codeLanguages: languages,
+                          }),
+                          EditorView.lineWrapping,
+                        ]}
+                        theme={githubDark}
+                        value={JSON.stringify(
+                          AUTHENTICATION_ARGUMENTS,
+                          null,
+                          2
+                        )}
+                      />
+                    </Box>
+                  </FormControl>
+                </>
+              )}
               {type === "AGENT" && (
                 <FormControl isRequired>
                   <FormLabel>Select a Superagent</FormLabel>
