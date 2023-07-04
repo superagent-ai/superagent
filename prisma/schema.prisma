@@ -38,6 +38,7 @@ enum ToolType {
   WOLFRAM_ALPHA
   REPLICATE
   ZAPIER_NLA
+  AGENT
 }
 
 model User {
