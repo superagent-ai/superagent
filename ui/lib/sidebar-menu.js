@@ -10,6 +10,7 @@ import {
   TbTool,
   TbListSearch,
 } from "react-icons/tb";
+import { BsStars } from "react-icons/bs";
 import { signOut } from "next-auth/react";
 
 const createPortalUrl = async () => {
@@ -25,6 +26,13 @@ export const MAIN_MENU = [
     label: "Home",
     path: "/",
     icon: TbHome,
+  },
+  {
+    id: "imagine",
+    label: "Imagine",
+    path: "/imagine",
+    icon: BsStars,
+    color: "purple.500",
   },
   {
     id: "agents",

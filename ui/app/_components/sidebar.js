@@ -14,7 +14,7 @@ import {
 import { SUPERAGENT_VERSION } from "../../lib/constants";
 import { FOOTER_MENU, MAIN_MENU } from "../../lib/sidebar-menu";
 
-function MenuButton({ label, icon, path, ...properties }) {
+function MenuButton({ label, icon, path, color, ...properties }) {
   const pathname = usePathname();
   const isActive = pathname == path;
 
@@ -23,7 +23,7 @@ function MenuButton({ label, icon, path, ...properties }) {
       <Button
         {...properties}
         isActive={isActive}
-        leftIcon={<Icon as={icon} />}
+        leftIcon={<Icon as={icon} color={color} />}
         width="full"
         justifyContent="flex-start"
         fontWeight="500"
@@ -53,12 +53,13 @@ export default function Sidebar() {
           <Tag size="sm">{SUPERAGENT_VERSION}</Tag>
         </HStack>
         <Stack spacing={0}>
-          {MAIN_MENU.map(({ icon, id, label, path, ...properties }) => (
+          {MAIN_MENU.map(({ icon, id, color, label, path, ...properties }) => (
             <MenuButton
               key={id}
               label={label}
               icon={icon}
               path={path}
+              color={color}
               {...properties}
             />
           ))}
