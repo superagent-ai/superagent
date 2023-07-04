@@ -31,6 +31,7 @@ import {
   useToast,
   Box,
   Tag,
+  Textarea,
 } from "@chakra-ui/react";
 import NextImage from "next/image";
 import { useRouter } from "next/navigation";
@@ -271,16 +272,36 @@ export default function DocumentsClientPage({ data, session }) {
                     <FormErrorMessage>Invalid name</FormErrorMessage>
                   )}
                 </FormControl>
-                <FormControl isRequired isInvalid={errors?.url}>
-                  <FormLabel>URL</FormLabel>
-                  <Input type="text" {...register("url", { required: true })} />
-                  <FormHelperText>
-                    A publicly accessible URL to your document.
-                  </FormHelperText>
-                  {errors?.url && (
-                    <FormErrorMessage>Invalid URL</FormErrorMessage>
-                  )}
-                </FormControl>
+                {documentType === "URL" ? (
+                  <FormControl isRequired isInvalid={errors?.url}>
+                    <FormLabel>URL</FormLabel>
+                    <Textarea
+                      placeholder="Comma separated list of urls..."
+                      {...register("url", { required: true })}
+                    />
+                    <FormHelperText>
+                      A comma separated list of urls.
+                    </FormHelperText>
+                    {errors?.url && (
+                      <FormErrorMessage>Invalid URL</FormErrorMessage>
+                    )}
+                  </FormControl>
+                ) : (
+                  <FormControl isRequired isInvalid={errors?.url}>
+                    <FormLabel>URL</FormLabel>
+                    <Input
+                      type="text"
+                      {...register("url", { required: true })}
+                    />
+                    <FormHelperText>
+                      A publicly accessible URL to your document.
+                    </FormHelperText>
+                    {errors?.url && (
+                      <FormErrorMessage>Invalid URL</FormErrorMessage>
+                    )}
+                  </FormControl>
+                )}
+
                 <FormControl isRequired isInvalid={errors?.type}>
                   <FormLabel>Type</FormLabel>
                   <Select {...register("type", { required: true })}>
