@@ -49,7 +49,7 @@ function DocumentCard({ id, name, type, url, onDelete }) {
   };
 
   return (
-    <Stack backgroundColor="whiteAlpha.100" borderRadius="md" padding={4}>
+    <Stack borderWidth="1px" borderRadius="md" padding={4}>
       <Text noOfLines={1} as="b">
         {name}
       </Text>

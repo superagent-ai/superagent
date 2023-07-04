@@ -3,7 +3,7 @@ import { TbTrash, TbPencil } from "react-icons/tb";
 
 export default function PromptCard({ id, name, template, onDelete, onEdit }) {
   return (
-    <Stack backgroundColor="whiteAlpha.100" borderRadius="md" padding={4}>
+    <Stack borderWidth="1px" borderRadius="md" padding={4}>
       <Text noOfLines={1} as="b">
         {name}
       </Text>
