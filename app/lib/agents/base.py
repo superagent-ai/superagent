@@ -20,7 +20,12 @@ from langchain.schema import SystemMessage
 
 from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.models.document import DocumentInput
-from app.lib.models.tool import SearchToolInput, WolframToolInput, ReplicateToolInput
+from app.lib.models.tool import (
+    SearchToolInput,
+    WolframToolInput,
+    ReplicateToolInput,
+    ZapierToolInput,
+)
 from app.lib.prisma import prisma
 from app.lib.prompts import (
     CustomPromptTemplate,
@@ -32,6 +37,7 @@ from app.lib.tools import (
     get_search_tool,
     get_wolfram_alpha_tool,
     get_replicate_tool,
+    get_zapier_nla_tool,
     DocSummarizerTool,
 )
 from app.lib.vectorstores.base import VectorStoreBase
@@ -107,6 +113,9 @@ class AgentBase:
 
             if self.tool.type == "REPLICATE":
                 tool = get_replicate_tool()
+
+            if self.tool.type == "ZAPIER_NLA":
+                tool = get_zapier_nla_tool()
 
             return tool
 
@@ -287,6 +296,13 @@ class AgentBase:
             return get_wolfram_alpha_tool(), WolframToolInput
         if type == "REPLICATE":
             return get_replicate_tool(metadata=metadata), ReplicateToolInput
+        if type == "ZAPIER_NLA":
+            return (
+                get_zapier_nla_tool(
+                    metadata=metadata, llm=self._get_llm(has_streaming=False)
+                ),
+                ZapierToolInput,
+            )
 
     def _get_tools(self) -> list:
         tools = []
