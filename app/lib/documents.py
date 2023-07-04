@@ -77,7 +77,8 @@ def upsert_document(
         )
 
     if type == "URL":
-        loader = WebBaseLoader(url)
+        url_list = url.split(",")
+        loader = WebBaseLoader(url_list)
         documents = loader.load()
         newDocuments = [
             document.metadata.update({"namespace": document_id, "language": "en"})
