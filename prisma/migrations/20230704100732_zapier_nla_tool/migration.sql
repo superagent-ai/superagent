@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "ToolType" ADD VALUE 'ZAPIER_NLA';

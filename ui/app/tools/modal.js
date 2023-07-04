@@ -12,6 +12,7 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
+  Link,
   Stack,
   Select,
   FormHelperText,
@@ -34,7 +35,7 @@ export default function ToolsModal({ onSubmit, onClose, isOpen }) {
     reset,
     setValue,
     watch,
-  } = useForm({ values: { arguments: REPLICATE_ARGUMENTS } });
+  } = useForm();
   const type = watch("type");
 
   const onHandleSubmt = async (values) => {
@@ -67,11 +68,32 @@ export default function ToolsModal({ onSubmit, onClose, isOpen }) {
                   <option value="SEARCH">Websearch</option>
                   <option value="WOLFRAM_ALPHA">Wolfram Alpha</option>
                   <option value="REPLICATE">Replicate</option>
+                  <option value="ZAPIER_NLA">Zapier</option>
                 </Select>
                 {errors?.type && (
                   <FormErrorMessage>Invalid type</FormErrorMessage>
                 )}
               </FormControl>
+              {type === "ZAPIER_NLA" && (
+                <FormControl isRequired>
+                  <FormLabel>Zapier NLA api key</FormLabel>
+                  <Input
+                    type="password"
+                    {...register("zapier_nla_api_key", { required: true })}
+                    placeholder="Enter Zapier NLA api key..."
+                  />
+                  <FormHelperText>
+                    Obtain your Zapier API key by{" "}
+                    <Link
+                      color="orange.500"
+                      href="https://nla.zapier.com/start/"
+                      target="_blank"
+                    >
+                      following this guide.
+                    </Link>
+                  </FormHelperText>
+                </FormControl>
+              )}
               {type === "REPLICATE" && (
                 <>
                   <FormControl isRequired>
@@ -94,6 +116,7 @@ export default function ToolsModal({ onSubmit, onClose, isOpen }) {
                     <FormLabel>Model arguments</FormLabel>
                     <Box borderRadius="md" overflow="hidden">
                       <CodeMirror
+                        onChange={(value) => setValue("arguments", value)}
                         editable={true}
                         extensions={[
                           json({

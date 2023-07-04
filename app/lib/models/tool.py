@@ -18,3 +18,7 @@ class WolframToolInput(BaseModel):
 
 class ReplicateToolInput(BaseModel):
     prompt: str = Field()
+
+
+class ZapierToolInput(BaseModel):
+    input: str = Field()

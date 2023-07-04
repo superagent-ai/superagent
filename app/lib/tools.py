@@ -8,12 +8,16 @@ from langchain.utilities import BingSearchAPIWrapper
 from langchain.utilities.wolfram_alpha import WolframAlphaAPIWrapper
 from langchain.chains.summarize import load_summarize_chain
 from langchain.llms.replicate import Replicate
+from langchain.agents.agent_toolkits import ZapierToolkit
+from langchain.agents import AgentType, initialize_agent
+from langchain.utilities.zapier import ZapierNLAWrapper
 
 
 class ToolDescription(Enum):
     SEARCH = "useful for when you need to search for answers on the internet. You should ask targeted questions."
     WOLFRAM_ALPHA = "useful for when you need to do computation or calculation."
     REPLICATE = "useful for when you need to create an image."
+    ZAPIER_NLA = "useful for when you need to do tasks."
 
 
 def get_search_tool() -> Any:
@@ -42,6 +46,19 @@ def get_replicate_tool(metadata: dict) -> Any:
     )
 
     return model
+
+
+def get_zapier_nla_tool(metadata: dict, llm: Any) -> Any:
+    zapier = ZapierNLAWrapper(zapier_nla_api_key=metadata["zapier_nla_api_key"])
+    toolkit = ZapierToolkit.from_zapier_nla_wrapper(zapier)
+    agent = initialize_agent(
+        toolkit.get_tools(),
+        llm,
+        agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+        verbose=True,
+    )
+
+    return agent
 
 
 class DocSummarizerTool:

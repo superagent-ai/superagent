@@ -38,6 +38,7 @@ enum ToolType {
   SEARCH
   WOLFRAM_ALPHA
   REPLICATE
+  ZAPIER_NLA
 }
 
 model User {
