@@ -12,12 +12,15 @@ from langchain.agents.agent_toolkits import ZapierToolkit
 from langchain.agents import AgentType, initialize_agent
 from langchain.utilities.zapier import ZapierNLAWrapper
 
+from superagent.client import Superagent
+
 
 class ToolDescription(Enum):
     SEARCH = "useful for when you need to search for answers on the internet. You should ask targeted questions."
     WOLFRAM_ALPHA = "useful for when you need to do computation or calculation."
     REPLICATE = "useful for when you need to create an image."
     ZAPIER_NLA = "useful for when you need to do tasks."
+    AGENT = "useful for when you need help completing something."
 
 
 def get_search_tool() -> Any:
@@ -59,6 +62,23 @@ def get_zapier_nla_tool(metadata: dict, llm: Any) -> Any:
     )
 
     return agent
+
+
+class AgentTool:
+    def __init__(self, metadata: dict, api_key: str) -> Any:
+        self.metadata = metadata
+        self.api_key = api_key
+
+    def run(self, *args) -> str:
+        superagent = Superagent(
+            environment="https://api.superagent.sh", api_key=self.api_key
+        )
+        agent_id = self.metadata["agentId"]
+        output = superagent.agent.prompt_agent(
+            agent_id=agent_id, input={"input": args[0]}
+        )
+
+        return output["data"]
 
 
 class DocSummarizerTool:

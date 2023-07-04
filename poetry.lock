@@ -3119,6 +3119,21 @@ typing-extensions = {version = ">=3.10.0", markers = "python_version < \"3.10\""
 full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart", "pyyaml"]
 
 [[package]]
+name = "superagent-py"
+version = "0.0.29"
+description = ""
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "superagent_py-0.0.29-py3-none-any.whl", hash = "sha256:bedb5681a5a9395dcfa4ae8175dd876628b6551d6aea6a8ce46d5096749c75ef"},
+    {file = "superagent_py-0.0.29.tar.gz", hash = "sha256:a6c276f6810bb25656c6b93f7c35154d0c20cf6e427c4d87d2cd6624903f20ab"},
+]
+
+[package.dependencies]
+httpx = "0.23.3"
+pydantic = ">=1.9.2,<2.0.0"
+
+[[package]]
 name = "tabulate"
 version = "0.9.0"
 description = "Pretty-print tabular data"
@@ -3999,4 +4014,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "53cd8068075b9d3674038f4fd712eb34eece214981ba186852428501d8e8cc2f"
+content-hash = "702d2d1f0f3891f37f9512fb3209712913dc71cd5ca604c7058f50b87089722b"

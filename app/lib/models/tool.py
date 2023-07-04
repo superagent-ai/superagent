@@ -22,3 +22,7 @@ class ReplicateToolInput(BaseModel):
 
 class ZapierToolInput(BaseModel):
     input: str = Field()
+
+
+class AgentToolInput(BaseModel):
+    query: str = Field()
