@@ -3,9 +3,6 @@ import {
   Button,
   HStack,
   Icon,
-  Tag,
-  Tr,
-  Td,
   Text,
   IconButton,
   useToast,
@@ -15,17 +12,8 @@ import {
 import NextLink from "next/link";
 import { TbTrash, TbCopy, TbPlayerPlay } from "react-icons/tb";
 import { useAsyncFn } from "react-use";
-import titleize from "titleize";
 
-export default function AgentCard({
-  id,
-  name,
-  description,
-  llm,
-  type,
-  hasMemory,
-  onDelete,
-}) {
+export default function AgentCard({ id, name, description, onDelete }) {
   const toast = useToast();
 
   const copyToClipboard = () => {
@@ -62,6 +50,7 @@ export default function AgentCard({
       <HStack justifyContent="space-between">
         <NextLink passHref href={`/agents/${id}`}>
           <Button
+            color="green.500"
             fontFamily="mono"
             size="sm"
             leftIcon={<Icon as={TbPlayerPlay} />}

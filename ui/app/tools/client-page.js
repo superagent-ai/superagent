@@ -4,16 +4,11 @@ import {
   Heading,
   Icon,
   Stack,
-  Table,
-  Thead,
-  Tbody,
-  Th,
-  Tr,
-  Td,
   Text,
   useDisclosure,
   IconButton,
   Tag,
+  SimpleGrid,
   HStack,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
@@ -22,24 +17,24 @@ import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
 import ToolsModal from "./modal";
 
-function ToolRow({ id, name, type, onDelete }) {
+function ToolCard({ id, name, type, onDelete }) {
   return (
-    <Tr>
-      <Td>
-        <Text noOfLines={1}>{name}</Text>
-      </Td>
-      <Td>
-        <Tag>{type}</Tag>
-      </Td>
-      <Td textAlign="right">
+    <Stack backgroundColor="whiteAlpha.100" borderRadius="md" padding={4}>
+      <Text noOfLines={1} as="b">
+        {name}
+      </Text>
+      <HStack justifyContent="space-between">
+        <Tag variant="subtle" colorScheme="green" size="sm">
+          {type}
+        </Tag>
         <IconButton
           size="sm"
           variant="ghost"
-          icon={<Icon fontSize="lg" as={TbTrash} />}
+          icon={<Icon fontSize="lg" as={TbTrash} color="gray.500" />}
           onClick={() => onDelete(id)}
         />
-      </Td>
-    </Tr>
+      </HStack>
+    </Stack>
   );
 }
 
@@ -89,26 +84,17 @@ export default function ToolsClientPage({ data, session }) {
         </Button>
       </HStack>
       <Stack spacing={4}>
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>Type</Th>
-              <Th>&nbsp;</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data?.map(({ id, name, type }) => (
-              <ToolRow
-                key={id}
-                id={id}
-                name={name}
-                type={type}
-                onDelete={(id) => handleDelete(id)}
-              />
-            ))}
-          </Tbody>
-        </Table>
+        <SimpleGrid columns={[2, 2, 2, 4]} gap={6}>
+          {data?.map(({ id, name, type }) => (
+            <ToolCard
+              key={id}
+              id={id}
+              name={name}
+              type={type}
+              onDelete={(id) => handleDelete(id)}
+            />
+          ))}
+        </SimpleGrid>
       </Stack>
       <ToolsModal
         onSubmit={onSubmit}

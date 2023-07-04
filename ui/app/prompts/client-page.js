@@ -18,16 +18,12 @@ import {
   ModalCloseButton,
   Stack,
   Tag,
-  Table,
   Textarea,
-  Thead,
-  Tbody,
-  Th,
-  Tr,
   Text,
   useDisclosure,
   FormHelperText,
   FormErrorMessage,
+  SimpleGrid,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { TbPlus, TbInfoCircle } from "react-icons/tb";
@@ -35,7 +31,7 @@ import { useForm } from "react-hook-form";
 import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
 import { getPromptVariables, DEFAULT_PROMPT } from "@/lib/prompts";
-import PromptRow from "./_components/row";
+import PromptCard from "./_components/card";
 
 export default function PromptsClientPage({ data, session }) {
   const { isOpen, onClose, onOpen } = useDisclosure();
@@ -122,27 +118,19 @@ export default function PromptsClientPage({ data, session }) {
         </Button>
       </HStack>
       <Stack spacing={4}>
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>Inputs</Th>
-              <Th>&nbsp;</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data?.map(({ id, name, input_variables }) => (
-              <PromptRow
-                key={id}
-                id={id}
-                name={name}
-                inputVariables={input_variables}
-                onDelete={(id) => handleDelete(id)}
-                onEdit={(id) => handleEdit(id)}
-              />
-            ))}
-          </Tbody>
-        </Table>
+        <SimpleGrid columns={[2, 2, 2, 4]} gap={6}>
+          {data?.map(({ id, name, template, input_variables }) => (
+            <PromptCard
+              key={id}
+              id={id}
+              name={name}
+              template={template}
+              inputVariables={input_variables}
+              onDelete={(id) => handleDelete(id)}
+              onEdit={(id) => handleEdit(id)}
+            />
+          ))}
+        </SimpleGrid>
       </Stack>
       <Modal
         isOpen={isOpen}

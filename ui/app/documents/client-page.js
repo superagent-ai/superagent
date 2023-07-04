@@ -17,12 +17,6 @@ import {
   ModalCloseButton,
   Stack,
   Select,
-  Table,
-  Thead,
-  Tbody,
-  Th,
-  Tr,
-  Td,
   Text,
   useDisclosure,
   FormHelperText,
@@ -31,6 +25,7 @@ import {
   useToast,
   Box,
   Tag,
+  SimpleGrid,
   Textarea,
 } from "@chakra-ui/react";
 import NextImage from "next/image";
@@ -41,7 +36,7 @@ import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
 import { usePsychicLink } from "@psychic-api/link";
 
-function DocumentRow({ id, name, type, url, onDelete }) {
+function DocumentCard({ id, name, type, url, onDelete }) {
   const toast = useToast();
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -54,42 +49,30 @@ function DocumentRow({ id, name, type, url, onDelete }) {
   };
 
   return (
-    <Tr>
-      <Td>
-        <Text noOfLines={1}>{name}</Text>
-      </Td>
-      <Td>
-        <HStack>
-          <Text noOfLines={1}>{id}</Text>
+    <Stack backgroundColor="whiteAlpha.100" borderRadius="md" padding={4}>
+      <Text noOfLines={1} as="b">
+        {name}
+      </Text>
+      <HStack justifyContent="space-between">
+        <Tag variant="subtle" colorScheme="green" size="sm">
+          {type}
+        </Tag>
+        <HStack spacing={0}>
           <IconButton
             size="sm"
-            icon={<Icon color="orange.500" fontSize="lg" as={TbCopy} />}
+            variant="ghost"
+            icon={<Icon color="gray.500" fontSize="lg" as={TbCopy} />}
             onClick={() => copyToClipboard(id)}
           />
+          <IconButton
+            size="sm"
+            variant="ghost"
+            icon={<Icon fontSize="lg" as={TbTrash} color="gray.500" />}
+            onClick={() => onDelete(id)}
+          />
         </HStack>
-      </Td>
-      <Td>
-        {url && (
-          <HStack>
-            <Text noOfLines={1}>{url}</Text>
-            <IconButton
-              size="sm"
-              icon={<Icon color="orange.500" fontSize="lg" as={TbCopy} />}
-              onClick={() => copyToClipboard(url)}
-            />
-          </HStack>
-        )}
-      </Td>
-      <Td>{type}</Td>
-      <Td textAlign="right">
-        <IconButton
-          size="sm"
-          variant="ghost"
-          icon={<Icon fontSize="lg" as={TbTrash} />}
-          onClick={() => onDelete(id)}
-        />
-      </Td>
-    </Tr>
+      </HStack>
+    </Stack>
   );
 }
 
@@ -192,29 +175,18 @@ export default function DocumentsClientPage({ data, session }) {
         </Button>
       </HStack>
       <Stack spacing={4}>
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>ID</Th>
-              <Th>URL</Th>
-              <Th>Type</Th>
-              <Th>&nbsp;</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data?.map(({ id, name, type, url }) => (
-              <DocumentRow
-                key={id}
-                id={id}
-                name={name}
-                url={url}
-                type={type}
-                onDelete={(id) => handleDelete(id)}
-              />
-            ))}
-          </Tbody>
-        </Table>
+        <SimpleGrid columns={[2, 2, 2, 4]} gap={6}>
+          {data?.map(({ id, name, type, url }) => (
+            <DocumentCard
+              key={id}
+              id={id}
+              name={name}
+              url={url}
+              type={type}
+              onDelete={(id) => handleDelete(id)}
+            />
+          ))}
+        </SimpleGrid>
       </Stack>
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
