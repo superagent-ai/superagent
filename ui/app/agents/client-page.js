@@ -12,11 +12,12 @@ import {
   Tr,
   Text,
   HStack,
+  SimpleGrid,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { TbPlus } from "react-icons/tb";
 import API from "@/lib/api";
-import AgentRow from "./_components/row";
+import AgentCard from "./_components/card";
 import { analytics } from "@/lib/analytics";
 
 export default function AgentsClientPage({ data, session }) {
@@ -49,32 +50,20 @@ export default function AgentsClientPage({ data, session }) {
         </NextLink>
       </HStack>
 
-      <Stack spacing={4}>
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>ID</Th>
-              <Th>Model</Th>
-              <Th>Memory</Th>
-              <Th>&nbsp;</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data?.map(({ id, llm, hasMemory, name, type }) => (
-              <AgentRow
-                key={id}
-                id={id}
-                name={name}
-                llm={llm}
-                type={type}
-                hasMemory={hasMemory}
-                onDelete={(id) => handleDelete(id)}
-              />
-            ))}
-          </Tbody>
-        </Table>
-      </Stack>
+      <SimpleGrid columns={[2, 2, 2, 4]} gap={6}>
+        {data?.map(({ id, description, llm, hasMemory, name, type }) => (
+          <AgentCard
+            key={id}
+            description={description}
+            id={id}
+            name={name}
+            llm={llm}
+            type={type}
+            hasMemory={hasMemory}
+            onDelete={(id) => handleDelete(id)}
+          />
+        ))}
+      </SimpleGrid>
     </Stack>
   );
 }
