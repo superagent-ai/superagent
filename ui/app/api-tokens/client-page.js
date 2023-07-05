@@ -35,6 +35,8 @@ import { TbPlus, TbCopy, TbInfoCircle, TbTrash } from "react-icons/tb";
 import { useForm } from "react-hook-form";
 import { analytics } from "@/lib/analytics";
 import API from "@/lib/api";
+import SearchBar from "../_components/search-bar";
+import { useState } from "react";
 
 function TokenCard({ id, description, token, onDelete }) {
   const toast = useToast();
@@ -75,6 +77,7 @@ function TokenCard({ id, description, token, onDelete }) {
 }
 
 export default function ApiTokensClientPage({ data, session }) {
+  const [filteredData, setData] = useState(data);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
   const api = new API(session);
@@ -107,6 +110,21 @@ export default function ApiTokensClientPage({ data, session }) {
     router.refresh();
   };
 
+  const handleSearch = ({ searchTerm }) => {
+    if (!searchTerm) {
+      setData(data);
+    }
+
+    const keysToFilter = ["description"];
+    const filteredItems = data.filter((item) =>
+      keysToFilter.some((key) =>
+        item[key].toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+
+    setData(filteredItems);
+  };
+
   return (
     <Stack paddingX={[6, 12]} paddingY={12} spacing={6} flex={1}>
       <HStack justifyContent="space-between">
@@ -126,9 +144,13 @@ export default function ApiTokensClientPage({ data, session }) {
           New token
         </Button>
       </HStack>
+      <SearchBar
+        onSearch={(values) => handleSearch(values)}
+        onReset={() => setData(data)}
+      />
       <Stack spacing={4}>
         <SimpleGrid columns={[1, 2, 2, 4, 6]} gap={6}>
-          {data?.map(({ description, id, token }) => (
+          {filteredData?.map(({ description, id, token }) => (
             <TokenCard
               key={id}
               id={id}

@@ -32,8 +32,10 @@ import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
 import { getPromptVariables, DEFAULT_PROMPT } from "@/lib/prompts";
 import PromptCard from "./_components/card";
+import SearchBar from "../_components/search-bar";
 
 export default function PromptsClientPage({ data, session }) {
+  const [filteredData, setData] = useState(data);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [selectedPrompt, setSelectedPrompt] = useState();
   const router = useRouter();
@@ -97,6 +99,21 @@ export default function PromptsClientPage({ data, session }) {
     onOpen();
   };
 
+  const handleSearch = ({ searchTerm }) => {
+    if (!searchTerm) {
+      setData(data);
+    }
+
+    const keysToFilter = ["name"];
+    const filteredItems = data.filter((item) =>
+      keysToFilter.some((key) =>
+        item[key].toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+
+    setData(filteredItems);
+  };
+
   return (
     <Stack
       flex={1}
@@ -122,9 +139,13 @@ export default function PromptsClientPage({ data, session }) {
           New prompt
         </Button>
       </HStack>
+      <SearchBar
+        onSearch={(values) => handleSearch(values)}
+        onReset={() => setData(data)}
+      />
       <Stack spacing={4}>
         <SimpleGrid columns={[1, 2, 2, 4, 6]} gap={6}>
-          {data?.map(({ id, name, template, input_variables }) => (
+          {filteredData?.map(({ id, name, template, input_variables }) => (
             <PromptCard
               key={id}
               id={id}

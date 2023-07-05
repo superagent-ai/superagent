@@ -1,4 +1,5 @@
 "use client";
+import { useCallback, useState } from "react";
 import NextLink from "next/link";
 import {
   Button,
@@ -14,8 +15,10 @@ import { TbPlus } from "react-icons/tb";
 import API from "@/lib/api";
 import AgentCard from "./_components/card";
 import { analytics } from "@/lib/analytics";
+import SearchBar from "../_components/search-bar";
 
 export default function AgentsClientPage({ data, session }) {
+  const [filteredData, setData] = useState(data);
   const router = useRouter();
   const api = new API(session);
 
@@ -27,6 +30,21 @@ export default function AgentsClientPage({ data, session }) {
     }
 
     router.refresh();
+  };
+
+  const handleSearch = ({ searchTerm }) => {
+    if (!searchTerm) {
+      setData(data);
+    }
+
+    const keysToFilter = ["name"];
+    const filteredItems = data.filter((item) =>
+      keysToFilter.some((key) =>
+        item[key].toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+
+    setData(filteredItems);
   };
 
   return (
@@ -52,20 +70,25 @@ export default function AgentsClientPage({ data, session }) {
           </Button>
         </NextLink>
       </HStack>
-
+      <SearchBar
+        onSearch={(values) => handleSearch(values)}
+        onReset={() => setData(data)}
+      />
       <SimpleGrid columns={[1, 2, 2, 4, 6]} gap={6}>
-        {data?.map(({ id, description, llm, hasMemory, name, type }) => (
-          <AgentCard
-            key={id}
-            description={description}
-            id={id}
-            name={name}
-            llm={llm}
-            type={type}
-            hasMemory={hasMemory}
-            onDelete={(id) => handleDelete(id)}
-          />
-        ))}
+        {filteredData?.map(
+          ({ id, description, llm, hasMemory, name, type }) => (
+            <AgentCard
+              key={id}
+              description={description}
+              id={id}
+              name={name}
+              llm={llm}
+              type={type}
+              hasMemory={hasMemory}
+              onDelete={(id) => handleDelete(id)}
+            />
+          )
+        )}
       </SimpleGrid>
     </Stack>
   );

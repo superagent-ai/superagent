@@ -31,6 +31,7 @@ function MenuLink({ label, icon, path, ...properties }) {
   return (
     <Box as={path && NextLink} passHref href={path} width="100%">
       <Button
+        as="p"
         {...properties}
         isActive={isActive}
         leftIcon={<Icon as={icon} />}
@@ -63,9 +64,7 @@ export default function Sidebar() {
             <Tag size="sm">{SUPERAGENT_VERSION}</Tag>
           </HStack>
           <Menu>
-            <MenuButton>
-              <IconButton icon={<Icon as={TbMenu} />} />
-            </MenuButton>
+            <MenuButton as={IconButton} icon={<Icon as={TbMenu} />} />
             <MenuList>
               {MAIN_MENU.map(({ icon, id, label, path, ...properties }) => (
                 <MenuItem key={id} paddingY={0}>

@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import {
   Alert,
   Button,
@@ -35,6 +36,7 @@ import { useForm } from "react-hook-form";
 import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
 import { usePsychicLink } from "@psychic-api/link";
+import SearchBar from "../_components/search-bar";
 
 function DocumentCard({ id, name, type, url, onDelete }) {
   const toast = useToast();
@@ -77,6 +79,7 @@ function DocumentCard({ id, name, type, url, onDelete }) {
 }
 
 export default function DocumentsClientPage({ data, session }) {
+  const [filteredData, setData] = useState(data);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
   const api = new API(session);
@@ -151,6 +154,21 @@ export default function DocumentsClientPage({ data, session }) {
     open(session.user.user.id);
   };
 
+  const handleSearch = ({ searchTerm }) => {
+    if (!searchTerm) {
+      setData(data);
+    }
+
+    const keysToFilter = ["name", "type"];
+    const filteredItems = data.filter((item) =>
+      keysToFilter.some((key) =>
+        item[key].toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+
+    setData(filteredItems);
+  };
+
   return (
     <Stack
       flex={1}
@@ -176,9 +194,13 @@ export default function DocumentsClientPage({ data, session }) {
           New document
         </Button>
       </HStack>
+      <SearchBar
+        onSearch={(values) => handleSearch(values)}
+        onReset={() => setData(data)}
+      />
       <Stack spacing={4}>
         <SimpleGrid columns={[1, 2, 2, 4, 6]} gap={6}>
-          {data?.map(({ id, name, type, url }) => (
+          {filteredData?.map(({ id, name, type, url }) => (
             <DocumentCard
               key={id}
               id={id}

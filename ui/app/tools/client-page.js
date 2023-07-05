@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import {
   Button,
   Heading,
@@ -16,6 +17,7 @@ import { TbPlus, TbTrash } from "react-icons/tb";
 import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
 import ToolsModal from "./modal";
+import SearchBar from "../_components/search-bar";
 
 function ToolCard({ id, name, type, onDelete }) {
   return (
@@ -39,6 +41,7 @@ function ToolCard({ id, name, type, onDelete }) {
 }
 
 export default function ToolsClientPage({ data, session }) {
+  const [filteredData, setData] = useState(data);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
   const api = new API(session);
@@ -62,6 +65,21 @@ export default function ToolsClientPage({ data, session }) {
     }
 
     router.refresh();
+  };
+
+  const handleSearch = ({ searchTerm }) => {
+    if (!searchTerm) {
+      setData(data);
+    }
+
+    const keysToFilter = ["name", "type"];
+    const filteredItems = data.filter((item) =>
+      keysToFilter.some((key) =>
+        item[key].toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+
+    setData(filteredItems);
   };
 
   return (
@@ -89,9 +107,13 @@ export default function ToolsClientPage({ data, session }) {
           New tool
         </Button>
       </HStack>
+      <SearchBar
+        onSearch={(values) => handleSearch(values)}
+        onReset={() => setData(data)}
+      />
       <Stack spacing={4}>
         <SimpleGrid columns={[1, 2, 2, 4, 6]} gap={6}>
-          {data?.map(({ id, name, type }) => (
+          {filteredData?.map(({ id, name, type }) => (
             <ToolCard
               key={id}
               id={id}
