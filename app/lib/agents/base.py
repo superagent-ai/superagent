@@ -25,6 +25,8 @@ from app.lib.models.tool import (
     WolframToolInput,
     ReplicateToolInput,
     ZapierToolInput,
+    AgentToolInput,
+    OpenApiToolInput,
 )
 from app.lib.prisma import prisma
 from app.lib.prompts import (
@@ -38,6 +40,8 @@ from app.lib.tools import (
     get_wolfram_alpha_tool,
     get_replicate_tool,
     get_zapier_nla_tool,
+    get_openapi_tool,
+    AgentTool,
     DocSummarizerTool,
 )
 from app.lib.vectorstores.base import VectorStoreBase
@@ -47,12 +51,14 @@ class AgentBase:
     def __init__(
         self,
         agent: dict,
+        api_key: str = None,
         has_streaming: bool = False,
         on_llm_new_token=None,
         on_llm_end=None,
         on_chain_end=None,
     ):
         self.id = agent.id
+        self.api_key = api_key
         self.userId = agent.userId
         self.document = agent.document
         self.has_memory = agent.hasMemory
@@ -102,25 +108,6 @@ class AgentBase:
                 if "api_key" in self.llm
                 else config("HUGGINGFACEHUB_API_TOKEN")
             )
-
-    def _get_tool(self, *args) -> Any:
-        try:
-            if self.tool.type == "SEARCH":
-                tool = get_search_tool()
-
-            if self.tool.type == "WOLFRAM_ALPHA":
-                tool = get_wolfram_alpha_tool()
-
-            if self.tool.type == "REPLICATE":
-                tool = get_replicate_tool()
-
-            if self.tool.type == "ZAPIER_NLA":
-                tool = get_zapier_nla_tool()
-
-            return tool
-
-        except Exception:
-            return None
 
     def _get_prompt(self, tools: list = None) -> Any:
         if not self.tools and not self.documents:
@@ -303,6 +290,13 @@ class AgentBase:
                 ),
                 ZapierToolInput,
             )
+        if type == "AGENT":
+            return (
+                AgentTool(metadata=metadata, api_key=self.api_key),
+                AgentToolInput,
+            )
+        if type == "OPENAPI":
+            return (get_openapi_tool(metadata=metadata), OpenApiToolInput)
 
     def _get_tools(self) -> list:
         tools = []
@@ -369,7 +363,8 @@ class AgentBase:
             tools.append(
                 Tool(
                     name=slugify(agent_tool.tool.name),
-                    description=ToolDescription[agent_tool.tool.type].value,
+                    description=agent_tool.tool.description
+                    or ToolDescription[agent_tool.tool.type].value,
                     args_schema=args_schema if self.type == "OPENAI" else None,
                     func=tool.run if agent_tool.tool.type != "REPLICATE" else tool,
                 )

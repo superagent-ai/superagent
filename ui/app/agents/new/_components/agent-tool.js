@@ -104,7 +104,13 @@ export default function AgentTool({ onSubmit, session }) {
                       paddingX={4}
                     >
                       <HStack spacing={4}>
-                        <Avatar src={TOOL_ICONS[type]} size="xs" />
+                        <Avatar
+                          src={
+                            type === "AGENT" ? "/logo.png" : TOOL_ICONS[type]
+                          }
+                          name={name}
+                          size="xs"
+                        />
                         <Text fontWeight="bold">{name}</Text>
                       </HStack>
                       <Switch

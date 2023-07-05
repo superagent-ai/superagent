@@ -15,17 +15,25 @@ import {
   Link,
   Stack,
   Select,
+  Spinner,
   FormHelperText,
   FormErrorMessage,
+  Textarea,
+  Center,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
+import { useSession } from "next-auth/react";
 import CodeMirror from "@uiw/react-codemirror";
+import { useAsyncFn } from "react-use";
 import { json, jsonLanguage } from "@codemirror/lang-json";
 import { languages } from "@codemirror/language-data";
 import { githubDark } from "@uiw/codemirror-theme-github";
 import { EditorView } from "@codemirror/view";
+import API from "@/lib/api";
+import { useEffect } from "react";
 
 const REPLICATE_ARGUMENTS = { image_dimensions: "512x512" };
+const AUTHENTICATION_ARGUMENTS = { authorization: "Bearer: " };
 
 export default function ToolsModal({ onSubmit, onClose, isOpen }) {
   const {
@@ -37,13 +45,26 @@ export default function ToolsModal({ onSubmit, onClose, isOpen }) {
     watch,
   } = useForm();
   const type = watch("type");
-
+  const session = useSession();
+  const [{ loading: isLoadingAgents, value: agents = [] }, getAgents] =
+    useAsyncFn(async (api) => api.getAgents(), []);
   const onHandleSubmt = async (values) => {
-    const { type, name, ...metadata } = values;
+    const { type, name, description, ...metadata } = values;
 
-    await onSubmit({ type, name, metadata: { ...metadata } });
+    await onSubmit({ type, name, description, metadata: { ...metadata } });
     reset();
   };
+
+  useEffect(() => {
+    const fetchAgents = async () => {
+      if (session.data) {
+        const api = new API(session?.data);
+        getAgents(api);
+      }
+    };
+
+    fetchAgents();
+  }, [session]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -62,18 +83,86 @@ export default function ToolsModal({ onSubmit, onClose, isOpen }) {
                   <FormErrorMessage>Invalid name</FormErrorMessage>
                 )}
               </FormControl>
+              <FormControl isRequired isInvalid={errors?.description}>
+                <FormLabel>When to use</FormLabel>
+                <Textarea
+                  placeholder="Useful for X..."
+                  {...register("description", { required: true })}
+                />
+                <FormHelperText>
+                  When should the agent use this tool?{" "}
+                </FormHelperText>
+                {errors?.description && (
+                  <FormErrorMessage>Invalid description</FormErrorMessage>
+                )}
+              </FormControl>
               <FormControl isRequired isInvalid={errors?.type}>
                 <FormLabel>Type</FormLabel>
                 <Select {...register("type", { required: true })}>
                   <option value="SEARCH">Websearch</option>
+                  <option value="AGENT">Superagent</option>
                   <option value="WOLFRAM_ALPHA">Wolfram Alpha</option>
                   <option value="REPLICATE">Replicate</option>
                   <option value="ZAPIER_NLA">Zapier</option>
+                  <option value="OPENAPI">APIs</option>
                 </Select>
                 {errors?.type && (
                   <FormErrorMessage>Invalid type</FormErrorMessage>
                 )}
               </FormControl>
+              {type === "OPENAPI" && (
+                <>
+                  <FormControl isRequired>
+                    <FormLabel>OpenAPI spec URL</FormLabel>
+                    <Input
+                      type="text"
+                      {...register("openApiUrl", { required: true })}
+                      placeholder="Enter a URL the OpenAPI spec"
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>Authentication headers</FormLabel>
+                    <Box borderRadius="md" overflow="hidden">
+                      <CodeMirror
+                        onChange={(value) => setValue("headers", value)}
+                        editable={true}
+                        extensions={[
+                          json({
+                            base: jsonLanguage,
+                            codeLanguages: languages,
+                          }),
+                          EditorView.lineWrapping,
+                        ]}
+                        theme={githubDark}
+                        value={JSON.stringify(
+                          AUTHENTICATION_ARGUMENTS,
+                          null,
+                          2
+                        )}
+                      />
+                    </Box>
+                  </FormControl>
+                </>
+              )}
+              {type === "AGENT" && (
+                <FormControl isRequired>
+                  <FormLabel>Select a Superagent</FormLabel>
+                  {isLoadingAgents ? (
+                    <Center>
+                      <Spinner size="xs" />
+                    </Center>
+                  ) : (
+                    <Select {...register("agentId", { required: true })}>
+                      {agents.map(({ id, name }) => (
+                        <option key={id} value={id}>
+                          {name}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
+                  <FormHelperText>Select an Agent</FormHelperText>
+                </FormControl>
+              )}
               {type === "ZAPIER_NLA" && (
                 <FormControl isRequired>
                   <FormLabel>Zapier NLA api key</FormLabel>

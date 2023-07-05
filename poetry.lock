@@ -3011,6 +3011,21 @@ anyio = ">=3.4.0,<5"
 full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart", "pyyaml"]
 
 [[package]]
+name = "superagent-py"
+version = "0.0.29"
+description = ""
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "superagent_py-0.0.29-py3-none-any.whl", hash = "sha256:bedb5681a5a9395dcfa4ae8175dd876628b6551d6aea6a8ce46d5096749c75ef"},
+    {file = "superagent_py-0.0.29.tar.gz", hash = "sha256:a6c276f6810bb25656c6b93f7c35154d0c20cf6e427c4d87d2cd6624903f20ab"},
+]
+
+[package.dependencies]
+httpx = "0.23.3"
+pydantic = ">=1.9.2,<2.0.0"
+
+[[package]]
 name = "tabulate"
 version = "0.9.0"
 description = "Pretty-print tabular data"
