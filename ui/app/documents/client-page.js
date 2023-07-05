@@ -208,7 +208,7 @@ export default function DocumentsClientPage({ data, session }) {
         onReset={() => setData(data)}
       />
       <Stack spacing={4}>
-        <SimpleGrid columns={[1, 2, 2, 5]} gap={6}>
+        <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
           {filteredData?.map(({ id, name, createdAt, type, url }) => (
             <DocumentCard
               key={id}
