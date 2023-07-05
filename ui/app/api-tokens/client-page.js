@@ -23,6 +23,7 @@ import {
   Tr,
   Td,
   Text,
+  SimpleGrid,
   useDisclosure,
   FormHelperText,
   FormErrorMessage,
@@ -35,7 +36,7 @@ import { useForm } from "react-hook-form";
 import { analytics } from "@/lib/analytics";
 import API from "@/lib/api";
 
-function TokenRow({ id, description, token, onDelete }) {
+function TokenCard({ id, description, token, onDelete }) {
   const toast = useToast();
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -48,27 +49,28 @@ function TokenRow({ id, description, token, onDelete }) {
   };
 
   return (
-    <Tr>
-      <Td>{description}</Td>
-      <Td>
-        <HStack>
-          <Text>{token}</Text>
-          <IconButton
-            size="sm"
-            icon={<Icon color="orange.500" fontSize="lg" as={TbCopy} />}
-            onClick={() => copyToClipboard(token)}
-          />
-        </HStack>
-      </Td>
-      <Td textAlign="right">
+    <Stack borderWidth="1px" borderRadius="md" padding={4}>
+      <Text noOfLines={1} as="b">
+        {description}
+      </Text>
+      <Text noOfLines={1} color="gray.500">
+        {token}
+      </Text>
+      <HStack spacing={0} alignSelf="flex-end">
         <IconButton
           size="sm"
           variant="ghost"
-          icon={<Icon fontSize="lg" as={TbTrash} />}
+          icon={<Icon fontSize="lg" as={TbCopy} color="gray.500" />}
+          onClick={() => copyToClipboard(token)}
+        />
+        <IconButton
+          size="sm"
+          variant="ghost"
+          icon={<Icon fontSize="lg" as={TbTrash} color="gray.500" />}
           onClick={() => onDelete(id)}
         />
-      </Td>
-    </Tr>
+      </HStack>
+    </Stack>
   );
 }
 
@@ -106,13 +108,15 @@ export default function ApiTokensClientPage({ data, session }) {
   };
 
   return (
-    <Stack paddingX={12} paddingY={12} spacing={6} flex={1}>
+    <Stack paddingX={[6, 12]} paddingY={12} spacing={6} flex={1}>
       <HStack justifyContent="space-between">
         <Stack flex={1}>
           <Heading as="h1" fontSize="2xl">
             Api tokens
           </Heading>
-          <Text color="gray.400">Your secret API keys are listed below.</Text>
+          <Text color="gray.400" display={["none", "block"]}>
+            Your secret API keys are listed below.
+          </Text>
         </Stack>
         <Button
           leftIcon={<Icon as={TbPlus} />}
@@ -123,26 +127,17 @@ export default function ApiTokensClientPage({ data, session }) {
         </Button>
       </HStack>
       <Stack spacing={4}>
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>Description</Th>
-              <Th>Key</Th>
-              <Th>&nbsp;</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data?.map(({ description, id, token }) => (
-              <TokenRow
-                key={id}
-                id={id}
-                description={description}
-                token={token}
-                onDelete={(id) => handleDelete(id)}
-              />
-            ))}
-          </Tbody>
-        </Table>
+        <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
+          {data?.map(({ description, id, token }) => (
+            <TokenCard
+              key={id}
+              id={id}
+              description={description}
+              token={token}
+              onDelete={(id) => handleDelete(id)}
+            />
+          ))}
+        </SimpleGrid>
       </Stack>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />

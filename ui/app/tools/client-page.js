@@ -65,13 +65,19 @@ export default function ToolsClientPage({ data, session }) {
   };
 
   return (
-    <Stack flex={1} paddingX={12} paddingY={12} spacing={6}>
+    <Stack
+      flex={1}
+      paddingX={[6, 12]}
+      paddingY={12}
+      spacing={6}
+      overflow="auto"
+    >
       <HStack justifyContent="space-between">
         <Stack>
           <Heading as="h1" fontSize="2xl">
             Tools
           </Heading>
-          <Text color="gray.400">
+          <Text color="gray.400" display={["none", "block"]}>
             Create instances of specific tools to use with your Agents.
           </Text>
         </Stack>
@@ -84,7 +90,7 @@ export default function ToolsClientPage({ data, session }) {
         </Button>
       </HStack>
       <Stack spacing={4}>
-        <SimpleGrid columns={[2, 2, 2, 4]} gap={6}>
+        <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
           {data?.map(({ id, name, type }) => (
             <ToolCard
               key={id}

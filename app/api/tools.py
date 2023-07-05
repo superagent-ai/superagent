@@ -32,7 +32,9 @@ async def read_tools(token=Depends(JWTBearer())):
     """List tools endpoint"""
     decoded = decodeJWT(token)
     tools = prisma.tool.find_many(
-        where={"userId": decoded["userId"]}, include={"user": True}
+        where={"userId": decoded["userId"]},
+        include={"user": True},
+        order={"createdAt": "desc"},
     )
 
     return {"success": True, "data": tools}

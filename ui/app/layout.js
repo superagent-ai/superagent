@@ -3,7 +3,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { Inter } from "next/font/google";
 import { Providers } from "./_components/providers";
 import Container from "./_components/container";
-import Sidebar from "./_components/sidebar";
+import Navigation from "./_components/navigation";
 import { options } from "@/lib/next-auth";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -24,7 +24,7 @@ export default async function RootLayout({ children }) {
       <body className={inter.className}>
         <Providers>
           <Container>
-            {session && <Sidebar />}
+            {session && <Navigation />}
 
             {children}
           </Container>

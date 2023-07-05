@@ -98,15 +98,20 @@ export default function PromptsClientPage({ data, session }) {
   };
 
   return (
-    <Stack flex={1} paddingX={12} paddingY={12} spacing={6}>
+    <Stack
+      flex={1}
+      paddingX={[6, 12]}
+      paddingY={12}
+      spacing={6}
+      overflow="auto"
+    >
       <HStack justifyContent="space-between">
         <Stack>
           <Heading as="h1" fontSize="2xl">
             Prompts
           </Heading>
-          <Text color="gray.400">
-            A prompt is piece of text that gives context to the LLM. It can
-            contain instructions on how the Agent should act.
+          <Text color="gray.400" display={["none", "block"]}>
+            Manage your prompts
           </Text>
         </Stack>
         <Button
@@ -118,7 +123,7 @@ export default function PromptsClientPage({ data, session }) {
         </Button>
       </HStack>
       <Stack spacing={4}>
-        <SimpleGrid columns={[2, 2, 2, 4]} gap={6}>
+        <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
           {data?.map(({ id, name, template, input_variables }) => (
             <PromptCard
               key={id}

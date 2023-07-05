@@ -30,13 +30,21 @@ export default function AgentsClientPage({ data, session }) {
   };
 
   return (
-    <Stack paddingX={12} paddingY={12} spacing={6} flex={1}>
+    <Stack
+      paddingX={[6, 12]}
+      paddingY={12}
+      spacing={6}
+      flex={1}
+      overflow="auto"
+    >
       <HStack justifyContent="space-between">
         <Stack>
           <Heading as="h1" fontSize="2xl">
             Agents
           </Heading>
-          <Text color="gray.400">Create and manage Agents.</Text>
+          <Text color="gray.400" display={["none", "block"]}>
+            Create and manage Agents.
+          </Text>
         </Stack>
         <NextLink passHref href="/agents/new">
           <Button leftIcon={<Icon as={TbPlus} />} alignSelf="flex-start">
@@ -45,7 +53,7 @@ export default function AgentsClientPage({ data, session }) {
         </NextLink>
       </HStack>
 
-      <SimpleGrid columns={[2, 2, 2, 4]} gap={6}>
+      <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
         {data?.map(({ id, description, llm, hasMemory, name, type }) => (
           <AgentCard
             key={id}
