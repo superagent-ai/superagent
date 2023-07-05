@@ -53,7 +53,7 @@ export default function AgentsClientPage({ data, session }) {
         </NextLink>
       </HStack>
 
-      <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
+      <SimpleGrid columns={[1, 2, 2, 4, 6]} gap={6}>
         {data?.map(({ id, description, llm, hasMemory, name, type }) => (
           <AgentCard
             key={id}

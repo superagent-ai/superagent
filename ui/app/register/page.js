@@ -76,7 +76,7 @@ export default function Register() {
       alignSelf="center"
       justifySelf="center"
     >
-      <Stack spacing={8}>
+      <Stack spacing={8} minHeight="100vh" justifyContent="center">
         <HStack spacing={4} justifyContent="center" alignItems="center">
           <Text as="strong" color={fontColor} fontSize="2xl">
             Superagent
