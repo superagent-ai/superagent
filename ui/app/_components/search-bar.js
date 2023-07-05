@@ -42,9 +42,24 @@ export default function SearchBar({ onSearch, onReset }) {
         />
       </InputGroup>
       {searchTerm && (
-        <Button leftIcon={<Icon as={TbX} />} onClick={handleReset}>
-          Reset
-        </Button>
+        <>
+          <Button
+            leftIcon={<Icon as={TbX} />}
+            onClick={handleReset}
+            display={["none", "block"]}
+          >
+            Reset
+          </Button>
+          <IconButton
+            icon={
+              <Icon
+                as={TbX}
+                onClick={handleReset}
+                display={["block", "none"]}
+              />
+            }
+          />
+        </>
       )}
     </HStack>
   );

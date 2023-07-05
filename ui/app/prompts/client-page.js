@@ -145,17 +145,20 @@ export default function PromptsClientPage({ data, session }) {
       />
       <Stack spacing={4}>
         <SimpleGrid columns={[1, 2, 2, 4, 6]} gap={6}>
-          {filteredData?.map(({ id, name, template, input_variables }) => (
-            <PromptCard
-              key={id}
-              id={id}
-              name={name}
-              template={template}
-              inputVariables={input_variables}
-              onDelete={(id) => handleDelete(id)}
-              onEdit={(id) => handleEdit(id)}
-            />
-          ))}
+          {filteredData?.map(
+            ({ id, name, createdAt, template, input_variables }) => (
+              <PromptCard
+                key={id}
+                id={id}
+                createdAt={createdAt}
+                name={name}
+                template={template}
+                inputVariables={input_variables}
+                onDelete={(id) => handleDelete(id)}
+                onEdit={(id) => handleEdit(id)}
+              />
+            )
+          )}
         </SimpleGrid>
       </Stack>
       <Modal

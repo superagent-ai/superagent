@@ -12,19 +12,28 @@ import {
   SimpleGrid,
   HStack,
 } from "@chakra-ui/react";
+import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { TbPlus, TbTrash } from "react-icons/tb";
 import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
 import ToolsModal from "./modal";
 import SearchBar from "../_components/search-bar";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-function ToolCard({ id, name, type, onDelete }) {
+dayjs.extend(relativeTime);
+
+function ToolCard({ id, name, createdAt, type, onDelete }) {
   return (
     <Stack borderWidth="1px" borderRadius="md" padding={4}>
-      <Text noOfLines={1} as="b">
-        {name}
-      </Text>
+      <HStack justifyContent="space-between" flex={1}>
+        <Text noOfLines={1} as="b" flex={1}>
+          {name}
+        </Text>
+        <Text fontSize="sm" color="gray.500">
+          {dayjs(createdAt).fromNow()}
+        </Text>
+      </HStack>
       <HStack justifyContent="space-between">
         <Tag variant="subtle" colorScheme="green" size="sm">
           {type}
@@ -113,9 +122,10 @@ export default function ToolsClientPage({ data, session }) {
       />
       <Stack spacing={4}>
         <SimpleGrid columns={[1, 2, 2, 4, 6]} gap={6}>
-          {filteredData?.map(({ id, name, type }) => (
+          {filteredData?.map(({ id, createdAt, name, type }) => (
             <ToolCard
               key={id}
+              createdAt={createdAt}
               id={id}
               name={name}
               type={type}

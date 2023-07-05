@@ -76,9 +76,10 @@ export default function AgentsClientPage({ data, session }) {
       />
       <SimpleGrid columns={[1, 2, 2, 4, 6]} gap={6}>
         {filteredData?.map(
-          ({ id, description, llm, hasMemory, name, type }) => (
+          ({ id, description, llm, createdAt, hasMemory, name, type }) => (
             <AgentCard
               key={id}
+              createdAt={createdAt}
               description={description}
               id={id}
               name={name}

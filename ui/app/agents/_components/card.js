@@ -9,11 +9,21 @@ import {
   Spinner,
   Stack,
 } from "@chakra-ui/react";
+import dayjs from "dayjs";
 import NextLink from "next/link";
 import { TbTrash, TbCopy, TbPlayerPlay } from "react-icons/tb";
 import { useAsyncFn } from "react-use";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-export default function AgentCard({ id, name, description, onDelete }) {
+dayjs.extend(relativeTime);
+
+export default function AgentCard({
+  id,
+  name,
+  description,
+  createdAt,
+  onDelete,
+}) {
   const toast = useToast();
 
   const copyToClipboard = () => {
@@ -41,9 +51,14 @@ export default function AgentCard({ id, name, description, onDelete }) {
 
   return (
     <Stack borderWidth="1px" borderRadius="md" padding={4}>
-      <Text noOfLines={1} as="b">
-        {name}
-      </Text>
+      <HStack justifyContent="space-between" flex={1}>
+        <Text noOfLines={1} as="b" flex={1}>
+          {name}
+        </Text>
+        <Text fontSize="sm" color="gray.500">
+          {dayjs(createdAt).fromNow()}
+        </Text>
+      </HStack>
       <Text noOfLines={1} color="gray.500">
         {description}
       </Text>

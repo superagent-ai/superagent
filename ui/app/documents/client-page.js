@@ -29,6 +29,7 @@ import {
   SimpleGrid,
   Textarea,
 } from "@chakra-ui/react";
+import dayjs from "dayjs";
 import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import { TbPlus, TbCopy, TbTrash } from "react-icons/tb";
@@ -37,8 +38,11 @@ import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
 import { usePsychicLink } from "@psychic-api/link";
 import SearchBar from "../_components/search-bar";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-function DocumentCard({ id, name, type, url, onDelete }) {
+dayjs.extend(relativeTime);
+
+function DocumentCard({ id, name, createdAt, type, url, onDelete }) {
   const toast = useToast();
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -52,10 +56,15 @@ function DocumentCard({ id, name, type, url, onDelete }) {
 
   return (
     <Stack borderWidth="1px" borderRadius="md" padding={4}>
-      <Text noOfLines={1} as="b">
-        {name}
-      </Text>
-      <HStack justifyContent="space-between">
+      <HStack justifyContent="space-between" flex={1}>
+        <Text noOfLines={1} as="b" flex={1}>
+          {name}
+        </Text>
+        <Text fontSize="sm" color="gray.500">
+          {dayjs(createdAt).fromNow()}
+        </Text>
+      </HStack>
+      <HStack justifyContent="space-between" justifySelf="flex-end">
         <Tag variant="subtle" colorScheme="green" size="sm">
           {type}
         </Tag>
@@ -200,10 +209,11 @@ export default function DocumentsClientPage({ data, session }) {
       />
       <Stack spacing={4}>
         <SimpleGrid columns={[1, 2, 2, 4, 6]} gap={6}>
-          {filteredData?.map(({ id, name, type, url }) => (
+          {filteredData?.map(({ id, name, createdAt, type, url }) => (
             <DocumentCard
               key={id}
               id={id}
+              createdAt={createdAt}
               name={name}
               url={url}
               type={type}
