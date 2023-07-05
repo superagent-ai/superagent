@@ -74,7 +74,7 @@ export default function AgentsClientPage({ data, session }) {
         onSearch={(values) => handleSearch(values)}
         onReset={() => setData(data)}
       />
-      <SimpleGrid columns={[1, 2, 2, 4, 6]} gap={6}>
+      <SimpleGrid columns={[1, 2, 2, 5]} gap={6}>
         {filteredData?.map(
           ({ id, description, llm, createdAt, hasMemory, name, type }) => (
             <AgentCard
