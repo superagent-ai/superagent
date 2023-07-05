@@ -10,7 +10,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install Fern
-        run:  npm install -g fern-api
+        run: npm install -g fern-api
 
       - name: Check Fern API is valid
         run: fern check
@@ -33,4 +33,5 @@ jobs:
         env:
           FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: fern generate --group publish --log-level debug --version ${{ github.ref_name }}
