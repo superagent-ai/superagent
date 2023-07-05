@@ -70,7 +70,9 @@ def get_zapier_nla_tool(metadata: dict, llm: Any) -> Any:
 def get_openapi_tool(metadata: dict) -> Any:
     openapi_url = metadata["openApiUrl"]
     headers = metadata["headers"]
-    agent = get_openapi_chain(spec=openapi_url, headers=json.loads(headers))
+    agent = get_openapi_chain(
+        spec=openapi_url, headers=json.loads(headers) if headers else None
+    )
 
     return agent
 

@@ -11,6 +11,7 @@ import {
   Tag,
   SimpleGrid,
   HStack,
+  useToast,
 } from "@chakra-ui/react";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
@@ -50,9 +51,10 @@ function ToolCard({ id, name, createdAt, type, onDelete }) {
 }
 
 export default function ToolsClientPage({ data, session }) {
-  const [filteredData, setData] = useState(data);
+  const [filteredData, setData] = useState();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
+  const toast = useToast();
   const api = new API(session);
 
   const onSubmit = async (values) => {
@@ -62,6 +64,13 @@ export default function ToolsClientPage({ data, session }) {
       analytics.track("Created Tool", { ...values });
     }
 
+    toast({
+      description: "Tool created",
+      position: "top",
+      colorScheme: "gray",
+    });
+
+    setData();
     router.refresh();
     onClose();
   };
@@ -73,6 +82,13 @@ export default function ToolsClientPage({ data, session }) {
       analytics.track("Deleted Tool", { id });
     }
 
+    toast({
+      description: "Tool deleted",
+      position: "top",
+      colorScheme: "gray",
+    });
+
+    setData();
     router.refresh();
   };
 
@@ -122,16 +138,27 @@ export default function ToolsClientPage({ data, session }) {
       />
       <Stack spacing={4}>
         <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
-          {filteredData?.map(({ id, createdAt, name, type }) => (
-            <ToolCard
-              key={id}
-              createdAt={createdAt}
-              id={id}
-              name={name}
-              type={type}
-              onDelete={(id) => handleDelete(id)}
-            />
-          ))}
+          {filteredData
+            ? filteredData?.map(({ id, createdAt, name, type }) => (
+                <ToolCard
+                  key={id}
+                  createdAt={createdAt}
+                  id={id}
+                  name={name}
+                  type={type}
+                  onDelete={(id) => handleDelete(id)}
+                />
+              ))
+            : data?.map(({ id, createdAt, name, type }) => (
+                <ToolCard
+                  key={id}
+                  createdAt={createdAt}
+                  id={id}
+                  name={name}
+                  type={type}
+                  onDelete={(id) => handleDelete(id)}
+                />
+              ))}
         </SimpleGrid>
       </Stack>
       <ToolsModal

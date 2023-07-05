@@ -83,9 +83,10 @@ function TokenCard({ id, description, createdAt, token, onDelete }) {
 }
 
 export default function ApiTokensClientPage({ data, session }) {
-  const [filteredData, setData] = useState(data);
+  const [filteredData, setData] = useState();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
+  const toast = useToast();
   const api = new API(session);
   const {
     formState: { isSubmitting, errors },
@@ -101,6 +102,13 @@ export default function ApiTokensClientPage({ data, session }) {
       analytics.track("Created API Token");
     }
 
+    toast({
+      description: "Api token created",
+      position: "top",
+      colorScheme: "gray",
+    });
+
+    setData();
     router.refresh();
     reset();
     onClose();
@@ -113,6 +121,13 @@ export default function ApiTokensClientPage({ data, session }) {
       analytics.track("Deleted API Token");
     }
 
+    toast({
+      description: "Api token deleted",
+      position: "top",
+      colorScheme: "gray",
+    });
+
+    setData();
     router.refresh();
   };
 
@@ -156,16 +171,27 @@ export default function ApiTokensClientPage({ data, session }) {
       />
       <Stack spacing={4}>
         <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
-          {filteredData?.map(({ description, createdAt, id, token }) => (
-            <TokenCard
-              key={id}
-              createdAt={createdAt}
-              id={id}
-              description={description}
-              token={token}
-              onDelete={(id) => handleDelete(id)}
-            />
-          ))}
+          {filteredData
+            ? filteredData?.map(({ description, createdAt, id, token }) => (
+                <TokenCard
+                  key={id}
+                  createdAt={createdAt}
+                  id={id}
+                  description={description}
+                  token={token}
+                  onDelete={(id) => handleDelete(id)}
+                />
+              ))
+            : data?.map(({ description, createdAt, id, token }) => (
+                <TokenCard
+                  key={id}
+                  createdAt={createdAt}
+                  id={id}
+                  description={description}
+                  token={token}
+                  onDelete={(id) => handleDelete(id)}
+                />
+              ))}
         </SimpleGrid>
       </Stack>
       <Modal isOpen={isOpen} onClose={onClose}>

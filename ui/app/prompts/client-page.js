@@ -24,6 +24,7 @@ import {
   FormHelperText,
   FormErrorMessage,
   SimpleGrid,
+  useToast,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { TbPlus, TbInfoCircle } from "react-icons/tb";
@@ -35,11 +36,12 @@ import PromptCard from "./_components/card";
 import SearchBar from "../_components/search-bar";
 
 export default function PromptsClientPage({ data, session }) {
-  const [filteredData, setData] = useState(data);
+  const [filteredData, setData] = useState();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [selectedPrompt, setSelectedPrompt] = useState();
   const router = useRouter();
   const api = new API(session);
+  const toast = useToast();
   const {
     formState: { isSubmitting, errors },
     handleSubmit,
@@ -74,8 +76,15 @@ export default function PromptsClientPage({ data, session }) {
       }
     }
 
+    toast({
+      description: "Prompt created",
+      position: "top",
+      colorScheme: "gray",
+    });
+
     router.refresh();
     reset();
+    setData();
     setSelectedPrompt();
     onClose();
   };
@@ -87,6 +96,13 @@ export default function PromptsClientPage({ data, session }) {
       analytics.track("Deleted Prompt", { id });
     }
 
+    toast({
+      description: "Prompt deleted",
+      position: "top",
+      colorScheme: "gray",
+    });
+
+    setData();
     router.refresh();
   };
 
@@ -145,20 +161,35 @@ export default function PromptsClientPage({ data, session }) {
       />
       <Stack spacing={4}>
         <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
-          {filteredData?.map(
-            ({ id, name, createdAt, template, input_variables }) => (
-              <PromptCard
-                key={id}
-                id={id}
-                createdAt={createdAt}
-                name={name}
-                template={template}
-                inputVariables={input_variables}
-                onDelete={(id) => handleDelete(id)}
-                onEdit={(id) => handleEdit(id)}
-              />
-            )
-          )}
+          {filteredData
+            ? filteredData?.map(
+                ({ id, name, createdAt, template, input_variables }) => (
+                  <PromptCard
+                    key={id}
+                    id={id}
+                    createdAt={createdAt}
+                    name={name}
+                    template={template}
+                    inputVariables={input_variables}
+                    onDelete={(id) => handleDelete(id)}
+                    onEdit={(id) => handleEdit(id)}
+                  />
+                )
+              )
+            : data?.map(
+                ({ id, name, createdAt, template, input_variables }) => (
+                  <PromptCard
+                    key={id}
+                    id={id}
+                    createdAt={createdAt}
+                    name={name}
+                    template={template}
+                    inputVariables={input_variables}
+                    onDelete={(id) => handleDelete(id)}
+                    onEdit={(id) => handleEdit(id)}
+                  />
+                )
+              )}
         </SimpleGrid>
       </Stack>
       <Modal

@@ -9,6 +9,7 @@ import {
   Text,
   HStack,
   SimpleGrid,
+  useToast,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { TbPlus } from "react-icons/tb";
@@ -18,7 +19,7 @@ import { analytics } from "@/lib/analytics";
 import SearchBar from "../_components/search-bar";
 
 export default function AgentsClientPage({ data, session }) {
-  const [filteredData, setData] = useState(data);
+  const [filteredData, setData] = useState();
   const router = useRouter();
   const api = new API(session);
 
@@ -29,6 +30,7 @@ export default function AgentsClientPage({ data, session }) {
       analytics.track("Deleted Agent", { id });
     }
 
+    setData();
     router.refresh();
   };
 
@@ -75,21 +77,37 @@ export default function AgentsClientPage({ data, session }) {
         onReset={() => setData(data)}
       />
       <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
-        {filteredData?.map(
-          ({ id, description, llm, createdAt, hasMemory, name, type }) => (
-            <AgentCard
-              key={id}
-              createdAt={createdAt}
-              description={description}
-              id={id}
-              name={name}
-              llm={llm}
-              type={type}
-              hasMemory={hasMemory}
-              onDelete={(id) => handleDelete(id)}
-            />
-          )
-        )}
+        {filteredData
+          ? filteredData?.map(
+              ({ id, description, llm, createdAt, hasMemory, name, type }) => (
+                <AgentCard
+                  key={id}
+                  createdAt={createdAt}
+                  description={description}
+                  id={id}
+                  name={name}
+                  llm={llm}
+                  type={type}
+                  hasMemory={hasMemory}
+                  onDelete={(id) => handleDelete(id)}
+                />
+              )
+            )
+          : data?.map(
+              ({ id, description, llm, createdAt, hasMemory, name, type }) => (
+                <AgentCard
+                  key={id}
+                  createdAt={createdAt}
+                  description={description}
+                  id={id}
+                  name={name}
+                  llm={llm}
+                  type={type}
+                  hasMemory={hasMemory}
+                  onDelete={(id) => handleDelete(id)}
+                />
+              )
+            )}
       </SimpleGrid>
     </Stack>
   );

@@ -88,7 +88,7 @@ function DocumentCard({ id, name, createdAt, type, url, onDelete }) {
 }
 
 export default function DocumentsClientPage({ data, session }) {
-  const [filteredData, setData] = useState(data);
+  const [filteredData, setData] = useState();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
   const api = new API(session);
@@ -119,6 +119,7 @@ export default function DocumentsClientPage({ data, session }) {
         colorScheme: "gray",
       });
 
+      setData();
       onClose();
       router.refresh();
     }
@@ -144,6 +145,13 @@ export default function DocumentsClientPage({ data, session }) {
       analytics.track("Created Document", { ...payload });
     }
 
+    toast({
+      description: "Document created",
+      position: "top",
+      colorScheme: "gray",
+    });
+
+    setData();
     router.refresh();
     reset();
     onClose();
@@ -156,6 +164,12 @@ export default function DocumentsClientPage({ data, session }) {
       analytics.track("Deleted Document", { id });
     }
 
+    toast({
+      description: "Document deleted",
+      position: "top",
+      colorScheme: "gray",
+    });
+    setData();
     router.refresh();
   };
 
@@ -209,17 +223,29 @@ export default function DocumentsClientPage({ data, session }) {
       />
       <Stack spacing={4}>
         <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
-          {filteredData?.map(({ id, name, createdAt, type, url }) => (
-            <DocumentCard
-              key={id}
-              id={id}
-              createdAt={createdAt}
-              name={name}
-              url={url}
-              type={type}
-              onDelete={(id) => handleDelete(id)}
-            />
-          ))}
+          {filteredData
+            ? filteredData?.map(({ id, name, createdAt, type, url }) => (
+                <DocumentCard
+                  key={id}
+                  id={id}
+                  createdAt={createdAt}
+                  name={name}
+                  url={url}
+                  type={type}
+                  onDelete={(id) => handleDelete(id)}
+                />
+              ))
+            : data?.map(({ id, name, createdAt, type, url }) => (
+                <DocumentCard
+                  key={id}
+                  id={id}
+                  createdAt={createdAt}
+                  name={name}
+                  url={url}
+                  type={type}
+                  onDelete={(id) => handleDelete(id)}
+                />
+              ))}
         </SimpleGrid>
       </Stack>
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
