@@ -20,6 +20,5 @@ groups:
           token: ${NPM_TOKEN}
         config:
           namespaceExport: SuperAgent
-          timeoutInSeconds: infinity
         github:
           repository: homanp/superagent-js
