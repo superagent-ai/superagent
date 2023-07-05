@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import {
   Alert,
   Button,
@@ -17,12 +18,6 @@ import {
   ModalCloseButton,
   Stack,
   Select,
-  Table,
-  Thead,
-  Tbody,
-  Th,
-  Tr,
-  Td,
   Text,
   useDisclosure,
   FormHelperText,
@@ -31,8 +26,10 @@ import {
   useToast,
   Box,
   Tag,
+  SimpleGrid,
   Textarea,
 } from "@chakra-ui/react";
+import dayjs from "dayjs";
 import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import { TbPlus, TbCopy, TbTrash } from "react-icons/tb";
@@ -40,8 +37,12 @@ import { useForm } from "react-hook-form";
 import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
 import { usePsychicLink } from "@psychic-api/link";
+import SearchBar from "../_components/search-bar";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-function DocumentRow({ id, name, type, url, onDelete }) {
+dayjs.extend(relativeTime);
+
+function DocumentCard({ id, name, createdAt, type, url, onDelete }) {
   const toast = useToast();
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -54,46 +55,40 @@ function DocumentRow({ id, name, type, url, onDelete }) {
   };
 
   return (
-    <Tr>
-      <Td>
-        <Text noOfLines={1}>{name}</Text>
-      </Td>
-      <Td>
-        <HStack>
-          <Text noOfLines={1}>{id}</Text>
+    <Stack borderWidth="1px" borderRadius="md" padding={4}>
+      <HStack justifyContent="space-between" flex={1}>
+        <Text noOfLines={1} as="b" flex={1}>
+          {name}
+        </Text>
+        <Text fontSize="sm" color="gray.500">
+          {dayjs(createdAt).fromNow()}
+        </Text>
+      </HStack>
+      <HStack justifyContent="space-between" justifySelf="flex-end">
+        <Tag variant="subtle" colorScheme="green" size="sm">
+          {type}
+        </Tag>
+        <HStack spacing={0}>
           <IconButton
             size="sm"
-            icon={<Icon color="orange.500" fontSize="lg" as={TbCopy} />}
+            variant="ghost"
+            icon={<Icon color="gray.500" fontSize="lg" as={TbCopy} />}
             onClick={() => copyToClipboard(id)}
           />
+          <IconButton
+            size="sm"
+            variant="ghost"
+            icon={<Icon fontSize="lg" as={TbTrash} color="gray.500" />}
+            onClick={() => onDelete(id)}
+          />
         </HStack>
-      </Td>
-      <Td>
-        {url && (
-          <HStack>
-            <Text noOfLines={1}>{url}</Text>
-            <IconButton
-              size="sm"
-              icon={<Icon color="orange.500" fontSize="lg" as={TbCopy} />}
-              onClick={() => copyToClipboard(url)}
-            />
-          </HStack>
-        )}
-      </Td>
-      <Td>{type}</Td>
-      <Td textAlign="right">
-        <IconButton
-          size="sm"
-          variant="ghost"
-          icon={<Icon fontSize="lg" as={TbTrash} />}
-          onClick={() => onDelete(id)}
-        />
-      </Td>
-    </Tr>
+      </HStack>
+    </Stack>
   );
 }
 
 export default function DocumentsClientPage({ data, session }) {
+  const [filteredData, setData] = useState(data);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
   const api = new API(session);
@@ -168,19 +163,36 @@ export default function DocumentsClientPage({ data, session }) {
     open(session.user.user.id);
   };
 
+  const handleSearch = ({ searchTerm }) => {
+    if (!searchTerm) {
+      setData(data);
+    }
+
+    const keysToFilter = ["name", "type"];
+    const filteredItems = data.filter((item) =>
+      keysToFilter.some((key) =>
+        item[key].toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+
+    setData(filteredItems);
+  };
+
   return (
-    <Stack flex={1} paddingX={12} paddingY={12} spacing={6}>
+    <Stack
+      flex={1}
+      paddingX={[6, 12]}
+      paddingY={12}
+      spacing={6}
+      overflow="auto"
+    >
       <HStack justifyContent="space-between" spacing={12}>
         <Stack>
           <Heading as="h1" fontSize="2xl">
             Documents
           </Heading>
-          <Text color="gray.400">
+          <Text color="gray.400" display={["none", "block"]}>
             Upload documents and use them to do question answering.
-          </Text>
-          <Text color="gray.400">
-            Superagent will automatically split them into chunks and ingest them
-            into a vector database for retrieval.
           </Text>
         </Stack>
         <Button
@@ -191,30 +203,24 @@ export default function DocumentsClientPage({ data, session }) {
           New document
         </Button>
       </HStack>
+      <SearchBar
+        onSearch={(values) => handleSearch(values)}
+        onReset={() => setData(data)}
+      />
       <Stack spacing={4}>
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>ID</Th>
-              <Th>URL</Th>
-              <Th>Type</Th>
-              <Th>&nbsp;</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data?.map(({ id, name, type, url }) => (
-              <DocumentRow
-                key={id}
-                id={id}
-                name={name}
-                url={url}
-                type={type}
-                onDelete={(id) => handleDelete(id)}
-              />
-            ))}
-          </Tbody>
-        </Table>
+        <SimpleGrid columns={[1, 2, 2, 4, 6]} gap={6}>
+          {filteredData?.map(({ id, name, createdAt, type, url }) => (
+            <DocumentCard
+              key={id}
+              id={id}
+              createdAt={createdAt}
+              name={name}
+              url={url}
+              type={type}
+              onDelete={(id) => handleDelete(id)}
+            />
+          ))}
+        </SimpleGrid>
       </Stack>
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />

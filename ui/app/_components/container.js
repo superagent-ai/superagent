@@ -9,9 +9,11 @@ export default function AppContainer({ children }) {
 
   return (
     <Flex
-      minHeight="100vh"
+      maxHeight="100vh"
+      overflow="hidden"
       backgroundColor={backgroundColor}
       className={inter.className}
+      flexDirection={["column", "row", "row", "row"]}
     >
       {children}
     </Flex>

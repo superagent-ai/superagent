@@ -83,7 +83,7 @@ export default function NewAgentClientPage({ session }) {
   };
 
   return (
-    <Stack paddingX={12} paddingY={12} spacing={6} flex={1}>
+    <Stack paddingX={[6, 12, 12, 12]} paddingY={12} spacing={6} flex={1}>
       <Stack>
         <Heading as="h1" fontSize="2xl">
           New agent
@@ -95,8 +95,8 @@ export default function NewAgentClientPage({ session }) {
         flex={1}
         spacing={4}
         borderRadius="lg"
-        margin={12}
-        padding={12}
+        margin={[0, 12]}
+        padding={[0, 12]}
       >
         {activeStep === "TYPE" && (
           <AgentType

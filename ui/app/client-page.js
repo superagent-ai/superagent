@@ -15,12 +15,12 @@ export default function HomeClientPage() {
   return (
     <Container maxWidth="3xl" minHeight="100vh">
       <Stack
-        paddingX={12}
-        paddingY={12}
+        paddingX={[4, 12]}
+        paddingY={[6, 12]}
         spacing={12}
         flex={1}
         height="100vh"
-        justifyContent="center"
+        justifyContent={["flex-start", "center"]}
       >
         <Alert
           variant="outline"
@@ -34,7 +34,7 @@ export default function HomeClientPage() {
         <Stack>
           <HStack>
             <Heading as="h1" fontSize="2xl">
-              Welcome to Superagent
+              Superagent
             </Heading>
             <Tag size="sm">Beta</Tag>
           </HStack>
@@ -55,7 +55,7 @@ export default function HomeClientPage() {
             transition="0.2s all"
             _hover={{ transform: "scale(1.03)" }}
           >
-            <Stack maxWidth="60%">
+            <Stack maxWidth={["full", "60%"]}>
               <Heading as="h1" fontSize="2xl">
                 Documentation
               </Heading>

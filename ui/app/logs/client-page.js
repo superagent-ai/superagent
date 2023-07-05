@@ -29,7 +29,7 @@ export default function LogsClientPage({ data, session }) {
   console.log(activeLog?.data);
 
   return (
-    <Stack flex={1} paddingTop={12} spacing={6}>
+    <Stack flex={1} paddingTop={12} spacing={6} overflow="auto">
       <Stack paddingX={12}>
         <Heading as="h1" fontSize="2xl">
           Logs

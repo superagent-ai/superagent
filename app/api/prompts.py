@@ -32,7 +32,9 @@ async def read_prompts(token=Depends(JWTBearer())):
     """List prompts endpoint"""
     decoded = decodeJWT(token)
     prompts = prisma.prompt.find_many(
-        where={"userId": decoded["userId"]}, include={"user": True}
+        where={"userId": decoded["userId"]},
+        include={"user": True},
+        order={"createdAt": "desc"},
     )
 
     return {"success": True, "data": prompts}

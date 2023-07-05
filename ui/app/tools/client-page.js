@@ -1,49 +1,56 @@
 "use client";
+import { useState } from "react";
 import {
   Button,
   Heading,
   Icon,
   Stack,
-  Table,
-  Thead,
-  Tbody,
-  Th,
-  Tr,
-  Td,
   Text,
   useDisclosure,
   IconButton,
   Tag,
+  SimpleGrid,
   HStack,
 } from "@chakra-ui/react";
+import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { TbPlus, TbTrash } from "react-icons/tb";
 import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
 import ToolsModal from "./modal";
+import SearchBar from "../_components/search-bar";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-function ToolRow({ id, name, type, onDelete }) {
+dayjs.extend(relativeTime);
+
+function ToolCard({ id, name, createdAt, type, onDelete }) {
   return (
-    <Tr>
-      <Td>
-        <Text noOfLines={1}>{name}</Text>
-      </Td>
-      <Td>
-        <Tag>{type}</Tag>
-      </Td>
-      <Td textAlign="right">
+    <Stack borderWidth="1px" borderRadius="md" padding={4}>
+      <HStack justifyContent="space-between" flex={1}>
+        <Text noOfLines={1} as="b" flex={1}>
+          {name}
+        </Text>
+        <Text fontSize="sm" color="gray.500">
+          {dayjs(createdAt).fromNow()}
+        </Text>
+      </HStack>
+      <HStack justifyContent="space-between">
+        <Tag variant="subtle" colorScheme="green" size="sm">
+          {type}
+        </Tag>
         <IconButton
           size="sm"
           variant="ghost"
-          icon={<Icon fontSize="lg" as={TbTrash} />}
+          icon={<Icon fontSize="lg" as={TbTrash} color="gray.500" />}
           onClick={() => onDelete(id)}
         />
-      </Td>
-    </Tr>
+      </HStack>
+    </Stack>
   );
 }
 
 export default function ToolsClientPage({ data, session }) {
+  const [filteredData, setData] = useState(data);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
   const api = new API(session);
@@ -69,14 +76,35 @@ export default function ToolsClientPage({ data, session }) {
     router.refresh();
   };
 
+  const handleSearch = ({ searchTerm }) => {
+    if (!searchTerm) {
+      setData(data);
+    }
+
+    const keysToFilter = ["name", "type"];
+    const filteredItems = data.filter((item) =>
+      keysToFilter.some((key) =>
+        item[key].toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+
+    setData(filteredItems);
+  };
+
   return (
-    <Stack flex={1} paddingX={12} paddingY={12} spacing={6}>
+    <Stack
+      flex={1}
+      paddingX={[6, 12]}
+      paddingY={12}
+      spacing={6}
+      overflow="auto"
+    >
       <HStack justifyContent="space-between">
         <Stack>
           <Heading as="h1" fontSize="2xl">
             Tools
           </Heading>
-          <Text color="gray.400">
+          <Text color="gray.400" display={["none", "block"]}>
             Create instances of specific tools to use with your Agents.
           </Text>
         </Stack>
@@ -88,27 +116,23 @@ export default function ToolsClientPage({ data, session }) {
           New tool
         </Button>
       </HStack>
+      <SearchBar
+        onSearch={(values) => handleSearch(values)}
+        onReset={() => setData(data)}
+      />
       <Stack spacing={4}>
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>Type</Th>
-              <Th>&nbsp;</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data?.map(({ id, name, type }) => (
-              <ToolRow
-                key={id}
-                id={id}
-                name={name}
-                type={type}
-                onDelete={(id) => handleDelete(id)}
-              />
-            ))}
-          </Tbody>
-        </Table>
+        <SimpleGrid columns={[1, 2, 2, 4, 6]} gap={6}>
+          {filteredData?.map(({ id, createdAt, name, type }) => (
+            <ToolCard
+              key={id}
+              createdAt={createdAt}
+              id={id}
+              name={name}
+              type={type}
+              onDelete={(id) => handleDelete(id)}
+            />
+          ))}
+        </SimpleGrid>
       </Stack>
       <ToolsModal
         onSubmit={onSubmit}
