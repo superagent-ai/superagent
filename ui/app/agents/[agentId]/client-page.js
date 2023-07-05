@@ -265,7 +265,7 @@ export default function AgentDetailClientPage({
   };
 
   return (
-    <Stack spacing={0} flex={1} overflow="auto">
+    <Stack spacing={0} flex={1}>
       <AgentNavbar agent={agent} hasApiTokenWarning={!apiTokens} />
       <HStack
         padding={6}
