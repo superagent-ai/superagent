@@ -36,5 +36,5 @@ export default async function Share({ searchParams }) {
     redirect("/login");
   }
 
-  return <ShareClientPage agentId={agentId} token={apiToken} />;
+  return <ShareClientPage agent={agent} token={apiToken} />;
 }

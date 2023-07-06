@@ -11,6 +11,7 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  Link,
   Stack,
   Text,
   Tag,
@@ -115,7 +116,7 @@ function Message({ message, type }) {
   );
 }
 
-export default function ShareClientPage({ agentId, token }) {
+export default function ShareClientPage({ agent, token }) {
   const toast = useToast();
   const [messages, setMessages] = useState([]);
   const fontColor = useColorModeValue("white", "white");
@@ -136,7 +137,7 @@ export default function ShareClientPage({ agentId, token }) {
     ]);
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agentId}/predict`,
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agent.id}/predict`,
       {
         method: "POST",
         headers: {
@@ -161,7 +162,7 @@ export default function ShareClientPage({ agentId, token }) {
 
   const handleCopyShareLink = () => {
     navigator.clipboard.writeText(
-      `https://app.superagent.sh/share?agentId=${agentId}&token=${token}`
+      `https://app.superagent.sh/share?agentId=${agent.id}&token=${token}`
     );
 
     toast({
@@ -216,23 +217,23 @@ export default function ShareClientPage({ agentId, token }) {
             borderWidth="1px"
             borderRadius="md"
             padding={5}
+            zIndex={99999}
           >
             <Stack spacing={4}>
               <Text color="white" fontWeight="bold" fontSize="lg">
-                Twitter agent
+                {agent.name}
               </Text>
-              <Text>You can use this agent to create twitter posts.</Text>
-              <Stack alignItems="flex-start">
-                <Text color="#777">Things you can ask me todo:</Text>
-                <HStack>
-                  <Icon as={TbArrowRight} />
-                  <Text>Create twitter post for a specific brand</Text>
-                </HStack>
-                <HStack>
-                  <Icon as={TbArrowRight} />
-                  <Text>Generate images</Text>
-                </HStack>
-              </Stack>
+              <Text color="#777">
+                This agent was created using Superagent. It leverages the{" "}
+                {agent.llm.model} large language model. Note that this agent was
+                marked as public by it's creator.
+              </Text>
+              <Text color="#777">
+                More info:{" "}
+                <Link color="orange.500" href="https://www.superagent.sh">
+                  superagent.sh
+                </Link>
+              </Text>
             </Stack>
           </Container>
         )}
