@@ -266,7 +266,11 @@ export default function AgentDetailClientPage({
 
   return (
     <Stack spacing={0} flex={1}>
-      <AgentNavbar agent={agent} hasApiTokenWarning={!apiTokens} />
+      <AgentNavbar
+        agent={agent}
+        apiToken={apiTokens[0]}
+        hasApiTokenWarning={!apiTokens}
+      />
       <HStack
         padding={6}
         justifyContent="space-between"

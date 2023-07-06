@@ -24,7 +24,8 @@ import NextLink from "next/link";
 import API from "@/lib/api";
 import { useCallback } from "react";
 
-export default function AgentNavbar({ agent, hasApiTokenWarning }) {
+export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
+  console.log(apiToken);
   const [isChecked, setIsChecked] = useState(agent.isPublic);
   const [isChangingShareStatus, setIsChangingShareStatus] = useState();
   const router = useRouter();
@@ -48,7 +49,7 @@ export default function AgentNavbar({ agent, hasApiTokenWarning }) {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(
-      `https://app.superagent.sh/share?agentId=${agent.id}`
+      `https://app.superagent.sh/share?agentId=${agent.id}&token=${apiToken?.token}`
     );
 
     toast({
