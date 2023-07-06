@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import {
+  Button,
   Box,
   Divider,
   HStack,
@@ -12,11 +13,9 @@ import {
   Text,
   Switch,
   Spinner,
-  InputGroup,
-  Input,
-  InputRightElement,
   useToast,
 } from "@chakra-ui/react";
+import crypto from "crypto";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { TbChevronLeft, TbAlertTriangle, TbCopy } from "react-icons/tb";
@@ -24,8 +23,20 @@ import NextLink from "next/link";
 import API from "@/lib/api";
 import { useCallback } from "react";
 
+const algorithm = "aes-128-cbc";
+const key = process.env.NEXT_PUBLIC_SHARABLE_KEY_SECRET;
+const iv = crypto.randomBytes(16);
+
+const encrypt = (token) => {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv(algorithm, key, iv);
+  let ciphertext = cipher.update(token, "utf8", "hex");
+  ciphertext += cipher.final("hex");
+  const encryptedData = iv.toString("hex") + ciphertext;
+  return encryptedData;
+};
+
 export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
-  console.log(apiToken);
   const [isChecked, setIsChecked] = useState(agent.isPublic);
   const [isChangingShareStatus, setIsChangingShareStatus] = useState();
   const router = useRouter();
@@ -49,7 +60,9 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(
-      `https://app.superagent.sh/share?agentId=${agent.id}&token=${apiToken?.token}`
+      `https://app.superagent.sh/share?agentId=${agent.id}&token=${encrypt(
+        apiToken?.token
+      )}`
     );
 
     toast({
@@ -92,21 +105,13 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
               {isChangingShareStatus ? (
                 <Spinner size="sm" />
               ) : isChecked ? (
-                <InputGroup>
-                  <Input
-                    color="gray.500"
-                    type="text"
-                    value={`https://app.superagent.sh/share?agentId=${agent.id}`}
-                  />
-                  <InputRightElement>
-                    <IconButton
-                      variant="ghost"
-                      size="sm"
-                      icon={<Icon as={TbCopy} fontSize="xl" />}
-                      onClick={() => copyToClipboard()}
-                    />
-                  </InputRightElement>
-                </InputGroup>
+                <Button
+                  variant="ghost"
+                  rightIcon={<Icon as={TbCopy} fontSize="xl" />}
+                  onClick={() => copyToClipboard()}
+                >
+                  Share
+                </Button>
               ) : (
                 <Text>Share:</Text>
               )}
