@@ -385,6 +385,22 @@ class API {
 
     return data;
   }
+
+  async patchTool(id, payload) {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/tools/${id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ ...payload }),
+        headers: {
+          ...this.getHeaders(),
+        },
+      }
+    );
+    const { data } = await response.json();
+
+    return data;
+  }
 }
 
 module.exports = API;

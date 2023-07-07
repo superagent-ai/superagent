@@ -10,12 +10,14 @@ import {
   IconButton,
   Tag,
   SimpleGrid,
+  Spinner,
   HStack,
   useToast,
 } from "@chakra-ui/react";
+import { useAsyncFn } from "react-use";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
-import { TbPlus, TbTrash } from "react-icons/tb";
+import { TbPencil, TbPlus, TbTrash } from "react-icons/tb";
 import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
 import ToolsModal from "./modal";
@@ -24,7 +26,19 @@ import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
 
-function ToolCard({ id, name, createdAt, type, onDelete }) {
+function ToolCard({ id, name, createdAt, type, onDelete, onEdit }) {
+  const [{ loading: isDeleting }, handleDelete] = useAsyncFn(
+    async (id) => {
+      await onDelete(id);
+
+      toast({
+        description: "Tool deleted",
+        position: "top",
+        colorScheme: "gray",
+      });
+    },
+    [onDelete]
+  );
   return (
     <Stack borderWidth="1px" borderRadius="md" padding={4}>
       <HStack justifyContent="space-between" flex={1}>
@@ -39,12 +53,26 @@ function ToolCard({ id, name, createdAt, type, onDelete }) {
         <Tag variant="subtle" colorScheme="green" size="sm">
           {type}
         </Tag>
-        <IconButton
-          size="sm"
-          variant="ghost"
-          icon={<Icon fontSize="lg" as={TbTrash} color="gray.500" />}
-          onClick={() => onDelete(id)}
-        />
+        <HStack spacing={0}>
+          <IconButton
+            size="sm"
+            variant="ghost"
+            icon={<Icon fontSize="lg" as={TbPencil} color="gray.500" />}
+            onClick={() => onEdit(id)}
+          />
+          <IconButton
+            size="sm"
+            variant="ghost"
+            icon={
+              isDeleting ? (
+                <Spinner size="sm" />
+              ) : (
+                <Icon fontSize="lg" as={TbTrash} color="gray.500" />
+              )
+            }
+            onClick={() => handleDelete(id)}
+          />
+        </HStack>
       </HStack>
     </Stack>
   );
@@ -52,24 +80,40 @@ function ToolCard({ id, name, createdAt, type, onDelete }) {
 
 export default function ToolsClientPage({ data, session }) {
   const [filteredData, setData] = useState();
+  const [selectedTool, setSelectedTool] = useState();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
   const toast = useToast();
   const api = new API(session);
 
   const onSubmit = async (values) => {
-    await api.createTool({ ...values });
+    if (selectedTool) {
+      await api.patchTool(selectedTool, { ...values });
 
-    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
-      analytics.track("Created Tool", { ...values });
+      if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+        analytics.track("Updated Tool", { ...values });
+      }
+
+      toast({
+        description: "Tool updated",
+        position: "top",
+        colorScheme: "gray",
+      });
+    } else {
+      await api.createTool({ ...values });
+
+      if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+        analytics.track("Created Tool", { ...values });
+      }
+
+      toast({
+        description: "Tool created",
+        position: "top",
+        colorScheme: "gray",
+      });
     }
 
-    toast({
-      description: "Tool created",
-      position: "top",
-      colorScheme: "gray",
-    });
-
+    setSelectedTool();
     setData();
     router.refresh();
     onClose();
@@ -82,14 +126,13 @@ export default function ToolsClientPage({ data, session }) {
       analytics.track("Deleted Tool", { id });
     }
 
-    toast({
-      description: "Tool deleted",
-      position: "top",
-      colorScheme: "gray",
-    });
-
     setData();
     router.refresh();
+  };
+
+  const handleEdit = async (toolId) => {
+    setSelectedTool(toolId);
+    onOpen();
   };
 
   const handleSearch = ({ searchTerm }) => {
@@ -157,11 +200,13 @@ export default function ToolsClientPage({ data, session }) {
                   name={name}
                   type={type}
                   onDelete={(id) => handleDelete(id)}
+                  onEdit={(id) => handleEdit(id)}
                 />
               ))}
         </SimpleGrid>
       </Stack>
       <ToolsModal
+        tool={data.find(({ id }) => id === selectedTool)}
         onSubmit={onSubmit}
         isOpen={isOpen}
         onClose={onClose}

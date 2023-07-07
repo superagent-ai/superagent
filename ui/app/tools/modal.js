@@ -30,12 +30,13 @@ import { languages } from "@codemirror/language-data";
 import { githubDark } from "@uiw/codemirror-theme-github";
 import { EditorView } from "@codemirror/view";
 import API from "@/lib/api";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const REPLICATE_ARGUMENTS = { image_dimensions: "512x512" };
 const AUTHENTICATION_ARGUMENTS = { authorization: "Bearer: " };
 
-export default function ToolsModal({ onSubmit, onClose, isOpen }) {
+export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
+  const [selectedTool, setSelectedTool] = useState();
   const {
     formState: { isSubmitting, errors },
     handleSubmit,
@@ -45,6 +46,8 @@ export default function ToolsModal({ onSubmit, onClose, isOpen }) {
     watch,
   } = useForm();
   const type = watch("type");
+  const headers = watch("headers");
+  const args = watch("arguments");
   const session = useSession();
   const [{ loading: isLoadingAgents, value: agents = [] }, getAgents] =
     useAsyncFn(async (api) => api.getAgents(), []);
@@ -66,11 +69,36 @@ export default function ToolsModal({ onSubmit, onClose, isOpen }) {
     fetchAgents();
   }, [session]);
 
+  useEffect(() => {
+    setSelectedTool(tool);
+  }, [tool]);
+
+  useEffect(() => {
+    setValue("name", selectedTool?.name);
+    setValue("description", selectedTool?.description);
+    setValue("type", selectedTool?.type);
+
+    if (selectedTool) {
+      for (const [key, value] of Object.entries(selectedTool?.metadata)) {
+        console.log(key, value);
+        setValue(key, value);
+      }
+    }
+  }, [selectedTool]);
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal
+      isOpen={isOpen}
+      onClose={() => {
+        reset();
+        setSelectedTool();
+        onClose();
+      }}
+      size="xl"
+    >
       <ModalOverlay />
       <ModalContent as="form" onSubmit={handleSubmit(onHandleSubmt)}>
-        <ModalHeader>New tool</ModalHeader>
+        <ModalHeader>{selectedTool ? "Edit tool" : "New tool"}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <Stack spacing={4}>
@@ -134,11 +162,11 @@ export default function ToolsModal({ onSubmit, onClose, isOpen }) {
                           EditorView.lineWrapping,
                         ]}
                         theme={githubDark}
-                        value={JSON.stringify(
-                          AUTHENTICATION_ARGUMENTS,
-                          null,
-                          2
-                        )}
+                        value={
+                          headers
+                            ? headers
+                            : JSON.stringify(UTHENTICATION_ARGUMENTS, null, 2)
+                        }
                       />
                     </Box>
                   </FormControl>
@@ -215,7 +243,11 @@ export default function ToolsModal({ onSubmit, onClose, isOpen }) {
                           EditorView.lineWrapping,
                         ]}
                         theme={githubDark}
-                        value={JSON.stringify(REPLICATE_ARGUMENTS, null, 2)}
+                        value={
+                          args
+                            ? args
+                            : JSON.stringify(REPLICATE_ARGUMENTS, null, 2)
+                        }
                       />
                     </Box>
                   </FormControl>
@@ -229,7 +261,7 @@ export default function ToolsModal({ onSubmit, onClose, isOpen }) {
             Cancel
           </Button>
           <Button type="submit" isLoading={isSubmitting}>
-            Create
+            {selectedTool ? "Update" : "Create"}
           </Button>
         </ModalFooter>
       </ModalContent>
