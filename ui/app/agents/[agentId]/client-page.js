@@ -410,7 +410,7 @@ export default function AgentDetailClientPage({
               paddingY={2}
               paddingX={4}
             >
-              <Text fontSize="sm">{agent.llm.model}</Text>
+              <Text fontSize="sm">{agent?.llm?.model}</Text>
             </HStack>
           </HStack>
         </Panel>

@@ -225,7 +225,7 @@ export default function ShareClientPage({ agent, token }) {
               </Text>
               <Text color="#777">
                 This agent was created using Superagent. It leverages the{" "}
-                {agent.llm.model} large language model. Note that this agent was
+                {agent?.llm?.model} large language model. Note that this agent was
                 marked as public by it's creator.
               </Text>
               <Text color="#777">
