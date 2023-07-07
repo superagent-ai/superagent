@@ -68,9 +68,7 @@ async def delete_tool(toolId: str, token=Depends(JWTBearer())):
 @router.patch("/tools/{toolId}", name="Patch tool", description="Patch a specific tool")
 async def patch_tool(toolId: str, body: dict, token=Depends(JWTBearer())):
     """Patch tool endpoint"""
-    print(body)
     body["metadata"] = json.dumps(body["metadata"])
-
     tool = prisma.tool.update(
         data=body,
         where={"id": toolId},
