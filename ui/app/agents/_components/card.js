@@ -59,6 +59,9 @@ export default function AgentCard({
           {dayjs(createdAt).fromNow()}
         </Text>
       </HStack>
+      <Text fontSize="sm" color="gray.500">
+        {`Id: ${id}`}
+      </Text>
       <Text noOfLines={1} color="gray.500">
         {description}
       </Text>

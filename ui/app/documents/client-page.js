@@ -28,6 +28,7 @@ import {
   Tag,
   SimpleGrid,
   Textarea,
+  VStack,
 } from "@chakra-ui/react";
 import dayjs from "dayjs";
 import NextImage from "next/image";
@@ -56,14 +57,17 @@ function DocumentCard({ id, name, createdAt, type, url, onDelete }) {
 
   return (
     <Stack borderWidth="1px" borderRadius="md" padding={4}>
-      <HStack justifyContent="space-between" flex={1}>
-        <Text noOfLines={1} as="b" flex={1}>
-          {name}
-        </Text>
+        <HStack justifyContent="space-between" flex={1}>
+          <Text noOfLines={1} as="b" flex={1}>
+            {name}
+          </Text>
+          <Text fontSize="sm" color="gray.500">
+            {dayjs(createdAt).fromNow()}
+          </Text>
+        </HStack>
         <Text fontSize="sm" color="gray.500">
-          {dayjs(createdAt).fromNow()}
+          {`Id: ${id}`}
         </Text>
-      </HStack>
       <HStack justifyContent="space-between" justifySelf="flex-end">
         <Tag variant="subtle" colorScheme="green" size="sm">
           {type}

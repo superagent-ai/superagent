@@ -13,6 +13,7 @@ import {
   Spinner,
   HStack,
   useToast,
+  VStack,
 } from "@chakra-ui/react";
 import { useAsyncFn } from "react-use";
 import dayjs from "dayjs";
@@ -41,14 +42,17 @@ function ToolCard({ id, name, createdAt, type, onDelete, onEdit }) {
   );
   return (
     <Stack borderWidth="1px" borderRadius="md" padding={4}>
-      <HStack justifyContent="space-between" flex={1}>
-        <Text noOfLines={1} as="b" flex={1}>
-          {name}
-        </Text>
+        <HStack justifyContent="space-between" flex={1}>
+          <Text noOfLines={1} as="b" flex={1}>
+            {name}
+          </Text>
+          <Text fontSize="sm" color="gray.500">
+            {dayjs(createdAt).fromNow()}
+          </Text>
+        </HStack>
         <Text fontSize="sm" color="gray.500">
-          {dayjs(createdAt).fromNow()}
+          {`Id: ${id}`}
         </Text>
-      </HStack>
       <HStack justifyContent="space-between">
         <Tag variant="subtle" colorScheme="green" size="sm">
           {type}
@@ -206,7 +210,7 @@ export default function ToolsClientPage({ data, session }) {
         </SimpleGrid>
       </Stack>
       <ToolsModal
-        tool={data.find(({ id }) => id === selectedTool)}
+        tool={data?.find(({ id }) => id === selectedTool)}
         onSubmit={onSubmit}
         isOpen={isOpen}
         onClose={onClose}
