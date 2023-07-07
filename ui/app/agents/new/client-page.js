@@ -83,7 +83,13 @@ export default function NewAgentClientPage({ session }) {
   };
 
   return (
-    <Stack paddingX={[6, 12, 12, 12]} paddingY={12} spacing={6} flex={1}>
+    <Stack
+      paddingX={[6, 12, 12, 12]}
+      paddingY={12}
+      spacing={6}
+      flex={1}
+      overflow="auto"
+    >
       <Stack>
         <Heading as="h1" fontSize="2xl">
           New agent
