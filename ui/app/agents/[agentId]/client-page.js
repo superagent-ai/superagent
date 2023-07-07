@@ -268,7 +268,7 @@ export default function AgentDetailClientPage({
     <Stack spacing={0} flex={1}>
       <AgentNavbar
         agent={agent}
-        apiToken={apiTokens[0]}
+        apiToken={apiTokens?.[0]}
         hasApiTokenWarning={!apiTokens}
       />
       <HStack
