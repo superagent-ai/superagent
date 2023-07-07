@@ -99,31 +99,33 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
             </HStack>
           )}
         </HStack>
-        <Box>
-          <FormControl display="flex" alignItems="center">
-            <FormLabel htmlFor="is-visible" marginBottom="0">
-              {isChangingShareStatus ? (
-                <Spinner size="sm" />
-              ) : isChecked ? (
-                <Button
-                  variant="ghost"
-                  rightIcon={<Icon as={TbCopy} fontSize="xl" />}
-                  onClick={() => copyToClipboard()}
-                >
-                  Share
-                </Button>
-              ) : (
-                <Text>Share:</Text>
-              )}
-            </FormLabel>
-            <Switch
-              isChecked={isChecked}
-              colorScheme="green"
-              id="is-visible"
-              onChange={handleShareUpdate}
-            />
-          </FormControl>
-        </Box>
+        {apiToken && (
+          <Box>
+            <FormControl display="flex" alignItems="center">
+              <FormLabel htmlFor="is-visible" marginBottom="0">
+                {isChangingShareStatus ? (
+                  <Spinner size="sm" />
+                ) : isChecked ? (
+                  <Button
+                    variant="ghost"
+                    rightIcon={<Icon as={TbCopy} fontSize="xl" />}
+                    onClick={() => copyToClipboard()}
+                  >
+                    Share
+                  </Button>
+                ) : (
+                  <Text>Share:</Text>
+                )}
+              </FormLabel>
+              <Switch
+                isChecked={isChecked}
+                colorScheme="green"
+                id="is-visible"
+                onChange={handleShareUpdate}
+              />
+            </FormControl>
+          </Box>
+        )}
       </HStack>
       <Divider />
     </>
