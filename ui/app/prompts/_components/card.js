@@ -24,6 +24,9 @@ export default function PromptCard({
           {dayjs(createdAt).fromNow()}
         </Text>
       </HStack>
+      <Text fontSize="sm" color="gray.500">
+        {`Id: ${id}`}
+      </Text>
       <Text noOfLines={2} color="gray.500">
         {template}
       </Text>
