@@ -44,7 +44,7 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
     reset,
     setValue,
     watch,
-  } = useForm();
+  } = useForm({ values: { arguments: REPLICATE_ARGUMENTS } });
   const type = watch("type");
   const headers = watch("headers");
   const args = watch("arguments");
@@ -53,7 +53,6 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
     useAsyncFn(async (api) => api.getAgents(), []);
   const onHandleSubmt = async (values) => {
     const { type, name, description, ...metadata } = values;
-
     await onSubmit({ type, name, description, metadata: { ...metadata } });
     reset();
   };
@@ -80,7 +79,6 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
 
     if (selectedTool) {
       for (const [key, value] of Object.entries(selectedTool?.metadata)) {
-        console.log(key, value);
         setValue(key, value);
       }
     }
@@ -243,11 +241,11 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
                           EditorView.lineWrapping,
                         ]}
                         theme={githubDark}
-                        value={
-                          args
-                            ? args
-                            : JSON.stringify(REPLICATE_ARGUMENTS, null, 2)
-                        }
+                        value={JSON.stringify(
+                          args || REPLICATE_ARGUMENTS,
+                          null,
+                          2
+                        )}
                       />
                     </Box>
                   </FormControl>
