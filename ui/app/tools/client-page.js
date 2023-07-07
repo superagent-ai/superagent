@@ -10,9 +10,11 @@ import {
   IconButton,
   Tag,
   SimpleGrid,
+  Spinner,
   HStack,
   useToast,
 } from "@chakra-ui/react";
+import { useAsyncFn } from "react-use";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { TbPencil, TbPlus, TbTrash } from "react-icons/tb";
@@ -25,6 +27,18 @@ import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
 
 function ToolCard({ id, name, createdAt, type, onDelete, onEdit }) {
+  const [{ loading: isDeleting }, handleDelete] = useAsyncFn(
+    async (id) => {
+      await onDelete(id);
+
+      toast({
+        description: "Tool deleted",
+        position: "top",
+        colorScheme: "gray",
+      });
+    },
+    [onDelete]
+  );
   return (
     <Stack borderWidth="1px" borderRadius="md" padding={4}>
       <HStack justifyContent="space-between" flex={1}>
@@ -49,8 +63,14 @@ function ToolCard({ id, name, createdAt, type, onDelete, onEdit }) {
           <IconButton
             size="sm"
             variant="ghost"
-            icon={<Icon fontSize="lg" as={TbTrash} color="gray.500" />}
-            onClick={() => onDelete(id)}
+            icon={
+              isDeleting ? (
+                <Spinner size="sm" />
+              ) : (
+                <Icon fontSize="lg" as={TbTrash} color="gray.500" />
+              )
+            }
+            onClick={() => handleDelete(id)}
           />
         </HStack>
       </HStack>
@@ -105,12 +125,6 @@ export default function ToolsClientPage({ data, session }) {
     if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
       analytics.track("Deleted Tool", { id });
     }
-
-    toast({
-      description: "Tool deleted",
-      position: "top",
-      colorScheme: "gray",
-    });
 
     setData();
     router.refresh();
