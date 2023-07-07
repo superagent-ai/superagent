@@ -50,7 +50,7 @@ export default function AgentCard({
   );
 
   return (
-    <Stack borderWidth="1px" borderRadius="md" padding={4}>
+    <Stack borderWidth="1px" borderRadius="md" padding={4} spacing={3}>
       <HStack justifyContent="space-between" flex={1}>
         <Text noOfLines={1} as="b" flex={1}>
           {name}
@@ -60,7 +60,7 @@ export default function AgentCard({
         </Text>
       </HStack>
       <Text noOfLines={1} color="gray.500">
-        {description}
+        {id}
       </Text>
       <HStack justifyContent="space-between">
         <NextLink passHref href={`/agents/${id}`}>
