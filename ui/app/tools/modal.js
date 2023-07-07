@@ -165,7 +165,7 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
                         value={
                           headers
                             ? headers
-                            : JSON.stringify(UTHENTICATION_ARGUMENTS, null, 2)
+                            : JSON.stringify(AUTHENTICATION_ARGUMENTS, null, 2)
                         }
                       />
                     </Box>
