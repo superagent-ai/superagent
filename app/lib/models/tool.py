@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 class Tool(BaseModel):
     name: str
     type: str
+    description: str
     authorization: dict = None
     metadata: dict = None
 

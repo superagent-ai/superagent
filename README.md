@@ -117,6 +117,7 @@ To run this project, you will need to add the following environment variables to
 
 - [Javascript](https://github.com/homanp/superagent-js)
 - [Python](https://github.com/homanp/superagent-py)
+- [Swift](https://github.com/simonweniger/superagent-swift) (community)
 
 ## 🫶 Contributions
 
