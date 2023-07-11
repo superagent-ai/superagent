@@ -165,6 +165,7 @@ class AgentBase:
         if self.llm["provider"] == "anthropic":
             return (
                 ChatAnthropic(
+                    model=self.llm["model"] or "claude-v1",
                     streaming=self.has_streaming,
                     anthropic_api_key=self._get_api_key(),
                     callbacks=[

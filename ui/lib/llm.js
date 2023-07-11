@@ -24,7 +24,7 @@ export const LLMS = [
   {
     id: "anthropic",
     name: "Anthropic",
-    models: ["claude-v1"],
+    models: ["claude-v1", "claude-2"],
   },
   {
     id: "cohere",
