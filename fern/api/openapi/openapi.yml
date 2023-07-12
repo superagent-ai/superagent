@@ -1115,7 +1115,3 @@ components:
     JWTBearer:
       type: http
       scheme: bearer
-    APIKeyHeader:
-      type: apiKey
-      in: header
-      name: X_SUPERAGENT_API_KEY
