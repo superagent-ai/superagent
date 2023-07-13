@@ -28,7 +28,8 @@ import {
   Tag,
   SimpleGrid,
   Textarea,
-  VStack,
+  Center,
+  Spinner,
 } from "@chakra-ui/react";
 import dayjs from "dayjs";
 import NextImage from "next/image";
@@ -57,17 +58,17 @@ function DocumentCard({ id, name, createdAt, type, url, onDelete }) {
 
   return (
     <Stack borderWidth="1px" borderRadius="md" padding={4}>
-        <HStack justifyContent="space-between" flex={1}>
-          <Text noOfLines={1} as="b" flex={1}>
-            {name}
-          </Text>
-          <Text fontSize="sm" color="gray.500">
-            {dayjs(createdAt).fromNow()}
-          </Text>
-        </HStack>
-        <Text fontSize="sm" color="gray.500">
-          {`Id: ${id}`}
+      <HStack justifyContent="space-between" flex={1}>
+        <Text noOfLines={1} as="b" flex={1}>
+          {name}
         </Text>
+        <Text fontSize="sm" color="gray.500">
+          {dayjs(createdAt).fromNow()}
+        </Text>
+      </HStack>
+      <Text fontSize="sm" color="gray.500">
+        {`Id: ${id}`}
+      </Text>
       <HStack justifyContent="space-between" justifySelf="flex-end">
         <Tag variant="subtle" colorScheme="green" size="sm">
           {type}
@@ -93,6 +94,7 @@ function DocumentCard({ id, name, createdAt, type, url, onDelete }) {
 
 export default function DocumentsClientPage({ data, session }) {
   const [filteredData, setData] = useState();
+  const [isCreatingDocument, setIsCreatingDocument] = useState();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
   const api = new API(session);
@@ -108,8 +110,9 @@ export default function DocumentsClientPage({ data, session }) {
   const documentType = watch("type");
   const { open, isReady, isLoading } = usePsychicLink(
     process.env.NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY,
-    (newConnection) => {
-      api.createDocument({
+    async (newConnection) => {
+      setIsCreatingDocument(true);
+      await api.createDocument({
         name: `Psychic: ${newConnection.connectorId}`,
         type: "PSYCHIC",
         metadata: {
@@ -125,6 +128,7 @@ export default function DocumentsClientPage({ data, session }) {
 
       setData();
       onClose();
+      setIsCreatingDocument();
       router.refresh();
     }
   );
@@ -258,140 +262,163 @@ export default function DocumentsClientPage({ data, session }) {
           <ModalHeader>New document</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Stack spacing={4}>
-              {shouldShowPsychic && (
-                <HStack
-                  backgroundColor="gray.800"
-                  borderRadius="md"
-                  padding={4}
-                  spacing={5}
-                  justifyContent="space-between"
-                >
-                  <HStack spacing={6}>
-                    <NextImage
-                      src="/psychic-logo.png"
-                      alt="Psychic"
-                      width="40"
-                      height="40"
-                    />
-                    <Stack spacing={0}>
-                      <HStack>
-                        <Text as="b">Psychic</Text>{" "}
-                        <Tag colorScheme="green" size="sm" borderRadius="full">
-                          New
-                        </Tag>
-                      </HStack>
-
-                      <Text fontSize="sm" noOfLines={1} color="gray.500">
-                        Connect to Google Drive, Jira, Zendesk, Dropox etc.
-                      </Text>
-                    </Stack>
-                  </HStack>
-                  <Button
-                    isDisabled={!isReady}
-                    onClick={onConnectAPI}
-                    isLoading={isLoading}
+            {isCreatingDocument && (
+              <Center>
+                <Stack alignItems="center" spacing={6} marginY="100px">
+                  <Spinner size="sm" />
+                  <Text color="gray.500">Creating document...</Text>
+                </Stack>
+              </Center>
+            )}
+            {!isCreatingDocument && (
+              <Stack spacing={4}>
+                {shouldShowPsychic && (
+                  <HStack
+                    backgroundColor="gray.800"
+                    borderRadius="md"
+                    padding={4}
+                    spacing={5}
+                    justifyContent="space-between"
                   >
-                    Connect
-                  </Button>
-                </HStack>
-              )}
-              <Stack>
-                <FormControl isRequired isInvalid={errors?.name}>
-                  <FormLabel>Name</FormLabel>
-                  <Input
-                    type="text"
-                    {...register("name", { required: true })}
-                  />
-                  <FormHelperText>A document name.</FormHelperText>
-                  {errors?.name && (
-                    <FormErrorMessage>Invalid name</FormErrorMessage>
-                  )}
-                </FormControl>
-                {documentType === "URL" ? (
-                  <FormControl isRequired isInvalid={errors?.url}>
-                    <FormLabel>URL</FormLabel>
-                    <Textarea
-                      placeholder="Comma separated list of urls..."
-                      {...register("url", { required: true })}
-                    />
-                    <FormHelperText>
-                      A comma separated list of urls.
-                    </FormHelperText>
-                    {errors?.url && (
-                      <FormErrorMessage>Invalid URL</FormErrorMessage>
-                    )}
-                  </FormControl>
-                ) : (
-                  <FormControl isRequired isInvalid={errors?.url}>
-                    <FormLabel>URL</FormLabel>
+                    <HStack spacing={6}>
+                      <NextImage
+                        src="/psychic-logo.png"
+                        alt="Psychic"
+                        width="40"
+                        height="40"
+                      />
+                      <Stack spacing={0}>
+                        <HStack>
+                          <Text as="b">Psychic</Text>{" "}
+                          <Tag
+                            colorScheme="green"
+                            size="sm"
+                            borderRadius="full"
+                          >
+                            New
+                          </Tag>
+                        </HStack>
+
+                        <Text fontSize="sm" noOfLines={1} color="gray.500">
+                          Connect to Google Drive, Jira, Zendesk, Dropox etc.
+                        </Text>
+                      </Stack>
+                    </HStack>
+                    <Button
+                      isDisabled={!isReady}
+                      onClick={onConnectAPI}
+                      isLoading={isLoading}
+                    >
+                      Connect
+                    </Button>
+                  </HStack>
+                )}
+                <Stack>
+                  <FormControl isRequired isInvalid={errors?.name}>
+                    <FormLabel>Name</FormLabel>
                     <Input
                       type="text"
-                      {...register("url", { required: true })}
+                      {...register("name", { required: true })}
                     />
-                    <FormHelperText>
-                      A publicly accessible URL to your document.
-                    </FormHelperText>
-                    {errors?.url && (
-                      <FormErrorMessage>Invalid URL</FormErrorMessage>
+                    <FormHelperText>A document name.</FormHelperText>
+                    {errors?.name && (
+                      <FormErrorMessage>Invalid name</FormErrorMessage>
                     )}
                   </FormControl>
-                )}
-
-                <FormControl isRequired isInvalid={errors?.type}>
-                  <FormLabel>Type</FormLabel>
-                  <Select {...register("type", { required: true })}>
-                    <option value="PDF">PDF</option>
-                    <option value="CSV">CSV</option>
-                    <option value="TXT">TXT</option>
-                    <option value="URL">URL</option>
-                    <option value="YOUTUBE">Youtube</option>
-                    <option value="MARKDOWN">Markdown</option>
-                  </Select>
-                  {errors?.type && (
-                    <FormErrorMessage>Invalid type</FormErrorMessage>
+                  {documentType === "URL" ? (
+                    <FormControl isRequired isInvalid={errors?.url}>
+                      <FormLabel>URL</FormLabel>
+                      <Textarea
+                        placeholder="Comma separated list of urls..."
+                        {...register("url", { required: true })}
+                      />
+                      <FormHelperText>
+                        A comma separated list of urls.
+                      </FormHelperText>
+                      {errors?.url && (
+                        <FormErrorMessage>Invalid URL</FormErrorMessage>
+                      )}
+                    </FormControl>
+                  ) : (
+                    <FormControl isRequired isInvalid={errors?.url}>
+                      <FormLabel>URL</FormLabel>
+                      <Input
+                        type="text"
+                        {...register("url", { required: true })}
+                      />
+                      <FormHelperText>
+                        A publicly accessible URL to your document.
+                      </FormHelperText>
+                      {errors?.url && (
+                        <FormErrorMessage>Invalid URL</FormErrorMessage>
+                      )}
+                    </FormControl>
                   )}
-                </FormControl>
-                {documentType === "OPENAPI" && (
-                  <FormControl>
-                    <Alert variant="solid" colorScheme="red">
-                      This feature is exeperimental, use with caution.
-                    </Alert>
-                    <Stack marginTop={4}>
-                      <FormLabel>Authorization</FormLabel>
-                      <HStack>
-                        <Select {...register("auth_type")}>
-                          <option value="header">Header</option>
-                          <option value="query">Query params</option>
-                        </Select>
-                        <Input
-                          placeholder="Header or query param key"
-                          type="text"
-                          {...register("auth_key")}
-                        />
-                      </HStack>
-                      <Box>
-                        <Input
-                          placeholder="Header or query param value"
-                          type="text"
-                          {...register("auth_value")}
-                        />
-                        <FormHelperText>
-                          If the OpenApi spec your are using requires
-                          authentication you need to use the fields above.
-                        </FormHelperText>
-                      </Box>
-                    </Stack>
+
+                  <FormControl isRequired isInvalid={errors?.type}>
+                    <FormLabel>Type</FormLabel>
+                    <Select {...register("type", { required: true })}>
+                      <option value="PDF">PDF</option>
+                      <option value="CSV">CSV</option>
+                      <option value="TXT">TXT</option>
+                      <option value="URL">URL</option>
+                      <option value="YOUTUBE">Youtube</option>
+                      <option value="MARKDOWN">Markdown</option>
+                    </Select>
+                    {errors?.type && (
+                      <FormErrorMessage>Invalid type</FormErrorMessage>
+                    )}
                   </FormControl>
-                )}
+                  {documentType === "OPENAPI" && (
+                    <FormControl>
+                      <Alert variant="solid" colorScheme="red">
+                        This feature is exeperimental, use with caution.
+                      </Alert>
+                      <Stack marginTop={4}>
+                        <FormLabel>Authorization</FormLabel>
+                        <HStack>
+                          <Select {...register("auth_type")}>
+                            <option value="header">Header</option>
+                            <option value="query">Query params</option>
+                          </Select>
+                          <Input
+                            placeholder="Header or query param key"
+                            type="text"
+                            {...register("auth_key")}
+                          />
+                        </HStack>
+                        <Box>
+                          <Input
+                            placeholder="Header or query param value"
+                            type="text"
+                            {...register("auth_value")}
+                          />
+                          <FormHelperText>
+                            If the OpenApi spec your are using requires
+                            authentication you need to use the fields above.
+                          </FormHelperText>
+                        </Box>
+                      </Stack>
+                    </FormControl>
+                  )}
+                </Stack>
               </Stack>
-            </Stack>
+            )}
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose}>
+            <Button
+              variant="ghost"
+              mr={3}
+              onClick={onClose}
+              isDisabled={isCreatingDocument}
+            >
               Cancel
             </Button>
-            <Button type="submit" isLoading={isSubmitting}>
+            <Button
+              type="submit"
+              isLoading={isSubmitting || isCreatingDocument}
+              isDisabled={isCreatingDocument}
+            >
               Create
             </Button>
           </ModalFooter>
