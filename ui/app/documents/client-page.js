@@ -57,17 +57,17 @@ function DocumentCard({ id, name, createdAt, type, url, onDelete }) {
 
   return (
     <Stack borderWidth="1px" borderRadius="md" padding={4}>
-        <HStack justifyContent="space-between" flex={1}>
-          <Text noOfLines={1} as="b" flex={1}>
-            {name}
-          </Text>
-          <Text fontSize="sm" color="gray.500">
-            {dayjs(createdAt).fromNow()}
-          </Text>
-        </HStack>
-        <Text fontSize="sm" color="gray.500">
-          {`Id: ${id}`}
+      <HStack justifyContent="space-between" flex={1}>
+        <Text noOfLines={1} as="b" flex={1}>
+          {name}
         </Text>
+        <Text fontSize="sm" color="gray.500">
+          {dayjs(createdAt).fromNow()}
+        </Text>
+      </HStack>
+      <Text fontSize="sm" color="gray.500">
+        {`Id: ${id}`}
+      </Text>
       <HStack justifyContent="space-between" justifySelf="flex-end">
         <Tag variant="subtle" colorScheme="green" size="sm">
           {type}
@@ -108,8 +108,8 @@ export default function DocumentsClientPage({ data, session }) {
   const documentType = watch("type");
   const { open, isReady, isLoading } = usePsychicLink(
     process.env.NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY,
-    (newConnection) => {
-      api.createDocument({
+    async (newConnection) => {
+      await api.createDocument({
         name: `Psychic: ${newConnection.connectorId}`,
         type: "PSYCHIC",
         metadata: {
