@@ -5,6 +5,7 @@ __pycache__
 superenv/
 .DS_Store
 /.vscode
+/.codesandbox
 
 ## GUI IGNORE
 
