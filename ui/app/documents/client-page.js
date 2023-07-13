@@ -28,7 +28,6 @@ import {
   Tag,
   SimpleGrid,
   Textarea,
-  VStack,
   Center,
   Spinner,
 } from "@chakra-ui/react";
@@ -265,8 +264,10 @@ export default function DocumentsClientPage({ data, session }) {
           <ModalBody>
             {isCreatingDocument && (
               <Center>
-                <Spinner size="sm" />
-                <Text color="gray.500">Creating document...</Text>
+                <Stack alignItems="center" spacing={6} marginY="100px">
+                  <Spinner size="sm" />
+                  <Text color="gray.500">Creating document...</Text>
+                </Stack>
               </Center>
             )}
             {!isCreatingDocument && (
