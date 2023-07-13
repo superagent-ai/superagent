@@ -23,19 +23,26 @@ import {
   Tr,
   Td,
   Text,
+  SimpleGrid,
   useDisclosure,
   FormHelperText,
   FormErrorMessage,
   IconButton,
   useToast,
 } from "@chakra-ui/react";
+import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { TbPlus, TbCopy, TbInfoCircle, TbTrash } from "react-icons/tb";
 import { useForm } from "react-hook-form";
 import { analytics } from "@/lib/analytics";
 import API from "@/lib/api";
+import SearchBar from "../_components/search-bar";
+import { useState } from "react";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-function TokenRow({ id, description, token, onDelete }) {
+dayjs.extend(relativeTime);
+
+function TokenCard({ id, description, createdAt, token, onDelete }) {
   const toast = useToast();
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -48,33 +55,38 @@ function TokenRow({ id, description, token, onDelete }) {
   };
 
   return (
-    <Tr>
-      <Td>{description}</Td>
-      <Td>
-        <HStack>
-          <Text>{token}</Text>
-          <IconButton
-            size="sm"
-            icon={<Icon color="orange.500" fontSize="lg" as={TbCopy} />}
-            onClick={() => copyToClipboard(token)}
-          />
-        </HStack>
-      </Td>
-      <Td textAlign="right">
+    <Stack borderWidth="1px" borderRadius="md" padding={4}>
+      <HStack justifyContent="space-between">
+        <Text noOfLines={1} as="b">
+          {description}
+        </Text>
+      </HStack>
+      <Text noOfLines={1} color="gray.500">
+        {token}
+      </Text>
+      <HStack spacing={0} alignSelf="flex-end">
         <IconButton
           size="sm"
           variant="ghost"
-          icon={<Icon fontSize="lg" as={TbTrash} />}
+          icon={<Icon fontSize="lg" as={TbCopy} color="gray.500" />}
+          onClick={() => copyToClipboard(token)}
+        />
+        <IconButton
+          size="sm"
+          variant="ghost"
+          icon={<Icon fontSize="lg" as={TbTrash} color="gray.500" />}
           onClick={() => onDelete(id)}
         />
-      </Td>
-    </Tr>
+      </HStack>
+    </Stack>
   );
 }
 
 export default function ApiTokensClientPage({ data, session }) {
+  const [filteredData, setData] = useState();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const router = useRouter();
+  const toast = useToast();
   const api = new API(session);
   const {
     formState: { isSubmitting, errors },
@@ -86,7 +98,17 @@ export default function ApiTokensClientPage({ data, session }) {
   const onSubmit = async (values) => {
     await api.createApiToken(values);
 
-    analytics.track("Created API Token");
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Created API Token");
+    }
+
+    toast({
+      description: "Api token created",
+      position: "top",
+      colorScheme: "gray",
+    });
+
+    setData();
     router.refresh();
     reset();
     onClose();
@@ -95,18 +117,45 @@ export default function ApiTokensClientPage({ data, session }) {
   const handleDelete = async (id) => {
     await api.deleteApiToken({ id });
 
-    analytics.track("Deleted API Token");
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Deleted API Token");
+    }
+
+    toast({
+      description: "Api token deleted",
+      position: "top",
+      colorScheme: "gray",
+    });
+
+    setData();
     router.refresh();
   };
 
+  const handleSearch = ({ searchTerm }) => {
+    if (!searchTerm) {
+      setData(data);
+    }
+
+    const keysToFilter = ["description"];
+    const filteredItems = data.filter((item) =>
+      keysToFilter.some((key) =>
+        item[key].toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+
+    setData(filteredItems);
+  };
+
   return (
-    <Stack paddingX={12} paddingY={12} spacing={6} flex={1}>
+    <Stack paddingX={[6, 12]} paddingY={12} spacing={6} flex={1}>
       <HStack justifyContent="space-between">
         <Stack flex={1}>
           <Heading as="h1" fontSize="2xl">
             Api tokens
           </Heading>
-          <Text color="gray.400">Your secret API keys are listed below.</Text>
+          <Text color="gray.400" display={["none", "block"]}>
+            Your secret API keys are listed below.
+          </Text>
         </Stack>
         <Button
           leftIcon={<Icon as={TbPlus} />}
@@ -116,27 +165,34 @@ export default function ApiTokensClientPage({ data, session }) {
           New token
         </Button>
       </HStack>
+      <SearchBar
+        onSearch={(values) => handleSearch(values)}
+        onReset={() => setData(data)}
+      />
       <Stack spacing={4}>
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>Description</Th>
-              <Th>Key</Th>
-              <Th>&nbsp;</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data?.map(({ description, id, token }) => (
-              <TokenRow
-                key={id}
-                id={id}
-                description={description}
-                token={token}
-                onDelete={(id) => handleDelete(id)}
-              />
-            ))}
-          </Tbody>
-        </Table>
+        <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
+          {filteredData
+            ? filteredData?.map(({ description, createdAt, id, token }) => (
+                <TokenCard
+                  key={id}
+                  createdAt={createdAt}
+                  id={id}
+                  description={description}
+                  token={token}
+                  onDelete={(id) => handleDelete(id)}
+                />
+              ))
+            : data?.map(({ description, createdAt, id, token }) => (
+                <TokenCard
+                  key={id}
+                  createdAt={createdAt}
+                  id={id}
+                  description={description}
+                  token={token}
+                  onDelete={(id) => handleDelete(id)}
+                />
+              ))}
+        </SimpleGrid>
       </Stack>
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />

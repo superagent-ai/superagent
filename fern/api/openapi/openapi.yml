@@ -1112,7 +1112,6 @@ components:
           title: Error Type
           type: string
   securitySchemes:
-    APIKeyHeader:
-      type: apiKey
-      in: header
-      name: X_SUPERAGENT_API_KEY
+    JWTBearer:
+      type: http
+      scheme: bearer

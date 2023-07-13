@@ -1,43 +1,70 @@
 "use client";
+import { useCallback, useState } from "react";
 import NextLink from "next/link";
 import {
   Button,
   Heading,
   Icon,
   Stack,
-  Table,
-  Thead,
-  Tbody,
-  Th,
-  Tr,
   Text,
   HStack,
+  SimpleGrid,
+  useToast,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { TbPlus } from "react-icons/tb";
 import API from "@/lib/api";
-import AgentRow from "./_components/row";
+import AgentCard from "./_components/card";
 import { analytics } from "@/lib/analytics";
+import SearchBar from "../_components/search-bar";
 
 export default function AgentsClientPage({ data, session }) {
+  const [filteredData, setData] = useState();
   const router = useRouter();
   const api = new API(session);
 
   const handleDelete = async (id) => {
     await api.deleteAgent({ id });
 
-    analytics.track("Deleted Agent", { id });
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Deleted Agent", { id });
+    }
+
+    setData();
     router.refresh();
   };
 
+  const handleSearch = ({ searchTerm }) => {
+    if (!searchTerm) {
+      setData(data);
+    }
+
+    const keysToFilter = ["name"];
+    const filteredItems = data.filter((item) =>
+      keysToFilter.some((key) =>
+        item[key].toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+
+    setData(filteredItems);
+  };
+
   return (
-    <Stack paddingX={12} paddingY={12} spacing={6} flex={1}>
+    <Stack
+      paddingX={[6, 12]}
+      paddingY={12}
+      spacing={6}
+      flex={1}
+      overflow="auto"
+    >
       <HStack justifyContent="space-between">
         <Stack>
           <Heading as="h1" fontSize="2xl">
             Agents
           </Heading>
-          <Text color="gray.400">Create and manage Agents.</Text>
+          <Text color="gray.400" display={["none", "block"]}>
+            Create and manage Agents.
+          </Text>
         </Stack>
         <NextLink passHref href="/agents/new">
           <Button leftIcon={<Icon as={TbPlus} />} alignSelf="flex-start">
@@ -45,33 +72,43 @@ export default function AgentsClientPage({ data, session }) {
           </Button>
         </NextLink>
       </HStack>
-
-      <Stack spacing={4}>
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>Name</Th>
-              <Th>ID</Th>
-              <Th>Model</Th>
-              <Th>Memory</Th>
-              <Th>&nbsp;</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data?.map(({ id, llm, hasMemory, name, type }) => (
-              <AgentRow
-                key={id}
-                id={id}
-                name={name}
-                llm={llm}
-                type={type}
-                hasMemory={hasMemory}
-                onDelete={(id) => handleDelete(id)}
-              />
-            ))}
-          </Tbody>
-        </Table>
-      </Stack>
+      <SearchBar
+        onSearch={(values) => handleSearch(values)}
+        onReset={() => setData(data)}
+      />
+      <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
+        {filteredData
+          ? filteredData?.map(
+              ({ id, description, llm, createdAt, hasMemory, name, type }) => (
+                <AgentCard
+                  key={id}
+                  createdAt={createdAt}
+                  description={description}
+                  id={id}
+                  name={name}
+                  llm={llm}
+                  type={type}
+                  hasMemory={hasMemory}
+                  onDelete={(id) => handleDelete(id)}
+                />
+              )
+            )
+          : data?.map(
+              ({ id, description, llm, createdAt, hasMemory, name, type }) => (
+                <AgentCard
+                  key={id}
+                  createdAt={createdAt}
+                  description={description}
+                  id={id}
+                  name={name}
+                  llm={llm}
+                  type={type}
+                  hasMemory={hasMemory}
+                  onDelete={(id) => handleDelete(id)}
+                />
+              )
+            )}
+      </SimpleGrid>
     </Stack>
   );
 }

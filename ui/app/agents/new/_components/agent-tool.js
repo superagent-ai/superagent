@@ -67,6 +67,31 @@ export default function AgentTool({ onSubmit, session }) {
                     <Spinner size="sm" />
                   </Center>
                 )}
+                {!isLoading && tools.length === 0 && (
+                  <Center
+                    flex={1}
+                    borderWidth="0.5px"
+                    borderRadius="md"
+                    padding={4}
+                  >
+                    <Stack alignItems="center" spacing={4}>
+                      <Stack alignItems="center">
+                        <Text as="b">Create your first tool</Text>
+                        <Text color="gray.500">
+                          You haven&apos;t configured any tools.{" "}
+                        </Text>
+                      </Stack>
+                      <NextLink passHref href="/tools">
+                        <Button
+                          leftIcon={<Icon as={TbPlus} />}
+                          variant="outline"
+                        >
+                          Create tool
+                        </Button>
+                      </NextLink>
+                    </Stack>
+                  </Center>
+                )}
                 {!isLoading &&
                   tools.map(({ id, name, type }) => (
                     <HStack
@@ -79,7 +104,13 @@ export default function AgentTool({ onSubmit, session }) {
                       paddingX={4}
                     >
                       <HStack spacing={4}>
-                        <Avatar src={TOOL_ICONS[type]} size="xs" />
+                        <Avatar
+                          src={
+                            type === "AGENT" ? "/logo.png" : TOOL_ICONS[type]
+                          }
+                          name={name}
+                          size="xs"
+                        />
                         <Text fontWeight="bold">{name}</Text>
                       </HStack>
                       <Switch
@@ -115,23 +146,6 @@ export default function AgentTool({ onSubmit, session }) {
                       <Tag size="sm">Coming soon</Tag>
                     </HStack>
                   ))}
-                {!isLoading && tools.length === 0 && (
-                  <Center flex={1} borderWidth="0.5px" borderRadius="md">
-                    <Stack alignItems="center" spacing={4}>
-                      <Text color="gray.500">
-                        You haven&apos;t configured any tools.{" "}
-                      </Text>
-                      <NextLink passHref href="/tools">
-                        <Button
-                          leftIcon={<Icon as={TbPlus} />}
-                          variant="outline"
-                        >
-                          Create tool
-                        </Button>
-                      </NextLink>
-                    </Stack>
-                  </Center>
-                )}
               </Stack>
               <Box
                 position="absolute"

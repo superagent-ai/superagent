@@ -151,7 +151,12 @@ function AgentTool({ id, tool, session }) {
       paddingY={2}
       paddingX={4}
     >
-      <Avatar src={TOOL_ICONS[tool?.type]} size="xs" borderRadius="none" />
+      <Avatar
+        src={tool?.type === "AGENT" ? "/logo.png" : TOOL_ICONS[tool?.type]}
+        size="xs"
+        name={tool?.name}
+        borderRadius="none"
+      />
       <Text fontSize="sm">{tool?.name}</Text>
       <IconButton
         size="xs"
@@ -260,8 +265,12 @@ export default function AgentDetailClientPage({
   };
 
   return (
-    <Stack spacing={0} flex={1}>
-      <AgentNavbar agent={agent} hasApiTokenWarning={!apiTokens} />
+    <Stack spacing={0} flex={1} overflow="auto">
+      <AgentNavbar
+        agent={agent}
+        apiToken={apiTokens?.[0]}
+        hasApiTokenWarning={!apiTokens}
+      />
       <HStack
         padding={6}
         justifyContent="space-between"
@@ -401,7 +410,7 @@ export default function AgentDetailClientPage({
               paddingY={2}
               paddingX={4}
             >
-              <Text fontSize="sm">{agent.llm.model}</Text>
+              <Text fontSize="sm">{agent?.llm?.model}</Text>
             </HStack>
           </HStack>
         </Panel>

@@ -64,11 +64,13 @@ export default function NewAgentClientPage({ session }) {
       });
     }
 
-    analytics.track("Created Agent", {
-      ...agent,
-      hasTools: tools.length > 0,
-      hasDocuments: documents.length > 0,
-    });
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Created Agent", {
+        ...agent,
+        hasTools: tools.length > 0,
+        hasDocuments: documents.length > 0,
+      });
+    }
 
     toast({
       description: "New agent created",
@@ -81,7 +83,13 @@ export default function NewAgentClientPage({ session }) {
   };
 
   return (
-    <Stack paddingX={12} paddingY={12} spacing={6} flex={1}>
+    <Stack
+      paddingX={[6, 12, 12, 12]}
+      paddingY={12}
+      spacing={6}
+      flex={1}
+      overflow="auto"
+    >
       <Stack>
         <Heading as="h1" fontSize="2xl">
           New agent
@@ -93,8 +101,8 @@ export default function NewAgentClientPage({ session }) {
         flex={1}
         spacing={4}
         borderRadius="lg"
-        margin={12}
-        padding={12}
+        margin={[0, 12]}
+        padding={[0, 12]}
       >
         {activeStep === "TYPE" && (
           <AgentType

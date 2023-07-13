@@ -23,10 +23,13 @@ enum AgentMemoryAuthorType {
 enum DocumentType {
   TXT
   PDF
+  CSV
   YOUTUBE
   OPENAPI
   URL
   MARKDOWN
+  FIRESTORE
+  PSYCHIC
 }
 
 enum ToolType {
@@ -34,6 +37,9 @@ enum ToolType {
   SEARCH
   WOLFRAM_ALPHA
   REPLICATE
+  ZAPIER_NLA
+  AGENT
+  OPENAPI
 }
 
 model User {
@@ -65,13 +71,14 @@ model Document {
   userId        String          @db.VarChar(255)
   user          User            @relation(fields: [userId], references: [id])
   type          DocumentType    @default(TXT)
-  url           String          @db.Text()
+  url           String?         @db.Text()
   name          String
   splitter      Json?
   createdAt     DateTime?       @default(now())
   updatedAt     DateTime?       @updatedAt
   index         Json?
   authorization Json?
+  metadata      Json?
   Agent         Agent[]
   AgentDocument AgentDocument[]
 }
@@ -90,6 +97,7 @@ model Agent {
   type          AgentType       @default(REACT)
   llm           Json            @default("{ \"provider\": \"openai-chat\", \"model\": \"gpt-3.5-turbo\" }")
   hasMemory     Boolean         @default(false)
+  isPublic      Boolean         @default(false)
   AgentMemory   AgentMemory[]
   createdAt     DateTime?       @default(now())
   updatedAt     DateTime?       @updatedAt
@@ -153,16 +161,17 @@ model AgentDocument {
 }
 
 model Tool {
-  id        String      @id @default(cuid()) @db.VarChar(255)
-  name      String
-  type      ToolType?
-  metadata  Json?
-  userId    String      @db.VarChar(255)
-  user      User        @relation(fields: [userId], references: [id])
-  createdAt DateTime?   @default(now())
-  updatedAt DateTime?   @updatedAt
-  Agent     Agent[]
-  AgentTool AgentTool[]
+  id          String      @id @default(cuid()) @db.VarChar(255)
+  name        String
+  description String?     @db.Text()
+  type        ToolType?
+  metadata    Json?
+  userId      String      @db.VarChar(255)
+  user        User        @relation(fields: [userId], references: [id])
+  createdAt   DateTime?   @default(now())
+  updatedAt   DateTime?   @updatedAt
+  Agent       Agent[]
+  AgentTool   AgentTool[]
 }
 
 model AgentTool {
