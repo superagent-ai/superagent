@@ -16,6 +16,10 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+)
 from langchain.schema import SystemMessage
 
 from app.lib.callbacks import StreamingCallbackHandler
@@ -111,6 +115,21 @@ class AgentBase:
 
     def _get_prompt(self, tools: list = None) -> Any:
         if not self.tools and not self.documents:
+            if (
+                self.llm["provider"] == "openai-chat"
+                or self.llm["provider"] == "azure-openai"
+            ):
+                system_message_prompt = SystemMessagePromptTemplate.from_template(
+                    template=self.prompt.template
+                    if self.prompt
+                    else DEFAULT_CHAT_PROMPT.template
+                )
+                return ChatPromptTemplate(
+                    input_variables=self.prompt.input_variables
+                    if self.prompt
+                    else DEFAULT_CHAT_PROMPT.input_variables,
+                    messages=[system_message_prompt],
+                )
             return (
                 PromptTemplate(
                     input_variables=self.prompt.input_variables,
@@ -133,10 +152,13 @@ class AgentBase:
         return DEFAULT_CHAT_PROMPT
 
     def _get_llm(self, has_streaming: bool = True) -> Any:
+        max_tokens = self.llm["maxTokens"] if "maxTokens" in self.llm else 1024
+        temperature = self.llm["temperature"] if "temperature" in self.llm else 0
         if self.llm["provider"] == "openai-chat":
             return (
                 ChatOpenAI(
-                    temperature=0,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
                     openai_api_key=self._get_api_key(),
                     model_name=self.llm["model"],
                     streaming=self.has_streaming,
@@ -151,15 +173,19 @@ class AgentBase:
                 )
                 if self.has_streaming and has_streaming != False
                 else ChatOpenAI(
+                    max_tokens=max_tokens,
+                    temperature=temperature,
                     model_name=self.llm["model"],
                     openai_api_key=self._get_api_key(),
-                    temperature=0,
                 )
             )
 
         if self.llm["provider"] == "openai":
             return OpenAI(
-                model_name=self.llm["model"], openai_api_key=self._get_api_key()
+                max_tokens=max_tokens,
+                temperature=temperature,
+                model_name=self.llm["model"],
+                openai_api_key=self._get_api_key(),
             )
 
         if self.llm["provider"] == "anthropic":
@@ -183,6 +209,8 @@ class AgentBase:
         if self.llm["provider"] == "cohere":
             return (
                 Cohere(
+                    max_tokens=max_tokens,
+                    temperature=temperature,
                     cohere_api_key=self._get_api_key(),
                     model=self.llm["model"],
                     callbacks=[
@@ -195,12 +223,19 @@ class AgentBase:
                     ],
                 )
                 if self.has_streaming and has_streaming != False
-                else Cohere(cohere_api_key=self._get_api_key(), model=self.llm["model"])
+                else Cohere(
+                    cohere_api_key=self._get_api_key(),
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    model=self.llm["model"],
+                )
             )
 
         if self.llm["provider"] == "azure-openai":
             return (
                 AzureChatOpenAI(
+                    max_tokens=max_tokens,
+                    temperature=temperature,
                     openai_api_key=self._get_api_key(),
                     openai_api_base=config("AZURE_API_BASE"),
                     openai_api_type=config("AZURE_API_TYPE"),
@@ -218,6 +253,8 @@ class AgentBase:
                 )
                 if self.has_streaming
                 else AzureChatOpenAI(
+                    max_tokens=max_tokens,
+                    temperature=temperature,
                     deployment_name=self.llm["model"],
                     openai_api_key=self._get_api_key(),
                     openai_api_base=config("AZURE_API_BASE"),
@@ -232,17 +269,22 @@ class AgentBase:
             )
 
         # Use ChatOpenAI as default llm in agents
-        return ChatOpenAI(temperature=0, openai_api_key=self._get_api_key())
+        return ChatOpenAI(
+            max_tokens=max_tokens,
+            temperature=temperature,
+            openai_api_key=self._get_api_key(),
+        )
 
     def _get_memory(self) -> Any:
         history = ChatMessageHistory()
-
+        memorySize = self.llm["memorySize"] if "memorySize" in self.llm else 3
         if self.has_memory:
             memories = prisma.agentmemory.find_many(
                 where={"agentId": self.id},
                 order={"createdAt": "desc"},
-                take=3,
+                take=memorySize,
             )
+            memories = memories[::-1]
 
             [
                 history.add_ai_message(memory.message)

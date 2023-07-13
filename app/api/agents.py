@@ -168,7 +168,7 @@ async def run_agent(
                 agent_base = get_agent_base()
                 agent_strategy = AgentFactory.create_agent(agent_base)
                 agent_executor = agent_strategy.get_agent()
-                result = agent_executor(agent_base.process_payload(payload=input))
+                result = agent_executor(input)
                 output = result.get("output") or result.get("result")
                 background_tasks.add_task(
                     agent_base.create_agent_memory, agentId, "AI", output
@@ -192,7 +192,7 @@ async def run_agent(
             )
             agent_strategy = AgentFactory.create_agent(agent_base)
             agent_executor = agent_strategy.get_agent()
-            result = agent_executor(agent_base.process_payload(payload=input))
+            result = agent_executor(input)
             output = result.get("output") or result.get("result")
             background_tasks.add_task(
                 agent_base.create_agent_memory,
