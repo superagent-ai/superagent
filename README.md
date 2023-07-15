@@ -111,7 +111,7 @@ To run this project, you will need to add the following environment variables to
 
 ## 💡 Examples
 
-- Runing Superagent with [NextJS](https://github.com/homanp/nextjs-Superagent)
+- Running Superagent with [NextJS](https://github.com/homanp/nextjs-Superagent)
 
 ## 👨🏽‍💻 SDKs
 
