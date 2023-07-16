@@ -58,14 +58,14 @@ export default function AppBody({ children }) {
         <Sidebar position="sticky">
           <SidebarToggleButton />
           <SidebarSection direction="row">
-          <HStack width="full" justifyContent="space-between">
+          <HStack width="full" justifyContent="space-between" paddingX="2">
             {/*<Image
               src="/logo.png"
               width="32"
               height="20"
               boxSize="7"
       /> */}
-            <Text as="strong" color="white" fontSize="xl">
+            <Text as="strong" color="white" fontSize="2xl">
               Superagent
             </Text>
           
