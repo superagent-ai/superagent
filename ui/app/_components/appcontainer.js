@@ -86,24 +86,6 @@ export default function AppBody({ children }) {
             ))}
             </NavGroup>
 
-            <NavGroup title="Tags" isCollapsible>
-              <NavItem
-                icon={<Badge bg="purple.500" boxSize="2" borderRadius="full" />}
-              >
-                <Text>Tag Title</Text>
-                <Badge opacity="0.6" borderRadius="full" bg="none" ms="auto">
-                  83
-                </Badge>
-              </NavItem>
-              <NavItem
-                icon={<Badge bg="cyan.500" boxSize="2" borderRadius="full" />}
-              >
-                <Text>Tag Title</Text>
-                <Badge opacity="0.6" borderRadius="full" bg="none" ms="auto">
-                  210
-                </Badge>
-              </NavItem>
-            </NavGroup>
           </SidebarSection>
           <SidebarSection>
           {FOOTER_MENU.filter(
