@@ -34,7 +34,7 @@ export default function LogsClientPage({ data, session }) {
         <Heading as="h1" fontSize="2xl">
           Logs
         </Heading>
-        <Text color="gray.400">Inspect the your Agnets behaviour.</Text>
+        <Text color="gray.400">Inspect the your Agents behaviour.</Text>
       </Stack>
       <HStack
         flex={1}
