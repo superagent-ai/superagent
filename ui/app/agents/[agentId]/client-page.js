@@ -56,8 +56,7 @@ function PanelHeading({ title, isLoading, onCreate, onUpdate, isUpdating }) {
     <HStack
       borderBottom="1px"
       borderColor="#333"
-      paddingLeft={6}
-      paddingRight={3}
+      paddingX={6}
       paddingY={2}
       justifyContent="space-between"
     >
@@ -265,7 +264,9 @@ export default function AgentDetailClientPage({
   };
 
   return (
-    <Stack spacing={0} flex={1} overflow="auto">
+    <Stack spacing={0} flex={1} minH="100%"
+    //overflow="auto"
+    >
       <AgentNavbar
         agent={agent}
         apiToken={apiTokens?.[0]}
@@ -304,7 +305,7 @@ export default function AgentDetailClientPage({
       <Divider />
       <HStack flex={1} alignItems="stretch" spacing={0}>
         <Panel>
-          <PanelHeading title="Output" isLoading={isSubmitting} />
+          <PanelHeading title="Output" isLoading={isSubmitting}/>
           {!isSubmitting && response?.data && (
             <Box
               paddingX={6}

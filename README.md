@@ -60,6 +60,7 @@ To get started with Superagent, follow these steps:
 3. See the setup instructions for the UI in the `ui` folder.
 
 ## 🌎 Environment variables
+
 To run this project, you will need to add the following environment variables to your .env file
 
 **Mandatory variables**
@@ -107,7 +108,6 @@ To run this project, you will need to add the following environment variables to
 `AZURE_API_BASE`
 
 `AZURE_API_VERSION`
-
 
 ## 💡 Examples
 
