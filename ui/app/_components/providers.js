@@ -1,7 +1,6 @@
 "use client";
 import { useEffect } from "react";
 import { CacheProvider } from "@chakra-ui/next-js";
-import { ChakraProvider } from "@chakra-ui/react";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { SessionProvider } from "next-auth/react";
@@ -41,7 +40,9 @@ export function Providers({ children }) {
     <SessionProvider>
       <AnalyticsProvider>
         <CacheProvider>
-          <SaasProvider theme={glassTheme}>{children}</SaasProvider>
+          <SaasProvider theme={glassTheme}>
+            {children}
+          </SaasProvider>
         </CacheProvider>
       </AnalyticsProvider>
     </SessionProvider>

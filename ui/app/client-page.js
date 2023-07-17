@@ -48,7 +48,7 @@ export default function HomeClientPage() {
         <NextLink passHref href="https://docs.superagent.sh">
           <Stack
             minHeight="200px"
-            bgGradient="linear(to-l, gray.600, gray.800)"
+            bgGradient="linear(to-l, gray.600, gray.700)"
             justifyContent="flex-end"
             padding={8}
             borderRadius="lg"

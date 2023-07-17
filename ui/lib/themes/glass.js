@@ -2,6 +2,11 @@
 import { extendTheme } from '@chakra-ui/react'
 import { theme as baseTheme } from '@saas-ui/react'
 
+const config = {
+  initialColorMode: 'dark',
+  useSystemColorMode: false,
+}
+
 const colors = {
     "black": "#101010",
     "gray": {
@@ -139,6 +144,7 @@ const colors = {
 }
 
 const glassTheme = extendTheme({
+  config,
   colors
 }, baseTheme)
 

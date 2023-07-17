@@ -3,7 +3,6 @@ import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Box,
-  Badge,
   Button,
   HStack,
   Icon,
@@ -16,7 +15,6 @@ import {
   Sidebar,
   SidebarToggleButton,
   SidebarSection,
-  NavItem,
   NavGroup,
 } from '@saas-ui/react'
 import { SUPERAGENT_VERSION } from "../../lib/constants";
@@ -36,6 +34,7 @@ function MenuLink({ label, icon, path, ...properties }) {
         width="full"
         justifyContent="flex-start"
         fontWeight="500"
+        marginY={"0.5"}
         size="md"
         variant="ghost"
         color={isActive ? "white" : "gray.400"}
