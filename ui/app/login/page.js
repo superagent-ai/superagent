@@ -10,13 +10,18 @@ import {
   Input,
   Stack,
   Tag,
+  IconButton,
   Text,
   useColorModeValue,
+  Divider,
+  Box,
+  AbsoluteCenter,
 } from "@chakra-ui/react";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { useSession } from "next-auth/react";
 import { SUPERAGENT_VERSION } from "@/lib/constants";
+import { FaGithub, FaMicrosoft, FaGoogle } from "react-icons/fa6";
 import { analytics } from "@/lib/analytics";
 
 export default function Login() {
@@ -57,6 +62,15 @@ export default function Login() {
           </Text>
           <Tag size="sm">{SUPERAGENT_VERSION}</Tag>
         </HStack>
+        <HStack spacing={4} justifyContent="center" alignItems="center">
+          <IconButton icon={<FaGithub />} />
+          <IconButton icon={<FaGoogle />} />
+          <IconButton icon={<FaMicrosoft />} />
+        </HStack>
+        <Box position="relative">
+          <Divider />
+          <AbsoluteCenter px="4">OR</AbsoluteCenter>
+        </Box>
         <Stack>
           <FormControl isInvalid={errors?.email}>
             <FormLabel>Email</FormLabel>
