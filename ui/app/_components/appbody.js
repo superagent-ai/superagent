@@ -46,7 +46,7 @@ function MenuLink({ label, icon, path, ...properties }) {
   );
 }
 
-export default function AppBody({ children }) {
+export default function AppBody({ children, session }) {
   return (
     <AppShell
       variant="fixed"
@@ -54,7 +54,7 @@ export default function AppBody({ children }) {
       maxH="100vh"
       overflow="hidden"
       sidebar={
- 
+        session &&
         <Sidebar position="sticky">
           <SidebarToggleButton />
           <SidebarSection direction="row">

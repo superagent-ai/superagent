@@ -82,8 +82,7 @@ export default function Login() {
           </FormControl>
         </Stack>
         <Button
-          colorScheme="whiteAlpha"
-          backgroundColor="white"
+          backgroundColor="primary.500"
           type="submit"
           isLoading={isSubmitting}
         >
