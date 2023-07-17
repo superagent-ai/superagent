@@ -35,7 +35,7 @@ async def read_prompts(token=Depends(JWTBearer())):
         where={"userId": decoded["userId"]},
         include={"user": True},
         order={"createdAt": "desc"},
-        take=100
+        take=100,
     )
 
     return {"success": True, "data": prompts}
