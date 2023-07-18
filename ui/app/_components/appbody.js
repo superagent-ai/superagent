@@ -55,7 +55,7 @@ export default function AppBody({ children, session }) {
       overflow="hidden"
       sidebar={
         session &&
-        <Sidebar>
+        <Sidebar backgroundColor="#131416">
           <SidebarToggleButton />
           <SidebarSection direction="row">
           <HStack width="full" justifyContent="space-between" paddingX="2">
