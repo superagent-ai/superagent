@@ -48,26 +48,20 @@ function MenuLink({ label, icon, path, ...properties }) {
 export default function AppBody({ children, session }) {
   return (
     <AppShell
+      backgroundColor="#131416"
       variant="fixed"
       minH="100vh"
       maxH="100vh"
       overflow="hidden"
       sidebar={
         session &&
-        <Sidebar>
+        <Sidebar backgroundColor="#131416">
           <SidebarToggleButton />
           <SidebarSection direction="row">
           <HStack width="full" justifyContent="space-between" paddingX="2">
-            {/*<Image
-              src="/logo.png"
-              width="32"
-              height="20"
-              boxSize="7"
-      /> */}
             <Text as="strong" color="white" fontSize="2xl">
               Superagent
             </Text>
-          
             <Spacer />
             <Tag size="sm">{SUPERAGENT_VERSION}</Tag>
             </HStack>
