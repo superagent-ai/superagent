@@ -57,6 +57,7 @@ model User {
   Prompt     Prompt[]
   Tool       Tool[]
   AgentTrace AgentTrace[]
+  Tag        Tag[]
 }
 
 model Profile {
@@ -162,13 +163,13 @@ model AgentDocument {
 }
 
 model Tag {
-  id         String      @id @default(cuid()) @db.VarChar(255)
-  name       String
-  color      String?     @default("#0e8a16")
-  userId     String      @db.VarChar(255)
-  user       User        @relation(fields: [userId], references: [id])
-  createdAt  DateTime?   @default(now())
-  updatedAt  DateTime?   @updatedAt
+  id        String    @id @default(cuid()) @db.VarChar(255)
+  name      String
+  color     String?   @default("#0e8a16")
+  userId    String    @db.VarChar(255)
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
 }
 
 model Tool {
