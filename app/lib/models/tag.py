@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
 
 class Tag(BaseModel):
     name: str
     color: str
-    
