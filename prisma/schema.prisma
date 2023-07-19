@@ -59,6 +59,7 @@ model User {
   AgentTrace AgentTrace[]
   provider   String?
   accessToken String?
+  tokenExpiration DateTime?
 }
 
 model Profile {

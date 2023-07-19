@@ -58,8 +58,28 @@ export const options = {
       session.user = token.user;
       return session;
     },
-    async signIn(obj) {
-      return true;
+    async signIn(credentials) {
+      const oauthObject = {
+        email: credentials.user.email,
+        name: credentials.user.name,
+        access_token: credentials.user.access_token,
+        provider: credentials.account.provider,
+        token_expiration: credentials.account.expires_at || 0,
+      };
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/auth/oauth/callback`,
+        {
+          method: "POST",
+          body: JSON.stringify(oauthObject),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      const { data } = await response.json();
+
+      if (response.ok && data) {
+        return true;
+      }
+      return false;
     },
     async redirect({ url, baseUrl }) {
       return baseUrl;
