@@ -57,6 +57,8 @@ model User {
   Prompt     Prompt[]
   Tool       Tool[]
   AgentTrace AgentTrace[]
+  provider   String?
+  accessToken String?
 }
 
 model Profile {

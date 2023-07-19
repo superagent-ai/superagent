@@ -17,7 +17,7 @@ import {
   Box,
   AbsoluteCenter,
 } from "@chakra-ui/react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { useSession } from "next-auth/react";
 import { SUPERAGENT_VERSION } from "@/lib/constants";
@@ -47,6 +47,16 @@ export default function Login() {
     });
   };
 
+  const handleOAuth = async (providerId) => {
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Signed In");
+    }
+    await signIn(providerId, {
+      redirect: true,
+      callbackUrl: "/",
+    });
+  };
+
   return (
     <Container
       maxWidth="md"
@@ -62,11 +72,29 @@ export default function Login() {
           </Text>
           <Tag size="sm">{SUPERAGENT_VERSION}</Tag>
         </HStack>
-        <HStack spacing={4} justifyContent="center" alignItems="center">
-          <IconButton icon={<FaGithub />} />
-          <IconButton icon={<FaGoogle />} />
-          <IconButton icon={<FaMicrosoft />} />
-        </HStack>
+        <Stack>
+          <Text fontSize="md" alignSelf="center" color={fontColor}>
+            Sign in with
+          </Text>
+          <HStack spacing={4} justifyContent="center" alignItems="center">
+            <IconButton
+              size="md"
+              onClick={() => handleOAuth("github")}
+              icon={<FaGithub />}
+            />
+            <IconButton
+              size="md"
+              onClick={() => handleOAuth("google")}
+              icon={<FaGoogle />}
+            />
+            <IconButton
+              size="md"
+              onClick={() => handleOAuth("azure-ad")}
+              icon={<FaMicrosoft />}
+            />
+          </HStack>
+        </Stack>
+
         <Box position="relative">
           <Divider />
           <AbsoluteCenter px="4">OR</AbsoluteCenter>

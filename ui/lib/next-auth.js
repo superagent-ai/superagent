@@ -47,16 +47,22 @@ export const options = {
     }),
   ],
   callbacks: {
-    async jwt({ user, token }) {
+    async jwt({ user, token, account }) {
       if (user) {
         token.user = user;
+        token.accessToken = account.access_token;
       }
-
       return token;
     },
     async session({ session, token }) {
       session.user = token.user;
       return session;
+    },
+    async signIn(obj) {
+      return true;
+    },
+    async redirect({ url, baseUrl }) {
+      return baseUrl;
     },
   },
   pages: {
