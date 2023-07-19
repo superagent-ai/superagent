@@ -13,7 +13,7 @@ import { TbArrowRight } from "react-icons/tb";
 import { SUPERAGENT_VERSION } from "@/lib/constants";
 
 export default function MainNav() {
-  const fontColor = useColorModeValue("white", "white");
+  const fontColor = useColorModeValue("white", "dark");
 
   return (
     <HStack paddingY={6} justifyContent="space-between">

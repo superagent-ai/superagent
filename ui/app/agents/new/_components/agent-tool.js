@@ -95,7 +95,7 @@ export default function AgentTool({ onSubmit, session }) {
                 {!isLoading &&
                   tools.map(({ id, name, type }) => (
                     <HStack
-                      backgroundColor="#222"
+                      //backgroundColor="#222"
                       key={id}
                       justifyContent="space-between"
                       borderRadius="md"
@@ -126,7 +126,7 @@ export default function AgentTool({ onSubmit, session }) {
                 {!isLoading &&
                   UPCOMING_TOOLS.map(({ id, name, type }) => (
                     <HStack
-                      backgroundColor="#222"
+                      //backgroundColor="#222"
                       key={id}
                       justifyContent="space-between"
                       borderRadius="md"

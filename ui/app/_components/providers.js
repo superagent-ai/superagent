@@ -6,8 +6,8 @@ import { useSession } from "next-auth/react";
 import { SessionProvider } from "next-auth/react";
 import { usePrevious } from "react-use";
 import { analytics } from "@/lib/analytics";
-import glassTheme from "@/lib/themes/glass";
 import { SaasProvider } from "@saas-ui/react";
+import { glassTheme } from '@/lib/themes/glass'
 
 function AnalyticsProvider({ children }) {
   const pathname = usePathname();

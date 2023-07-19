@@ -38,7 +38,7 @@ export default function HomeClientPage() {
             </Heading>
             <Tag size="sm">Beta</Tag>
           </HStack>
-          <Text color="gray.400">
+          <Text>
             Superagent is a platform that enables you to create, manage and run
             AI Agents in seconds. We are currently in open beta so bare with us.
             Make sure the read the documentation on how to integrate Superagent
@@ -56,10 +56,10 @@ export default function HomeClientPage() {
             _hover={{ transform: "scale(1.03)" }}
           >
             <Stack maxWidth={["full", "60%"]}>
-              <Heading as="h1" fontSize="2xl">
+              <Heading as="h1" fontSize="2xl" color="white">
                 Documentation
               </Heading>
-              <Text>
+              <Text color="white">
                 Read more on how to get started with integrating Superagent in
                 your apps here.
               </Text>
