@@ -122,6 +122,20 @@ class API {
 
     return data;
   }
+  
+  async getTags() {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/tags`,
+      {
+        headers: {
+          ...this.getHeaders(),
+        },
+      }
+    );
+    const { data } = await response.json();
+
+    return data;
+  }
 
   async getTools() {
     const response = await fetch(
@@ -232,6 +246,22 @@ class API {
 
     return data;
   }
+  
+  async createTag(payload) {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/tags`,
+      {
+        method: "POST",
+        body: JSON.stringify({ ...payload }),
+        headers: {
+          ...this.getHeaders(),
+        },
+      }
+    );
+    const { data } = await response.json();
+
+    return data;
+  }
 
   async createTool(payload) {
     const response = await fetch(
@@ -327,6 +357,21 @@ class API {
   async deletePrompt({ id }) {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/prompts/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          ...this.getHeaders(),
+        },
+      }
+    );
+    const { data } = await response.json();
+
+    return data;
+  }
+  
+  async deleteTag({ id }) {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/tags/${id}`,
       {
         method: "DELETE",
         headers: {
