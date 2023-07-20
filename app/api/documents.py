@@ -97,3 +97,18 @@ async def delete_document(documentId: str, token=Depends(JWTBearer())):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=e,
         )
+
+
+@router.patch(
+    "/documents/{documentId}",
+    name="Patch document",
+    description="Patch a specific document",
+)
+async def patch_document(documentId: str, body: dict, token=Depends(JWTBearer())):
+    """Patch document endpoint"""
+    document = prisma.document.update(
+        data=body,
+        where={"id": documentId},
+    )
+
+    return {"success": True, "data": document}

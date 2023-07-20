@@ -60,6 +60,7 @@ model User {
   provider   String?
   accessToken String?
   tokenExpiration DateTime?
+  Tag        Tag[]
 }
 
 model Profile {
@@ -94,6 +95,7 @@ model Agent {
   documentId    String?         @db.VarChar(255)
   tool          Tool?           @relation(fields: [toolId], references: [id])
   toolId        String?         @db.VarChar(255)
+  tags          Json?           @default("[]")
   prompt        Prompt?         @relation(fields: [promptId], references: [id])
   promptId      String?         @db.VarChar(255)
   name          String
@@ -161,6 +163,16 @@ model AgentDocument {
   createdAt  DateTime? @default(now())
   updatedAt  DateTime? @updatedAt
   deletedAt  DateTime?
+}
+
+model Tag {
+  id        String    @id @default(cuid()) @db.VarChar(255)
+  name      String
+  color     String?   @default("#0e8a16")
+  userId    String    @db.VarChar(255)
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
 }
 
 model Tool {
