@@ -123,6 +123,45 @@ function AgentDocument({ session, id, document }) {
   );
 }
 
+function AgentTag({ session, id, name, color }) {
+  const api = new API(session);
+  const router = useRouter();
+  const toast = useToast();
+  const [{ loading: isDeletingTag }, handleDeleteTag] = useAsyncFn(
+    async (id) => {
+      await api.deleteAgentDocument({ id });
+
+      toast({
+        description: "Tag removed",
+        position: "top",
+        colorScheme: "gray",
+      });
+      router.refresh();
+    },
+    [router, toast]
+  );
+
+  return (
+    <HStack
+      key={id}
+      backgroundColor="#222"
+      justifyContent="space-between"
+      borderRadius="md"
+      borderWidth="0.5px"
+      paddingY={2}
+      paddingX={4}
+      spacing={4}
+    >
+      <Text fontSize="sm">{name}</Text>
+      <IconButton
+        size="xs"
+        icon={isDeletingTag ? <Spinner size="xs" /> : <Icon as={TbX} />}
+        onClick={() => handleDeleteTag(id)}
+      />
+    </HStack>
+  );
+}
+
 function AgentTool({ id, tool, session }) {
   const api = new API(session);
   const router = useRouter();
@@ -435,18 +474,16 @@ export default function AgentDetailClientPage({
           </HStack>
           <Divider />
           <PanelHeading title="Tags" onCreate={onTagModalOpen} />
-          <HStack paddingX={6} paddingY={6}>
-            <HStack
-              key={id}
-              backgroundColor="#222"
-              justifyContent="space-between"
-              borderRadius="md"
-              borderWidth="0.5px"
-              paddingY={2}
-              paddingX={4}
-            >
-              <Text fontSize="sm">{agent?.llm?.model}</Text>
-            </HStack>
+          <HStack paddingX={6} paddingY={6} flexWrap="wrap" gap={2} spacing={0}>
+            {agent.tags.map(({ id, name, color }) => (
+              <AgentDocument
+                key={id}
+                id={id}
+                name={name}
+                color={color}
+                session={session}
+              />
+            ))}
           </HStack>
         </Panel>
       </HStack>
