@@ -294,16 +294,16 @@ export default function AgentDetailClientPage({
   };
   
   const onAddTag = async (tag) => {
-    console.log(tag)
     const tags = agent.tags.push(tag)
-    console.log(tags);
-    const agent_ = await api.patchAgent({...agent, tags});
-    console.log(agent_);
+    
+    await api.patchAgent({...agent, tags});
+    
     toast({
       description: "Tag added",
       position: "top",
       colorScheme: "gray",
     });
+    
     onTagModalClose();
     router.refresh();
   }
