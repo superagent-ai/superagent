@@ -35,6 +35,7 @@ import API from "@/lib/api";
 import AgentNavbar from "./_components/nav";
 import DocumentPickerModal from "@/app/documents/document-picker";
 import ToolPickerModal from "@/app/tools/tool-picker";
+import TagPickerModal from "@/app/tags/tag-picker";
 import { getPromptVariables } from "@/lib/prompts";
 
 function Panel({ children }) {
@@ -184,6 +185,11 @@ export default function AgentDetailClientPage({
     onOpen: onToolModalOpen,
   } = useDisclosure();
   const {
+    isOpen: isTagModalOpan,
+    onClose: onTagModalClose,
+    onOpen: onTagModalOpen,
+  } = useDisclosure();
+  const {
     isOpen: isDocumentModalOpen,
     onClose: onDocumentModalClose,
     onOpen: onDocumentModalOpen,
@@ -247,6 +253,19 @@ export default function AgentDetailClientPage({
     onToolModalClose();
     router.refresh();
   };
+  
+  const onAddTag = async (tag) => {
+    const tags = agent.tags.push(tag)
+    await api.patchAgent({...agent, tags});
+    
+    toast({
+      description: "Tag added",
+      position: "top",
+      colorScheme: "gray",
+    });
+    onTagModalClose();
+    router.refresh();
+  }
 
   const onCreateDocument = async (values) => {
     await api.createAgentDocument({
@@ -414,6 +433,21 @@ export default function AgentDetailClientPage({
               <Text fontSize="sm">{agent?.llm?.model}</Text>
             </HStack>
           </HStack>
+          <Divider />
+          <PanelHeading title="Tags" onCreate={onTagModalOpen} />
+          <HStack paddingX={6} paddingY={6}>
+            <HStack
+              key={id}
+              backgroundColor="#222"
+              justifyContent="space-between"
+              borderRadius="md"
+              borderWidth="0.5px"
+              paddingY={2}
+              paddingX={4}
+            >
+              <Text fontSize="sm">{agent?.llm?.model}</Text>
+            </HStack>
+          </HStack>
         </Panel>
       </HStack>
       <ToolPickerModal
@@ -428,6 +462,13 @@ export default function AgentDetailClientPage({
         onOpen={onDocumentModalOpen}
         onClose={onDocumentModalClose}
         isOpen={isDocumentModalOpen}
+        session={session}
+      />
+      <TagPickerModal
+        onSubmit={(tag) => onAddTag(tag)}
+        onOpen={onTagModalOpen}
+        onClose={onTagModalClose}
+        isOpen={isTagModalOpen}
         session={session}
       />
     </Stack>
