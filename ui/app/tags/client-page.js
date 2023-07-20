@@ -250,7 +250,6 @@ export default function TagsClientPage({ data, session }) {
                     )}
                     <FormHelperText>Should be a valid HEX code.</FormHelperText>
                   </FormControl>
-         
                 </Stack>
               </Stack>
             )}
@@ -267,7 +266,7 @@ export default function TagsClientPage({ data, session }) {
             <Button
               type="submit"
               isLoading={isSubmitting || isCreatingTag}
-              isDisabled={isCreatingTage}
+              isDisabled={isCreatingTag}
             >
               Create
             </Button>

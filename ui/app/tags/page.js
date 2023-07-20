@@ -5,7 +5,7 @@ import Api from "@/lib/api";
 
 export const metadata = {
   title: "Tags | Superagent",
-  description: "Manage your tools",
+  description: "Manage your tags",
 };
 
 export default async function Tags() {
