@@ -294,9 +294,11 @@ export default function AgentDetailClientPage({
   };
   
   const onAddTag = async (tag) => {
+    console.log(tag)
     const tags = agent.tags.push(tag)
-    await api.patchAgent({...agent, tags});
-    
+    console.log(tags);
+    const agent_ = await api.patchAgent({...agent, tags});
+    console.log(agent_);
     toast({
       description: "Tag added",
       position: "top",
