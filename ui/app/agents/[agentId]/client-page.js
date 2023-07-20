@@ -224,7 +224,7 @@ export default function AgentDetailClientPage({
     onOpen: onToolModalOpen,
   } = useDisclosure();
   const {
-    isOpen: isTagModalOpan,
+    isOpen: isTagModalOpen,
     onClose: onTagModalClose,
     onOpen: onTagModalOpen,
   } = useDisclosure();
