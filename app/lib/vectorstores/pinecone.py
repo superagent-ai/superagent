@@ -19,7 +19,7 @@ class PineconeVectorstore:
             docs, embeddings, index_name="superagent", namespace=namespace
         )
 
-    def from_existing_index(self, embeddings, namespeace):
+    def from_existing_index(self, embeddings, namespace):
         return Pinecone.from_existing_index(
-            "superagent", embedding=embeddings, namespace=namespeace
+            "superagent", embedding=embeddings, namespace=namespace
         )
