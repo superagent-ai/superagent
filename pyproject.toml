@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "superagent"
-version = "0.0.1"
+version = "0.0.36"
 description = ""
 authors = ["Ismail Pelaseyed"]
 readme = "README.md"
