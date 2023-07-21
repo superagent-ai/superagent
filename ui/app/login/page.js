@@ -30,6 +30,7 @@ export default function Login() {
     window.location.href = "/";
   }
   const fontColor = useColorModeValue("white", "white");
+  const backgroundColor = useColorModeValue("#131416", "#131416");
   const {
     formState: { isSubmitting, errors },
     register,
@@ -72,33 +73,7 @@ export default function Login() {
           </Text>
           <Tag size="sm">{SUPERAGENT_VERSION}</Tag>
         </HStack>
-        <Stack>
-          <Text fontSize="md" alignSelf="center" color={fontColor}>
-            Sign in with
-          </Text>
-          <HStack spacing={4} justifyContent="center" alignItems="center">
-            <IconButton
-              size="md"
-              onClick={() => handleOAuth("github")}
-              icon={<FaGithub />}
-            />
-            <IconButton
-              size="md"
-              onClick={() => handleOAuth("google")}
-              icon={<FaGoogle />}
-            />
-            <IconButton
-              size="md"
-              onClick={() => handleOAuth("azure-ad")}
-              icon={<FaMicrosoft />}
-            />
-          </HStack>
-        </Stack>
 
-        <Box position="relative">
-          <Divider />
-          <AbsoluteCenter px="4">OR</AbsoluteCenter>
-        </Box>
         <Stack>
           <FormControl isInvalid={errors?.email}>
             <FormLabel>Email</FormLabel>
@@ -138,6 +113,37 @@ export default function Login() {
             </Text>
           </NextLink>
         </HStack>
+        <Box position="relative">
+          <Divider />
+          <AbsoluteCenter bg={backgroundColor} px="4">
+            OR
+          </AbsoluteCenter>
+        </Box>
+        <Stack>
+          <Stack>
+            <Button
+              size="md"
+              onClick={() => handleOAuth("google")}
+              leftIcon={<FaGoogle />}
+            >
+              Sign in with Google
+            </Button>
+            <Button
+              size="md"
+              onClick={() => handleOAuth("github")}
+              leftIcon={<FaGithub />}
+            >
+              Sign in with Github
+            </Button>
+            <Button
+              size="md"
+              onClick={() => handleOAuth("azure-ad")}
+              leftIcon={<FaMicrosoft />}
+            >
+              Sign in with Microsoft
+            </Button>
+          </Stack>
+        </Stack>
       </Stack>
     </Container>
   );

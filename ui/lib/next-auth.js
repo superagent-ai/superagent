@@ -59,13 +59,7 @@ export const options = {
       return session;
     },
     async signIn(credentials) {
-      const oauthObject = {
-        email: credentials.user.email,
-        name: credentials.user.name,
-        access_token: credentials.user.access_token,
-        provider: credentials.account.provider,
-        token_expiration: credentials.account.expires_at || 0,
-      };
+      const oauthObject = credentialObjBuilder(credentials);
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/auth/oauth/callback`,
         {
@@ -90,3 +84,29 @@ export const options = {
     signOut: "/",
   },
 };
+
+export function credentialObjBuilder(credentials) {
+  const { provider } = credentials.account;
+  if (provider === "github") {
+    return {
+      email: credentials.user.email,
+      name: credentials.user.name,
+      access_token: credentials.account.access_token,
+      provider: credentials.account.provider,
+    };
+  } else if (provider === "azure-ad") {
+    return {
+      email: credentials.user.email,
+      name: credentials.user.name,
+      access_token: credentials.account.access_token,
+      provider: credentials.account.provider,
+    };
+  } else if (provider === "google") {
+    return {
+      email: credentials.user.email,
+      name: credentials.user.name,
+      access_token: credentials.account.access_token,
+      provider: credentials.account.provider,
+    };
+  }
+}

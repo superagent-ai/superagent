@@ -60,13 +60,24 @@ async def sign_up(body: SignUp):
         detail="Invalid credentials",
     )
 
-@router.post("auth/oauth/callback")
+@router.post("/auth/oauth/callback")
 async def oauth_handler(body: OAuth):
     user = prisma.user.find_first(
         where={
             "email": body.email,
         },
         include={"profile": True},
+    )
+    prisma.user.update(
+        where={
+            "email": body.email
+        },
+        data={
+            "email": body.email,
+            "provider": body.provider,
+            "name": body.name,
+            "accessToken": body.access_token
+        },
     )
     if user:
         return { "success": True, "data": user}

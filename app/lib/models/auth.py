@@ -24,4 +24,3 @@ class OAuth(BaseModel):
     name: str
     access_token: str
     provider: str
-    token_expiration: int
