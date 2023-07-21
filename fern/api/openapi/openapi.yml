@@ -1,8 +1,8 @@
 openapi: 3.0.2
 info:
   title: Superagent
-  description: Build, deploy, and manage LLM-powered agentsBring your agents to production
-  version: 0.0.34
+  description: Bring your agents to production
+  version: 0.0.7
 paths:
   /api/v1/agents:
     get:
@@ -784,6 +784,40 @@ paths:
             type: string
           name: documentId
           in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+    patch:
+      tags:
+        - Documents
+      summary: Patch Document
+      description: Patch a specific document
+      operationId: Patch_document_api_v1_documents__documentId__patch
+      parameters:
+        - required: true
+          schema:
+            title: Documentid
+            type: string
+          name: documentId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: Body
+              type: object
+        required: true
       responses:
         '200':
           description: Successful Response
