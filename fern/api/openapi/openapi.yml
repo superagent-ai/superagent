@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: Superagent
-  description: Bring your agents to production
+  description: Build, deploy, and manage LLM-powered agents
   version: 0.0.7
 paths:
   /api/v1/agents:
