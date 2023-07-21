@@ -38,6 +38,10 @@ ignoredPackages = ["unit_tests"]
 [gitHubImport]
 requiredFiles = [".replit", "replit.nix", ".config", "venv"]
 
+[[ports]]
+localPort = 3000
+externalPort = 8000
+
 [languages]
 
 [languages.python3]

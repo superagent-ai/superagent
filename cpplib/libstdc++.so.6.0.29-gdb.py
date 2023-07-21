@@ -1,3 +1,4 @@
+# flake8: noqa
 # -*- python -*-
 # Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
