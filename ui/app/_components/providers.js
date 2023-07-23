@@ -25,9 +25,16 @@ function AnalyticsProvider({ children }) {
         session.status === "authenticated" &&
         previousSession?.status !== "authenticated"
       ) {
-        analytics.identify(session.data.user.user.id, {
-          ...session.data.user.user,
-        });
+        analytics.identify(
+          session.data.user.id || session.data.user.user.id,
+          session.data.user.user
+            ? {
+                ...session.data.user.user,
+              }
+            : {
+                ...session.data.user,
+              }
+        );
       }
     }
   }, [previousSession, session, pathname, previousPathname]);
@@ -40,9 +47,7 @@ export function Providers({ children }) {
     <SessionProvider>
       <AnalyticsProvider>
         <CacheProvider>
-          <SaasProvider theme={glassTheme}>
-            {children}
-          </SaasProvider>
+          <SaasProvider theme={glassTheme}>{children}</SaasProvider>
         </CacheProvider>
       </AnalyticsProvider>
     </SessionProvider>

@@ -26,9 +26,9 @@ import { analytics } from "@/lib/analytics";
 
 export default function Login() {
   const hasOauthOptions =
-    process.env.GOOGLE_CLIENT_ID ||
-    process.env.GITHUB_CLIENT_ID ||
-    process.env.AZURE_AD_CLIENT_ID;
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+    process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID ||
+    process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID;
   const session = useSession();
   if (session.data) {
     window.location.href = "/";
@@ -127,7 +127,7 @@ export default function Login() {
         )}
         <Stack>
           <Stack>
-            {process.env.GOOGLE_CLIENT_ID && (
+            {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
               <Button
                 size="md"
                 onClick={() => handleOAuth("google")}
@@ -136,7 +136,7 @@ export default function Login() {
                 Sign in with Google
               </Button>
             )}
-            {process.env.GITHUB_CLIENT_ID && (
+            {process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID && (
               <Button
                 size="md"
                 onClick={() => handleOAuth("github")}
@@ -145,7 +145,7 @@ export default function Login() {
                 Sign in with Github
               </Button>
             )}
-            {process.env.AZURE_AD_CLIENT_ID && (
+            {process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID && (
               <Button
                 size="md"
                 onClick={() => handleOAuth("azure-ad")}
