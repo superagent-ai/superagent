@@ -124,13 +124,16 @@ function AgentDocument({ session, id, document }) {
   );
 }
 
-function AgentTag({ session, id, name, color }) {
+function AgentTag({ agent, session, id, name, color }) {
   const api = new API(session);
   const router = useRouter();
   const toast = useToast();
   const [{ loading: isDeletingTag }, handleDeleteTag] = useAsyncFn(
     async (id) => {
-      await api.deleteAgentDocument({ id });
+      const tags = agent.tags.some((tag) => tag.id !== id);
+      await api.patchAgent(agent.id, {
+        tags: tags || [],
+      });
 
       toast({
         description: "Tag removed",
@@ -139,7 +142,7 @@ function AgentTag({ session, id, name, color }) {
       });
       router.refresh();
     },
-    [router, toast]
+    [router, toast, agent]
   );
 
   return (
@@ -487,6 +490,7 @@ export default function AgentDetailClientPage({
             {agent.tags.map(({ id, name, color }) => (
               <AgentTag
                 key={id}
+                agent={agent}
                 id={id}
                 name={name}
                 color={color}
