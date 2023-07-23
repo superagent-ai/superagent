@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import {
-  Alert,
   Button,
   FormControl,
   FormLabel,
@@ -17,28 +16,23 @@ import {
   ModalBody,
   ModalCloseButton,
   Stack,
-  Select,
   Text,
   useDisclosure,
   FormHelperText,
   FormErrorMessage,
   IconButton,
   useToast,
-  Box,
   Tag,
   SimpleGrid,
-  Textarea,
   Center,
   Spinner,
 } from "@chakra-ui/react";
 import dayjs from "dayjs";
-import NextImage from "next/image";
 import { useRouter } from "next/navigation";
 import { TbPlus, TbCopy, TbTrash } from "react-icons/tb";
 import { useForm } from "react-hook-form";
 import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
-import { usePsychicLink } from "@psychic-api/link";
 import SearchBar from "../_components/search-bar";
 import relativeTime from "dayjs/plugin/relativeTime";
 
@@ -66,13 +60,10 @@ function TagCard({ id, name, createdAt, color, onDelete }) {
           {dayjs(createdAt).fromNow()}
         </Text>
       </HStack>
-      <Text fontSize="sm" color="gray.500">
-        {`Id: ${id}`}
-      </Text>
       <HStack justifyContent="space-between" justifySelf="flex-end">
-        <Tag variant="subtle" colorScheme="green" size="sm">
-          {color}
-        </Tag>
+        <Text fontSize="sm" color="gray.500">
+          {`Id: ${id}`}
+        </Text>
         <HStack spacing={0}>
           <IconButton
             size="sm"
@@ -108,7 +99,7 @@ export default function TagsClientPage({ data, session }) {
   } = useForm();
 
   const onSubmit = async (values) => {
-    await api.createTag({...values});
+    await api.createTag({ ...values, color: "green.400" });
 
     if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
       analytics.track("Created Tag", { ...values });
@@ -238,17 +229,6 @@ export default function TagsClientPage({ data, session }) {
                     {errors?.name && (
                       <FormErrorMessage>Invalid name</FormErrorMessage>
                     )}
-                  </FormControl>              
-                  <FormControl isRequired isInvalid={errors?.color}>
-                    <FormLabel>Color</FormLabel>
-                    <Input
-                      type="text"
-                      {...register("color", { required: true })}
-                    />
-                    {errors?.color && (
-                      <FormErrorMessage>Invalid color</FormErrorMessage>
-                    )}
-                    <FormHelperText>Should be a valid HEX code.</FormHelperText>
                   </FormControl>
                 </Stack>
               </Stack>
