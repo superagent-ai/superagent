@@ -19,6 +19,7 @@ import {
   useToast,
   useDisclosure,
   Textarea,
+  Circle,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { TbPlayerPlay, TbPlus, TbRefresh, TbX } from "react-icons/tb";
@@ -152,7 +153,10 @@ function AgentTag({ session, id, name, color }) {
       paddingX={4}
       spacing={4}
     >
-      <Text fontSize="sm">{name}</Text>
+      <HStack>
+        <Circle backgroundColor={color} width={2} height={2} />
+        <Text fontSize="sm">{name}</Text>
+      </HStack>
       <IconButton
         size="xs"
         icon={isDeletingTag ? <Spinner size="xs" /> : <Icon as={TbX} />}
@@ -292,22 +296,21 @@ export default function AgentDetailClientPage({
     onToolModalClose();
     router.refresh();
   };
-  
-  const onAddTag = async (tag) => {   
-    await api.patchAgent({
-      ...agent, 
-      tags: [...agent.tags, {...tag}]
+
+  const onAddTag = async (tag) => {
+    await api.patchAgent(agent.id, {
+      tags: [...agent.tags, { ...tag }],
     });
-    
+
     toast({
       description: "Tag added",
       position: "top",
       colorScheme: "gray",
     });
-    
+
     onTagModalClose();
     router.refresh();
-  }
+  };
 
   const onCreateDocument = async (values) => {
     await api.createAgentDocument({
@@ -325,8 +328,11 @@ export default function AgentDetailClientPage({
   };
 
   return (
-    <Stack spacing={0} flex={1} minH="100%"
-    //overflow="auto"
+    <Stack
+      spacing={0}
+      flex={1}
+      minH="100%"
+      //overflow="auto"
     >
       <AgentNavbar
         agent={agent}
@@ -366,7 +372,7 @@ export default function AgentDetailClientPage({
       <Divider />
       <HStack flex={1} alignItems="stretch" spacing={0}>
         <Panel>
-          <PanelHeading title="Output" isLoading={isSubmitting}/>
+          <PanelHeading title="Output" isLoading={isSubmitting} />
           {!isSubmitting && response?.data && (
             <Box
               paddingX={6}

@@ -122,7 +122,7 @@ class API {
 
     return data;
   }
-  
+
   async getTags() {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/tags`,
@@ -246,7 +246,7 @@ class API {
 
     return data;
   }
-  
+
   async createTag(payload) {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/tags`,
@@ -368,7 +368,7 @@ class API {
 
     return data;
   }
-  
+
   async deleteTag({ id }) {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/tags/${id}`,
@@ -399,15 +399,15 @@ class API {
     return data;
   }
 
-  async patchAgent(payload) {
+  async patchAgent(id, payload) {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${payload.id}`,
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${id}`,
       {
         method: "PATCH",
         headers: {
           ...this.getHeaders(),
         },
-        body: JSON.stringify({ ...payload }),
+        body: JSON.stringify(payload),
       }
     );
     const { data } = await response.json();
