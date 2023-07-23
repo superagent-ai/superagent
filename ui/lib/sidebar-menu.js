@@ -9,6 +9,7 @@ import {
   TbCodePlus,
   TbTool,
   TbListSearch,
+  TbTag,
 } from "react-icons/tb";
 import { signOut } from "next-auth/react";
 
@@ -55,6 +56,12 @@ export const MAIN_MENU = [
     label: "Logs",
     path: "/logs",
     icon: TbListSearch,
+  },
+  {
+    id: "tags",
+    label: "Tags",
+    path: "/tags",
+    icon: TbTag,
   },
   {
     id: "api_tokens",

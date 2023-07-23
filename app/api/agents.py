@@ -102,15 +102,12 @@ async def delete_agent(agentId: str, token=Depends(JWTBearer())):
 )
 async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
     """Patch agent endpoint"""
-    try:
-        prisma.agent.update(data=body, where={"id": agentId})
+    tags = body["tags"]
+    if tags or tags == []:
+        body["tags"] = json.dumps(tags)
 
-        return {"success": True, "data": None}
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=e,
-        )
+    prisma.agent.update(data=body, where={"id": agentId})
+    return {"success": True, "data": None}
 
 
 @router.post(
