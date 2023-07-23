@@ -25,6 +25,10 @@ import { FaGithub, FaMicrosoft, FaGoogle } from "react-icons/fa6";
 import { analytics } from "@/lib/analytics";
 
 export default function Login() {
+  const hasOauthOptions =
+    process.env.GOOGLE_CLIENT_ID ||
+    process.env.GITHUB_CLIENT_ID ||
+    process.env.AZURE_AD_CLIENT_ID;
   const session = useSession();
   if (session.data) {
     window.location.href = "/";
@@ -113,35 +117,43 @@ export default function Login() {
             </Text>
           </NextLink>
         </HStack>
-        <Box position="relative">
-          <Divider />
-          <AbsoluteCenter bg={backgroundColor} px="4">
-            OR
-          </AbsoluteCenter>
-        </Box>
+        {hasOauthOptions && (
+          <Box position="relative">
+            <Divider />
+            <AbsoluteCenter bg={backgroundColor} px="4">
+              OR
+            </AbsoluteCenter>
+          </Box>
+        )}
         <Stack>
           <Stack>
-            <Button
-              size="md"
-              onClick={() => handleOAuth("google")}
-              leftIcon={<FaGoogle />}
-            >
-              Sign in with Google
-            </Button>
-            <Button
-              size="md"
-              onClick={() => handleOAuth("github")}
-              leftIcon={<FaGithub />}
-            >
-              Sign in with Github
-            </Button>
-            <Button
-              size="md"
-              onClick={() => handleOAuth("azure-ad")}
-              leftIcon={<FaMicrosoft />}
-            >
-              Sign in with Microsoft
-            </Button>
+            {process.env.GOOGLE_CLIENT_ID && (
+              <Button
+                size="md"
+                onClick={() => handleOAuth("google")}
+                leftIcon={<FaGoogle />}
+              >
+                Sign in with Google
+              </Button>
+            )}
+            {process.env.GITHUB_CLIENT_ID && (
+              <Button
+                size="md"
+                onClick={() => handleOAuth("github")}
+                leftIcon={<FaGithub />}
+              >
+                Sign in with Github
+              </Button>
+            )}
+            {process.env.AZURE_AD_CLIENT_ID && (
+              <Button
+                size="md"
+                onClick={() => handleOAuth("azure-ad")}
+                leftIcon={<FaMicrosoft />}
+              >
+                Sign in with Microsoft
+              </Button>
+            )}
           </Stack>
         </Stack>
       </Stack>
