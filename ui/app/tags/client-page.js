@@ -225,7 +225,7 @@ export default function TagsClientPage({ data, session }) {
                       type="text"
                       {...register("name", { required: true })}
                     />
-                    <FormHelperText>A document name.</FormHelperText>
+                    <FormHelperText>A tag name.</FormHelperText>
                     {errors?.name && (
                       <FormErrorMessage>Invalid name</FormErrorMessage>
                     )}
