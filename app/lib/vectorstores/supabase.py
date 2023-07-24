@@ -6,6 +6,7 @@ supabase_url = os.environ['SUPABASE_URL']
 supabase_key = os.environ['SUPABASE_KEY']
 
 supabase_client = create_client(supabase_url, supabase_key)
+supabase_table = "superagent"
 
 class SupabaseVectorStore:
 
@@ -16,7 +17,7 @@ class SupabaseVectorStore:
         return SupabaseVectorStore.from_texts(
             texts=docs,
             embeddings=embeddings,
-            table_name=table_name,
+            table_name=supabase_table,
             client=supabase_client
         )
     
@@ -24,5 +25,5 @@ class SupabaseVectorStore:
          return SupabaseVectorStore(
             client=supabase_client,
             embedding=embeddings,
-            table_name=table_name
+            table_name=supabase_table
         )
