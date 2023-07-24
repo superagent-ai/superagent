@@ -10,7 +10,14 @@ router = APIRouter()
 @router.post("/tags", name="Create a tag", description="Create a new tag")
 async def create_tag(body: Tag, token=Depends(JWTBearer())):
     """Create tag endpoint"""
-    decoded = decodeJWT(token)
+    is_oauth_token = False
+    if type(token) != str and token["isOauthToken"] == True:
+        is_oauth_token = True
+
+    if is_oauth_token != True:
+        decoded = decodeJWT(token)
+    else:
+        decoded = token
 
     tag = prisma.tag.create(
         {
@@ -26,7 +33,14 @@ async def create_tag(body: Tag, token=Depends(JWTBearer())):
 @router.get("/tags", name="List tags", description="List all tags")
 async def read_tags(token=Depends(JWTBearer())):
     """List tags endpoint"""
-    decoded = decodeJWT(token)
+    is_oauth_token = False
+    if type(token) != str and token["isOauthToken"] == True:
+        is_oauth_token = True
+
+    if is_oauth_token != True:
+        decoded = decodeJWT(token)
+    else:
+        decoded = token
     tags = prisma.tag.find_many(
         where={"userId": decoded["userId"]},
         order={"createdAt": "desc"},

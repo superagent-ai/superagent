@@ -8,7 +8,14 @@ router = APIRouter()
 
 @router.get("/users/me")
 async def read_user_me(token=Depends(JWTBearer())):
-    decoded = decodeJWT(token)
+    is_oauth_token = False
+    if type(token) != str and token["isOauthToken"] == True:
+        is_oauth_token = True
+
+    if is_oauth_token != True:
+        decoded = decodeJWT(token)
+    else:
+        decoded = token
 
     if "userId" in decoded:
         userId = decoded["userId"]

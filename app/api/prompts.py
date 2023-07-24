@@ -12,7 +12,14 @@ router = APIRouter()
 @router.post("/prompts", name="Create a prompt", description="Create a new prompt")
 async def create_prompt(body: Prompt, token=Depends(JWTBearer())):
     """Create prompt endpoint"""
-    decoded = decodeJWT(token)
+    is_oauth_token = False
+    if type(token) != str and token["isOauthToken"] == True:
+        is_oauth_token = True
+
+    if is_oauth_token != True:
+        decoded = decodeJWT(token)
+    else:
+        decoded = token
 
     prompt = prisma.prompt.create(
         {
@@ -30,7 +37,14 @@ async def create_prompt(body: Prompt, token=Depends(JWTBearer())):
 @router.get("/prompts", name="List prompts", description="List all prompts")
 async def read_prompts(token=Depends(JWTBearer())):
     """List prompts endpoint"""
-    decoded = decodeJWT(token)
+    is_oauth_token = False
+    if type(token) != str and token["isOauthToken"] == True:
+        is_oauth_token = True
+
+    if is_oauth_token != True:
+        decoded = decodeJWT(token)
+    else:
+        decoded = token
     prompts = prisma.prompt.find_many(
         where={"userId": decoded["userId"]},
         include={"user": True},

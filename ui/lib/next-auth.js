@@ -56,6 +56,7 @@ export const options = {
     },
     async session({ session, token }) {
       session.user = token.user;
+      session.oauthToken = token.accessToken;
       return session;
     },
     async signIn(credentials) {
@@ -83,9 +84,12 @@ export const options = {
       }
 
       const { data } = await response.json();
-
       if (response.ok && data) {
         return true;
+        return {
+          user: data,
+          token: data.token,
+        };
       }
 
       return false;
