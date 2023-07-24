@@ -21,5 +21,7 @@ groups:
           repository: homanp/superagent-js
         config:
           namespaceExport: SuperAgent
+  prod-docs:
     docs:
       domain: superagent.docs.buildwithfern.com
+    generators: []

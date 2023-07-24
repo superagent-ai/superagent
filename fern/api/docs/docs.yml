@@ -10,5 +10,5 @@ navigation:
         path: ./concepts.mdx
   - api: API Reference
 colors:
-  accentPrimary: '#e2742b'
+  accentPrimary: "#e2742b"
 favicon: ./favicon.png
