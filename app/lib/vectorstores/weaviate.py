@@ -23,9 +23,10 @@ class WeaviateVectorStore:
            client=weaviate_client,
         )
 
-    def from_existing_index(self, embeddings, index_name):
+    def from_existing_index(self, embeddings, index_name, namespace):
          return Weaviate.from_existing_index(
             index_name=weaviate_index,
             embedding=embeddings,
+            namespace=namespace,
             client=weaviate_client
          )
