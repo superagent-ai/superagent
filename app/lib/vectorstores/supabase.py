@@ -1,9 +1,10 @@
 import os
+from decouple import config
 from supabase import create_client
 from langchain.vectorstores.supabase import SupabaseVectorStore
 
-supabase_url = os.environ['SUPABASE_URL']
-supabase_key = os.environ['SUPABASE_KEY']
+supabase_url = config("SUPABASE_URL")
+supabase_key = config("SUPABASE_KEY")
 
 supabase_client = create_client(supabase_url, supabase_key)
 supabase_table = "superagent"
