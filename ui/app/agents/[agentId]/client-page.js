@@ -19,6 +19,7 @@ import {
   useToast,
   useDisclosure,
   Textarea,
+  Circle,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { TbPlayerPlay, TbPlus, TbRefresh, TbX } from "react-icons/tb";
@@ -35,6 +36,7 @@ import API from "@/lib/api";
 import AgentNavbar from "./_components/nav";
 import DocumentPickerModal from "@/app/documents/document-picker";
 import ToolPickerModal from "@/app/tools/tool-picker";
+import TagPickerModal from "@/app/tags/tag-picker";
 import { getPromptVariables } from "@/lib/prompts";
 
 function Panel({ children }) {
@@ -56,8 +58,7 @@ function PanelHeading({ title, isLoading, onCreate, onUpdate, isUpdating }) {
     <HStack
       borderBottom="1px"
       borderColor="#333"
-      paddingLeft={6}
-      paddingRight={3}
+      paddingX={6}
       paddingY={2}
       justifyContent="space-between"
     >
@@ -118,6 +119,51 @@ function AgentDocument({ session, id, document }) {
         size="xs"
         icon={isDeletingDocument ? <Spinner size="xs" /> : <Icon as={TbX} />}
         onClick={() => handleDeleteDocument(id)}
+      />
+    </HStack>
+  );
+}
+
+function AgentTag({ agent, session, id, name, color }) {
+  const api = new API(session);
+  const router = useRouter();
+  const toast = useToast();
+  const [{ loading: isDeletingTag }, handleDeleteTag] = useAsyncFn(
+    async (id) => {
+      const tags = agent.tags.some((tag) => tag.id !== id);
+      await api.patchAgent(agent.id, {
+        tags: tags || [],
+      });
+
+      toast({
+        description: "Tag removed",
+        position: "top",
+        colorScheme: "gray",
+      });
+      router.refresh();
+    },
+    [router, toast, agent]
+  );
+
+  return (
+    <HStack
+      key={id}
+      backgroundColor="#222"
+      justifyContent="space-between"
+      borderRadius="md"
+      borderWidth="0.5px"
+      paddingY={2}
+      paddingX={4}
+      spacing={4}
+    >
+      <HStack>
+        <Circle backgroundColor={color} width={2} height={2} />
+        <Text fontSize="sm">{name}</Text>
+      </HStack>
+      <IconButton
+        size="xs"
+        icon={isDeletingTag ? <Spinner size="xs" /> : <Icon as={TbX} />}
+        onClick={() => handleDeleteTag(id)}
       />
     </HStack>
   );
@@ -185,6 +231,11 @@ export default function AgentDetailClientPage({
     onOpen: onToolModalOpen,
   } = useDisclosure();
   const {
+    isOpen: isTagModalOpen,
+    onClose: onTagModalClose,
+    onOpen: onTagModalOpen,
+  } = useDisclosure();
+  const {
     isOpen: isDocumentModalOpen,
     onClose: onDocumentModalClose,
     onOpen: onDocumentModalOpen,
@@ -249,6 +300,21 @@ export default function AgentDetailClientPage({
     router.refresh();
   };
 
+  const onAddTag = async (tag) => {
+    await api.patchAgent(agent.id, {
+      tags: [...agent.tags, { ...tag }],
+    });
+
+    toast({
+      description: "Tag added",
+      position: "top",
+      colorScheme: "gray",
+    });
+
+    onTagModalClose();
+    router.refresh();
+  };
+
   const onCreateDocument = async (values) => {
     await api.createAgentDocument({
       agentId: id,
@@ -265,7 +331,12 @@ export default function AgentDetailClientPage({
   };
 
   return (
-    <Stack spacing={0} flex={1} overflow="auto">
+    <Stack
+      spacing={0}
+      flex={1}
+      minH="100%"
+      //overflow="auto"
+    >
       <AgentNavbar
         agent={agent}
         apiToken={apiTokens?.[0]}
@@ -413,6 +484,20 @@ export default function AgentDetailClientPage({
               <Text fontSize="sm">{agent?.llm?.model}</Text>
             </HStack>
           </HStack>
+          <Divider />
+          <PanelHeading title="Tags" onCreate={onTagModalOpen} />
+          <HStack paddingX={6} paddingY={6} flexWrap="wrap" gap={2} spacing={0}>
+            {agent.tags.map(({ id, name, color }) => (
+              <AgentTag
+                key={id}
+                agent={agent}
+                id={id}
+                name={name}
+                color={color}
+                session={session}
+              />
+            ))}
+          </HStack>
         </Panel>
       </HStack>
       <ToolPickerModal
@@ -427,6 +512,13 @@ export default function AgentDetailClientPage({
         onOpen={onDocumentModalOpen}
         onClose={onDocumentModalClose}
         isOpen={isDocumentModalOpen}
+        session={session}
+      />
+      <TagPickerModal
+        onSubmit={(tag) => onAddTag(tag)}
+        onOpen={onTagModalOpen}
+        onClose={onTagModalClose}
+        isOpen={isTagModalOpen}
         session={session}
       />
     </Stack>

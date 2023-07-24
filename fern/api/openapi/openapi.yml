@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: Build, deploy, and manage LLM-powered agents
-  version: 0.0.23
+  version: 0.0.35
 paths:
   /api/v1/agents:
     get:
@@ -168,6 +168,7 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - APIKeyHeader: []
+        - APIKeyHeader: []
   /api/v1/agent-documents:
     get:
       tags:
@@ -264,6 +265,136 @@ paths:
             type: string
           name: agentDocumentId
           in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/tags:
+    get:
+      tags:
+        - Tags
+      summary: List Tags
+      description: List all tags
+      operationId: List_tags_api_v1_tags_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - JWTBearer: []
+    post:
+      tags:
+        - Tags
+      summary: Create A Tag
+      description: Create a new tag
+      operationId: Create_a_tag_api_v1_tags_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Tag'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/tags/{tagId}:
+    get:
+      tags:
+        - Tags
+      summary: Get Tag
+      description: Get a specific tag
+      operationId: Get_tag_api_v1_tags__tagId__get
+      parameters:
+        - required: true
+          schema:
+            title: Tagid
+            type: string
+          name: tagId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+    delete:
+      tags:
+        - Tags
+      summary: Delete Tag
+      description: Delete a specific tag
+      operationId: Delete_tag_api_v1_tags__tagId__delete
+      parameters:
+        - required: true
+          schema:
+            title: Tagid
+            type: string
+          name: tagId
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+    patch:
+      tags:
+        - Tags
+      summary: Patch Tag
+      description: Patch a specific tag
+      operationId: Patch_tag_api_v1_tags__tagId__patch
+      parameters:
+        - required: true
+          schema:
+            title: Tagid
+            type: string
+          name: tagId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: Body
+              type: object
+        required: true
       responses:
         '200':
           description: Successful Response
@@ -667,6 +798,40 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - JWTBearer: []
+    patch:
+      tags:
+        - Documents
+      summary: Patch Document
+      description: Patch a specific document
+      operationId: Patch_document_api_v1_documents__documentId__patch
+      parameters:
+        - required: true
+          schema:
+            title: Documentid
+            type: string
+          name: documentId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: Body
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
   /api/v1/prompts:
     get:
       tags:
@@ -893,6 +1058,40 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - JWTBearer: []
+    patch:
+      tags:
+        - Tools
+      summary: Patch Tool
+      description: Patch a specific tool
+      operationId: Patch_tool_api_v1_tools__toolId__patch
+      parameters:
+        - required: true
+          schema:
+            title: Toolid
+            type: string
+          name: toolId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: Body
+              type: object
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
   /api/v1/traces:
     get:
       tags:
@@ -972,7 +1171,6 @@ components:
       title: Document
       required:
         - type
-        - url
         - name
       type: object
       properties:
@@ -987,6 +1185,9 @@ components:
           type: string
         authorization:
           title: Authorization
+          type: object
+        metadata:
+          title: Metadata
           type: object
         from_page:
           title: From Page
@@ -1071,11 +1272,25 @@ components:
         metadata:
           title: Metadata
           type: object
+    Tag:
+      title: Tag
+      required:
+        - name
+        - color
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        color:
+          title: Color
+          type: string
     Tool:
       title: Tool
       required:
         - name
         - type
+        - description
       type: object
       properties:
         name:
@@ -1083,6 +1298,9 @@ components:
           type: string
         type:
           title: Type
+          type: string
+        description:
+          title: Description
           type: string
         authorization:
           title: Authorization

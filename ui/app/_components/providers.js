@@ -1,13 +1,13 @@
 "use client";
 import { useEffect } from "react";
 import { CacheProvider } from "@chakra-ui/next-js";
-import { ChakraProvider } from "@chakra-ui/react";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { SessionProvider } from "next-auth/react";
 import { usePrevious } from "react-use";
-import theme from "@/lib/theme";
 import { analytics } from "@/lib/analytics";
+import glassTheme from "@/lib/themes/glass";
+import { SaasProvider } from "@saas-ui/react";
 
 function AnalyticsProvider({ children }) {
   const pathname = usePathname();
@@ -40,7 +40,9 @@ export function Providers({ children }) {
     <SessionProvider>
       <AnalyticsProvider>
         <CacheProvider>
-          <ChakraProvider theme={theme}>{children}</ChakraProvider>
+          <SaasProvider theme={glassTheme}>
+            {children}
+          </SaasProvider>
         </CacheProvider>
       </AnalyticsProvider>
     </SessionProvider>

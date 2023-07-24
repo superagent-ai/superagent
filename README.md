@@ -59,7 +59,11 @@ To get started with Superagent, follow these steps:
 
 3. See the setup instructions for the UI in the `ui` folder.
 
+## Deploy on Replit
+Superagent has first grade support for running on [Replit](https://replit.com). You can use the official public Repl to get started.
+
 ## 🌎 Environment variables
+
 To run this project, you will need to add the following environment variables to your .env file
 
 **Mandatory variables**
@@ -107,7 +111,6 @@ To run this project, you will need to add the following environment variables to
 `AZURE_API_BASE`
 
 `AZURE_API_VERSION`
-
 
 ## 💡 Examples
 
