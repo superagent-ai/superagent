@@ -24,6 +24,7 @@ class ToolDescription(Enum):
     ZAPIER_NLA = "useful for when you need to do tasks."
     AGENT = "useful for when you need help completing something."
     OPENAPI = "useful for when you need to do API requests to a third-party service."
+    CHATGPT_PLUGIN = "useful for when you need to interact with a third-party service"
 
 
 def get_search_tool() -> Any:
@@ -67,6 +68,10 @@ def get_zapier_nla_tool(metadata: dict, llm: Any) -> Any:
 
     return agent
 
+def get_chatgpt_plugin_tool(metadata: dict) -> Any:
+    plugin_url = metadata["chatgptPluginURL"]
+    tool = AIPluginTool.from_plugin_url(plugin_url)
+    return tool
 
 def get_openapi_tool(metadata: dict) -> Any:
     openapi_url = metadata["openApiUrl"]

@@ -17,6 +17,7 @@ from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
 from langchain.schema import SystemMessage
+from langchain.tools import AIPluginTool
 
 from app.lib.callbacks import StreamingCallbackHandler
 from app.lib.models.document import DocumentInput
@@ -41,6 +42,7 @@ from app.lib.tools import (
     get_replicate_tool,
     get_zapier_nla_tool,
     get_openapi_tool,
+    get_chatgpt_plugin_tool,
     AgentTool,
     DocSummarizerTool,
 )
@@ -298,6 +300,9 @@ class AgentBase:
             )
         if type == "OPENAPI":
             return (get_openapi_tool(metadata=metadata), OpenApiToolInput)
+        if type == "CHATGPT_PLUGIN":
+            # TODO: confirm metadata has (can have) url
+            return (get_chatgpt_plugin_tool(metadata.url), type)
 
     def _get_tools(self) -> list:
         tools = []
@@ -361,6 +366,9 @@ class AgentBase:
             tool, args_schema = self._get_tool_and_input_by_type(
                 agent_tool.tool.type, metadata=agent_tool.tool.metadata
             )
+            if args_schema == "CHATGPT_PLUGIN":
+                tools.append(tool)
+                continue
             tools.append(
                 Tool(
                     name=slugify(agent_tool.tool.name),
