@@ -1,5 +1,3 @@
-import os
-
 from decouple import config
 from langchain.vectorstores.supabase import SupabaseVectorStore
 from supabase import create_client
@@ -11,7 +9,7 @@ supabase_client = create_client(supabase_url, supabase_key)
 supabase_table = "superagent_vectorstore"
 
 
-class SupabaseVectorStore:
+class SuperagentSupabaseVectorStore:
     def __init__(self):
         pass
 

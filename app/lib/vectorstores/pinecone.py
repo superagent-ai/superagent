@@ -1,31 +1,25 @@
-import weaviate
+import pinecone
 from decouple import config
-from langchain.vectorstores.weaviate import Weaviate
+from langchain.vectorstores.pinecone import Pinecone
 
-weaviate_client = weaviate.Client(
-    url=config("WEAVIATE_URL"),
-    auth_api_key=config("WEAVIATE_API_KEY", None),  # Optional
+pinecone.init(
+    api_key=config("PINECONE_API_KEY"),  # find at app.pinecone.io
+    environment=config("PINECONE_ENVIRONMENT"),  # next to api key in console
 )
-weaviate_index = "superagent"
+
+pinecone.Index("superagent")
 
 
-class WeaviateVectorStore:
+class PineconeVectorStore:
     def __init__(self):
         pass
 
     def from_documents(self, docs, embeddings, namespace):
-        Weaviate.from_texts(
-            texts=docs,
-            embeddings=embeddings,
-            index_name=weaviate_index,
-            namespace=namespace,
-            client=weaviate_client,
+        Pinecone.from_documents(
+            docs, embeddings, index_name="superagent", namespace=namespace
         )
 
     def from_existing_index(self, embeddings, namespace):
-        return Weaviate.from_existing_index(
-            index_name=weaviate_index,
-            embedding=embeddings,
-            namespace=namespace,
-            client=weaviate_client,
+        return Pinecone.from_existing_index(
+            "superagent", embedding=embeddings, namespace=namespace
         )

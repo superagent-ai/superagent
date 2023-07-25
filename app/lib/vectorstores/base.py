@@ -12,6 +12,16 @@ class VectorStoreBase:
 
     def get_database(self) -> Any:
         if self.vectorstore == "pinecone":
-            from app.lib.vectorstores.pinecone import PineconeVectorstore
+            from app.lib.vectorstores.pinecone import PineconeVectorStore
 
-            return PineconeVectorstore()
+            return PineconeVectorStore()
+
+        if self.vectorstore == "supabase":
+            from app.lib.vectorstores.supabase import SuperagentSupabaseVectorStore
+
+            return SuperagentSupabaseVectorStore()
+
+        if self.vectorstore == "weaviate":
+            from app.lib.vectorstores.weaviate import WeaviateVectorStore
+
+            return WeaviateVectorStore()

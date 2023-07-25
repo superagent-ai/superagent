@@ -1,5 +1,3 @@
-import os
-
 import weaviate
 from decouple import config
 from langchain.vectorstores.weaviate import Weaviate
