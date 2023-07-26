@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from starlette.requests import Request
 
 from app.lib.auth.prisma import JWTBearer
