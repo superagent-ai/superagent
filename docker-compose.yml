@@ -1,0 +1,48 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=superagent
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - '5432:5432'
+    volumes: 
+      - db:/var/lib/postgresql/data
+    networks:
+      - superagentnetwork
+    container_name: postgres
+  api:
+    build: .
+    ports:
+      - '8080:8080'
+    depends_on:
+      - db
+    networks:
+      - superagentnetwork
+    env_file:
+      - dev.env
+    container_name: superagent_backend
+    entrypoint: sh -c "poetry run prisma migrate dev && exec gunicorn --bind :$PORT --workers 2 --timeout 0  --worker-class uvicorn.workers.UvicornWorker  --threads 8 app.main:app"
+  ui:
+    image: node
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./ui:/usr/src/app
+    depends_on:
+      - api
+    networks:
+      - superagentnetwork
+    env_file:
+      - ./ui/dev.env
+    working_dir: /usr/src/app
+    command: sh -c "npm ci && npm run dev"
+    container_name: superagent_frontend
+volumes:
+  db:
+    driver: local
+networks:
+  superagentnetwork:
+    driver: bridge
