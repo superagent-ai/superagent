@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.models.tag import Tag
