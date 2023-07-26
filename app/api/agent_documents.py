@@ -4,7 +4,9 @@ from starlette.requests import Request
 from app.lib.auth.prisma import JWTBearer
 from app.lib.models.agent_document import AgentDocument
 from app.lib.prisma import prisma
+import logging
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -28,9 +30,15 @@ def parse_filter_params(request: Request):
 )
 async def create_agent_document(body: AgentDocument, token=Depends(JWTBearer())):
     """Create api token endpoint"""
-    agent_document = prisma.agentdocument.create(
-        {"agentId": body.agentId, "documentId": body.documentId}
-    )
+    try:
+        agent_document = prisma.agentdocument.create(
+            {"agentId": body.agentId, "documentId": body.documentId}
+        )
+    except Exception as e:
+        logger.error("Cannot create agent document for agent {body.agentId} and document {body.documentId}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     return {"success": True, "data": agent_document}
 
@@ -46,9 +54,16 @@ async def read_agent_documents(
     token=Depends(JWTBearer()),
 ):
     """List api tokens endpoint"""
-    agent_documents = prisma.agentdocument.find_many(
-        where=filters, include={"document": expand}
-    )
+
+    try:
+        agent_documents = prisma.agentdocument.find_many(
+            where=filters, include={"document": expand}
+        )
+    except Exception as e:
+        logger.error("Cannot read agent documents: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     return {"success": True, "data": agent_documents}
 
@@ -60,7 +75,13 @@ async def read_agent_documents(
 )
 async def read_agent_document(agentDocumentId: str, token=Depends(JWTBearer())):
     """Get an agent document"""
-    agent_document = prisma.agentdocument.find_unique(where={"id": agentDocumentId})
+    try:
+        agent_document = prisma.agentdocument.find_unique(where={"id": agentDocumentId})
+    except Exception as e:
+        logger.error("Cannot read agent document {agentDocumentId}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,            
+        )
 
     return {"success": True, "data": agent_document}
 
@@ -73,6 +94,12 @@ async def read_agent_document(agentDocumentId: str, token=Depends(JWTBearer())):
 async def delete_agent_document(agentDocumentId: str, token=Depends(JWTBearer())):
     """Delete agent document endpoint"""
 
-    prisma.agentdocument.delete(where={"id": agentDocumentId})
+    try:
+        prisma.agentdocument.delete(where={"id": agentDocumentId})
+    except Exception as e:
+        logger.error("Cannot delete agent document {agentDocumentId}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     return {"success": True, "data": None}

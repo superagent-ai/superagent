@@ -15,6 +15,8 @@ from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.models.agent import Agent, PredictAgent
 from app.lib.prisma import prisma
 
+import logging
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -39,9 +41,9 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
         return {"success": True, "data": agent}
 
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=e,
         )
 
 
@@ -49,16 +51,20 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
 async def read_agents(token=Depends(JWTBearer())):
     """Agents endpoint"""
     decoded = decodeJWT(token)
-    agents = prisma.agent.find_many(
-        where={"userId": decoded["userId"]},
-        include={
-            "user": True,
-        },
-        order={"createdAt": "desc"},
-    )
-
-    if agents:
-        return {"success": True, "data": agents}
+    try:
+        agents = prisma.agent.find_many(
+            where={"userId": decoded["userId"]},
+            include={
+                "user": True,
+            },
+            order={"createdAt": "desc"},
+        )
+        if agents or agents == []:
+            return {"success": True, "data": agents}
+        else:
+            raise Exception("Couldn't fetch agents from prisma")
+    except Exception as e:
+        logger.error(e)
 
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -74,6 +80,7 @@ async def read_agent(agentId: str, token=Depends(JWTBearer())):
     if agent:
         return {"success": True, "data": agent}
 
+    logger.error(f"Agent with id: {agentId} not found")
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail=f"Agent with id: {agentId} not found",
@@ -91,9 +98,9 @@ async def delete_agent(agentId: str, token=Depends(JWTBearer())):
 
         return {"success": True, "data": None}
     except Exception as e:
+        logger.error(f"Couldn't delete agent with id {agentId}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=e,
         )
 
 
@@ -106,7 +113,13 @@ async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
     if tags or tags == []:
         body["tags"] = json.dumps(tags)
 
-    prisma.agent.update(data=body, where={"id": agentId})
+    try:
+        prisma.agent.update(data=body, where={"id": agentId})
+    except Exception as e:
+        logger.error(f"Couldn't patch agent with id {agentId}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
     return {"success": True, "data": None}
 
 
@@ -209,6 +222,7 @@ async def run_agent(
 
             return {"success": True, "data": output}
 
+    logger.error(f"Cannot run agent with id: {agentId} not found")
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Agent with id: {agentId} not found",
