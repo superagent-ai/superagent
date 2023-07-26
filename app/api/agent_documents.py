@@ -1,10 +1,11 @@
+import logging
+
 from fastapi import APIRouter, Depends
 from starlette.requests import Request
 
 from app.lib.auth.prisma import JWTBearer
 from app.lib.models.agent_document import AgentDocument
 from app.lib.prisma import prisma
-import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -35,7 +36,9 @@ async def create_agent_document(body: AgentDocument, token=Depends(JWTBearer()))
             {"agentId": body.agentId, "documentId": body.documentId}
         )
     except Exception as e:
-        logger.error("Cannot create agent document for agent {body.agentId} and document {body.documentId}: {e}")
+        logger.error(
+            "Cannot create agent document for agent {body.agentId} and document {body.documentId}: {e}"
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -80,7 +83,7 @@ async def read_agent_document(agentDocumentId: str, token=Depends(JWTBearer())):
     except Exception as e:
         logger.error("Cannot read agent document {agentDocumentId}: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,            
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
     return {"success": True, "data": agent_document}

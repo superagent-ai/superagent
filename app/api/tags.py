@@ -1,10 +1,11 @@
+import logging
+
 from fastapi import APIRouter, Depends
 
 from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.models.tag import Tag
 from app.lib.prisma import prisma
 
-import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -28,6 +29,7 @@ async def create_tag(body: Tag, token=Depends(JWTBearer())):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
 
 @router.get("/tags", name="List tags", description="List all tags")
 async def read_tags(token=Depends(JWTBearer())):
@@ -62,6 +64,7 @@ async def read_tag(tagId: str, token=Depends(JWTBearer())):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
+
 @router.delete(
     "/tags/{tagId}",
     name="Delete tag",
@@ -77,6 +80,7 @@ async def delete_tag(tagId: str, token=Depends(JWTBearer())):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
 
 @router.patch("/tags/{tagId}", name="Patch tag", description="Patch a specific tag")
 async def patch_tag(tagId: str, body: dict, token=Depends(JWTBearer())):

@@ -1,4 +1,5 @@
 import json
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -7,7 +8,6 @@ from app.lib.documents import upsert_document, valid_ingestion_types
 from app.lib.models.document import Document
 from app.lib.prisma import prisma
 
-import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -51,9 +51,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
         return {"success": True, "data": document}
     except Exception as e:
         logger.error("Couldn't create document: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @router.get("/documents", name="List documents", description="List all documents")
@@ -100,7 +98,7 @@ async def read_document(documentId: str, token=Depends(JWTBearer())):
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail=f"Agent with id: {documentId} not found",
-        )
+    )
 
 
 @router.delete(

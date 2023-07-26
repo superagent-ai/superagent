@@ -1,9 +1,10 @@
+import logging
+
 from fastapi import APIRouter, Depends
 
 from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.prisma import prisma
 
-import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()

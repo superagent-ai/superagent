@@ -1,4 +1,5 @@
 import json
+import logging
 import threading
 from queue import Queue
 from typing import Any, Dict
@@ -15,7 +16,6 @@ from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.models.agent import Agent, PredictAgent
 from app.lib.prisma import prisma
 
-import logging
 logger = logging.getLogger(__name__)
 router = APIRouter()
 

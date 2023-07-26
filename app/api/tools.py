@@ -1,4 +1,5 @@
 import json
+import logging
 
 from fastapi import APIRouter, Depends
 
@@ -6,7 +7,6 @@ from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.models.tool import Tool
 from app.lib.prisma import prisma
 
-import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -52,6 +52,7 @@ async def read_tools(token=Depends(JWTBearer())):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
+
 @router.get(
     "/tools/{toolId}",
     name="Get tool",
@@ -68,6 +69,7 @@ async def read_tool(toolId: str, token=Depends(JWTBearer())):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
+
 @router.delete(
     "/tools/{toolId}",
     name="Delete tool",
@@ -83,6 +85,7 @@ async def delete_tool(toolId: str, token=Depends(JWTBearer())):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
 
 @router.patch("/tools/{toolId}", name="Patch tool", description="Patch a specific tool")
 async def patch_tool(toolId: str, body: dict, token=Depends(JWTBearer())):
