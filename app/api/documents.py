@@ -50,7 +50,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
             )
         return {"success": True, "data": document}
     except Exception as e:
-        logger.error("Couldn't create document: {e}")
+        logger.error("Couldn't create document", exc_info=e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -68,7 +68,7 @@ async def read_documents(token=Depends(JWTBearer())):
         if documents or documents == []:
             return {"success": True, "data": documents}
     except Exception as e:
-        logger.error("Couldn't find documents: {e}")
+        logger.error("Couldn't find documents", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="No agents found",
@@ -87,7 +87,7 @@ async def read_document(documentId: str, token=Depends(JWTBearer())):
             where={"id": documentId}, include={"user": True}
         )
     except Exception as e:
-        logger.error("Couldn't find document with id {documentId}: {e}")
+        logger.error("Couldn't find document with id {documentId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Agent with id: {documentId} not found",
@@ -110,9 +110,9 @@ async def delete_document(documentId: str, token=Depends(JWTBearer())):
     """Delete a document"""
     try:
         prisma.document.delete(where={"id": documentId})
-
         return {"success": True, "data": None}
     except Exception as e:
+        logger.error("Couldn't delete document with id {documentId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -132,7 +132,7 @@ async def patch_document(documentId: str, body: dict, token=Depends(JWTBearer())
         )
         return {"success": True, "data": document}
     except Exception as e:
-        logger.error(f"Couldn't patch document with id {documentId}: {e}")
+        logger.error(f"Couldn't patch document with id {documentId}", exc_info=e)
 
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

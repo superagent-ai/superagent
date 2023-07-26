@@ -98,7 +98,7 @@ async def delete_agent(agentId: str, token=Depends(JWTBearer())):
 
         return {"success": True, "data": None}
     except Exception as e:
-        logger.error(f"Couldn't delete agent with id {agentId}: {e}")
+        logger.error(f"Couldn't delete agent with id {agentId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -116,7 +116,7 @@ async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
     try:
         prisma.agent.update(data=body, where={"id": agentId})
     except Exception as e:
-        logger.error(f"Couldn't patch agent with id {agentId}: {e}")
+        logger.error(f"Couldn't patch agent with id {agentId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

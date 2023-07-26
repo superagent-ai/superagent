@@ -25,7 +25,7 @@ async def create_tag(body: Tag, token=Depends(JWTBearer())):
         )
         return {"success": True, "data": tag}
     except Exception as e:
-        logger.error("Couldn't create tag: {e}")
+        logger.error("Couldn't create tag", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -42,7 +42,7 @@ async def read_tags(token=Depends(JWTBearer())):
         )
         return {"success": True, "data": tags}
     except Exception as e:
-        logger.error("Couldn't find tags for user: {e}")
+        logger.error("Couldn't find tags for user", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -59,7 +59,7 @@ async def read_tag(tagId: str, token=Depends(JWTBearer())):
         tag = prisma.tag.find_unique(where={"id": tagId})
         return {"success": True, "data": tag}
     except Exception as e:
-        logger.error("Couldn't find tag: {e}")
+        logger.error("Couldn't find tag", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -76,7 +76,7 @@ async def delete_tag(tagId: str, token=Depends(JWTBearer())):
         prisma.tag.delete(where={"id": tagId})
         return {"success": True, "data": None}
     except Exception as e:
-        logger.error("Couldn't delete tag with id {tagId}: {e}")
+        logger.error("Couldn't delete tag with id {tagId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -92,7 +92,7 @@ async def patch_tag(tagId: str, body: dict, token=Depends(JWTBearer())):
         )
         return {"success": True, "data": tag}
     except Exception as e:
-        logger.error(f"Couldn't patch tag with id {tagId}: {e}")
+        logger.error(f"Couldn't patch tag with id {tagId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

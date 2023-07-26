@@ -33,7 +33,7 @@ async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
         return {"success": True, "data": agent}
 
     except Exception as e:
-        logger.error("Cannot create api token: {e}")
+        logger.error("Cannot create api token", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -51,7 +51,7 @@ async def read_api_tokens(token=Depends(JWTBearer())):
         if api_tokens or api_tokens == []:
             return {"success": True, "data": api_tokens}
     except Exception as e:
-        logger.error("Error finding api tokens for user {userId}: {e}")
+        logger.error("Error finding api tokens for user {userId}", exc_info=e)
 
     logger.error("Couldn't find api tokens")
     raise HTTPException(
@@ -75,7 +75,7 @@ async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
         if api_token:
             return {"success": True, "data": api_token}
     except Exception as e:
-        logger.error("Cannot find api token {tokenId}: {e}")
+        logger.error("Cannot find api token {tokenId}", exc_info=e)
 
     logger.error("Cannot find api token {tokenId}")
     raise HTTPException(
@@ -96,7 +96,7 @@ async def delete_api_token(tokenId: str, token=Depends(JWTBearer())):
 
         return {"success": True, "data": None}
     except Exception as e:
-        logger.error(f"Couldn't delete api token with id {tokenId}: {e}")
+        logger.error(f"Couldn't delete api token with id {tokenId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
