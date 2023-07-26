@@ -40,6 +40,7 @@ enum ToolType {
   ZAPIER_NLA
   AGENT
   OPENAPI
+  CHATGPT_PLUGIN
 }
 
 model User {
