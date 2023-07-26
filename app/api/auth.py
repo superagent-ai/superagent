@@ -45,7 +45,7 @@ async def sign_in(signIn: SignIn):
                 detail="Invalid credentials",
             )
     except Exception as e:
-        logger.error("Couldn't find user by email: {e}")
+        logger.error("Couldn't find user by email", exc_info=e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -64,7 +64,7 @@ async def sign_up(body: SignUp):
             {"userId": user.id, "metadata": json.dumps(body.metadata)}
         )
     except Exception as e:
-        logger.error("Couldn't create user: {e}")
+        logger.error("Couldn't create user", exc_info=e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     if user:

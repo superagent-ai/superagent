@@ -23,7 +23,7 @@ async def read_user_me(token=Depends(JWTBearer())):
         else:
             logger.error("userId not in JWT")
     except Exception as e:
-        logger.error("Couldn't find user: {e}")
+        logger.error("Couldn't find user", exc_info=e)
 
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
@@ -40,7 +40,7 @@ async def read_user(userId: str):
         else:
             logger.error("Couldn't find user")
     except Exception as e:
-        logger.error("Error finding user: {e}")
+        logger.error("Error finding user", exc_info=e)
 
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,

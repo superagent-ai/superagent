@@ -29,7 +29,7 @@ async def create_tool(body: Tool, token=Depends(JWTBearer())):
         )
         return {"success": True, "data": tool}
     except Exception as e:
-        logger.error("Couldn't create tool: {e}")
+        logger.error("Couldn't create tool", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -47,7 +47,7 @@ async def read_tools(token=Depends(JWTBearer())):
         )
         return {"success": True, "data": tools}
     except Exception as e:
-        logger.error("Couldn't find tools for user: {e}")
+        logger.error("Couldn't find tools for user", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -64,7 +64,7 @@ async def read_tool(toolId: str, token=Depends(JWTBearer())):
         tool = prisma.tool.find_unique(where={"id": toolId}, include={"user": True})
         return {"success": True, "data": tool}
     except Exception as e:
-        logger.error("Couldn't find tool {toolId}: {e}")
+        logger.error("Couldn't find tool {toolId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -81,7 +81,7 @@ async def delete_tool(toolId: str, token=Depends(JWTBearer())):
         prisma.tool.delete(where={"id": toolId})
         return {"success": True, "data": None}
     except Exception as e:
-        logger.error("Couldn't delete tool {toolId}: {e}")
+        logger.error("Couldn't delete tool {toolId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -98,7 +98,7 @@ async def patch_tool(toolId: str, body: dict, token=Depends(JWTBearer())):
         )
         return {"success": True, "data": tool}
     except Exception as e:
-        logger.error("Couldn't patch tool {toolId}: {e}")
+        logger.error("Couldn't patch tool {toolId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

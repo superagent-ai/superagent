@@ -38,7 +38,11 @@ async def create_agent_document(body: AgentDocument, token=Depends(JWTBearer()))
         return {"success": True, "data": agent_document}
     except Exception as e:
         logger.error(
-            "Cannot create agent document for agent {body.agentId} and document {body.documentId}: {e}"
+            """
+            Cannot create agent document for agent {body.agentId} 
+            and document {body.documentId}
+            """,
+            exc_info=e,
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -62,7 +66,7 @@ async def read_agent_documents(
             where=filters, include={"document": expand}
         )
     except Exception as e:
-        logger.error("Cannot read agent documents: {e}")
+        logger.error("Cannot read agent documents", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -80,7 +84,7 @@ async def read_agent_document(agentDocumentId: str, token=Depends(JWTBearer())):
     try:
         agent_document = prisma.agentdocument.find_unique(where={"id": agentDocumentId})
     except Exception as e:
-        logger.error("Cannot read agent document {agentDocumentId}: {e}")
+        logger.error("Cannot read agent document {agentDocumentId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -99,7 +103,7 @@ async def delete_agent_document(agentDocumentId: str, token=Depends(JWTBearer())
     try:
         prisma.agentdocument.delete(where={"id": agentDocumentId})
     except Exception as e:
-        logger.error("Cannot delete agent document {agentDocumentId}: {e}")
+        logger.error("Cannot delete agent document {agentDocumentId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

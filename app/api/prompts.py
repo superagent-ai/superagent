@@ -46,7 +46,7 @@ async def read_prompts(token=Depends(JWTBearer())):
         )
         return {"success": True, "data": prompts}
     except Exception as e:
-        logger.error("Couldn't find prompts for user: {e}")
+        logger.error("Couldn't find prompts for user", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -65,7 +65,7 @@ async def read_prompt(promptId: str, token=Depends(JWTBearer())):
         )
         return {"success": True, "data": prompt}
     except Exception as e:
-        logger.error("Couldn't find prompt: {e}")
+        logger.error("Couldn't find prompt", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -82,7 +82,7 @@ async def delete_prompt(promptId: str, token=Depends(JWTBearer())):
         prisma.prompt.delete(where={"id": promptId})
         return {"success": True, "data": None}
     except Exception as e:
-        logger.error("Couldn't delete prompt with id {promptId}: {e}")
+        logger.error("Couldn't delete prompt with id {promptId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -103,7 +103,7 @@ async def patch_prompt(promptId: str, body: dict, token=Depends(JWTBearer())):
         )
         return {"success": True, "data": prompt}
     except Exception as e:
-        logger.error("Couldn't patch prompt with id {promptId}: {e}")
+        logger.error("Couldn't patch prompt with id {promptId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

@@ -28,7 +28,7 @@ async def list_agent_traces(token=Depends(JWTBearer())):
         )
         return {"success": True, "data": agent_traces}
     except Exception as e:
-        logger.error("Couldn't find agent traces for user: {e}")
+        logger.error("Couldn't find agent traces for user", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
