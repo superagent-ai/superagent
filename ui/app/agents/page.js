@@ -10,13 +10,12 @@ export const metadata = {
 
 const getData = async (session) => {
   const api = new Api(session);
-
-  return api.getAgents();
+  return Promise.all([api.getAgents(), api.getTags()]);
 };
 
 export default async function Agents() {
   const session = await getServerSession(options);
-  const agents = await getData(session);
+  const [agents, tags] = await getData(session);
 
-  return <AgentsClientPage data={agents} session={session} />;
+  return <AgentsClientPage data={agents} tags={tags} session={session} />;
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import NextLink from "next/link";
 import {
   Button,
@@ -17,8 +17,9 @@ import API from "@/lib/api";
 import AgentCard from "./_components/card";
 import { analytics } from "@/lib/analytics";
 import SearchBar from "../_components/search-bar";
+import FilterBar from "../_components/filter-bar";
 
-export default function AgentsClientPage({ data, session }) {
+export default function AgentsClientPage({ data, tags, session }) {
   const [filteredData, setData] = useState();
   const router = useRouter();
   const api = new API(session);
@@ -75,6 +76,11 @@ export default function AgentsClientPage({ data, session }) {
       <SearchBar
         onSearch={(values) => handleSearch(values)}
         onReset={() => setData(data)}
+      />
+      <FilterBar
+        items={filteredData || data}
+        filters={tags}
+        onFilter={(values) => setData(values)}
       />
       <SimpleGrid columns={[1, 2, 2, 4]} gap={6}>
         {filteredData
