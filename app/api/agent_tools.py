@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends
 from starlette.requests import Request
 
@@ -5,7 +7,6 @@ from app.lib.auth.prisma import JWTBearer
 from app.lib.models.agent_tool import AgentTool
 from app.lib.prisma import prisma
 
-import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -37,7 +38,9 @@ async def create_agent_tool(body: AgentTool, token=Depends(JWTBearer())):
             {"agentId": body.agentId, "toolId": body.toolId}
         )
     except Exception as e:
-        logger.error("Cannot create agent tool for agent {body.agentId} and tool {body.toolId}: {e}")
+        logger.error(
+            "Cannot create agent tool for agent {body.agentId} and tool {body.toolId}: {e}"
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
@@ -58,7 +61,9 @@ async def read_agent_tools(
     """List agent tools endpoint"""
 
     try:
-        agent_tools = prisma.agenttool.find_many(where=filters, include={"tool": expand})
+        agent_tools = prisma.agenttool.find_many(
+            where=filters, include={"tool": expand}
+        )
     except Exception as e:
         logger.error("Cannot read agent tools: {e}")
         raise HTTPException(
@@ -100,7 +105,7 @@ async def delete_agent_tool(agentToolId: str, token=Depends(JWTBearer())):
     except Exception as e:
         logger.error("Cannot delete agent tool {agentToolId}: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,            
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
     return {"success": True, "data": None}

@@ -1,25 +1,26 @@
+import logging
 import time
 
+import colorlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.lib.prisma import prisma
 from app.routers import router
-import logging
-import colorlog
+
 # Create a color formatter
 formatter = colorlog.ColoredFormatter(
     "%(log_color)s%(levelname)s:  %(message)s",
     log_colors={
-        'DEBUG': 'cyan',
-        'INFO': 'green',
-        'WARNING': 'yellow',
-        'ERROR': 'red',
-        'CRITICAL': 'bold_red',
+        "DEBUG": "cyan",
+        "INFO": "green",
+        "WARNING": "yellow",
+        "ERROR": "red",
+        "CRITICAL": "bold_red",
     },
     secondary_log_colors={},
-    style='%'
-)# Create a console handler and set the formatter
+    style="%",
+)  # Create a console handler and set the formatter
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 

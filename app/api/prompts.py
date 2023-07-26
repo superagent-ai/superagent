@@ -1,4 +1,5 @@
 import json
+import logging
 
 from fastapi import APIRouter, Depends
 
@@ -6,7 +7,6 @@ from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.models.prompt import Prompt
 from app.lib.prisma import prisma
 
-import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -31,7 +31,7 @@ async def create_prompt(body: Prompt, token=Depends(JWTBearer())):
         logger.error(e)
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    )   
+    )
 
 
 @router.get("/prompts", name="List prompts", description="List all prompts")
@@ -60,13 +60,16 @@ async def read_prompts(token=Depends(JWTBearer())):
 async def read_prompt(promptId: str, token=Depends(JWTBearer())):
     """Get prompt endpoint"""
     try:
-        prompt = prisma.prompt.find_unique(where={"id": promptId}, include={"user": True})
+        prompt = prisma.prompt.find_unique(
+            where={"id": promptId}, include={"user": True}
+        )
         return {"success": True, "data": prompt}
     except Exception as e:
         logger.error("Couldn't find prompt: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
 
 @router.delete(
     "/prompts/{promptId}",
@@ -83,6 +86,7 @@ async def delete_prompt(promptId: str, token=Depends(JWTBearer())):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
 
 @router.patch(
     "/prompts/{promptId}", name="Patch prompt", description="Patch a specific prompt"

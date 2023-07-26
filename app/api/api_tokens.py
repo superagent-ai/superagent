@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.lib.api_tokens import generate_api_token
@@ -5,7 +7,6 @@ from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.models.api_token import ApiToken
 from app.lib.prisma import prisma
 
-import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
