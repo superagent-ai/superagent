@@ -25,7 +25,7 @@ function AnalyticsProvider({ children }) {
         session.status === "authenticated" &&
         previousSession?.status !== "authenticated"
       ) {
-        analytics.identify(session.data.user.user.id, {
+        analytics.identify(session.data.user?.user?.id, {
           ...session.data.user.user,
         });
       }
@@ -40,9 +40,7 @@ export function Providers({ children }) {
     <SessionProvider>
       <AnalyticsProvider>
         <CacheProvider>
-          <SaasProvider theme={glassTheme}>
-            {children}
-          </SaasProvider>
+          <SaasProvider theme={glassTheme}>{children}</SaasProvider>
         </CacheProvider>
       </AnalyticsProvider>
     </SessionProvider>

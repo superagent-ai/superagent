@@ -102,7 +102,7 @@ async def delete_agent(agentId: str, token=Depends(JWTBearer())):
 )
 async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
     """Patch agent endpoint"""
-    tags = body["tags"]
+    tags = body.get("tags")
     if tags or tags == []:
         body["tags"] = json.dumps(tags)
 
