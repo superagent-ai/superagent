@@ -58,7 +58,7 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, namespace=document_id
         )
 
     if type == "PDF":
@@ -73,7 +73,7 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, namespace=document_id
         )
 
     if type == "URL":
@@ -88,7 +88,7 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, namespace=document_id
         )
 
     if type == "YOUTUBE":
@@ -102,7 +102,7 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, namespace=document_id
         )
 
     if type == "MARKDOWN":
@@ -120,7 +120,7 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, namespace=document_id
         )
 
     if type == "PSYCHIC":
@@ -137,7 +137,7 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, namespace=document_id
         )
 
     if type == "FIRESTORE":
@@ -158,5 +158,5 @@ def upsert_document(
             documents.append(Document(text=doc_str))
 
         VectorStoreBase().get_database().from_documents(
-            documents, embeddings, index_name="superagent", namespace=document_id
+            documents, embeddings, namespace=document_id
         )
