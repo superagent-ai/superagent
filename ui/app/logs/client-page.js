@@ -26,6 +26,7 @@ import { TbX } from "react-icons/tb";
 
 export default function LogsClientPage({ data, session }) {
   const [activeLog, setActiveLog] = useState();
+  console.log(activeLog?.data);
 
   return (
     <Stack flex={1} paddingTop={12} spacing={6} overflow="auto">

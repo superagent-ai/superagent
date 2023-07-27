@@ -35,6 +35,7 @@ export default function Run({ apiTokens, id, llm, document, tool, type }) {
   };
 
   const getLLMInput = (message) => {
+    console.log(type);
     if (type === "OPENAI") {
       return { input: message };
     }

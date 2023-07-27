@@ -33,17 +33,17 @@ export const options = {
       },
     }),
     GithubProvider({
-      clientId: process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID,
-      clientSecret: process.env.NEXT_PUBLIC_GITHUB_CLIENT_SECRET,
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
     }),
     GoogleProvider({
-      clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-      clientSecret: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET,
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
     AzureADProvider({
-      clientId: process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID,
-      clientSecret: process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_SECRET,
-      tenantId: process.env.NEXT_PUBLIC_AZURE_AD_TENANT_ID,
+      clientId: process.env.AZURE_AD_CLIENT_ID,
+      clientSecret: process.env.AZURE_AD_CLIENT_SECRET,
+      tenantId: process.env.AZURE_AD_TENANT_ID,
     }),
   ],
   callbacks: {
@@ -59,35 +59,20 @@ export const options = {
       return session;
     },
     async signIn(credentials) {
-      let response;
       const oauthObject = credentialObjBuilder(credentials);
-
-      if (oauthObject.password) {
-        response = await fetch(
-          `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/auth/sign-in`,
-          {
-            method: "POST",
-            body: JSON.stringify(oauthObject),
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      } else {
-        response = await fetch(
-          `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/auth/oauth/callback`,
-          {
-            method: "POST",
-            body: JSON.stringify(oauthObject),
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
-
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/auth/oauth/callback`,
+        {
+          method: "POST",
+          body: JSON.stringify(oauthObject),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       const { data } = await response.json();
 
       if (response.ok && data) {
         return true;
       }
-
       return false;
     },
     async redirect({ url, baseUrl }) {
@@ -100,34 +85,28 @@ export const options = {
   },
 };
 
-export function credentialObjBuilder(data) {
-  const { provider } = data.account;
-
+export function credentialObjBuilder(credentials) {
+  const { provider } = credentials.account;
   if (provider === "github") {
     return {
-      email: data.user.email,
-      name: data.user.name,
-      access_token: data.account.access_token,
-      provider: data.account.provider,
+      email: credentials.user.email,
+      name: credentials.user.name,
+      access_token: credentials.account.access_token,
+      provider: credentials.account.provider,
     };
   } else if (provider === "azure-ad") {
     return {
-      email: data.user.email,
-      name: data.user.name,
-      access_token: data.account.access_token,
-      provider: data.account.provider,
+      email: credentials.user.email,
+      name: credentials.user.name,
+      access_token: credentials.account.access_token,
+      provider: credentials.account.provider,
     };
   } else if (provider === "google") {
     return {
-      email: data.user.email,
-      name: data.user.name,
-      access_token: data.account.access_token,
-      provider: data.account.provider,
-    };
-  } else {
-    return {
-      email: data.credentials.email,
-      password: data.credentials.password,
+      email: credentials.user.email,
+      name: credentials.user.name,
+      access_token: credentials.account.access_token,
+      provider: credentials.account.provider,
     };
   }
 }

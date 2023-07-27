@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider          = "postgresql"
-  url               = env("DATABASE_MIGRATION_URL")
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
@@ -43,23 +43,23 @@ enum ToolType {
 }
 
 model User {
-  id          String       @id @default(cuid()) @db.VarChar(255)
-  email       String       @unique @db.VarChar(255)
-  password    String?      @db.VarChar(255)
-  name        String?      @db.VarChar(255)
-  createdAt   DateTime?    @default(now())
-  updatedAt   DateTime?    @updatedAt
-  deletedAt   DateTime?
-  profile     Profile?
-  Agent       Agent[]
-  ApiToken    ApiToken[]
-  Document    Document[]
-  Prompt      Prompt[]
-  Tool        Tool[]
-  AgentTrace  AgentTrace[]
-  provider    String?
+  id         String       @id @default(cuid()) @db.VarChar(255)
+  email      String       @unique @db.VarChar(255)
+  password   String?      @db.VarChar(255)
+  name       String?      @db.VarChar(255)
+  createdAt  DateTime?    @default(now())
+  updatedAt  DateTime?    @updatedAt
+  deletedAt  DateTime?
+  profile    Profile?
+  Agent      Agent[]
+  ApiToken   ApiToken[]
+  Document   Document[]
+  Prompt     Prompt[]
+  Tool       Tool[]
+  AgentTrace AgentTrace[]
+  provider   String?
   accessToken String?
-  Tag         Tag[]
+  Tag        Tag[]
 }
 
 model Profile {
