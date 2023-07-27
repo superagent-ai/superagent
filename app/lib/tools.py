@@ -70,12 +70,14 @@ def get_zapier_nla_tool(metadata: dict, llm: Any) -> Any:
 
     return agent
 
+
 def get_chatgpt_plugin_tool(metadata: dict) -> Any:
     plugin_url = metadata["chatgptPluginURL"]
     tool = AIPluginTool.from_plugin_url(plugin_url)
     tools = load_tools(["requests_all"])
     tools += [tool]
     return tools
+
 
 def get_openapi_tool(metadata: dict) -> Any:
     openapi_url = metadata["openApiUrl"]
