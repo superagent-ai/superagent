@@ -48,15 +48,16 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
 @router.get("/agents", name="List all agents", description="List all agents")
 async def read_agents(token=Depends(JWTBearer())):
     """Agents endpoint"""
-    agents = prisma.agent.find_many(
-        where={"userId": token["userId"]},
-        include={
-            "user": True,
-        },
-        order={"createdAt": "desc"},
-    )
+    try:
+        agents = prisma.agent.find_many(
+            where={"userId": token["userId"]},
+            include={
+                "user": True,
+            },
+            order={"createdAt": "desc"},
+        )
 
-    if agents or agents == []:
+        if agents or agents == []:
             return {"success": True, "data": agents}
         else:
             raise Exception("Couldn't fetch agents from prisma")

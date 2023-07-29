@@ -106,15 +106,11 @@ class JWTBearer(HTTPBearer):
 
     async def validateOAuthData(self, oauth_data) -> bool:
         if oauth_data.provider == "google":
-            print("verifying google")
             res = self.verify_google_token(oauth_data.accessToken)
-            print(res)
         elif oauth_data.provider == "github":
             res = self.verify_github_token(oauth_data.accessToken)
-            print(res)
         elif oauth_data.provider == "azure-ad":
             res = self.verify_azure_token(oauth_data.accessToken)
-            print(res)
         return True
 
     async def verify_github_token(self, accessToken: str) -> bool:
