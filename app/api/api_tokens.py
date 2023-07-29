@@ -13,21 +13,14 @@ router = APIRouter()
 )
 async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
     """Create api token endpoint"""
-    is_oauth_token = False
-    if type(token) != str and token["isOauthToken"] == True:
-        is_oauth_token = True
 
-    if is_oauth_token != True:
-        decoded = decodeJWT(token)
-    else:
-        decoded = token
-    token = generate_api_token()
+    api_token = generate_api_token()
     try:
         agent = prisma.apitoken.create(
             {
                 "description": body.description,
-                "token": token,
-                "userId": decoded["userId"],
+                "token": api_token,
+                "userId": token["userId"],
             },
             include={"user": True},
         )
@@ -44,17 +37,8 @@ async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
 @router.get("/api-tokens", name="List API tokens", description="List all API tokens")
 async def read_api_tokens(token=Depends(JWTBearer())):
     """List api tokens endpoint"""
-    is_oauth_token = False
-    if type(token) != str and token["isOauthToken"] == True:
-        is_oauth_token = True
-
-    if is_oauth_token != True:
-        decoded = decodeJWT(token)
-    else:
-        decoded = token
-
     api_tokens = prisma.apitoken.find_many(
-        where={"userId": decoded["userId"]}, include={"user": True}
+        where={"userId": token["userId"]}, include={"user": True}
     )
     if api_tokens:
         return {"success": True, "data": api_tokens}

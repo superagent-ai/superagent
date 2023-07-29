@@ -8,17 +8,8 @@ router = APIRouter()
 
 @router.get("/users/me")
 async def read_user_me(token=Depends(JWTBearer())):
-    is_oauth_token = False
-    if type(token) != str and token["isOauthToken"] == True:
-        is_oauth_token = True
-
-    if is_oauth_token != True:
-        decoded = decodeJWT(token)
-    else:
-        decoded = token
-
-    if "userId" in decoded:
-        userId = decoded["userId"]
+    if "userId" in token:
+        userId = token["userId"]
         user = prisma.user.find_unique(where={"id": userId}, include={"profile": True})
 
         return {"success": True, "data": user}

@@ -82,11 +82,14 @@ class API {
   }
 
   async getDocuments() {
-    const response = await fetch(`/documents`, {
-      headers: {
-        ...this.getHeaders(),
-      },
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/documents`,
+      {
+        headers: {
+          ...this.getHeaders(),
+        },
+      }
+    );
     const { data } = await response.json();
 
     return data;

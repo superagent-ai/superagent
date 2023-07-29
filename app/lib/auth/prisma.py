@@ -73,8 +73,7 @@ class JWTBearer(HTTPBearer):
                 accessToken = credentials.credentials.split("oauth_")[-1]
                 oauth_data = prisma.user.find_first(where={"accessToken": accessToken})
                 res = await self.validateOAuthData(oauth_data)
-                print(res)
-                return dict({"isOauthToken": True, "userId": oauth_data.id})
+                return dict({"userId": oauth_data.id})
             else:
                 if not self.verify_jwt(credentials.credentials):
                     tokens_data = prisma.apitoken.find_first(
@@ -85,10 +84,9 @@ class JWTBearer(HTTPBearer):
                         raise HTTPException(
                             status_code=403, detail="Invalid token or expired token."
                         )
-
                     return signJWT(tokens_data.userId)
 
-            return credentials.credentials
+            return decodeJWT(credentials.credentials)
 
         else:
             raise HTTPException(status_code=403, detail="Invalid authorization code.")

@@ -21,15 +21,6 @@ router = APIRouter()
 @router.post("/agents", name="Create agent", description="Create a new agent")
 async def create_agent(body: Agent, token=Depends(JWTBearer())):
     """Agents endpoint"""
-    is_oauth_token = False
-    if type(token) != str and token["isOauthToken"] == True:
-        is_oauth_token = True
-
-    if is_oauth_token != True:
-        decoded = decodeJWT(token)
-    else:
-        decoded = token
-
     try:
         agent = prisma.agent.create(
             {
@@ -37,7 +28,7 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
                 "type": body.type,
                 "llm": json.dumps(body.llm),
                 "hasMemory": body.hasMemory,
-                "userId": decoded["userId"],
+                "userId": token["userId"],
                 "promptId": body.promptId,
             },
             include={"user": True},
@@ -55,17 +46,8 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
 @router.get("/agents", name="List all agents", description="List all agents")
 async def read_agents(token=Depends(JWTBearer())):
     """Agents endpoint"""
-    is_oauth_token = False
-    if type(token) != str and token["isOauthToken"] == True:
-        is_oauth_token = True
-
-    if is_oauth_token != True:
-        decoded = decodeJWT(token)
-    else:
-        decoded = token
-
     agents = prisma.agent.find_many(
-        where={"userId": decoded["userId"]},
+        where={"userId": token["userId"]},
         include={
             "user": True,
         },

@@ -13,19 +13,11 @@ router = APIRouter()
 @router.post("/documents", name="Create document", description="Create a new document")
 async def create_document(body: Document, token=Depends(JWTBearer())):
     """Create document endpoint"""
-    is_oauth_token = False
-    if type(token) != str and token["isOauthToken"] == True:
-        is_oauth_token = True
-
-    if is_oauth_token != True:
-        decoded = decodeJWT(token)
-    else:
-        decoded = token
     document = prisma.document.create(
         {
             "type": body.type,
             "url": body.url,
-            "userId": decoded["userId"],
+            "userId": token["userId"],
             "name": body.name,
             "splitter": json.dumps(body.splitter),
             "authorization": json.dumps(body.authorization),
@@ -43,7 +35,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
             text_splitter=body.splitter,
             from_page=body.from_page,
             to_page=body.to_page,
-            user_id=decoded["userId"],
+            user_id=token["userId"],
         )
 
     return {"success": True, "data": document}
@@ -52,16 +44,8 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
 @router.get("/documents", name="List documents", description="List all documents")
 async def read_documents(token=Depends(JWTBearer())):
     """List documents endpoint"""
-    is_oauth_token = False
-    if type(token) != str and token["isOauthToken"] == True:
-        is_oauth_token = True
-
-    if is_oauth_token != True:
-        decoded = decodeJWT(token)
-    else:
-        decoded = token
     documents = prisma.document.find_many(
-        where={"userId": decoded["userId"]},
+        where={"userId": token["userId"]},
         include={"user": True},
         order={"createdAt": "desc"},
     )
