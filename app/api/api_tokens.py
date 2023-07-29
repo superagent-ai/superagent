@@ -1,9 +1,13 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.lib.api_tokens import generate_api_token
 from app.lib.auth.prisma import JWTBearer, decodeJWT
 from app.lib.models.api_token import ApiToken
 from app.lib.prisma import prisma
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -28,21 +32,26 @@ async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
         return {"success": True, "data": agent}
 
     except Exception as e:
+        logger.error("Cannot create api token", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=e,
         )
 
 
 @router.get("/api-tokens", name="List API tokens", description="List all API tokens")
 async def read_api_tokens(token=Depends(JWTBearer())):
     """List api tokens endpoint"""
-    api_tokens = prisma.apitoken.find_many(
-        where={"userId": token["userId"]}, include={"user": True}
-    )
-    if api_tokens:
-        return {"success": True, "data": api_tokens}
+    try:
+        decoded = decodeJWT(token)
+        api_tokens = prisma.apitoken.find_many(
+            where={"userId": token["userId"]}, include={"user": True}
+        )
+        if api_tokens:
+            return {"success": True, "data": api_tokens}
+    except Exception as e:
+        logger.error("Error finding api tokens for user {userId}", exc_info=e)
 
+    logger.error("Couldn't find api tokens")
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="No agents found",
@@ -56,13 +65,17 @@ async def read_api_tokens(token=Depends(JWTBearer())):
 )
 async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
     """Get an api token endpoint"""
-    api_token = prisma.apitoken.find_unique(
-        where={"id": tokenId}, include={"user": True}
-    )
 
-    if api_token:
-        return {"success": True, "data": api_token}
+    try:
+        api_token = prisma.apitoken.find_unique(
+            where={"id": tokenId}, include={"user": True}
+        )
+        if api_token:
+            return {"success": True, "data": api_token}
+    except Exception as e:
+        logger.error("Cannot find api token {tokenId}", exc_info=e)
 
+    logger.error("Cannot find api token {tokenId}")
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail=f"API token with id: {tokenId} not found",
@@ -81,7 +94,7 @@ async def delete_api_token(tokenId: str, token=Depends(JWTBearer())):
 
         return {"success": True, "data": None}
     except Exception as e:
+        logger.error(f"Couldn't delete api token with id {tokenId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=e,
         )

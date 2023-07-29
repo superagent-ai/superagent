@@ -25,16 +25,9 @@ function AnalyticsProvider({ children }) {
         session.status === "authenticated" &&
         previousSession?.status !== "authenticated"
       ) {
-        analytics.identify(
-          session.data.user.id || session.data.user.user.id,
-          session.data.user.user
-            ? {
-                ...session.data.user.user,
-              }
-            : {
-                ...session.data.user,
-              }
-        );
+        analytics.identify(session.data.user?.user?.id, {
+          ...session.data.user.user,
+        });
       }
     }
   }, [previousSession, session, pathname, previousPathname]);

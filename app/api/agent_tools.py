@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from starlette.requests import Request
 
 from app.lib.auth.prisma import JWTBearer
 from app.lib.models.agent_tool import AgentTool
 from app.lib.prisma import prisma
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -28,9 +32,19 @@ def parse_filter_params(request: Request):
 )
 async def create_agent_tool(body: AgentTool, token=Depends(JWTBearer())):
     """Create agent tool endpoint"""
-    agent_tool = prisma.agenttool.create(
-        {"agentId": body.agentId, "toolId": body.toolId}
-    )
+
+    try:
+        agent_tool = prisma.agenttool.create(
+            {"agentId": body.agentId, "toolId": body.toolId}
+        )
+    except Exception as e:
+        logger.error(
+            "Cannot create agent tool for agent {body.agentId} and tool {body.toolId}",
+            exc_info=e,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     return {"success": True, "data": agent_tool}
 
@@ -46,7 +60,16 @@ async def read_agent_tools(
     token=Depends(JWTBearer()),
 ):
     """List agent tools endpoint"""
-    agent_tools = prisma.agenttool.find_many(where=filters, include={"tool": expand})
+
+    try:
+        agent_tools = prisma.agenttool.find_many(
+            where=filters, include={"tool": expand}
+        )
+    except Exception as e:
+        logger.error("Cannot read agent tools", exc_info=e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     return {"success": True, "data": agent_tools}
 
@@ -58,7 +81,14 @@ async def read_agent_tools(
 )
 async def read_agent_tool(agentToolId: str, token=Depends(JWTBearer())):
     """Get an agent tool"""
-    agent_tool = prisma.agenttool.find_unique(where={"id": agentToolId})
+
+    try:
+        agent_tool = prisma.agenttool.find_unique(where={"id": agentToolId})
+    except Exception as e:
+        logger.error("Cannot read agent tool {agentToolId}", exc_info=e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     return {"success": True, "data": agent_tool}
 
@@ -71,6 +101,12 @@ async def read_agent_tool(agentToolId: str, token=Depends(JWTBearer())):
 async def delete_agent_tool(agentToolId: str, token=Depends(JWTBearer())):
     """Delete agent tool endpoint"""
 
-    prisma.agenttool.delete(where={"id": agentToolId})
+    try:
+        prisma.agenttool.delete(where={"id": agentToolId})
+    except Exception as e:
+        logger.error("Cannot delete agent tool {agentToolId}", exc_info=e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     return {"success": True, "data": None}

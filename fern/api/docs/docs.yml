@@ -1,0 +1,14 @@
+title: Superagent
+navigation:
+  - section: Overview
+    contents:
+      - page: Introduction
+        path: ./intro.mdx
+      - page: Platform
+        path: ./platform.mdx
+      - page: Concepts
+        path: ./concepts.mdx
+  - api: API Reference
+colors:
+  accentPrimary: "#e2742b"
+favicon: ./favicon.png
