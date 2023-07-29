@@ -61,7 +61,7 @@ export default function AppBody({ children, session }) {
           <SidebarToggleButton />
           <SidebarSection direction="row">
           <HStack width="full" justifyContent="space-between" paddingX="2">
-            <Text as="strong" color="white" fontSize="2xl">
+            <Text as="strong" fontSize="2xl">
               Superagent
             </Text>
             <Spacer />
