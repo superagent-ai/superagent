@@ -123,6 +123,20 @@ class API {
     return data;
   }
 
+  async getTags() {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/tags`,
+      {
+        headers: {
+          ...this.getHeaders(),
+        },
+      }
+    );
+    const { data } = await response.json();
+
+    return data;
+  }
+
   async getTools() {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/tools`,
@@ -220,6 +234,22 @@ class API {
   async createPrompt(payload) {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/prompts`,
+      {
+        method: "POST",
+        body: JSON.stringify({ ...payload }),
+        headers: {
+          ...this.getHeaders(),
+        },
+      }
+    );
+    const { data } = await response.json();
+
+    return data;
+  }
+
+  async createTag(payload) {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/tags`,
       {
         method: "POST",
         body: JSON.stringify({ ...payload }),
@@ -339,6 +369,21 @@ class API {
     return data;
   }
 
+  async deleteTag({ id }) {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/tags/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          ...this.getHeaders(),
+        },
+      }
+    );
+    const { data } = await response.json();
+
+    return data;
+  }
+
   async deleteTool({ id }) {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/tools/${id}`,
@@ -354,15 +399,15 @@ class API {
     return data;
   }
 
-  async patchAgent(payload) {
+  async patchAgent(id, payload) {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${payload.id}`,
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${id}`,
       {
         method: "PATCH",
         headers: {
           ...this.getHeaders(),
         },
-        body: JSON.stringify({ ...payload }),
+        body: JSON.stringify(payload),
       }
     );
     const { data } = await response.json();
