@@ -2,7 +2,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.lib.auth.prisma import JWTBearer, decodeJWT
+from app.lib.auth.prisma import JWTBearer
 from app.lib.models.tag import Tag
 from app.lib.prisma import prisma
 
@@ -15,7 +15,6 @@ router = APIRouter()
 async def create_tag(body: Tag, token=Depends(JWTBearer())):
     """Create tag endpoint"""
     try:
-        decoded = decodeJWT(token)
         tag = prisma.tag.create(
             {
                 "name": body.name,
@@ -30,11 +29,11 @@ async def create_tag(body: Tag, token=Depends(JWTBearer())):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
+
 @router.get("/tags", name="List tags", description="List all tags")
 async def read_tags(token=Depends(JWTBearer())):
     """List tags endpoint"""
     try:
-        decoded = decodeJWT(token)
         tags = prisma.tag.find_many(
             where={"userId": token["userId"]},
             order={"createdAt": "desc"},

@@ -2,7 +2,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.lib.auth.prisma import JWTBearer, decodeJWT
+from app.lib.auth.prisma import JWTBearer
 from app.lib.prisma import prisma
 
 logger = logging.getLogger(__name__)

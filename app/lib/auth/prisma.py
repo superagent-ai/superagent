@@ -4,14 +4,12 @@ from typing import Dict
 import bcrypt
 import jwt
 import requests as req
-import asyncio
+from azure.identity import DefaultAzureCredential
 from decouple import config
 from fastapi import HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from google.oauth2 import id_token
 from google.auth.transport import requests
-from azure.identity import DefaultAzureCredential
-
+from google.oauth2 import id_token
 
 from app.lib.prisma import prisma
 
@@ -72,7 +70,7 @@ class JWTBearer(HTTPBearer):
             if credentials.credentials.startswith("oauth_"):
                 accessToken = credentials.credentials.split("oauth_")[-1]
                 oauth_data = prisma.user.find_first(where={"accessToken": accessToken})
-                res = await self.validateOAuthData(oauth_data)
+                await self.validateOAuthData(oauth_data)
                 return dict({"userId": oauth_data.id})
             else:
                 if not self.verify_jwt(credentials.credentials):
@@ -106,11 +104,11 @@ class JWTBearer(HTTPBearer):
 
     async def validateOAuthData(self, oauth_data) -> bool:
         if oauth_data.provider == "google":
-            res = self.verify_google_token(oauth_data.accessToken)
+            self.verify_google_token(oauth_data.accessToken)
         elif oauth_data.provider == "github":
-            res = self.verify_github_token(oauth_data.accessToken)
+            self.verify_github_token(oauth_data.accessToken)
         elif oauth_data.provider == "azure-ad":
-            res = self.verify_azure_token(oauth_data.accessToken)
+            self.verify_azure_token(oauth_data.accessToken)
         return True
 
     async def verify_github_token(self, accessToken: str) -> bool:

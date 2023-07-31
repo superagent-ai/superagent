@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.lib.api_tokens import generate_api_token
-from app.lib.auth.prisma import JWTBearer, decodeJWT
+from app.lib.auth.prisma import JWTBearer
 from app.lib.models.api_token import ApiToken
 from app.lib.prisma import prisma
 
@@ -42,7 +42,6 @@ async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
 async def read_api_tokens(token=Depends(JWTBearer())):
     """List api tokens endpoint"""
     try:
-        decoded = decodeJWT(token)
         api_tokens = prisma.apitoken.find_many(
             where={"userId": token["userId"]}, include={"user": True}
         )

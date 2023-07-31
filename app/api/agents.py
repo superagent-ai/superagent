@@ -12,7 +12,7 @@ from starlette.responses import StreamingResponse
 from app.lib.agents.base import AgentBase
 from app.lib.agents.factory import AgentFactory
 from app.lib.auth.api import get_api_key
-from app.lib.auth.prisma import JWTBearer, decodeJWT
+from app.lib.auth.prisma import JWTBearer
 from app.lib.models.agent import Agent, PredictAgent
 from app.lib.prisma import prisma
 

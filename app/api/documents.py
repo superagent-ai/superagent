@@ -3,7 +3,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.lib.auth.prisma import JWTBearer, decodeJWT
+from app.lib.auth.prisma import JWTBearer
 from app.lib.documents import upsert_document, valid_ingestion_types
 from app.lib.models.document import Document
 from app.lib.prisma import prisma
@@ -57,7 +57,6 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
 async def read_documents(token=Depends(JWTBearer())):
     """List documents endpoint"""
     try:
-        decoded = decodeJWT(token)
         documents = prisma.document.find_many(
             where={"userId": token["userId"]},
             include={"user": True},
