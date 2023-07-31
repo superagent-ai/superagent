@@ -16,9 +16,9 @@ from azure.identity import DefaultAzureCredential
 from app.lib.prisma import prisma
 
 jwtSecret = config("JWT_SECRET")
-GOOGLE_CLIENT_ID = config("NEXT_PUBLIC_GOOGLE_CLIENT_ID")
-AZURE_AD_CLIENT_ID = config("NEXT_PUBLIC_AZURE_AD_CLIENT_ID")
-AZURE_AD_TENANT_ID = config("NEXT_PUBLIC_AZURE_AD_TENANT_ID")
+GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID")
+AZURE_AD_CLIENT_ID = config("AZURE_AD_CLIENT_ID")
+AZURE_AD_TENANT_ID = config("AZURE_AD_TENANT_ID")
 
 
 def signJWT(user_id: str) -> Dict[str, str]:
