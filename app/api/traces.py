@@ -2,7 +2,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.lib.auth.prisma import JWTBearer, decodeJWT
+from app.lib.auth.prisma import JWTBearer
 from app.lib.prisma import prisma
 
 logger = logging.getLogger(__name__)
@@ -18,9 +18,8 @@ router = APIRouter()
 async def list_agent_traces(token=Depends(JWTBearer())):
     """List agent traces endpoint"""
     try:
-        decoded = decodeJWT(token)
         agent_traces = prisma.agenttrace.find_many(
-            where={"userId": decoded["userId"]},
+            where={"userId": token["userId"]},
             include={
                 "agent": True,
             },

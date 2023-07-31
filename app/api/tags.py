@@ -2,7 +2,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.lib.auth.prisma import JWTBearer, decodeJWT
+from app.lib.auth.prisma import JWTBearer
 from app.lib.models.tag import Tag
 from app.lib.prisma import prisma
 
@@ -15,12 +15,11 @@ router = APIRouter()
 async def create_tag(body: Tag, token=Depends(JWTBearer())):
     """Create tag endpoint"""
     try:
-        decoded = decodeJWT(token)
         tag = prisma.tag.create(
             {
                 "name": body.name,
                 "color": body.color,
-                "userId": decoded["userId"],
+                "userId": token["userId"],
             },
         )
         return {"success": True, "data": tag}
@@ -35,9 +34,8 @@ async def create_tag(body: Tag, token=Depends(JWTBearer())):
 async def read_tags(token=Depends(JWTBearer())):
     """List tags endpoint"""
     try:
-        decoded = decodeJWT(token)
         tags = prisma.tag.find_many(
-            where={"userId": decoded["userId"]},
+            where={"userId": token["userId"]},
             order={"createdAt": "desc"},
         )
         return {"success": True, "data": tags}

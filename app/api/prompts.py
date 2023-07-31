@@ -3,7 +3,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.lib.auth.prisma import JWTBearer, decodeJWT
+from app.lib.auth.prisma import JWTBearer
 from app.lib.models.prompt import Prompt
 from app.lib.prisma import prisma
 
@@ -15,14 +15,14 @@ router = APIRouter()
 @router.post("/prompts", name="Create a prompt", description="Create a new prompt")
 async def create_prompt(body: Prompt, token=Depends(JWTBearer())):
     """Create prompt endpoint"""
+
     try:
-        decoded = decodeJWT(token)
         prompt = prisma.prompt.create(
             {
                 "name": body.name,
                 "input_variables": json.dumps(body.input_variables),
                 "template": body.template,
-                "userId": decoded["userId"],
+                "userId": token["userId"],
             },
             include={"user": True},
         )
@@ -38,9 +38,8 @@ async def create_prompt(body: Prompt, token=Depends(JWTBearer())):
 async def read_prompts(token=Depends(JWTBearer())):
     """List prompts endpoint"""
     try:
-        decoded = decodeJWT(token)
         prompts = prisma.prompt.find_many(
-            where={"userId": decoded["userId"]},
+            where={"userId": token["userId"]},
             include={"user": True},
             order={"createdAt": "desc"},
         )

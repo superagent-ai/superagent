@@ -3,7 +3,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.lib.auth.prisma import JWTBearer, decodeJWT
+from app.lib.auth.prisma import JWTBearer
 from app.lib.models.tool import Tool
 from app.lib.prisma import prisma
 
@@ -16,13 +16,12 @@ router = APIRouter()
 async def create_tool(body: Tool, token=Depends(JWTBearer())):
     """Create tool endpoint"""
     try:
-        decoded = decodeJWT(token)
         tool = prisma.tool.create(
             {
                 "name": body.name,
                 "type": body.type,
                 "metadata": json.dumps(body.metadata),
-                "userId": decoded["userId"],
+                "userId": token["userId"],
                 "description": body.description,
             },
             include={"user": True},
@@ -39,9 +38,8 @@ async def create_tool(body: Tool, token=Depends(JWTBearer())):
 async def read_tools(token=Depends(JWTBearer())):
     """List tools endpoint"""
     try:
-        decoded = decodeJWT(token)
         tools = prisma.tool.find_many(
-            where={"userId": decoded["userId"]},
+            where={"userId": token["userId"]},
             include={"user": True},
             order={"createdAt": "desc"},
         )

@@ -131,6 +131,7 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
                   <option value="REPLICATE">Replicate</option>
                   <option value="ZAPIER_NLA">Zapier</option>
                   <option value="OPENAPI">APIs</option>
+                  <option value="CHATGPT_PLUGIN">ChatGPT Plugin</option>
                 </Select>
                 {errors?.type && (
                   <FormErrorMessage>Invalid type</FormErrorMessage>
@@ -167,6 +168,18 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
                         }
                       />
                     </Box>
+                  </FormControl>
+                </>
+              )}
+              {type === "CHATGPT_PLUGIN" && (
+                <>
+                  <FormControl isRequired>
+                    <FormLabel>ChatGPT Plugin URL</FormLabel>
+                    <Input
+                      type="text"
+                      {...register("chatgptPluginURL", { required: true })}
+                      placeholder="Enter a URL for the plugin"
+                    />
                   </FormControl>
                 </>
               )}

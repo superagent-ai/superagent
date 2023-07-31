@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  superagent-api:
+    container_name: superagent-api
+    network_mode: "host"
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    command: ["/bin/bash", "setup.docker.sh"]
+    environment:
+      - PORT=8080
+    env_file:
+      - ../.env

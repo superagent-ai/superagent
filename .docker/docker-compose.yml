@@ -1,0 +1,61 @@
+version: "3"
+
+services:
+  superagent-ui:
+    container_name: superagent-ui
+    network_mode: "host"
+    build:
+      context: ../ui
+      dockerfile: Dockerfile
+    env_file:
+      - ../ui/.env
+    depends_on:
+      - superagent-api
+
+  superagent-api:
+    container_name: superagent-api
+    network_mode: "host"
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    command: ["/bin/bash", "setup.docker.sh"]
+    environment:
+      - PORT=8080
+    env_file:
+      - ../.env
+    depends_on:
+      - pgdb
+      - pgadmin
+
+  pgdb:
+    container_name: pgdb
+    network_mode: "host"
+    image: postgres:12
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: pgdb-data
+        target: "/var/lib/postgresql/data"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: ${DBUSER}
+      POSTGRES_PASSWORD: ${DBPASS}
+
+  pgadmin:
+    container_name: pgadmin
+    network_mode: "host"
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_LISTEN_ADDRESS: 0.0.0.0
+      PGADMIN_LISTEN_PORT: 5050
+    volumes:
+      - type: volume
+        source: pgadmin-data
+        target: /root/.pgadmin
+    restart: unless-stopped
+
+volumes:
+  pgdb-data:
+  pgadmin-data:
