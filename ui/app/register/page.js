@@ -12,9 +12,7 @@ import {
   Stack,
   Tag,
   Text,
-  useColorModeValue,
 } from "@chakra-ui/react";
-import { useSession } from "next-auth/react";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { SUPERAGENT_VERSION } from "@/lib/constants";
@@ -22,8 +20,6 @@ import { stripe } from "@/lib/stripe";
 import { analytics } from "@/lib/analytics";
 
 export default function Register() {
-  const fontColor = useColorModeValue("white", "white");
-  const session = useSession();
   const {
     formState: { isSubmitting, errors },
     register,
@@ -78,7 +74,7 @@ export default function Register() {
     >
       <Stack spacing={8} minHeight="100vh" justifyContent="center">
         <HStack spacing={4} justifyContent="center" alignItems="center">
-          <Text as="strong" color={fontColor} fontSize="2xl">
+          <Text as="strong" fontSize="2xl">
             Superagent
           </Text>
           <Tag size="sm">{SUPERAGENT_VERSION}</Tag>

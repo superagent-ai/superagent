@@ -9,6 +9,7 @@ import {
   Spacer,
   Tag,
   Text,
+  useColorMode,
 } from "@chakra-ui/react";
 import {
   AppShell,
@@ -19,6 +20,7 @@ import {
 } from '@saas-ui/react'
 import { SUPERAGENT_VERSION } from "../../lib/constants";
 import { FOOTER_MENU, MAIN_MENU } from "../../lib/sidebar-menu";
+import { TbMoon, TbSun } from "react-icons/tb";
 
 function MenuLink({ label, icon, path, ...properties }) {
   const pathname = usePathname();
@@ -37,7 +39,7 @@ function MenuLink({ label, icon, path, ...properties }) {
         marginY={"0.5"}
         size="md"
         variant="ghost"
-        color={isActive ? "white" : "gray.400"}
+        opacity={isActive ? "1": "0.7"}
       >
         {label}
       </Button>
@@ -46,20 +48,20 @@ function MenuLink({ label, icon, path, ...properties }) {
 }
 
 export default function AppBody({ children, session }) {
+  const { toggleColorMode, colorMode } = useColorMode()
   return (
     <AppShell
-      backgroundColor="#131416"
       variant="fixed"
       minH="100vh"
       maxH="100vh"
       overflow="hidden"
       sidebar={
         session &&
-        <Sidebar backgroundColor="#131416">
+        <Sidebar>
           <SidebarToggleButton />
           <SidebarSection direction="row">
           <HStack width="full" justifyContent="space-between" paddingX="2">
-            <Text as="strong" color="white" fontSize="2xl">
+            <Text as="strong" fontSize="2xl">
               Superagent
             </Text>
             <Spacer />
@@ -81,6 +83,14 @@ export default function AppBody({ children, session }) {
 
           </SidebarSection>
           <SidebarSection>
+          <MenuLink
+            onClick={(e) => {
+              e.preventDefault()
+              toggleColorMode()
+            }}
+            icon={colorMode === 'dark' ? TbSun : TbMoon}
+            label={colorMode === 'dark' ? 'Light mode' : 'Dark mode'}
+          />
           {FOOTER_MENU.filter(
                 ({ id }) =>
                   process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY || id !== "billing"

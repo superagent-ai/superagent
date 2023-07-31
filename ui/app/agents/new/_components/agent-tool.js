@@ -12,6 +12,7 @@ import {
   Switch,
   Text,
   Tag,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import API from "@/lib/api";
 import { TOOL_ICONS, UPCOMING_TOOLS } from "@/lib/constants";
@@ -95,7 +96,6 @@ export default function AgentTool({ onSubmit, session }) {
                 {!isLoading &&
                   tools.map(({ id, name, type }) => (
                     <HStack
-                      backgroundColor="#222"
                       key={id}
                       justifyContent="space-between"
                       borderRadius="md"
@@ -126,7 +126,6 @@ export default function AgentTool({ onSubmit, session }) {
                 {!isLoading &&
                   UPCOMING_TOOLS.map(({ id, name, type }) => (
                     <HStack
-                      backgroundColor="#222"
                       key={id}
                       justifyContent="space-between"
                       borderRadius="md"
@@ -153,7 +152,10 @@ export default function AgentTool({ onSubmit, session }) {
                 left={0}
                 right={0}
                 height="50px"
-                bgGradient="linear(to-t, #131416, transparent)"
+                bgGradient={useColorModeValue(
+                  "linear(to-t, #FFF, transparent)",
+                  "linear(to-t, #131416, transparent)"
+                )}
               />
             </Box>
           </Stack>

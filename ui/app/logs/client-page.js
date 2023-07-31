@@ -19,6 +19,7 @@ import {
   Tag,
   IconButton,
   Icon,
+  useColorMode,
 } from "@chakra-ui/react";
 import dayjs from "dayjs";
 import titleize from "titleize";
@@ -26,6 +27,7 @@ import { TbX } from "react-icons/tb";
 
 export default function LogsClientPage({ data, session }) {
   const [activeLog, setActiveLog] = useState();
+  const {colorMode } = useColorMode()
 
   return (
     <Stack flex={1} paddingTop={12} spacing={6} overflow="auto">
@@ -49,15 +51,17 @@ export default function LogsClientPage({ data, session }) {
                 <Tr
                   key={id}
                   cursor="pointer"
+                  
+                  //color={activeLog == id && 'primary.500'}
                   _hover={{ opacity: 0.5 }}
                   transition="0.2s all"
                   onClick={() =>
                     setActiveLog(data.find(({ id: logId }) => logId === id))
                   }
                 >
-                  <Td paddingLeft={12}>{agent.name}</Td>
-                  <Td>{id}</Td>
-                  <Td>{dayjs(createdAt).format("YYYY-MM-DD, HH:mm")}</Td>
+                  <Td paddingLeft={12} color={activeLog?.id === id && 'primary.500'}>{agent.name}</Td>
+                  <Td color={activeLog?.id === id && 'primary.500'}>{id}</Td>
+                  <Td color={activeLog?.id === id && 'primary.500'}>{dayjs(createdAt).format("YYYY-MM-DD, HH:mm")}</Td>
                 </Tr>
               ))}
             </Tbody>
@@ -84,13 +88,13 @@ export default function LogsClientPage({ data, session }) {
               overflow="auto"
               margin={4}
               padding={2}
-              backgroundColor="gray.900"
+              backgroundColor={colorMode === 'dark' ? "gray.900" : "gray.100"}
               borderRadius="md"
             >
               <Text fontSize="xs" color="gray.500">
                 Output
               </Text>
-              <Text marginTop={2} flex={0.8} color="white">
+              <Text marginTop={2} flex={0.8}>
                 {activeLog.data.output}
               </Text>
             </Box>

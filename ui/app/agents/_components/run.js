@@ -18,7 +18,7 @@ const STREAMING_SUPPORT = ["openai", "openai-chat", "anthropic"];
 export default function Run({ apiTokens, id, llm, document, tool, type }) {
   const [message, setMessage] = useState(null);
   const [response, setResponse] = useState(null);
-  const backgroundColor = useColorModeValue("#131416", "#131416");
+  const backgroundColor = useColorModeValue("#131416", "#fffff");
   const {
     formState: { isSubmitting, errors },
     handleSubmit,

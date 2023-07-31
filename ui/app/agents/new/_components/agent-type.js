@@ -50,7 +50,7 @@ export default function AgentType({ onSubmit }) {
               key={id}
               borderWidth="0.5px"
               borderRadius="md"
-              backgroundColor="#222"
+              //backgroundColor="#222"
               padding={4}
               cursor="pointer"
               borderColor={type === id && "orange.500"}
