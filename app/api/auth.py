@@ -8,7 +8,7 @@ from app.lib.auth.prisma import (
     signJWT,
     validatePassword,
 )
-from app.lib.models.auth import SignIn, SignInOut, SignUp
+from app.lib.models.auth import OAuth, SignIn, SignInOut, SignUp
 from app.lib.prisma import prisma
 
 logger = logging.getLogger(__name__)
@@ -75,3 +75,39 @@ async def sign_up(body: SignUp):
         status_code=status.HTTP_400_BAD_REQUEST,
         detail="Invalid credentials",
     )
+
+
+@router.post("/auth/oauth/callback")
+async def oauth_handler(body: OAuth):
+    user = prisma.user.find_first(
+        where={
+            "email": body.email,
+        },
+        include={"profile": True},
+    )
+    prisma.user.update(
+        where={"email": body.email},
+        data={
+            "email": body.email,
+            "provider": body.provider,
+            "name": body.name,
+            "accessToken": body.access_token,
+        },
+    )
+    if user:
+        return {"success": True, "data": user}
+    else:
+        user = prisma.user.create(
+            {
+                "email": body.email,
+                "provider": body.provider,
+                "name": body.name,
+                "accessToken": body.access_token,
+            }
+        )
+        prisma.profile.create(
+            {"userId": user.id, "metadata": json.dumps(body.metadata)}
+        )
+
+        if user:
+            return {"success": True, "data": user}

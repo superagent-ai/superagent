@@ -1,7 +1,7 @@
 class API {
   constructor(session) {
-    this.token = session.user.token;
-    this.user = session.user.user;
+    this.token = session.user.token || `oauth_${session.oauthToken}`;
+    this.user = session.user.user || session.user;
   }
 
   getHeaders() {
@@ -152,16 +152,13 @@ class API {
   }
 
   async createApiToken({ description }) {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/api-tokens`,
-      {
-        method: "POST",
-        body: JSON.stringify({ description }),
-        headers: {
-          ...this.getHeaders(),
-        },
-      }
-    );
+    const response = await fetch(`/api-tokens`, {
+      method: "POST",
+      body: JSON.stringify({ description }),
+      headers: {
+        ...this.getHeaders(),
+      },
+    });
     const { data } = await response.json();
 
     return data;

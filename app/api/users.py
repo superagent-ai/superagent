@@ -2,7 +2,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.lib.auth.prisma import JWTBearer, decodeJWT
+from app.lib.auth.prisma import JWTBearer
 from app.lib.prisma import prisma
 
 logger = logging.getLogger(__name__)
@@ -13,9 +13,8 @@ router = APIRouter()
 @router.get("/users/me")
 async def read_user_me(token=Depends(JWTBearer())):
     try:
-        decoded = decodeJWT(token)
-        if "userId" in decoded:
-            userId = decoded["userId"]
+        if "userId" in token:
+            userId = token["userId"]
             user = prisma.user.find_unique(
                 where={"id": userId}, include={"profile": True}
             )

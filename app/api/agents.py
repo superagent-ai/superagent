@@ -12,7 +12,7 @@ from starlette.responses import StreamingResponse
 from app.lib.agents.base import AgentBase
 from app.lib.agents.factory import AgentFactory
 from app.lib.auth.api import get_api_key
-from app.lib.auth.prisma import JWTBearer, decodeJWT
+from app.lib.auth.prisma import JWTBearer
 from app.lib.models.agent import Agent, PredictAgent
 from app.lib.prisma import prisma
 
@@ -23,8 +23,6 @@ router = APIRouter()
 @router.post("/agents", name="Create agent", description="Create a new agent")
 async def create_agent(body: Agent, token=Depends(JWTBearer())):
     """Agents endpoint"""
-    decoded = decodeJWT(token)
-
     try:
         agent = prisma.agent.create(
             {
@@ -32,7 +30,7 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
                 "type": body.type,
                 "llm": json.dumps(body.llm),
                 "hasMemory": body.hasMemory,
-                "userId": decoded["userId"],
+                "userId": token["userId"],
                 "promptId": body.promptId,
             },
             include={"user": True},
@@ -50,15 +48,15 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
 @router.get("/agents", name="List all agents", description="List all agents")
 async def read_agents(token=Depends(JWTBearer())):
     """Agents endpoint"""
-    decoded = decodeJWT(token)
     try:
         agents = prisma.agent.find_many(
-            where={"userId": decoded["userId"]},
+            where={"userId": token["userId"]},
             include={
                 "user": True,
             },
             order={"createdAt": "desc"},
         )
+
         if agents or agents == []:
             return {"success": True, "data": agents}
         else:

@@ -3,7 +3,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.lib.auth.prisma import JWTBearer, decodeJWT
+from app.lib.auth.prisma import JWTBearer
 from app.lib.documents import upsert_document, valid_ingestion_types
 from app.lib.models.document import Document
 from app.lib.prisma import prisma
@@ -17,12 +17,11 @@ router = APIRouter()
 async def create_document(body: Document, token=Depends(JWTBearer())):
     """Create document endpoint"""
     try:
-        decoded = decodeJWT(token)
         document = prisma.document.create(
             {
                 "type": body.type,
                 "url": body.url,
-                "userId": decoded["userId"],
+                "userId": token["userId"],
                 "name": body.name,
                 "splitter": json.dumps(body.splitter),
                 "authorization": json.dumps(body.authorization),
@@ -40,7 +39,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
                 text_splitter=body.splitter,
                 from_page=body.from_page,
                 to_page=body.to_page,
-                user_id=decoded["userId"],
+                user_id=token["userId"],
             )
         else:
             logger.error("Invalid ingestion type")
@@ -58,9 +57,8 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
 async def read_documents(token=Depends(JWTBearer())):
     """List documents endpoint"""
     try:
-        decoded = decodeJWT(token)
         documents = prisma.document.find_many(
-            where={"userId": decoded["userId"]},
+            where={"userId": token["userId"]},
             include={"user": True},
             order={"createdAt": "desc"},
         )

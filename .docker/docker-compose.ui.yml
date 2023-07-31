@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  superagent-ui:
+    container_name: superagent-ui
+    network_mode: "host"
+    build:
+      context: ../ui
+      dockerfile: Dockerfile
+    env_file:
+      - ../ui/.env
