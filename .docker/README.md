@@ -16,7 +16,7 @@
 
    ``` bash
    # the example values are placeholders but they will work just fine locally.
-   `cp .docker/docker.example.env .docker/docker.env`
+   cp .docker/docker.example.env .docker/docker.env
    ```
 
 3. In order to connect to the db running in docker, with the example values from `docker.env`, set the following in the root `.env`. Set the `DATABASE_URL` and `DATABASE_MIGRATION_URL` to the same value and comment out, or remove the `DATABASE_SHADOW_URL`
