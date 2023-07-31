@@ -71,3 +71,21 @@ docker-compose --env-file docker.env -f docker-compose.pgdb.yml -f docker-compos
 docker-compose --env-file docker.env -f docker-compose.pgdb.yml -f docker-compose.ui.yml up --build -d
 
 ```
+
+## Viewing logs in the Docker containers
+
+Each container is named so you can easily view the logs using docker on the CMD line
+
+``` bash
+# UI logs
+docker logs superagent-ui -f
+
+# API logs
+docker logs superagent-api -f
+
+# DB logs
+docker logs superagent-pgdb -f
+
+## Adminer logs
+docker logs superagent-adminer -f
+```
