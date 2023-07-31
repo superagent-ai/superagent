@@ -59,12 +59,14 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
   );
 
   const copyToClipboard = () => {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://app.superagent.sh';
+
     navigator.clipboard.writeText(
-      `https://app.superagent.sh/share?agentId=${agent.id}&token=${encrypt(
+      `${baseUrl}/share?agentId=${agent.id}&token=${encrypt(
         apiToken?.token
       )}`
     );
-
+    
     toast({
       description: "Share link copied!",
       position: "top",

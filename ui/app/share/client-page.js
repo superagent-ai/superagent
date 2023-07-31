@@ -161,8 +161,10 @@ export default function ShareClientPage({ agent, token }) {
   };
 
   const handleCopyShareLink = () => {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://app.superagent.sh';
+    
     navigator.clipboard.writeText(
-      `https://app.superagent.sh/share?agentId=${agent.id}&token=${token}`
+      `${baseUrl}/share?agentId=${agent.id}&token=${token}`
     );
 
     toast({
