@@ -18,3 +18,10 @@ class SignUp(BaseModel):
 class SignInOut(BaseModel):
     token: str
     user: User
+
+
+class OAuth(BaseModel):
+    email: str
+    name: str
+    access_token: str = None
+    provider: str = None

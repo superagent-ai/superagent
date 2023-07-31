@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.lib.api_tokens import generate_api_token
-from app.lib.auth.prisma import JWTBearer, decodeJWT
+from app.lib.auth.prisma import JWTBearer
 from app.lib.models.api_token import ApiToken
 from app.lib.prisma import prisma
 
@@ -17,15 +17,14 @@ router = APIRouter()
 )
 async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
     """Create api token endpoint"""
-    decoded = decodeJWT(token)
-    token = generate_api_token()
 
+    api_token = generate_api_token()
     try:
         agent = prisma.apitoken.create(
             {
                 "description": body.description,
-                "token": token,
-                "userId": decoded["userId"],
+                "token": api_token,
+                "userId": token["userId"],
             },
             include={"user": True},
         )
@@ -43,12 +42,10 @@ async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
 async def read_api_tokens(token=Depends(JWTBearer())):
     """List api tokens endpoint"""
     try:
-        decoded = decodeJWT(token)
         api_tokens = prisma.apitoken.find_many(
-            where={"userId": decoded["userId"]}, include={"user": True}
+            where={"userId": token["userId"]}, include={"user": True}
         )
-
-        if api_tokens or api_tokens == []:
+        if api_tokens:
             return {"success": True, "data": api_tokens}
     except Exception as e:
         logger.error("Error finding api tokens for user {userId}", exc_info=e)
