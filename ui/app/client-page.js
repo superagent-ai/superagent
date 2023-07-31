@@ -9,6 +9,7 @@ import {
   Stack,
   Tag,
   Text,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 export default function HomeClientPage() {
@@ -48,7 +49,10 @@ export default function HomeClientPage() {
         <NextLink passHref href="https://docs.superagent.sh">
           <Stack
             minHeight="200px"
-            bgGradient="linear(to-l, gray.600, gray.700)"
+            bgGradient={useColorModeValue(
+              "linear(to-l, gray.50, gray.200)",
+              "linear(to-l, gray.600, gray.700)"
+            )}
             justifyContent="flex-end"
             padding={8}
             borderRadius="lg"
@@ -56,10 +60,10 @@ export default function HomeClientPage() {
             _hover={{ transform: "scale(1.03)" }}
           >
             <Stack maxWidth={["full", "60%"]}>
-              <Heading as="h1" fontSize="2xl" color="white">
+              <Heading as="h1" fontSize="2xl">
                 Documentation
               </Heading>
-              <Text color="white">
+              <Text>
                 Read more on how to get started with integrating Superagent in
                 your apps here.
               </Text>

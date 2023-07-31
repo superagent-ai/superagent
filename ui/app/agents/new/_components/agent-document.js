@@ -6,13 +6,11 @@ import {
   Container,
   HStack,
   Icon,
-  Input,
-  InputGroup,
-  InputLeftElement,
   Spinner,
   Stack,
   Switch,
   Text,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import API from "@/lib/api";
 import { useAsync } from "react-use";
@@ -93,7 +91,6 @@ export default function AgentDocument({ onSubmit, session }) {
                 {!isLoading &&
                   documents.map(({ id, name, type }) => (
                     <HStack
-                      backgroundColor="#222"
                       key={id}
                       justifyContent="space-between"
                       borderRadius="md"
@@ -119,7 +116,10 @@ export default function AgentDocument({ onSubmit, session }) {
                 left={0}
                 right={0}
                 height="50px"
-                bgGradient="linear(to-t, #131416, transparent)"
+                bgGradient={useColorModeValue(
+                  "linear(to-t, #FFF, transparent)",
+                  "linear(to-t, #131416, transparent)"
+                )}
               />
             </Box>
           </Stack>
