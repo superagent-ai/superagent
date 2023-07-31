@@ -21,13 +21,14 @@ import {
   Textarea,
   Circle,
   useColorMode,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { TbPlayerPlay, TbPlus, TbRefresh, TbX } from "react-icons/tb";
 import CodeMirror from "@uiw/react-codemirror";
 import { json, jsonLanguage } from "@codemirror/lang-json";
 import { languages } from "@codemirror/language-data";
-import { githubDark } from "@uiw/codemirror-theme-github";
+import { githubDark, githubLight } from "@uiw/codemirror-theme-github";
 import { EditorView } from "@codemirror/view";
 import ReactMarkdown from "react-markdown";
 import { BeatLoader } from "react-spinners";
@@ -41,12 +42,12 @@ import TagPickerModal from "@/app/tags/tag-picker";
 import { getPromptVariables } from "@/lib/prompts";
 
 function Panel({ children }) {
-  const {colorMode } = useColorMode()
+  const { colorMode } = useColorMode();
   return (
     <Stack
       flex={1}
       borderRight="1px"
-      borderColor={colorMode === 'dark' ? 'whiteAlpha.100' : 'blackAlpha.100'}
+      borderColor={colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100"}
       maxWidth="33.333%"
       spacing={0}
     >
@@ -56,12 +57,12 @@ function Panel({ children }) {
 }
 
 function PanelHeading({ title, isLoading, onCreate, onUpdate, isUpdating }) {
-  const {colorMode } = useColorMode()
-  
+  const { colorMode } = useColorMode();
+
   return (
     <HStack
       borderBottom="1px"
-      borderColor={colorMode === 'dark' ? 'whiteAlpha.100' : 'blackAlpha.100'}
+      borderColor={colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100"}
       paddingX={6}
       paddingY={2}
       justifyContent="space-between"
@@ -91,7 +92,7 @@ function PanelHeading({ title, isLoading, onCreate, onUpdate, isUpdating }) {
 
 function AgentDocument({ session, id, document }) {
   const api = new API(session);
-  const {colorMode } = useColorMode()
+  const { colorMode } = useColorMode();
   const router = useRouter();
   const toast = useToast();
   const [{ loading: isDeletingDocument }, handleDeleteDocument] = useAsyncFn(
@@ -111,7 +112,9 @@ function AgentDocument({ session, id, document }) {
   return (
     <HStack
       key={id}
-      backgroundColor={colorMode === 'dark' ? 'whiteAlpha.100' : 'blackAlpha.100'}
+      backgroundColor={
+        colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100"
+      }
       justifyContent="space-between"
       borderRadius="md"
       borderWidth="0.5px"
@@ -132,7 +135,7 @@ function AgentDocument({ session, id, document }) {
 function AgentTag({ agent, session, id, name, color }) {
   const api = new API(session);
   const router = useRouter();
-  const {colorMode } = useColorMode()
+  const { colorMode } = useColorMode();
   const toast = useToast();
   const [{ loading: isDeletingTag }, handleDeleteTag] = useAsyncFn(
     async (id) => {
@@ -154,7 +157,9 @@ function AgentTag({ agent, session, id, name, color }) {
   return (
     <HStack
       key={id}
-      backgroundColor={colorMode === 'dark' ? 'whiteAlpha.100' : 'blackAlpha.100'}
+      backgroundColor={
+        colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100"
+      }
       justifyContent="space-between"
       borderRadius="md"
       borderWidth="0.5px"
@@ -178,7 +183,7 @@ function AgentTag({ agent, session, id, name, color }) {
 function AgentTool({ id, tool, session }) {
   const api = new API(session);
   const router = useRouter();
-  const {colorMode } = useColorMode()
+  const { colorMode } = useColorMode();
   const toast = useToast();
   const [{ loading: isDeletingTool }, handleDeleteTool] = useAsyncFn(
     async (id) => {
@@ -197,7 +202,9 @@ function AgentTool({ id, tool, session }) {
   return (
     <HStack
       key={id}
-      backgroundColor={colorMode === 'dark' ? 'whiteAlpha.100' : 'blackAlpha.100'}
+      backgroundColor={
+        colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100"
+      }
       justifyContent="space-between"
       borderRadius="md"
       borderWidth="0.5px"
@@ -231,7 +238,7 @@ export default function AgentDetailClientPage({
   const [prompt, setPrompt] = useState();
   const api = new API(session);
   const toast = useToast();
-  const {colorMode } = useColorMode()
+  const { colorMode } = useColorMode();
   const router = useRouter();
   const {
     isOpen: isToolModalOpen,
@@ -410,7 +417,7 @@ export default function AgentDetailClientPage({
                   }),
                   EditorView.lineWrapping,
                 ]}
-                theme={githubDark}
+                theme={useColorModeValue(githubLight, githubDark)}
                 value={JSON.stringify(response?.trace, null, 2)}
               />
             </Stack>
@@ -445,7 +452,9 @@ export default function AgentDetailClientPage({
               />
               <HStack paddingX={6} paddingY={6}>
                 <HStack
-                  backgroundColor={colorMode === 'dark' ? 'whiteAlpha.100' : 'blackAlpha.100'}
+                  backgroundColor={
+                    colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100"
+                  }
                   borderRadius="md"
                   borderWidth="0.5px"
                   paddingY={2}
@@ -467,7 +476,9 @@ export default function AgentDetailClientPage({
           <PanelHeading title="API" />
           <HStack paddingX={6} paddingY={6}>
             <HStack
-              backgroundColor={colorMode === 'dark' ? 'whiteAlpha.100' : 'blackAlpha.100'}
+              backgroundColor={
+                colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100"
+              }
               justifyContent="space-between"
               borderRadius="md"
               borderWidth="0.5px"
@@ -482,7 +493,9 @@ export default function AgentDetailClientPage({
           <HStack paddingX={6} paddingY={6}>
             <HStack
               key={id}
-              backgroundColor={colorMode === 'dark' ? 'whiteAlpha.100' : 'blackAlpha.100'}
+              backgroundColor={
+                colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100"
+              }
               justifyContent="space-between"
               borderRadius="md"
               borderWidth="0.5px"
