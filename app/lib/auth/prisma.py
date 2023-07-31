@@ -14,9 +14,6 @@ from google.oauth2 import id_token
 from app.lib.prisma import prisma
 
 jwtSecret = config("JWT_SECRET")
-GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID")
-AZURE_AD_CLIENT_ID = config("AZURE_AD_CLIENT_ID")
-AZURE_AD_TENANT_ID = config("AZURE_AD_TENANT_ID")
 
 
 def signJWT(user_id: str) -> Dict[str, str]:
@@ -123,9 +120,9 @@ class JWTBearer(HTTPBearer):
     def verify_google_token(self, accessToken: str) -> bool:
         try:
             id_info = id_token.verify_oauth2_token(
-                accessToken, requests.Request(), GOOGLE_CLIENT_ID
+                accessToken, requests.Request(), config("GOOGLE_CLIENT_ID")
             )
-            if id_info["aud"] != GOOGLE_CLIENT_ID:
+            if id_info["aud"] != config("GOOGLE_CLIENT_ID"):
                 return False
             return True
         except ValueError:
