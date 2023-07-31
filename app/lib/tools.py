@@ -13,6 +13,8 @@ from langchain.agents.agent_toolkits import ZapierToolkit
 from langchain.agents import AgentType, initialize_agent
 from langchain.utilities.zapier import ZapierNLAWrapper
 from langchain.chains.openai_functions.openapi import get_openapi_chain
+from langchain.tools import AIPluginTool
+from langchain.agents import load_tools
 
 from superagent.client import Superagent
 
@@ -24,6 +26,7 @@ class ToolDescription(Enum):
     ZAPIER_NLA = "useful for when you need to do tasks."
     AGENT = "useful for when you need help completing something."
     OPENAPI = "useful for when you need to do API requests to a third-party service."
+    CHATGPT_PLUGIN = "useful for when you need to interact with a third-party service"
 
 
 def get_search_tool() -> Any:
@@ -42,7 +45,6 @@ def get_wolfram_alpha_tool() -> Any:
 
 
 def get_replicate_tool(metadata: dict) -> Any:
-    print(metadata)
     model = metadata["model"]
     api_token = metadata["api_key"]
     input = metadata["arguments"]
@@ -66,6 +68,14 @@ def get_zapier_nla_tool(metadata: dict, llm: Any) -> Any:
     )
 
     return agent
+
+
+def get_chatgpt_plugin_tool(metadata: dict) -> Any:
+    plugin_url = metadata["chatgptPluginURL"]
+    tool = AIPluginTool.from_plugin_url(plugin_url)
+    tools = load_tools(["requests_all"])
+    tools += [tool]
+    return tools
 
 
 def get_openapi_tool(metadata: dict) -> Any:

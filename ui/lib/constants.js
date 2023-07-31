@@ -6,12 +6,13 @@ export const TOOL_ICONS = {
   REPLICATE: "/replicate-icon.png",
   ZAPIER_NLA: "/zapier-icon.png",
   CHATGPT: "/chatgpt-icon.png",
+  AGENT: "/",
 };
 
 export const UPCOMING_TOOLS = [
   {
-    id: "chatgpt",
-    name: "chatGPT plugins",
-    type: "CHATGPT",
+    id: "webresearcher",
+    name: "Web researcher",
+    type: "/logo.png",
   },
 ];
