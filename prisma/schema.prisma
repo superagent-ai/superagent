@@ -30,6 +30,7 @@ enum DocumentType {
   MARKDOWN
   FIRESTORE
   PSYCHIC
+  GITHUB_REPOSITORY
 }
 
 enum ToolType {
