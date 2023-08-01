@@ -76,6 +76,8 @@ model Document {
   user          User            @relation(fields: [userId], references: [id])
   type          DocumentType    @default(TXT)
   url           String?         @db.Text()
+  content       String?         @db.Text()
+  contentHash   String?         @db.VarChar(255)
   name          String
   splitter      Json?
   createdAt     DateTime?       @default(now())
