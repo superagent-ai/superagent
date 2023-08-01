@@ -182,7 +182,7 @@ export default function DocumentsClientPage({ data, session }) {
   };
 
   const onConnectAPI = async () => {
-    open(session.user.user.id);
+    open(session.user.user?.id || session.user.id);
   };
 
   const handleSearch = ({ searchTerm }) => {
