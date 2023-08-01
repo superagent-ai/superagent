@@ -108,6 +108,7 @@ export default function DocumentsClientPage({ data, session }) {
   } = useForm();
 
   const documentType = watch("type");
+  const url = watch("url");
   const { open, isReady, isLoading } = usePsychicLink(
     process.env.NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY,
     async (newConnection) => {
@@ -135,9 +136,11 @@ export default function DocumentsClientPage({ data, session }) {
   const shouldShowPsychic = process.env.NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY;
 
   const onSubmit = async (values) => {
-    const { type, name, url, auth_type, auth_key, auth_value } = values;
+    const { type, name, url, auth_type, auth_key, auth_value, ...metadata } =
+      values;
     const payload = {
       name,
+      metadata,
       type,
       url,
       authorization: auth_key && {
@@ -354,7 +357,6 @@ export default function DocumentsClientPage({ data, session }) {
                       )}
                     </FormControl>
                   )}
-
                   <FormControl isRequired isInvalid={errors?.type}>
                     <FormLabel>Type</FormLabel>
                     <Select {...register("type", { required: true })}>
@@ -364,11 +366,37 @@ export default function DocumentsClientPage({ data, session }) {
                       <option value="URL">URL</option>
                       <option value="YOUTUBE">Youtube</option>
                       <option value="MARKDOWN">Markdown</option>
+                      <option value="GITHUB_REPOSITORY">
+                        Github Repository
+                      </option>
                     </Select>
                     {errors?.type && (
                       <FormErrorMessage>Invalid type</FormErrorMessage>
                     )}
                   </FormControl>
+                  {documentType === "GITHUB_REPOSITORY" && (
+                    <Stack>
+                      <FormControl>
+                        <FormLabel>Branch</FormLabel>
+                        <Input
+                          placeholder="E.g main"
+                          type="text"
+                          {...register("branch")}
+                        />
+                      </FormControl>
+                      <FormControl>
+                        <FormLabel>Filter directories</FormLabel>
+                        <Input
+                          placeholder="E.g .py, .js etc..."
+                          type="text"
+                          {...register("filterFileExtension")}
+                        />
+                        <FormHelperText>
+                          A comma separated list of file extensions to include.
+                        </FormHelperText>
+                      </FormControl>
+                    </Stack>
+                  )}
                   {documentType === "OPENAPI" && (
                     <FormControl>
                       <Alert variant="solid" colorScheme="red">

@@ -3,12 +3,14 @@ from tempfile import NamedTemporaryFile
 import pinecone
 import requests
 from decouple import config
+from urllib.parse import urlparse
 from langchain.document_loaders import (
     PsychicLoader,
     TextLoader,
     UnstructuredMarkdownLoader,
     WebBaseLoader,
     YoutubeLoader,
+    GitLoader,
 )
 from langchain.embeddings.openai import OpenAIEmbeddings
 from llama_index.readers.schema.base import Document
@@ -25,6 +27,7 @@ valid_ingestion_types = [
     "MARKDOWN",
     "FIRESTORE",
     "PSYCHIC",
+    "GITHUB_REPOSITORY",
 ]
 
 
@@ -160,3 +163,24 @@ def upsert_document(
         VectorStoreBase().get_database().from_documents(
             documents, embeddings, index_name="superagent", namespace=document_id
         )
+
+    if type == "GITHUB_REPOSITORY":
+        print(metadata)
+        parsed_url = urlparse(url)
+        path_parts = parsed_url.path.split("/")
+        repo_name = path_parts[2]
+        repo_path = f"./repos/{repo_name}/"
+        embeddings = OpenAIEmbeddings()
+
+        loader = GitLoader(
+            clone_url=url,
+            repo_path=repo_path,
+            branch=metadata["branch"],
+            file_filter=lambda file_path: file_path.endswith(
+                metadata["filterFileExtension"]
+            ),
+        )
+
+        docs = loader.load()
+
+        print(docs)
