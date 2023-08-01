@@ -24,7 +24,8 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
         else:
             content_hash = None
         existing_document = prisma.document.find_first(
-            where={"contentHash": content_hash})
+            where={"contentHash": content_hash}
+        )
 
         if existing_document:
             return {
@@ -37,7 +38,6 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
             {
                 "type": body.type,
                 "url": body.url,
-
                 "content": body.content,
                 "contentHash": content_hash,
                 "userId": token["userId"],

@@ -51,7 +51,7 @@ def upsert_document(
                 raise ValueError("URL must not be None when content is None.")
             file_response = requests.get(url)
             content = file_response.text
-            
+
         with NamedTemporaryFile(suffix=".txt", delete=True) as temp_file:
             temp_file.write(file_response.text.encode())
             temp_file.flush()
