@@ -1,4 +1,5 @@
 from tempfile import NamedTemporaryFile
+import tempfile
 
 import pinecone
 import requests
@@ -165,22 +166,19 @@ def upsert_document(
         )
 
     if type == "GITHUB_REPOSITORY":
-        print(metadata)
         parsed_url = urlparse(url)
         path_parts = parsed_url.path.split("/")
         repo_name = path_parts[2]
-        repo_path = f"./repos/{repo_name}/"
-        embeddings = OpenAIEmbeddings()
 
-        loader = GitLoader(
-            clone_url=url,
-            repo_path=repo_path,
-            branch=metadata["branch"],
-            file_filter=lambda file_path: file_path.endswith(
-                metadata["filterFileExtension"]
-            ),
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_path = f"{temp_dir}/{repo_name}/"
+            loader = GitLoader(
+                clone_url=url,
+                repo_path=repo_path,
+                branch=metadata["branch"],
+            )
+            docs = loader.load_and_split()
+
+        VectorStoreBase().get_database().from_documents(
+            docs, embeddings, index_name="superagent", namespace=document_id
         )
-
-        docs = loader.load()
-
-        print(docs)

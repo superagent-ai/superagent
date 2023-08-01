@@ -384,17 +384,6 @@ export default function DocumentsClientPage({ data, session }) {
                           {...register("branch")}
                         />
                       </FormControl>
-                      <FormControl>
-                        <FormLabel>Filter directories</FormLabel>
-                        <Input
-                          placeholder="E.g .py, .js etc..."
-                          type="text"
-                          {...register("filterFileExtension")}
-                        />
-                        <FormHelperText>
-                          A comma separated list of file extensions to include.
-                        </FormHelperText>
-                      </FormControl>
                     </Stack>
                   )}
                   {documentType === "OPENAPI" && (
