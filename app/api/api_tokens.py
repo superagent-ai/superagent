@@ -17,7 +17,6 @@ router = APIRouter()
 )
 async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
     """Create api token endpoint"""
-
     api_token = generate_api_token()
     try:
         agent = prisma.apitoken.create(
