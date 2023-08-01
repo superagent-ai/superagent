@@ -240,13 +240,13 @@ class AgentBase:
         history = ChatMessageHistory()
 
         if self.has_memory:
-            where_condition = {"agentId": self.id}
+            memory_filter = {"agentId": self.id}
 
             if session is not None:
-                where_condition["session"] = session
+                memory_filter["session"] = session
 
             memories = prisma.agentmemory.find_many(
-                where=where_condition,
+                where=memory_filter,
                 order={"createdAt": "desc"},
                 take=3,
             )
