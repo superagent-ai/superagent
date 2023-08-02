@@ -17,9 +17,9 @@ class DefaultAgent(AgentStrategy):
     def __init__(self, agent_base):
         self.agent_base = agent_base
 
-    def get_agent(self) -> Any:
+    def get_agent(self, session: str = None) -> Any:
         llm = self.agent_base._get_llm()
-        memory = self.agent_base._get_memory()
+        memory = self.agent_base._get_memory(session)
         prompt = self.agent_base._get_prompt()
         agent = LLMChain(
             llm=llm,
@@ -36,10 +36,10 @@ class OpenAIAgent(AgentStrategy):
     def __init__(self, agent_base):
         self.agent_base = agent_base
 
-    def get_agent(self) -> Any:
+    def get_agent(self, session: str = None) -> Any:
         llm = self.agent_base._get_llm()
         tools = self.agent_base._get_tools()
-        memory = self.agent_base._get_memory()
+        memory = self.agent_base._get_memory(session)
         prompt = self.agent_base._get_prompt()
         agent = initialize_agent(
             tools=tools,
@@ -66,9 +66,9 @@ class ReactAgent(AgentStrategy):
     def __init__(self, agent_base):
         self.agent_base = agent_base
 
-    def get_agent(self) -> Any:
+    def get_agent(self, session: str = None) -> Any:
         llm = self.agent_base._get_llm()
-        memory = self.agent_base._get_memory()
+        memory = self.agent_base._get_memory(session)
         tools = self.agent_base._get_tools()
         output_parser = CustomOutputParser()
         tool_names = [tool.name for tool in tools]

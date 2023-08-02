@@ -12,3 +12,4 @@ class Agent(BaseModel):
 class PredictAgent(BaseModel):
     input: dict
     has_streaming: bool = False
+    session: str = None

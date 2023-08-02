@@ -5,7 +5,7 @@ export const TOOL_ICONS = {
   WOLFRAM_ALPHA: "/wolfram-icon.png",
   REPLICATE: "/replicate-icon.png",
   ZAPIER_NLA: "/zapier-icon.png",
-  CHATGPT: "/chatgpt-icon.png",
+  CHATGPT_PLUGIN: "/chatgpt-icon.png",
   AGENT: "/",
 };
 

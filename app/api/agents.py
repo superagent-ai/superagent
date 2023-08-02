@@ -135,6 +135,7 @@ async def run_agent(
     """Agent detail endpoint"""
     input = body.input
     has_streaming = body.has_streaming
+    session_id = body.session
     agent = prisma.agent.find_unique(
         where={"id": agentId},
         include={"prompt": True},
@@ -175,11 +176,11 @@ async def run_agent(
             def conversation_run_thread(input: dict) -> None:
                 agent_base = get_agent_base()
                 agent_strategy = AgentFactory.create_agent(agent_base)
-                agent_executor = agent_strategy.get_agent()
+                agent_executor = agent_strategy.get_agent(session=session_id)
                 result = agent_executor(agent_base.process_payload(payload=input))
                 output = result.get("output") or result.get("result")
                 background_tasks.add_task(
-                    agent_base.create_agent_memory, agentId, "AI", output
+                    agent_base.create_agent_memory, agentId, session_id, "AI", output
                 )
 
                 if config("SUPERAGENT_TRACING"):
@@ -199,17 +200,18 @@ async def run_agent(
                 agent=agent, has_streaming=has_streaming, api_key=api_key
             )
             agent_strategy = AgentFactory.create_agent(agent_base)
-            agent_executor = agent_strategy.get_agent()
+            agent_executor = agent_strategy.get_agent(session=session_id)
             result = agent_executor(agent_base.process_payload(payload=input))
             output = result.get("output") or result.get("result")
             background_tasks.add_task(
                 agent_base.create_agent_memory,
                 agentId,
+                session_id,
                 "HUMAN",
                 json.dumps(input.get("input")),
             )
             background_tasks.add_task(
-                agent_base.create_agent_memory, agentId, "AI", output
+                agent_base.create_agent_memory, agentId, session_id, "AI", output
             )
 
             if config("SUPERAGENT_TRACING"):

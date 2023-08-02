@@ -30,6 +30,7 @@ enum DocumentType {
   MARKDOWN
   FIRESTORE
   PSYCHIC
+  GITHUB_REPOSITORY
 }
 
 enum ToolType {
@@ -125,6 +126,7 @@ model AgentMemory {
   agent     Agent                 @relation(fields: [agentId], references: [id], onDelete: Cascade)
   author    AgentMemoryAuthorType @default(HUMAN)
   message   String                @db.Text()
+  session   String?
   createdAt DateTime?             @default(now())
   updatedAt DateTime?             @updatedAt
   deletedAt DateTime?

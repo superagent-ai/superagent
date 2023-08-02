@@ -74,12 +74,12 @@ function DocumentCard({ id, name, createdAt, type, url, onDelete, onEdit }) {
           {type}
         </Tag>
         <HStack spacing={0}>
-        <IconButton
-          size="sm"
-          variant="ghost"
-          icon={<Icon fontSize="lg" as={TbPencil} color="gray.500" />}
-          onClick={() => onEdit(id)}
-        />
+          <IconButton
+            size="sm"
+            variant="ghost"
+            icon={<Icon fontSize="lg" as={TbPencil} color="gray.500" />}
+            onClick={() => onEdit(id)}
+          />
           <IconButton
             size="sm"
             variant="ghost"
@@ -116,6 +116,7 @@ export default function DocumentsClientPage({ data, session }) {
   } = useForm();
 
   const documentType = watch("type");
+  const url = watch("url");
   const { open, isReady, isLoading } = usePsychicLink(
     process.env.NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY,
     async (newConnection) => {
@@ -146,12 +147,14 @@ export default function DocumentsClientPage({ data, session }) {
     reset();
     setSelectedDocument();
     onClose();
-  }
+  };
 
   const onSubmit = async (values) => {
-    const { type, name, url, auth_type, auth_key, auth_value } = values;
+    const { type, name, url, auth_type, auth_key, auth_value, ...metadata } =
+      values;
     const payload = {
       name,
+      metadata,
       type,
       url,
       authorization: auth_key && {
@@ -160,6 +163,7 @@ export default function DocumentsClientPage({ data, session }) {
         value: auth_value,
       },
     };
+    console.log(payload);
 
     if (selectedDocument) {
       await api.patchDocument(selectedDocument, payload);
@@ -204,7 +208,7 @@ export default function DocumentsClientPage({ data, session }) {
   };
 
   const onConnectAPI = async () => {
-    open(session.user.user.id);
+    open(session.user.user?.id || session.user.id);
   };
 
   const handleEdit = async (documentId) => {
@@ -362,7 +366,11 @@ export default function DocumentsClientPage({ data, session }) {
                     )}
                   </FormControl>
                   {documentType === "URL" ? (
-                    <FormControl isRequired isInvalid={errors?.url} isDisabled={selectedDocument}>
+                    <FormControl
+                      isRequired
+                      isInvalid={errors?.url}
+                      isDisabled={selectedDocument}
+                    >
                       <FormLabel>URL</FormLabel>
                       <Textarea
                         placeholder="Comma separated list of urls..."
@@ -376,7 +384,11 @@ export default function DocumentsClientPage({ data, session }) {
                       )}
                     </FormControl>
                   ) : (
-                    <FormControl isRequired isInvalid={errors?.url} isDisabled={selectedDocument}>
+                    <FormControl
+                      isRequired
+                      isInvalid={errors?.url}
+                      isDisabled={selectedDocument}
+                    >
                       <FormLabel>URL</FormLabel>
                       <Input
                         type="text"
@@ -391,7 +403,11 @@ export default function DocumentsClientPage({ data, session }) {
                     </FormControl>
                   )}
 
-                  <FormControl isRequired isInvalid={errors?.type} isDisabled={selectedDocument}>
+                  <FormControl
+                    isRequired
+                    isInvalid={errors?.type}
+                    isDisabled={selectedDocument}
+                  >
                     <FormLabel>Type</FormLabel>
                     <Select {...register("type", { required: true })}>
                       <option value="PDF">PDF</option>
@@ -400,11 +416,26 @@ export default function DocumentsClientPage({ data, session }) {
                       <option value="URL">URL</option>
                       <option value="YOUTUBE">Youtube</option>
                       <option value="MARKDOWN">Markdown</option>
+                      <option value="GITHUB_REPOSITORY">
+                        Github Repository
+                      </option>
                     </Select>
                     {errors?.type && (
                       <FormErrorMessage>Invalid type</FormErrorMessage>
                     )}
                   </FormControl>
+                  {documentType === "GITHUB_REPOSITORY" && (
+                    <Stack>
+                      <FormControl>
+                        <FormLabel>Branch</FormLabel>
+                        <Input
+                          placeholder="E.g main"
+                          type="text"
+                          {...register("branch")}
+                        />
+                      </FormControl>
+                    </Stack>
+                  )}
                   {documentType === "OPENAPI" && (
                     <FormControl>
                       <Alert variant="solid" colorScheme="red">
