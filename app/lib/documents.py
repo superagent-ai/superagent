@@ -1,17 +1,17 @@
-from tempfile import NamedTemporaryFile
 import tempfile
+from tempfile import NamedTemporaryFile
+from urllib.parse import urlparse
 
 import pinecone
 import requests
 from decouple import config
-from urllib.parse import urlparse
 from langchain.document_loaders import (
+    GitLoader,
     PsychicLoader,
     TextLoader,
     UnstructuredMarkdownLoader,
     WebBaseLoader,
     YoutubeLoader,
-    GitLoader,
 )
 from langchain.embeddings.openai import OpenAIEmbeddings
 from llama_index.readers.schema.base import Document
