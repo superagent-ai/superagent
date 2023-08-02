@@ -34,7 +34,7 @@ import {
 import dayjs from "dayjs";
 import NextImage from "next/image";
 import { useRouter } from "next/navigation";
-import { TbPlus, TbCopy, TbTrash } from "react-icons/tb";
+import { TbPlus, TbCopy, TbTrash, TbPencil } from "react-icons/tb";
 import { useForm } from "react-hook-form";
 import API from "@/lib/api";
 import { analytics } from "@/lib/analytics";
@@ -44,7 +44,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
 
-function DocumentCard({ id, name, createdAt, type, url, onDelete }) {
+function DocumentCard({ id, name, createdAt, type, url, onDelete, onEdit }) {
   const toast = useToast();
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -77,6 +77,12 @@ function DocumentCard({ id, name, createdAt, type, url, onDelete }) {
           <IconButton
             size="sm"
             variant="ghost"
+            icon={<Icon fontSize="lg" as={TbPencil} color="gray.500" />}
+            onClick={() => onEdit(id)}
+          />
+          <IconButton
+            size="sm"
+            variant="ghost"
             icon={<Icon color="gray.500" fontSize="lg" as={TbCopy} />}
             onClick={() => copyToClipboard(id)}
           />
@@ -96,6 +102,7 @@ export default function DocumentsClientPage({ data, session }) {
   const [filteredData, setData] = useState();
   const [isCreatingDocument, setIsCreatingDocument] = useState();
   const { isOpen, onClose, onOpen } = useDisclosure();
+  const [selectedDocument, setSelectedDocument] = useState();
   const router = useRouter();
   const api = new API(session);
   const toast = useToast();
@@ -104,6 +111,7 @@ export default function DocumentsClientPage({ data, session }) {
     handleSubmit,
     register,
     reset,
+    setValue,
     watch,
   } = useForm();
 
@@ -135,6 +143,12 @@ export default function DocumentsClientPage({ data, session }) {
   );
   const shouldShowPsychic = process.env.NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY;
 
+  const onCancel = async () => {
+    reset();
+    setSelectedDocument();
+    onClose();
+  };
+
   const onSubmit = async (values) => {
     const { type, name, url, auth_type, auth_key, auth_value, ...metadata } =
       values;
@@ -149,15 +163,23 @@ export default function DocumentsClientPage({ data, session }) {
         value: auth_value,
       },
     };
+    console.log(payload);
 
-    await api.createDocument(payload);
+    if (selectedDocument) {
+      await api.patchDocument(selectedDocument, payload);
 
-    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
-      analytics.track("Created Document", { ...payload });
+      if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+        analytics.track("Updated Document", { ...payload });
+      }
+    } else {
+      await api.createDocument(payload);
+      if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+        analytics.track("Created Document", { ...payload });
+      }
     }
 
     toast({
-      description: "Document created",
+      description: selectedDocument ? "Document updated" : "Document created",
       position: "top",
       colorScheme: "gray",
     });
@@ -165,6 +187,7 @@ export default function DocumentsClientPage({ data, session }) {
     setData();
     router.refresh();
     reset();
+    setSelectedDocument();
     onClose();
   };
 
@@ -186,6 +209,16 @@ export default function DocumentsClientPage({ data, session }) {
 
   const onConnectAPI = async () => {
     open(session.user.user?.id || session.user.id);
+  };
+
+  const handleEdit = async (documentId) => {
+    const document = data.find(({ id }) => id === documentId);
+
+    setSelectedDocument(documentId);
+    setValue("name", document?.name);
+    setValue("url", document?.url);
+    setValue("type", document?.type);
+    onOpen();
   };
 
   const handleSearch = ({ searchTerm }) => {
@@ -244,6 +277,7 @@ export default function DocumentsClientPage({ data, session }) {
                   url={url}
                   type={type}
                   onDelete={(id) => handleDelete(id)}
+                  onEdit={(id) => handleEdit(id)}
                 />
               ))
             : data?.map(({ id, name, createdAt, type, url }) => (
@@ -255,6 +289,7 @@ export default function DocumentsClientPage({ data, session }) {
                   url={url}
                   type={type}
                   onDelete={(id) => handleDelete(id)}
+                  onEdit={(id) => handleEdit(id)}
                 />
               ))}
         </SimpleGrid>
@@ -262,7 +297,9 @@ export default function DocumentsClientPage({ data, session }) {
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
-          <ModalHeader>New document</ModalHeader>
+          <ModalHeader>
+            {selectedDocument ? "Update document" : "New document"}
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             {isCreatingDocument && (
@@ -329,7 +366,11 @@ export default function DocumentsClientPage({ data, session }) {
                     )}
                   </FormControl>
                   {documentType === "URL" ? (
-                    <FormControl isRequired isInvalid={errors?.url}>
+                    <FormControl
+                      isRequired
+                      isInvalid={errors?.url}
+                      isDisabled={selectedDocument}
+                    >
                       <FormLabel>URL</FormLabel>
                       <Textarea
                         placeholder="Comma separated list of urls..."
@@ -343,7 +384,11 @@ export default function DocumentsClientPage({ data, session }) {
                       )}
                     </FormControl>
                   ) : (
-                    <FormControl isRequired isInvalid={errors?.url}>
+                    <FormControl
+                      isRequired
+                      isInvalid={errors?.url}
+                      isDisabled={selectedDocument}
+                    >
                       <FormLabel>URL</FormLabel>
                       <Input
                         type="text"
@@ -357,7 +402,12 @@ export default function DocumentsClientPage({ data, session }) {
                       )}
                     </FormControl>
                   )}
-                  <FormControl isRequired isInvalid={errors?.type}>
+
+                  <FormControl
+                    isRequired
+                    isInvalid={errors?.type}
+                    isDisabled={selectedDocument}
+                  >
                     <FormLabel>Type</FormLabel>
                     <Select {...register("type", { required: true })}>
                       <option value="PDF">PDF</option>
@@ -426,7 +476,7 @@ export default function DocumentsClientPage({ data, session }) {
             <Button
               variant="ghost"
               mr={3}
-              onClick={onClose}
+              onClick={onCancel}
               isDisabled={isCreatingDocument}
             >
               Cancel
@@ -436,7 +486,7 @@ export default function DocumentsClientPage({ data, session }) {
               isLoading={isSubmitting || isCreatingDocument}
               isDisabled={isCreatingDocument}
             >
-              Create
+              {selectedDocument ? "Update" : "Create"}
             </Button>
           </ModalFooter>
         </ModalContent>
