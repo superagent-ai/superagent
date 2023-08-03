@@ -1,35 +1,29 @@
 version: "3"
 
 services:
-  superagent-ui:
-    container_name: superagent-ui
-    network_mode: "host"
-    build:
-      context: ../ui
-      dockerfile: Dockerfile
-    env_file:
-      - ../ui/.env
-    depends_on:
-      - superagent-api
-
   superagent-api:
     container_name: superagent-api
-    network_mode: "host"
+    network_mode: ${NETWORK_MODE}
     build:
       context: ..
       dockerfile: Dockerfile
     command: ["/bin/bash", "setup.docker.sh"]
     environment:
       - PORT=8080
+    ports:
+      - 8080:8080
     env_file:
       - ../.env
     depends_on:
-      - pgdb
-      - pgadmin
+      pgdb:
+        condition: service_healthy
+      pgadmin:
+        condition: service_started
+    restart: unless-stopped
 
   pgdb:
     container_name: pgdb
-    network_mode: "host"
+    network_mode: ${NETWORK_MODE}
     image: postgres:12
     restart: unless-stopped
     volumes:
@@ -40,10 +34,17 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_USER: ${DBUSER}
       POSTGRES_PASSWORD: ${DBPASS}
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DBUSER}"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
 
   pgadmin:
     container_name: pgadmin
-    network_mode: "host"
+    network_mode: ${NETWORK_MODE}
     image: dpage/pgadmin4
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}

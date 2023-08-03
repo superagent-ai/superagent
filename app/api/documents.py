@@ -124,6 +124,11 @@ async def delete_document(documentId: str, token=Depends(JWTBearer())):
 async def patch_document(documentId: str, body: dict, token=Depends(JWTBearer())):
     """Patch document endpoint"""
     try:
+        metadata = body.get("metadata")
+
+        if metadata or metadata == {} or metadata == []:
+            body["metadata"] = json.dumps(metadata)
+
         document = prisma.document.update(
             data=body,
             where={"id": documentId},

@@ -236,12 +236,17 @@ class AgentBase:
         # Use ChatOpenAI as default llm in agents
         return ChatOpenAI(temperature=0, openai_api_key=self._get_api_key())
 
-    def _get_memory(self) -> Any:
+    def _get_memory(self, session) -> Any:
         history = ChatMessageHistory()
 
         if self.has_memory:
+            memory_filter = {"agentId": self.id}
+
+            if session is not None:
+                memory_filter["session"] = session
+
             memories = prisma.agentmemory.find_many(
-                where={"agentId": self.id},
+                where=memory_filter,
                 order={"createdAt": "desc"},
                 take=3,
             )
@@ -419,12 +424,15 @@ class AgentBase:
 
         return payload
 
-    def create_agent_memory(self, agentId: str, author: str, message: str):
+    def create_agent_memory(
+        self, agentId: str, sessionId: str, author: str, message: str
+    ):
         prisma.agentmemory.create(
             {
                 "author": author,
                 "message": message,
                 "agentId": agentId,
+                "session": sessionId,
             }
         )
 

@@ -47,6 +47,9 @@ superagent-py = "^0.0.29"
 azure-identity = "^1.13.0"
 asyncio = "^3.4.3"
 colorlog = "^6.7.0"
+llama-hub = "^0.0.16"
+pygithub = "^1.59.0"
+gitpython = "^3.1.32"
 
 
 [build-system]

@@ -1,9 +1,12 @@
+import tempfile
 from tempfile import NamedTemporaryFile
+from urllib.parse import urlparse
 
 import pinecone
 import requests
 from decouple import config
 from langchain.document_loaders import (
+    GitLoader,
     PsychicLoader,
     TextLoader,
     UnstructuredMarkdownLoader,
@@ -25,6 +28,7 @@ valid_ingestion_types = [
     "MARKDOWN",
     "FIRESTORE",
     "PSYCHIC",
+    "GITHUB_REPOSITORY",
 ]
 
 
@@ -159,4 +163,22 @@ def upsert_document(
 
         VectorStoreBase().get_database().from_documents(
             documents, embeddings, index_name="superagent", namespace=document_id
+        )
+
+    if type == "GITHUB_REPOSITORY":
+        parsed_url = urlparse(url)
+        path_parts = parsed_url.path.split("/")
+        repo_name = path_parts[2]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_path = f"{temp_dir}/{repo_name}/"
+            loader = GitLoader(
+                clone_url=url,
+                repo_path=repo_path,
+                branch=metadata["branch"],
+            )
+            docs = loader.load_and_split()
+
+        VectorStoreBase().get_database().from_documents(
+            docs, embeddings, index_name="superagent", namespace=document_id
         )

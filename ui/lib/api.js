@@ -152,13 +152,16 @@ class API {
   }
 
   async createApiToken({ description }) {
-    const response = await fetch(`/api-tokens`, {
-      method: "POST",
-      body: JSON.stringify({ description }),
-      headers: {
-        ...this.getHeaders(),
-      },
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/api-tokens`,
+      {
+        method: "POST",
+        body: JSON.stringify({ description }),
+        headers: {
+          ...this.getHeaders(),
+        },
+      }
+    );
     const { data } = await response.json();
 
     return data;
@@ -415,6 +418,22 @@ class API {
   async patchPrompt(id, payload) {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/prompts/${id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ ...payload }),
+        headers: {
+          ...this.getHeaders(),
+        },
+      }
+    );
+    const { data } = await response.json();
+
+    return data;
+  }
+
+  async patchDocument(id, payload) {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/documents/${id}`,
       {
         method: "PATCH",
         body: JSON.stringify({ ...payload }),
