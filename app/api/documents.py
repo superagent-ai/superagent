@@ -18,21 +18,10 @@ router = APIRouter()
 async def create_document(body: Document, token=Depends(JWTBearer())):
     """Create document endpoint"""
     try:
-        # Check if a document with the same content hash already exists
         if body.content is not None:
             content_hash = hashlib.sha256(body.content.encode()).hexdigest()
         else:
             content_hash = None
-        existing_document = prisma.document.find_first(
-            where={"contentHash": content_hash}
-        )
-
-        if existing_document:
-            return {
-                "success": False,
-                "message": "Document with the same content already exists",
-                "data": existing_document,
-            }
 
         document = prisma.document.create(
             {
