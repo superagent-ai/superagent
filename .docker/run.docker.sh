@@ -1,7 +1,6 @@
 ## To run everything in docker locally (UI, API, DB, etc.)
 
-docker-compose --env-file docker.env up --build -d
-
+docker compose down && docker-compose --env-file docker.env up --build -d
 ## When developing just the UI locally, you can run the following:
 ## This will only run the DB and API in docker
 ## You can then run the UI locally with `npm run dev`
