@@ -33,15 +33,16 @@ valid_ingestion_types = [
 
 
 def upsert_document(
-    url: str,
     type: str,
     document_id: str,
     from_page: int,
     to_page: int,
-    text_splitter: dict = None,
-    user_id: str = None,
-    authorization: dict = None,
-    metadata: dict = None,
+    url: str | None = None,
+    content: str | None = None,
+    text_splitter: dict | None = None,
+    user_id: str | None = None,
+    authorization: dict | None = None,
+    metadata: dict | None = None,
 ) -> None:
     """Upserts documents to Pinecone index"""
     pinecone.Index("superagent")
@@ -49,7 +50,12 @@ def upsert_document(
     embeddings = OpenAIEmbeddings()
 
     if type == "TXT":
-        file_response = requests.get(url)
+        if content is None:
+            if url is None:
+                raise ValueError("URL must not be None when content is None.")
+            file_response = requests.get(url)
+            content = file_response.text
+
         with NamedTemporaryFile(suffix=".txt", delete=True) as temp_file:
             temp_file.write(file_response.text.encode())
             temp_file.flush()
