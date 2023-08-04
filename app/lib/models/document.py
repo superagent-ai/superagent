@@ -3,13 +3,14 @@ from pydantic import BaseModel, Field
 
 class Document(BaseModel):
     type: str
-    url: str = None
+    url: str | None = None
+    content: str | None = None
     name: str
-    authorization: dict = None
-    metadata: dict = None
-    from_page: int = (1,)
-    to_page: int = None
-    splitter: dict = None
+    authorization: dict | None = None
+    metadata: dict | None = None
+    from_page: int = 1
+    to_page: int | None = None
+    splitter: dict | None = None
 
 
 class DocumentInput(BaseModel):

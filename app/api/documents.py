@@ -1,3 +1,4 @@
+import hashlib
 import json
 import logging
 
@@ -17,10 +18,17 @@ router = APIRouter()
 async def create_document(body: Document, token=Depends(JWTBearer())):
     """Create document endpoint"""
     try:
+        if body.content is not None:
+            content_hash = hashlib.sha256(body.content.encode()).hexdigest()
+        else:
+            content_hash = None
+
         document = prisma.document.create(
             {
                 "type": body.type,
                 "url": body.url,
+                "content": body.content,
+                "contentHash": content_hash,
                 "userId": token["userId"],
                 "name": body.name,
                 "splitter": json.dumps(body.splitter),
@@ -32,6 +40,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
         if body.type in valid_ingestion_types:
             upsert_document(
                 url=body.url,
+                content=body.content,
                 type=body.type,
                 document_id=document.id,
                 authorization=body.authorization,
