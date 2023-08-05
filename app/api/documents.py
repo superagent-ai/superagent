@@ -51,12 +51,6 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
                 to_page=body.to_page,
                 user_id=token["userId"],
             )
-        else:
-            logger.error("Invalid ingestion type")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Invalid ingestion type",
-            )
         return {"success": True, "data": document}
     except Exception as e:
         logger.error("Couldn't create document", exc_info=e)
