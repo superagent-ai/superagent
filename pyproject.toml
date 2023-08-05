@@ -37,7 +37,6 @@ transformers = "^4.30.2"
 youtube-transcript-api = "^0.6.1"
 replicate = "^0.8.3"
 python-slugify = "^8.0.1"
-langchain = "^0.0.218"
 google-cloud-firestore = "^2.11.1"
 google-auth = "^2.21.0"
 llama-index = "^0.6.38.post1"
@@ -50,6 +49,7 @@ colorlog = "^6.7.0"
 llama-hub = "^0.0.16"
 pygithub = "^1.59.0"
 gitpython = "^3.1.32"
+langchain = "^0.0.252"
 
 
 [build-system]

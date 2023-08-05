@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.lib.auth.prisma import JWTBearer
 from app.lib.documents import upsert_document, valid_ingestion_types
 from app.lib.models.document import Document
+from app.lib.vectorstores.base import VectorStoreBase
 from app.lib.prisma import prisma
 
 logger = logging.getLogger(__name__)
@@ -117,6 +118,7 @@ async def delete_document(documentId: str, token=Depends(JWTBearer())):
     """Delete a document"""
     try:
         prisma.document.delete(where={"id": documentId})
+        VectorStoreBase().get_database().delete(namespace=documentId)
         return {"success": True, "data": None}
     except Exception as e:
         logger.error("Couldn't delete document with id {documentId}", exc_info=e)

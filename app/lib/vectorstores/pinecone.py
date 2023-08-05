@@ -7,7 +7,7 @@ pinecone.init(
     environment=config("PINECONE_ENVIRONMENT"),  # next to api key in console
 )
 
-pinecone.Index("superagent")
+index = pinecone.Index("superagent")
 
 
 class PineconeVectorstore:
@@ -23,3 +23,6 @@ class PineconeVectorstore:
         return Pinecone.from_existing_index(
             "superagent", embedding=embeddings, namespace=namespace
         )
+
+    def delete(self, namespace):
+        return index.delete(delete_all=True, namespace=namespace)
