@@ -42,7 +42,7 @@ function LoadingMessage() {
   );
 }
 
-function Message({ message, type }) {
+function Message({ agent, message, type }) {
   return (
     <Container
       maxW="5xl"
@@ -59,7 +59,7 @@ function Message({ message, type }) {
             marginTop={1}
           />
         ) : (
-          <Avatar size="xs" src="/logo.png" />
+          <Avatar size="xs" src={agent.avatarUrl || "./logo.png"} />
         )}
         {type === "human" ? (
           <Text>{message}</Text>
@@ -161,8 +161,11 @@ export default function ShareClientPage({ agent, token }) {
   };
 
   const handleCopyShareLink = () => {
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://app.superagent.sh';
-    
+    const baseUrl =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "https://app.superagent.sh";
+
     navigator.clipboard.writeText(
       `${baseUrl}/share?agentId=${agent.id}&token=${token}`
     );
@@ -227,8 +230,8 @@ export default function ShareClientPage({ agent, token }) {
               </Text>
               <Text color="#777">
                 This agent was created using Superagent. It leverages the{" "}
-                {agent?.llm?.model} large language model. Note that this agent was
-                marked as public by it's creator.
+                {agent?.llm?.model} large language model. Note that this agent
+                was marked as public by it's creator.
               </Text>
               <Text color="#777">
                 More info:{" "}
@@ -249,7 +252,7 @@ export default function ShareClientPage({ agent, token }) {
           paddingY={10}
         >
           {messages.map(({ type, message }, index) => (
-            <Message key={index} type={type} message={message} />
+            <Message key={index} agent={agent} type={type} message={message} />
           ))}
           {isSubmitting && <LoadingMessage />}
         </Box>

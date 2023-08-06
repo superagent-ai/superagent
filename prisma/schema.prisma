@@ -92,6 +92,7 @@ model Document {
 
 model Agent {
   id            String          @id @default(cuid()) @db.VarChar(255)
+  avatarUrl     String?         @db.Text()
   userId        String          @db.VarChar(255)
   user          User            @relation(fields: [userId], references: [id])
   document      Document?       @relation(fields: [documentId], references: [id])
