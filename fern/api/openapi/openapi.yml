@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: Build, deploy, and manage LLM-powered agents
-  version: 0.0.40
+  version: 0.0.42
 paths:
   /api/v1/agents:
     get:
@@ -554,6 +554,30 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SignUp'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/auth/oauth/callback:
+    post:
+      tags:
+        - Auth
+      summary: Oauth Handler
+      operationId: oauth_handler_api_v1_auth_oauth_callback_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OAuth'
         required: true
       responses:
         '200':
@@ -1180,6 +1204,9 @@ components:
         url:
           title: Url
           type: string
+        content:
+          title: Content
+          type: string
         name:
           title: Name
           type: string
@@ -1192,8 +1219,7 @@ components:
         from_page:
           title: From Page
           type: integer
-          default:
-            - 1
+          default: 1
         to_page:
           title: To Page
           type: integer
@@ -1209,6 +1235,25 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ValidationError'
+    OAuth:
+      title: OAuth
+      required:
+        - email
+        - name
+      type: object
+      properties:
+        email:
+          title: Email
+          type: string
+        name:
+          title: Name
+          type: string
+        access_token:
+          title: Access Token
+          type: string
+        provider:
+          title: Provider
+          type: string
     PredictAgent:
       title: PredictAgent
       required:
@@ -1336,3 +1381,7 @@ components:
     JWTBearer:
       type: http
       scheme: bearer
+    APIKeyHeader:
+      type: apiKey
+      in: header
+      name: Authorization
