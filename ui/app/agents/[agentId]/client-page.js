@@ -508,7 +508,7 @@ export default function AgentDetailClientPage({
           <Divider />
           <PanelHeading title="Tags" onCreate={onTagModalOpen} />
           <HStack paddingX={6} paddingY={6} flexWrap="wrap" gap={2} spacing={0}>
-            {agent.tags.map(({ id, name, color }) => (
+            {agent.tags?.map(({ id, name, color }) => (
               <AgentTag
                 key={id}
                 agent={agent}
