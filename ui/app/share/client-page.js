@@ -182,9 +182,9 @@ export default function ShareClientPage({ agent, token }) {
       minHeight="100vh"
       flex={1}
       overflow="hidden"
-      paddingX={[4, 12]}
+      paddingX={[4, 6]}
       spacing={6}
-      paddingY={[6, 12]}
+      paddingY={[6, 4]}
     >
       {!session.data && (
         <HStack justifyContent="space-between">
@@ -207,7 +207,6 @@ export default function ShareClientPage({ agent, token }) {
       )}
       <Stack
         flex={1}
-        bgGradient="linear(to-l, #333, #222)"
         borderRadius="lg"
         justifyContent={messages.length > 0 ? "flex-start" : "center"}
         paddingX={[2, 4]}
@@ -258,7 +257,7 @@ export default function ShareClientPage({ agent, token }) {
         </Box>
         <Box
           position="absolute"
-          bgGradient="linear(to-t, #222, transparent)"
+          bgGradient="linear(to-t, #131416, transparent)"
           bottom={0}
           left={0}
           right={0}
@@ -266,7 +265,7 @@ export default function ShareClientPage({ agent, token }) {
         />
         <Box
           position="absolute"
-          bgGradient="linear(to-b, #222, transparent)"
+          bgGradient="linear(to-b, #131416, transparent)"
           top={0}
           left={0}
           right={0}
