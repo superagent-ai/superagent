@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class Agent(BaseModel):
     name: str
     type: str
+    description: str = None
     avatarUrl: str = None
     llm: dict = None
     hasMemory: bool = False

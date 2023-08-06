@@ -17,13 +17,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
 
-export default function AgentCard({
-  id,
-  name,
-  description,
-  createdAt,
-  onDelete,
-}) {
+export default function AgentCard({ id, name, createdAt, onDelete }) {
   const toast = useToast();
 
   const copyToClipboard = () => {
@@ -50,21 +44,20 @@ export default function AgentCard({
   );
 
   return (
-    <Stack borderWidth="1px" borderRadius="md" padding={4}>
-      <HStack justifyContent="space-between" flex={1}>
-        <Text noOfLines={1} as="b" flex={1}>
-          {name}
-        </Text>
+    <Stack borderWidth="1px" borderRadius="md" padding={4} spacing={4}>
+      <Stack>
+        <HStack justifyContent="space-between" flex={1}>
+          <Text noOfLines={1} as="b" flex={1}>
+            {name}
+          </Text>
+          <Text fontSize="sm" color="gray.500">
+            {dayjs(createdAt).fromNow()}
+          </Text>
+        </HStack>
         <Text fontSize="sm" color="gray.500">
-          {dayjs(createdAt).fromNow()}
+          {`Id: ${id}`}
         </Text>
-      </HStack>
-      <Text fontSize="sm" color="gray.500">
-        {`Id: ${id}`}
-      </Text>
-      <Text noOfLines={1} color="gray.500">
-        {description}
-      </Text>
+      </Stack>
       <HStack justifyContent="space-between">
         <NextLink passHref href={`/agents/${id}`}>
           <Button

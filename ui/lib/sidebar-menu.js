@@ -1,5 +1,4 @@
 import {
-  TbHome,
   TbKey,
   TbBook,
   TbLogout,
@@ -9,6 +8,7 @@ import {
   TbCodePlus,
   TbTool,
   TbListSearch,
+  TbBolt,
   TbTag,
 } from "react-icons/tb";
 import { signOut } from "next-auth/react";
@@ -22,10 +22,10 @@ const createPortalUrl = async () => {
 
 export const MAIN_MENU = [
   {
-    id: "home",
-    label: "Home",
+    id: "library",
+    label: "Library",
     path: "/",
-    icon: TbHome,
+    icon: TbBolt,
   },
   {
     id: "agents",

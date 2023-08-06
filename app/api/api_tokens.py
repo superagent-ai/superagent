@@ -44,8 +44,8 @@ async def read_api_tokens(token=Depends(JWTBearer())):
         api_tokens = prisma.apitoken.find_many(
             where={"userId": token["userId"]}, include={"user": True}
         )
-        if api_tokens:
-            return {"success": True, "data": api_tokens}
+        return {"success": True, "data": api_tokens}
+
     except Exception as e:
         logger.error("Error finding api tokens for user {userId}", exc_info=e)
 
@@ -68,8 +68,7 @@ async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
         api_token = prisma.apitoken.find_unique(
             where={"id": tokenId}, include={"user": True}
         )
-        if api_token:
-            return {"success": True, "data": api_token}
+        return {"success": True, "data": api_token}
     except Exception as e:
         logger.error("Cannot find api token {tokenId}", exc_info=e)
 

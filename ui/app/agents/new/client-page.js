@@ -28,7 +28,7 @@ export default function NewAgentClientPage({ session }) {
     has_memory: false,
   });
 
-  const createAgent = async ({ name, avatarUrl }) => {
+  const createAgent = async ({ name, description, avatarUrl }) => {
     let promptId;
     const { type, prompt, llm, has_memory, documents, tools } = data;
 
@@ -44,6 +44,7 @@ export default function NewAgentClientPage({ session }) {
 
     const agent = await api.createAgent({
       avatarUrl,
+      description,
       name,
       type,
       llm,
@@ -158,7 +159,7 @@ export default function NewAgentClientPage({ session }) {
         {activeStep === "INFO" && (
           <AgentStoreInfo
             onSubmit={async ({ name, avatarUrl, description }) => {
-              await createAgent({ name, avatarUrl });
+              await createAgent({ name, avatarUrl, description });
             }}
           />
         )}

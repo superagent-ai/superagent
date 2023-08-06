@@ -11,6 +11,13 @@ import {
   IconButton,
   Link,
   Text,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverHeader,
+  PopoverBody,
+  PopoverCloseButton,
+  Stack,
   Switch,
   Spinner,
   useToast,
@@ -18,7 +25,7 @@ import {
 import crypto from "crypto";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { TbChevronLeft, TbAlertTriangle, TbCopy } from "react-icons/tb";
+import { TbChevronLeft, TbAlertTriangle, TbCopy, TbLink } from "react-icons/tb";
 import NextLink from "next/link";
 import API from "@/lib/api";
 import { useCallback } from "react";
@@ -38,7 +45,9 @@ const encrypt = (token) => {
 
 export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
   const [isChecked, setIsChecked] = useState(agent.isPublic);
+  const [isListingChecked, setIsListingChecked] = useState(agent.isListed);
   const [isChangingShareStatus, setIsChangingShareStatus] = useState();
+  const [isChangingListingStatus, setIsChangingListingStatus] = useState();
   const router = useRouter();
   const session = useSession();
   const toast = useToast();
@@ -50,7 +59,10 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
 
       const api = new API(session.data);
 
-      await api.patchAgent(agent.id, { isPublic: event.target.checked });
+      await api.patchAgent(agent.id, {
+        isPublic: event.target.checked,
+        shareableToken: encrypt(apiToken?.token),
+      });
 
       router.refresh();
       setIsChangingShareStatus();
@@ -58,15 +70,31 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
     [agent, router, session]
   );
 
+  const handleListingStatus = useCallback(
+    async (event) => {
+      setIsListingChecked(event.target.checked);
+      setIsChangingListingStatus(true);
+
+      const api = new API(session.data);
+
+      await api.patchAgent(agent.id, { isListed: event.target.checked });
+
+      router.refresh();
+      setIsChangingListingStatus();
+    },
+    [agent, router, session]
+  );
+
   const copyToClipboard = () => {
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://app.superagent.sh';
+    const baseUrl =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "https://app.superagent.sh";
 
     navigator.clipboard.writeText(
-      `${baseUrl}/share?agentId=${agent.id}&token=${encrypt(
-        apiToken?.token
-      )}`
+      `${baseUrl}/share?agentId=${agent.id}&token=${encrypt(apiToken?.token)}`
     );
-    
+
     toast({
       description: "Share link copied!",
       position: "top",
@@ -103,29 +131,74 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
         </HStack>
         {apiToken && (
           <Box>
-            <FormControl display="flex" alignItems="center">
-              <FormLabel htmlFor="is-visible" marginBottom="0">
-                {isChangingShareStatus ? (
-                  <Spinner size="sm" />
-                ) : isChecked ? (
-                  <Button
-                    variant="ghost"
-                    rightIcon={<Icon as={TbCopy} fontSize="xl" />}
-                    onClick={() => copyToClipboard()}
-                  >
-                    Share
-                  </Button>
-                ) : (
-                  <Text>Share:</Text>
-                )}
-              </FormLabel>
-              <Switch
-                isChecked={isChecked}
-                colorScheme="green"
-                id="is-visible"
-                onChange={handleShareUpdate}
-              />
-            </FormControl>
+            <Popover>
+              <PopoverTrigger>
+                <Button rightIcon={<Icon as={TbCopy} fontSize="xl" />}>
+                  Share
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <PopoverCloseButton />
+                <PopoverHeader fontSize="md" fontWeight="bold">
+                  Sharing options
+                </PopoverHeader>
+                <PopoverBody>
+                  <Stack>
+                    <HStack>
+                      <FormControl display="flex" alignItems="center">
+                        {isChangingShareStatus ? (
+                          <Spinner size="sm" />
+                        ) : (
+                          <Switch
+                            isChecked={isChecked}
+                            colorScheme="green"
+                            id="is-visible"
+                            onChange={handleShareUpdate}
+                          />
+                        )}
+                        <FormLabel
+                          htmlFor="is-visible"
+                          marginBottom="0"
+                          marginLeft={2}
+                        >
+                          Create public chat
+                        </FormLabel>
+                      </FormControl>
+                      <Button
+                        isDisabled={!agent.isPublic}
+                        variant="ghost"
+                        onClick={() => copyToClipboard()}
+                        size="sm"
+                        leftIcon={<Icon as={TbLink} fontSize="xl" />}
+                      >
+                        Link
+                      </Button>
+                    </HStack>
+                    <HStack>
+                      <FormControl display="flex" alignItems="center">
+                        {isChangingListingStatus ? (
+                          <Spinner size="sm" />
+                        ) : (
+                          <Switch
+                            isChecked={isListingChecked}
+                            colorScheme="green"
+                            id="is-visible"
+                            onChange={handleListingStatus}
+                          />
+                        )}
+                        <FormLabel
+                          htmlFor="is-visible"
+                          marginBottom="0"
+                          marginLeft={2}
+                        >
+                          List in library
+                        </FormLabel>
+                      </FormControl>
+                    </HStack>
+                  </Stack>
+                </PopoverBody>
+              </PopoverContent>
+            </Popover>
           </Box>
         )}
       </HStack>
