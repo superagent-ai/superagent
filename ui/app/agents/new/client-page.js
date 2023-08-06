@@ -28,9 +28,9 @@ export default function NewAgentClientPage({ session }) {
     has_memory: false,
   });
 
-  const createAgent = async ({ name }) => {
+  const createAgent = async ({ name, avatarUrl }) => {
     let promptId;
-    const { avatarUrl, type, prompt, llm, has_memory, documents, tools } = data;
+    const { type, prompt, llm, has_memory, documents, tools } = data;
 
     if (prompt) {
       const prompt_ = await api.createPrompt({
