@@ -39,6 +39,20 @@ class API {
     return data;
   }
 
+  async getLibrary() {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/library`,
+      {
+        headers: {
+          ...this.getHeaders(),
+        },
+      }
+    );
+    const { data } = await response.json();
+
+    return data;
+  }
+
   async getAgentById(id) {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${id}`,
