@@ -30,7 +30,7 @@ export default function NewAgentClientPage({ session }) {
 
   const createAgent = async ({ name }) => {
     let promptId;
-    const { type, prompt, llm, has_memory, documents, tools } = data;
+    const { avatarUrl, type, prompt, llm, has_memory, documents, tools } = data;
 
     if (prompt) {
       const prompt_ = await api.createPrompt({
@@ -43,6 +43,7 @@ export default function NewAgentClientPage({ session }) {
     }
 
     const agent = await api.createAgent({
+      avatarUrl,
       name,
       type,
       llm,
