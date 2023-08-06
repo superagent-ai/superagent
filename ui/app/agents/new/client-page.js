@@ -157,8 +157,8 @@ export default function NewAgentClientPage({ session }) {
         )}
         {activeStep === "INFO" && (
           <AgentStoreInfo
-            onSubmit={async ({ name, description }) => {
-              await createAgent({ name });
+            onSubmit={async ({ name, avatarUrl, description }) => {
+              await createAgent({ name, avatarUrl });
             }}
           />
         )}
