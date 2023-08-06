@@ -60,21 +60,12 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
 @router.get("/documents", name="List documents", description="List all documents")
 async def read_documents(token=Depends(JWTBearer())):
     """List documents endpoint"""
-    try:
-        documents = prisma.document.find_many(
-            where={"userId": token["userId"]},
-            include={"user": True},
-            order={"createdAt": "desc"},
-        )
-
-        if documents or documents == []:
-            return {"success": True, "data": documents}
-    except Exception as e:
-        logger.error("Couldn't find documents", exc_info=e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="No agents found",
-        )
+    documents = prisma.document.find_many(
+        where={"userId": token["userId"]},
+        include={"user": True},
+        order={"createdAt": "desc"},
+    )
+    return {"success": True, "data": documents}
 
 
 @router.get(
@@ -84,23 +75,10 @@ async def read_documents(token=Depends(JWTBearer())):
 )
 async def read_document(documentId: str, token=Depends(JWTBearer())):
     """Get a single document"""
-    try:
-        document = prisma.document.find_unique(
-            where={"id": documentId}, include={"user": True}
-        )
-    except Exception as e:
-        logger.error("Couldn't find document with id {documentId}", exc_info=e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Agent with id: {documentId} not found",
-        )
-
-    if document:
-        return {"success": True, "data": document}
-    raise HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail=f"Agent with id: {documentId} not found",
+    document = prisma.document.find_unique(
+        where={"id": documentId}, include={"user": True}
     )
+    return {"success": True, "data": document}
 
 
 @router.delete(
