@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   InputGroup,
   Input,
@@ -29,6 +29,12 @@ export default function SearchBar({ onSearch, onReset }) {
     reset();
   }, []);
 
+  useEffect(() => {
+    if (searchTerm) {
+      onSearch({ searchTerm });
+    }
+  }, [searchTerm]);
+
   return (
     <HStack>
       <InputGroup as="form" onSubmit={handleSubmit(onSearch)}>
@@ -46,18 +52,14 @@ export default function SearchBar({ onSearch, onReset }) {
           <Button
             leftIcon={<Icon as={TbX} />}
             onClick={handleReset}
-            display={["none", "block"]}
+            display={["none", "flex"]}
           >
             Reset
           </Button>
           <IconButton
-            icon={
-              <Icon
-                as={TbX}
-                onClick={handleReset}
-                display={["block", "none"]}
-              />
-            }
+            onClick={handleReset}
+            display={["flex", "none"]}
+            icon={<Icon as={TbX} />}
           />
         </>
       )}
