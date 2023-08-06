@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: Build, deploy, and manage LLM-powered agents
-  version: 0.0.42
+  version: 0.0.43
 paths:
   /api/v1/agents:
     get:
@@ -1381,7 +1381,3 @@ components:
     JWTBearer:
       type: http
       scheme: bearer
-    APIKeyHeader:
-      type: apiKey
-      in: header
-      name: Authorization
