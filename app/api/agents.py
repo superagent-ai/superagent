@@ -27,6 +27,7 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
         agent = prisma.agent.create(
             {
                 "name": body.name,
+                "avatarUrl": body.avatarUrl,
                 "type": body.type,
                 "llm": json.dumps(body.llm),
                 "hasMemory": body.hasMemory,
