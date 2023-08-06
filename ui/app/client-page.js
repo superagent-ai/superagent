@@ -18,7 +18,14 @@ import SearchBar from "./_components/search-bar";
 
 dayjs.extend(relativeTime);
 
-function LibraryCard({ id, name, description, createdAt, avatarUrl }) {
+function LibraryCard({
+  id,
+  shareableToken,
+  name,
+  description,
+  createdAt,
+  avatarUrl,
+}) {
   return (
     <Stack borderWidth="1px" borderRadius="md" padding={4} spacing={4}>
       <Stack>
@@ -38,7 +45,10 @@ function LibraryCard({ id, name, description, createdAt, avatarUrl }) {
         </Text>
       </Stack>
       <HStack justifyContent="space-between">
-        <NextLink passHref href={`/agents/${id}`}>
+        <NextLink
+          passHref
+          href={`https://app.superagent.sh/share?agentId=${id}&token=${shareableToken}`}
+        >
           <Button
             color="green.500"
             fontFamily="mono"
@@ -105,8 +115,10 @@ export default function HomeClientPage({ data }) {
                 hasMemory,
                 name,
                 type,
+                shareableToken,
               }) => (
                 <LibraryCard
+                  shareableToken={shareableToken}
                   avatarUrl={avatarUrl}
                   key={id}
                   createdAt={createdAt}
@@ -130,9 +142,11 @@ export default function HomeClientPage({ data }) {
                 hasMemory,
                 name,
                 type,
+                shareableToken,
               }) => (
                 <LibraryCard
                   avatarUrl={avatarUrl}
+                  shareableToken={shareableToken}
                   key={id}
                   createdAt={createdAt}
                   description={description}

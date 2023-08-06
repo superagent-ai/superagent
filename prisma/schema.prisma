@@ -91,30 +91,31 @@ model Document {
 }
 
 model Agent {
-  id            String          @id @default(cuid()) @db.VarChar(255)
-  description   String?         @db.Text()
-  avatarUrl     String?         @db.Text()
-  userId        String          @db.VarChar(255)
-  user          User            @relation(fields: [userId], references: [id])
-  document      Document?       @relation(fields: [documentId], references: [id])
-  documentId    String?         @db.VarChar(255)
-  tool          Tool?           @relation(fields: [toolId], references: [id])
-  toolId        String?         @db.VarChar(255)
-  tags          Json?           @default("[]")
-  prompt        Prompt?         @relation(fields: [promptId], references: [id])
-  promptId      String?         @db.VarChar(255)
-  name          String
-  type          AgentType       @default(REACT)
-  llm           Json            @default("{ \"provider\": \"openai-chat\", \"model\": \"gpt-3.5-turbo\" }")
-  hasMemory     Boolean         @default(false)
-  isPublic      Boolean         @default(false)
-  isListed      Boolean         @default(false)
-  AgentMemory   AgentMemory[]
-  createdAt     DateTime?       @default(now())
-  updatedAt     DateTime?       @updatedAt
-  AgentTrace    AgentTrace[]
-  AgentDocument AgentDocument[]
-  AgentTool     AgentTool[]
+  id             String          @id @default(cuid()) @db.VarChar(255)
+  description    String?         @db.Text()
+  avatarUrl      String?         @db.Text()
+  shareableToken String?         @db.Text()
+  userId         String          @db.VarChar(255)
+  user           User            @relation(fields: [userId], references: [id])
+  document       Document?       @relation(fields: [documentId], references: [id])
+  documentId     String?         @db.VarChar(255)
+  tool           Tool?           @relation(fields: [toolId], references: [id])
+  toolId         String?         @db.VarChar(255)
+  tags           Json?           @default("[]")
+  prompt         Prompt?         @relation(fields: [promptId], references: [id])
+  promptId       String?         @db.VarChar(255)
+  name           String
+  type           AgentType       @default(REACT)
+  llm            Json            @default("{ \"provider\": \"openai-chat\", \"model\": \"gpt-3.5-turbo\" }")
+  hasMemory      Boolean         @default(false)
+  isPublic       Boolean         @default(false)
+  isListed       Boolean         @default(false)
+  AgentMemory    AgentMemory[]
+  createdAt      DateTime?       @default(now())
+  updatedAt      DateTime?       @updatedAt
+  AgentTrace     AgentTrace[]
+  AgentDocument  AgentDocument[]
+  AgentTool      AgentTool[]
 }
 
 model ApiToken {

@@ -59,7 +59,10 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
 
       const api = new API(session.data);
 
-      await api.patchAgent(agent.id, { isPublic: event.target.checked });
+      await api.patchAgent(agent.id, {
+        isPublic: event.target.checked,
+        shareableToken: encrypt(apiToken?.token),
+      });
 
       router.refresh();
       setIsChangingShareStatus();
