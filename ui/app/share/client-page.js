@@ -18,6 +18,7 @@ import {
   useColorModeValue,
   Avatar,
   useToast,
+  Divider,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
 import React, { useState } from "react";
@@ -224,15 +225,18 @@ export default function ShareClientPage({ agent, token }) {
             zIndex={99999}
           >
             <Stack spacing={4}>
-              <Text color="white" fontWeight="bold" fontSize="lg">
+              <Avatar src={agent.avatarUrl || "./logo.png"} />
+              <Text fontWeight="bold" fontSize="lg">
                 {agent.name}
               </Text>
-              <Text color="#777">
+              <Text>{agent.description}</Text>
+              <Divider />
+              <Text color="gray.500" fontSize="sm">
                 This agent was created using Superagent. It leverages the{" "}
                 {agent?.llm?.model} large language model. Note that this agent
                 was marked as public by it's creator.
               </Text>
-              <Text color="#777">
+              <Text color="gray.500" fontSize="sm">
                 More info:{" "}
                 <Link color="orange.500" href="https://www.superagent.sh">
                   superagent.sh

@@ -59,9 +59,6 @@ To get started with Superagent, follow these steps:
 
 3. See the setup instructions for the UI in the `ui` folder.
 
-## ⛓️ Deploy on Replit
-Superagent has first grade support for running on [Replit](https://replit.com). You can use the official public Repl to get started.
-
 ## 📦 Run locally with docker and docker compose
 
 In the `.docker` folder there are multiple docker-compose files.
@@ -91,6 +88,8 @@ To run this project, you will need to add the following environment variables to
 `PINECONE_ENVIRONMENT` - Pinecone environment (found in the pinecone dashboard)
 
 `PINECONE_API_KEY` - Pinecone API key (found in the pinecone dashboard)
+
+`PINECONE_INDEX` - The name of the Pinecone index you would like to use
 
 `SUPERAGENT_TRACING` - If you want to enable agent tracing
 
