@@ -3,7 +3,7 @@ from tempfile import NamedTemporaryFile
 from urllib.parse import urlparse
 
 import pinecone
-import requests
+import requests  # type: ignore
 from decouple import config
 from langchain.document_loaders import (
     GitLoader,
@@ -45,22 +45,29 @@ def upsert_document(
     metadata: dict | None = None,
 ) -> None:
     """Upserts documents to Pinecone index"""
-    pinecone.Index("superagent")
+
+    INDEX_NAME = config("PINECONE_INDEX", "superagent")
+
+    pinecone.Index(INDEX_NAME)
 
     embeddings = OpenAIEmbeddings()
 
     if type == "TXT":
+        file_response = content
         if content is None:
             if url is None:
                 raise ValueError("URL must not be None when content is None.")
-            file_response = requests.get(url)
-            content = file_response.text
+            file_response = requests.get(url).text
 
-        with NamedTemporaryFile(suffix=".txt", delete=True) as temp_file:
-            temp_file.write(file_response.text.encode())
-            temp_file.flush()
-            loader = TextLoader(file_path=temp_file.name)
-            documents = loader.load()
+        if file_response is not None:
+            with NamedTemporaryFile(suffix=".txt", delete=True) as temp_file:
+                temp_file.write(file_response.encode())
+                temp_file.flush()
+                loader = TextLoader(file_path=temp_file.name)
+                documents = loader.load()
+        else:
+            raise ValueError("file_response must not be None.")
+
         newDocuments = [
             document.metadata.update({"namespace": document_id}) or document
             for document in documents
@@ -68,10 +75,12 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
         )
 
     if type == "PDF":
+        if url is None:
+            raise ValueError("URL must not be None for PDF type.")
         loader = CustomPDFPlumberLoader(
             file_path=url, from_page=from_page, to_page=to_page
         )
@@ -83,10 +92,12 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
         )
 
     if type == "URL":
+        if url is None:
+            raise ValueError("URL must not be None for URL type.")
         url_list = url.split(",")
         loader = WebBaseLoader(url_list)
         documents = loader.load()
@@ -98,10 +109,12 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
         )
 
     if type == "YOUTUBE":
+        if url is None:
+            raise ValueError("URL must not be None for YOUTUBE type.")
         video_id = url.split("youtube.com/watch?v=")[-1]
         loader = YoutubeLoader(video_id=video_id)
         documents = loader.load()
@@ -112,32 +125,41 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
         )
 
     if type == "MARKDOWN":
-        file_response = requests.get(url)
-        with NamedTemporaryFile(suffix=".md", delete=True) as temp_file:
-            temp_file.write(file_response.text.encode())
-            temp_file.flush()
-            loader = UnstructuredMarkdownLoader(file_path=temp_file.name)
-            documents = loader.load()
+        if url is None:
+            raise ValueError("URL must not be None for MARKDOWN type.")
+        file_response = requests.get(url).text
+        if file_response:
+            with NamedTemporaryFile(suffix=".md", delete=True) as temp_file:
+                temp_file.write(file_response.encode())
+                temp_file.flush()
+                loader = UnstructuredMarkdownLoader(file_path=temp_file.name)
+        else:
+            raise ValueError("file_response must not be None.")
 
-        newDocuments = [
-            document.metadata.update({"namespace": document_id}) or document
-            for document in documents
-        ]
-        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
+            newDocuments = [
+                document.metadata.update({"namespace": document_id}) or document
+                for document in documents
+            ]
+            docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
-        VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
-        )
+            VectorStoreBase().get_database().from_documents(
+                docs, embeddings, index_name=INDEX_NAME, namespace=document_id
+            )
 
     if type == "PSYCHIC":
+        if metadata is not None:
+            connector_id = metadata["connectorId"]
+        else:
+            connector_id = None  # or some default value
+
         loader = PsychicLoader(
             api_key=config("PSYCHIC_API_KEY"),
             account_id=user_id,
-            connector_id=metadata["connectorId"],
+            connector_id=connector_id,
         )
         documents = loader.load()
         newDocuments = [
@@ -147,7 +169,7 @@ def upsert_document(
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
         )
 
     if type == "FIRESTORE":
@@ -157,10 +179,14 @@ def upsert_document(
         credentials = service_account.Credentials.from_service_account_info(
             authorization
         )
+        if authorization is None:
+            raise ValueError("Authorization must not be None for FIRESTORE type.")
         db = firestore.Client(
             credentials=credentials, project=authorization["project_id"]
         )
         documents = []
+        if metadata is None:
+            raise ValueError("Metadata must not be None for FIRESTORE type.")
         col_ref = db.collection(metadata["collection"])
 
         for doc in col_ref.stream():
@@ -168,23 +194,23 @@ def upsert_document(
             documents.append(Document(text=doc_str))
 
         VectorStoreBase().get_database().from_documents(
-            documents, embeddings, index_name="superagent", namespace=document_id
+            documents, embeddings, index_name=INDEX_NAME, namespace=document_id
         )
 
     if type == "GITHUB_REPOSITORY":
         parsed_url = urlparse(url)
-        path_parts = parsed_url.path.split("/")
+        path_parts = parsed_url.path.split("/")  # type: ignore
         repo_name = path_parts[2]
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            repo_path = f"{temp_dir}/{repo_name}/"
+            repo_path = f"{temp_dir}/{repo_name}/"  # type: ignore
             loader = GitLoader(
                 clone_url=url,
                 repo_path=repo_path,
-                branch=metadata["branch"],
+                branch=metadata["branch"],  # type: ignore
             )
             docs = loader.load_and_split()
 
         VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name="superagent", namespace=document_id
+            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
         )
