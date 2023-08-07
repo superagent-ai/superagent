@@ -73,6 +73,7 @@ model Profile {
 
 model Document {
   id            String          @id @default(cuid()) @db.VarChar(255)
+  description   String?         @db.Text()
   userId        String          @db.VarChar(255)
   user          User            @relation(fields: [userId], references: [id])
   type          DocumentType    @default(TXT)
