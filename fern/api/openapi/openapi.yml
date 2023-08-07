@@ -1,8 +1,8 @@
 openapi: 3.0.2
 info:
   title: Superagent
-  description: Build, deploy, and manage LLM-powered agents
-  version: 0.0.43
+  description: Build, deploy and manage LLM-powered Agents
+  version: 0.0.44
 paths:
   /api/v1/agents:
     get:
@@ -43,6 +43,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - JWTBearer: []
+  /api/v1/agents/library:
+    get:
+      tags:
+        - Agent
+      summary: List Library Agents
+      description: List all library agents
+      operationId: List_library_agents_api_v1_agents_library_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
       security:
         - JWTBearer: []
   /api/v1/agents/{agentId}:
@@ -1145,6 +1160,12 @@ components:
           type: string
         type:
           title: Type
+          type: string
+        description:
+          title: Description
+          type: string
+        avatarUrl:
+          title: Avatarurl
           type: string
         llm:
           title: Llm
