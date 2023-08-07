@@ -27,6 +27,8 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
         agent = prisma.agent.create(
             {
                 "name": body.name,
+                "description": body.description,
+                "avatarUrl": body.avatarUrl,
                 "type": body.type,
                 "llm": json.dumps(body.llm),
                 "hasMemory": body.hasMemory,
@@ -56,11 +58,33 @@ async def read_agents(token=Depends(JWTBearer())):
             },
             order={"createdAt": "desc"},
         )
+        return {"success": True, "data": agents}
 
-        if agents or agents == []:
-            return {"success": True, "data": agents}
-        else:
-            raise Exception("Couldn't fetch agents from prisma")
+    except Exception as e:
+        logger.error(e)
+
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="No agents found",
+    )
+
+
+@router.get(
+    "/agents/library",
+    name="List library agents",
+    description="List all library agents",
+)
+async def read_library_agents(token=Depends(JWTBearer())):
+    """Library agentsendpoint"""
+    try:
+        agents = prisma.agent.find_many(
+            where={"isListed": True},
+            include={
+                "user": True,
+            },
+            order={"createdAt": "desc"},
+        )
+        return {"success": True, "data": agents}
     except Exception as e:
         logger.error(e)
 

@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.lib.auth.prisma import JWTBearer
 from app.lib.documents import upsert_document, valid_ingestion_types
 from app.lib.models.document import Document
-from app.lib.vectorstores.base import VectorStoreBase
 from app.lib.prisma import prisma
+from app.lib.vectorstores.base import VectorStoreBase
 
 logger = logging.getLogger(__name__)
 

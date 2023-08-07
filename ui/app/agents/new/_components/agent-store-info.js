@@ -27,6 +27,7 @@ export default function AgentStoreInfo({ onSubmit }) {
         </Text>
         <Stack spacing={3}>
           <FormControl>
+            <FormLabel>Name</FormLabel>
             <Input
               type="text"
               {...register("name", { required: true })}
@@ -34,6 +35,16 @@ export default function AgentStoreInfo({ onSubmit }) {
             />
           </FormControl>
           <FormControl>
+            <FormLabel>Avatar URL</FormLabel>
+            <Input
+              type="text"
+              {...register("avatarUrl", { required: false })}
+              placeholder="Enter a public URL..."
+            />
+            <FormHelperText>Add an avatar to your agent.</FormHelperText>
+          </FormControl>
+          <FormControl>
+            <FormLabel>Description</FormLabel>
             <Textarea
               minHeight="200px"
               type="text"
