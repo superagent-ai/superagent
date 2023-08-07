@@ -150,11 +150,20 @@ export default function DocumentsClientPage({ data, session }) {
   };
 
   const onSubmit = async (values) => {
-    const { type, name, url, auth_type, auth_key, auth_value, ...metadata } =
-      values;
+    const {
+      type,
+      name,
+      description,
+      url,
+      auth_type,
+      auth_key,
+      auth_value,
+      ...metadata
+    } = values;
     const payload = {
       name,
       metadata,
+      description,
       type,
       url,
       authorization: auth_key && {
@@ -163,7 +172,6 @@ export default function DocumentsClientPage({ data, session }) {
         value: auth_value,
       },
     };
-    console.log(payload);
 
     if (selectedDocument) {
       await api.patchDocument(selectedDocument, payload);
@@ -218,6 +226,7 @@ export default function DocumentsClientPage({ data, session }) {
     setValue("name", document?.name);
     setValue("url", document?.url);
     setValue("type", document?.type);
+    setValue("description", document?.description);
     onOpen();
   };
 
@@ -357,12 +366,27 @@ export default function DocumentsClientPage({ data, session }) {
                   <FormControl isRequired isInvalid={errors?.name}>
                     <FormLabel>Name</FormLabel>
                     <Input
+                      placeholder="My document"
                       type="text"
                       {...register("name", { required: true })}
                     />
                     <FormHelperText>A document name.</FormHelperText>
                     {errors?.name && (
                       <FormErrorMessage>Invalid name</FormErrorMessage>
+                    )}
+                  </FormControl>
+                  <FormControl isRequired isInvalid={errors?.description}>
+                    <FormLabel>Description</FormLabel>
+                    <Input
+                      type="text"
+                      placeholder="Useful for finding information about..."
+                      {...register("description", { required: true })}
+                    />
+                    <FormHelperText>
+                      What is this document useful for?
+                    </FormHelperText>
+                    {errors?.description && (
+                      <FormErrorMessage>Invalid description</FormErrorMessage>
                     )}
                   </FormControl>
                   {documentType === "URL" ? (

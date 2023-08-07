@@ -27,6 +27,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
         document = prisma.document.create(
             {
                 "type": body.type,
+                "description": body.description,
                 "url": body.url,
                 "content": body.content,
                 "contentHash": content_hash,
