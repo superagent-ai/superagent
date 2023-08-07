@@ -140,15 +140,15 @@ def upsert_document(
         else:
             raise ValueError("file_response must not be None.")
 
-            newDocuments = [
-                document.metadata.update({"namespace": document_id}) or document
-                for document in documents
-            ]
-            docs = TextSplitters(newDocuments, text_splitter).document_splitter()
+        newDocuments = [
+            document.metadata.update({"namespace": document_id}) or document
+            for document in documents
+        ]
+        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
-            VectorStoreBase().get_database().from_documents(
-                docs, embeddings, index_name=INDEX_NAME, namespace=document_id
-            )
+        VectorStoreBase().get_database().from_documents(
+            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
+        )
 
     if type == "PSYCHIC":
         if metadata is not None:
