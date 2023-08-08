@@ -4,7 +4,7 @@ import { Button, Icon, Input } from "@chakra-ui/react";
 import { TbPlus } from "react-icons/tb";
 import { useAsyncFn } from "react-use";
 
-export default function UploadButton({ onSelect }) {
+export default function UploadButton({ accept, label, onSelect }) {
   const fileInputRef = useRef(null);
   const [isLoading, setIsLoading] = useState();
 
@@ -29,15 +29,15 @@ export default function UploadButton({ onSelect }) {
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept=".pdf, .csv, .txt, .md, text/plain, application/pdf, text/csv"
+        accept={accept}
       />
       <Button
         leftIcon={<Icon as={TbPlus} />}
         onClick={triggerFileInput}
         isLoading={isLoading}
-        loadingText="Uploading..."
+        loadingText="Working..."
       >
-        Upload file
+        {label}
       </Button>
     </>
   );

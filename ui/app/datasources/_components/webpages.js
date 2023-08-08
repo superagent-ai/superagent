@@ -32,19 +32,18 @@ import {
   useToast,
   useDisclosure,
   Tag,
+  Alert,
+  AlertTitle,
+  AlertDescription,
+  Checkbox,
 } from "@chakra-ui/react";
 import dayjs from "dayjs";
 import { useForm } from "react-hook-form";
-import { TbCopy, TbTrash, TbPencil } from "react-icons/tb";
+import { TbCopy, TbPlus, TbTrash, TbPencil } from "react-icons/tb";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useAsyncFn } from "react-use";
 import API from "@/lib/api";
-import UploadButton from "./upload-button";
-import {
-  ACCEPTABLE_STATIC_FILE_TYPES,
-  getFileType,
-  uploadFile,
-} from "@/lib/datasources";
+import { ACCEPTABLE_WEBPAGE_TYPES, isGithubUrl } from "@/lib/datasources";
 
 dayjs.extend(relativeTime);
 
@@ -126,7 +125,7 @@ function DocumentRow({ id, name, createdAt, type, onDelete, onEdit }) {
   );
 }
 
-export default function Files({ data, session }) {
+export default function Webpages({ data, session }) {
   const [filteredData, setData] = useState();
   const [isCreatingDocument, setIsCreatingDocument] = useState();
   const { isOpen, onClose, onOpen } = useDisclosure();
@@ -140,7 +139,10 @@ export default function Files({ data, session }) {
     register,
     reset,
     setValue,
+    watch,
   } = useForm();
+  const url = watch("url");
+
   const onCancel = async () => {
     reset();
     setSelectedDocument();
@@ -205,27 +207,33 @@ export default function Files({ data, session }) {
     setSelectedDocument(documentId);
     setValue("name", document?.name);
     setValue("description", document?.description);
+    setValue("url", document?.url);
     onOpen();
   };
 
-  const onUpload = useCallback(async (file) => {
-    const type = getFileType(file.type);
-    const { Location } = await uploadFile(file);
+  const onSubmit = useCallback(async (values) => {
+    const { name, description, url, include_subpages, ...metadata } = values;
+    const type = isGithubUrl(url)
+      ? "GITHUB_REPOSITORY"
+      : include_subpages
+      ? "WEBPAGE"
+      : "URL";
     const payload = {
-      name: file.name,
-      description: `Useful for answering questions about ${file.name}`,
+      name: name,
+      description,
+      url,
       type,
-      url: Location,
+      metadata,
     };
 
     await api.createDocument(payload);
 
     if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
-      analytics.track("Created Document", { ...payload });
+      analytics.track("Created Webpage", { ...payload });
     }
 
     toast({
-      description: "Document created",
+      description: "Webpage created",
       position: "top",
       colorScheme: "gray",
     });
@@ -245,14 +253,11 @@ export default function Files({ data, session }) {
         spacing={6}
       >
         <Stack alignItems="center" justifyContent="center" spacing={4}>
-          <UploadButton
-            label="Upload file"
-            accept=".pdf, .csv, .txt, .md, text/plain, application/pdf, text/csv"
-            onSelect={onUpload}
-          />
+          <Button leftIcon={<Icon as={TbPlus} />} onClick={onOpen}>
+            Add webpage
+          </Button>
           <Text color="gray.500" fontSize="sm">
-            We currently support <Code>.txt</Code>, <Code>.pdf</Code>,{" "}
-            <Code>.csv</Code> and <Code>.md</Code> files
+            Add any webpage
           </Text>
         </Stack>
       </Stack>
@@ -276,7 +281,7 @@ export default function Files({ data, session }) {
               {filteredData
                 ? filteredData
                     ?.filter(({ type }) =>
-                      ACCEPTABLE_STATIC_FILE_TYPES.includes(type)
+                      ACCEPTABLE_WEBPAGE_TYPES.includes(type)
                     )
                     .map(({ id, name, createdAt, type, url }) => (
                       <DocumentRow
@@ -292,7 +297,7 @@ export default function Files({ data, session }) {
                     ))
                 : data
                     ?.filter(({ type }) =>
-                      ACCEPTABLE_STATIC_FILE_TYPES.includes(type)
+                      ACCEPTABLE_WEBPAGE_TYPES.includes(type)
                     )
                     .map(({ id, name, createdAt, type, url }) => (
                       <DocumentRow
@@ -312,8 +317,13 @@ export default function Files({ data, session }) {
       </Stack>
       <Modal isOpen={isOpen} onClose={onCancel} size="xl">
         <ModalOverlay />
-        <ModalContent as="form" onSubmit={handleSubmit(onUpdate)}>
-          <ModalHeader>Update document</ModalHeader>
+        <ModalContent
+          as="form"
+          onSubmit={handleSubmit(selectedDocument ? onUpdate : onSubmit)}
+        >
+          <ModalHeader>
+            {selectedDocument ? "Update webpage" : "Add webpage"}
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Stack spacing={4}>
@@ -321,11 +331,11 @@ export default function Files({ data, session }) {
                 <FormControl isRequired isInvalid={errors?.name}>
                   <FormLabel>Name</FormLabel>
                   <Input
-                    placeholder="My document"
+                    placeholder="Airbnb"
                     type="text"
                     {...register("name", { required: true })}
                   />
-                  <FormHelperText>A document name.</FormHelperText>
+                  <FormHelperText>The name of the webpage.</FormHelperText>
                   {errors?.name && (
                     <FormErrorMessage>Invalid name</FormErrorMessage>
                   )}
@@ -343,6 +353,77 @@ export default function Files({ data, session }) {
                   {errors?.description && (
                     <FormErrorMessage>Invalid description</FormErrorMessage>
                   )}
+                </FormControl>
+                <FormControl isRequired isInvalid={errors?.url}>
+                  <FormLabel>URL</FormLabel>
+                  <Input
+                    type="text"
+                    isDisabled={selectedDocument}
+                    placeholder="airbnb.com"
+                    {...register("url", { required: true })}
+                  />
+                  <FormHelperText>Add the webpage URL</FormHelperText>
+                  {errors?.url && (
+                    <FormErrorMessage>Invalid URL</FormErrorMessage>
+                  )}
+                </FormControl>
+                {!isGithubUrl(url) && (
+                  <FormControl>
+                    <Checkbox
+                      {...register("include_subpages")}
+                      isDisabled={selectedDocument}
+                    >
+                      Fetch sub pages
+                    </Checkbox>
+                    <FormHelperText>
+                      If enabled could take up to 10 minutes to complete.
+                    </FormHelperText>
+                  </FormControl>
+                )}
+                {isGithubUrl(url) && (
+                  <Stack>
+                    <Alert
+                      fontSize="md"
+                      flexDirection="column"
+                      alignItems="left"
+                    >
+                      <HStack>
+                        <AlertTitle>
+                          Are you importing a Github repository?
+                        </AlertTitle>
+                      </HStack>
+                      <AlertDescription>
+                        Make sure to select which branch to select. This field
+                        will default to main.
+                      </AlertDescription>
+                    </Alert>
+                    <FormControl>
+                      <FormLabel>Branch</FormLabel>
+                      <Input
+                        isDisabled={selectedDocument}
+                        type="text"
+                        placeholder="main"
+                        {...register("branch")}
+                      />
+                      <FormHelperText>
+                        Select a branch, e.g main, master etc.
+                      </FormHelperText>
+                    </FormControl>
+                  </Stack>
+                )}
+                <FormControl>
+                  <FormLabel>Depth</FormLabel>
+                  <Input
+                    isDisabled={selectedDocument}
+                    type="number"
+                    placeholder="2"
+                    {...register("depth")}
+                  />
+                  <FormHelperText>
+                    At which depth should we ingest links on this webpage? Use
+                    with caution as setting a high depth might take a lot of
+                    time to ingest.
+                  </FormHelperText>
                 </FormControl>
               </Stack>
             </Stack>

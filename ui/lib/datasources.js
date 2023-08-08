@@ -10,6 +10,8 @@ const s3 = new AWS.S3();
 
 export const ACCEPTABLE_STATIC_FILE_TYPES = ["CSV", "PDF", "TXT", "MARKDOWN"];
 
+export const ACCEPTABLE_WEBPAGE_TYPES = ["GITHUB_REPOSITORY", "WEBPAGE", "URL"];
+
 export const MIME_TO_TYPE = {
   "text/csv": "CSV",
   "application/pdf": "PDF",
@@ -35,4 +37,13 @@ export const uploadFile = async (file) => {
   console.log(result);
 
   return result;
+};
+
+export const isGithubUrl = (url) => {
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.hostname === "github.com";
+  } catch (error) {
+    return false; // Invalid URL
+  }
 };

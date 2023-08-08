@@ -40,16 +40,16 @@ export const MAIN_MENU = [
     icon: TbTool,
   },
   {
-    id: "prompts",
-    label: "Prompts",
-    path: "/prompts",
-    icon: TbCodePlus,
-  },
-  {
     id: "datasources",
     label: "Datasources",
     path: "/datasources",
     icon: TbDatabasePlus,
+  },
+  {
+    id: "prompts",
+    label: "Prompts",
+    path: "/prompts",
+    icon: TbCodePlus,
   },
   {
     id: "logs",

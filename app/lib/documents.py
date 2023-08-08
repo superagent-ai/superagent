@@ -16,6 +16,7 @@ from langchain.document_loaders import (
 from langchain.embeddings.openai import OpenAIEmbeddings
 from llama_index.readers.schema.base import Document
 
+
 from app.lib.parsers import CustomPDFPlumberLoader
 from app.lib.splitters import TextSplitters
 from app.lib.vectorstores.base import VectorStoreBase
@@ -29,7 +30,13 @@ valid_ingestion_types = [
     "FIRESTORE",
     "PSYCHIC",
     "GITHUB_REPOSITORY",
+    "WEBPAGE",
 ]
+
+
+def chunkify(lst, size):
+    """Divide a list into chunks of given size."""
+    return [lst[i : i + size] for i in range(0, len(lst), size)]
 
 
 def upsert_document(
@@ -51,6 +58,28 @@ def upsert_document(
     pinecone.Index(INDEX_NAME)
 
     embeddings = OpenAIEmbeddings()
+
+    if type == "WEBPAGE":
+        from llama_index import download_loader
+
+        RemoteDepthReader = download_loader("RemoteDepthReader")
+        depth = int(metadata["depth"])
+        loader = RemoteDepthReader(depth=depth)
+        documents = loader.load_data(url=url)
+        langchain_documents = [d.to_langchain_format() for d in documents]
+        newDocuments = [
+            document.metadata.update({"namespace": document_id}) or document
+            for document in langchain_documents
+        ]
+        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
+        chunk_size = 100
+        chunks = chunkify(docs, chunk_size)
+
+        for chunk in chunks:
+            print("running chunk")
+            VectorStoreBase().get_database().from_documents(
+                chunk, embeddings, index_name=INDEX_NAME, namespace=document_id
+            )
 
     if type == "TXT":
         file_response = content

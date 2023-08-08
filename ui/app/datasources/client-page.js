@@ -12,6 +12,7 @@ import {
 } from "@chakra-ui/react";
 import dayjs from "dayjs";
 import Files from "./_components/files";
+import Webpages from "./_components/webpages";
 import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
@@ -31,7 +32,8 @@ export default function DatasourceClientPage({ data, session }) {
             Datasources
           </Heading>
           <Text color="gray.400" display={["none", "block"]}>
-            Upload documents and use them to do question answering.
+            Upload files or connect third-party apps and use them in your
+            agents.
           </Text>
         </Stack>
       </HStack>
@@ -45,10 +47,10 @@ export default function DatasourceClientPage({ data, session }) {
           <TabPanel paddingX={0}>
             <Files data={data} session={session} />
           </TabPanel>
-          <TabPanel>
-            <p>two!</p>
+          <TabPanel paddingX={0}>
+            <Webpages data={data} session={session} />
           </TabPanel>
-          <TabPanel>
+          <TabPanel paddingX={0}>
             <p>three!</p>
           </TabPanel>
         </TabPanels>
