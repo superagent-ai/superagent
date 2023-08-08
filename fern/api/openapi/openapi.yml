@@ -1,8 +1,8 @@
 openapi: 3.0.2
 info:
   title: Superagent
-  description: Build, deploy and manage LLM-powered Agents
-  version: 0.0.44
+  description: Build, manage and deploy LLM-powered Agents
+  version: 0.0.47
 paths:
   /api/v1/agents:
     get:
@@ -1224,6 +1224,9 @@ components:
           type: string
         url:
           title: Url
+          type: string
+        description:
+          title: Description
           type: string
         content:
           title: Content
