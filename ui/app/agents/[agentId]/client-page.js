@@ -36,7 +36,7 @@ import { useAsyncFn } from "react-use";
 import { TOOL_ICONS } from "@/lib/constants";
 import API from "@/lib/api";
 import AgentNavbar from "./_components/nav";
-import DocumentPickerModal from "@/app/documents/document-picker";
+import DocumentPickerModal from "@/app/datasources/_components/document-picker";
 import ToolPickerModal from "@/app/tools/tool-picker";
 import TagPickerModal from "@/app/tags/tag-picker";
 import { getPromptVariables } from "@/lib/prompts";

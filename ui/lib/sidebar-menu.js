@@ -2,7 +2,7 @@ import {
   TbKey,
   TbBook,
   TbLogout,
-  TbFileText,
+  TbDatabasePlus,
   TbBrain,
   TbCreditCard,
   TbCodePlus,
@@ -46,10 +46,10 @@ export const MAIN_MENU = [
     icon: TbCodePlus,
   },
   {
-    id: "documents",
-    label: "Documents",
-    path: "/documents",
-    icon: TbFileText,
+    id: "datasources",
+    label: "Datasources",
+    path: "/datasources",
+    icon: TbDatabasePlus,
   },
   {
     id: "logs",
