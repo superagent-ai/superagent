@@ -52,6 +52,7 @@ gitpython = "^3.1.32"
 vulture = "^2.7"
 airbyte-source-stripe = "^3.17.1"
 pyairtable = "^2.0.0"
+langchain = "^0.0.260"
 
 
 [build-system]
