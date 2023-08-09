@@ -13,6 +13,7 @@ import {
 import dayjs from "dayjs";
 import Files from "./_components/files";
 import Webpages from "./_components/webpages";
+import Applications from "./_components/applications";
 import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
@@ -41,7 +42,7 @@ export default function DatasourceClientPage({ data, session }) {
         <TabList>
           <Tab>Files</Tab>
           <Tab>Webpages</Tab>
-          <Tab>Connectors</Tab>
+          <Tab>Applications</Tab>
         </TabList>
         <TabPanels>
           <TabPanel paddingX={0}>
@@ -51,7 +52,7 @@ export default function DatasourceClientPage({ data, session }) {
             <Webpages data={data} session={session} />
           </TabPanel>
           <TabPanel paddingX={0}>
-            <p>three!</p>
+            <Applications data={data} session={session} />
           </TabPanel>
         </TabPanels>
       </Tabs>

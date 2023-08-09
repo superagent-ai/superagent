@@ -8,9 +8,82 @@ AWS.config.update({
 
 const s3 = new AWS.S3();
 
+export const APPLICATIONS = [
+  {
+    id: "GITHUB_REPOSITORY",
+    name: "Github",
+    logo: "./github.png",
+    inputs: [
+      {
+        key: "url",
+        name: "Repository URL",
+        placeholder: "https://github.com/homanp/superagent",
+        helpText: "The full URL to your Github repository",
+        type: "input",
+        required: true,
+      },
+      {
+        key: "branch",
+        name: "Branch",
+        placeholder: "main",
+        helpText: "Select the repo branch",
+        type: "input",
+        required: true,
+      },
+    ],
+  },
+  {
+    id: "STRIPE",
+    name: "Stripe",
+    logo: "./stripe.jpeg",
+    inputs: [
+      {
+        key: "client_secret",
+        name: "Client secret",
+        placeholder: "Stripe client secret",
+        helpText: "Your stripe client secret",
+        type: "input",
+        required: true,
+      },
+      {
+        key: "account_id",
+        name: "Account ID",
+        placeholder: "Stripe account id",
+        helpText: "Your stripe account ID",
+        type: "input",
+        required: true,
+      },
+      {
+        key: "start_date",
+        name: "Start date",
+        type: "date",
+        helpText: "From what date do you want to fetch data",
+        required: true,
+      },
+      {
+        key: "stream",
+        name: "Resource",
+        type: "select",
+        required: true,
+        helpText: "Select a resource",
+        options: [
+          {
+            title: "Invoides",
+            value: "invoices",
+          },
+        ],
+      },
+    ],
+  },
+];
+
+export const ACCEPTABLE_APPLICATION_TYPES = APPLICATIONS.map(({ id }) => {
+  return id;
+});
+
 export const ACCEPTABLE_STATIC_FILE_TYPES = ["CSV", "PDF", "TXT", "MARKDOWN"];
 
-export const ACCEPTABLE_WEBPAGE_TYPES = ["GITHUB_REPOSITORY", "WEBPAGE", "URL"];
+export const ACCEPTABLE_WEBPAGE_TYPES = ["WEBPAGE", "URL"];
 
 export const MIME_TO_TYPE = {
   "text/csv": "CSV",

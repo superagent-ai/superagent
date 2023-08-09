@@ -51,6 +51,7 @@ pygithub = "^1.59.0"
 gitpython = "^3.1.32"
 langchain = "^0.0.252"
 vulture = "^2.7"
+airbyte-source-stripe = "^3.17.1"
 
 
 [build-system]
