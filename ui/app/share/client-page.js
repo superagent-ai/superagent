@@ -229,7 +229,7 @@ export default function ShareClientPage({ agent, token }) {
               <Text fontWeight="bold" fontSize="lg">
                 {agent.name}
               </Text>
-              <Text>{agent.description}</Text>
+              <Text fontSize="md">{agent.description}</Text>
               <Divider />
               <Text color="gray.500" fontSize="sm">
                 This agent was created using Superagent. It leverages the{" "}
