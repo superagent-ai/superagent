@@ -4,9 +4,8 @@ import SearchBar from "@/app/_components/search-bar";
 import { useRouter } from "next/navigation";
 import {
   Button,
-  Code,
+  Box,
   Card,
-  CardHeader,
   CardBody,
   CardFooter,
   HStack,
@@ -22,7 +21,6 @@ import {
   ModalHeader,
   ModalContent,
   ModalCloseButton,
-  ModalFooter,
   Stack,
   Text,
   Table,
@@ -130,18 +128,19 @@ function DocumentRow({ id, name, createdAt, type, onDelete, onEdit }) {
 
 export default function Applications({ data, session }) {
   const [filteredData, setData] = useState();
+  const [filteredAppData, setAppData] = useState();
   const [selectedSource, setSelectedSource] = useState();
-  const [isCreatingDocument, setIsCreatingDocument] = useState();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [selectedDocument, setSelectedDocument] = useState();
   const router = useRouter();
   const api = new API(session);
   const toast = useToast();
   const {
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting },
     handleSubmit,
     register,
     reset,
+    setValue,
     watch,
   } = useForm();
   const url = watch("url");
@@ -150,6 +149,7 @@ export default function Applications({ data, session }) {
     reset();
     setSelectedDocument();
     setSelectedSource();
+    setAppData();
     onClose();
   };
 
@@ -166,6 +166,22 @@ export default function Applications({ data, session }) {
     );
 
     setData(filteredItems);
+  };
+
+  const handleAppSearch = ({ searchTerm }) => {
+    if (searchTerm.length < 3) {
+      setAppData(APPLICATIONS);
+      return;
+    }
+
+    const keysToFilter = ["name"];
+    const filteredItems = APPLICATIONS.filter((item) =>
+      keysToFilter.some((key) =>
+        item[key].toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+
+    setAppData(filteredItems);
   };
 
   const handleDelete = async (id) => {
@@ -208,6 +224,43 @@ export default function Applications({ data, session }) {
     },
     [selectedSource, router, onCancel]
   );
+
+  const handleEdit = async (documentId) => {
+    const document = data.find(({ id }) => id === documentId);
+    const selectedSource = APPLICATIONS.find(({ id }) => id === document.type);
+
+    setSelectedDocument(documentId);
+    setSelectedSource(selectedSource);
+    setValue("name", document?.name);
+    setValue("description", document?.description);
+    onOpen();
+  };
+
+  const onUpdate = async (values) => {
+    const { name, description } = values;
+    const payload = {
+      name,
+      description,
+    };
+
+    await api.patchDocument(selectedDocument, payload);
+
+    if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
+      analytics.track("Updated Application", { ...payload });
+    }
+
+    toast({
+      description: "Application updated",
+      position: "top",
+      colorScheme: "gray",
+    });
+
+    setData();
+    router.refresh();
+    reset();
+    setSelectedDocument();
+    onCancel();
+  };
 
   return (
     <Stack spacing={12} marginTop={10}>
@@ -286,107 +339,167 @@ export default function Applications({ data, session }) {
       </Stack>
       <Modal isOpen={isOpen} onClose={onCancel} size="xl">
         <ModalOverlay />
-        <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
+        <ModalContent>
           <ModalHeader>
             {selectedSource?.name || "Connect application"}
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            {selectedSource ? (
-              <Stack spacing={10} paddingBottom={5}>
-                <Stack>
-                  <FormControl isRequired={true}>
-                    <FormLabel>Name</FormLabel>
-                    <Input
-                      type="text"
-                      placeholder="E.g my integration"
-                      {...register("name", { required: true })}
-                    />
-                  </FormControl>
-                  <FormControl isRequired={true}>
-                    <FormLabel>Description</FormLabel>
-                    <Input
-                      type="text"
-                      placeholder="Useful for answering questions about..."
-                      {...register("description", { required: true })}
-                    />
-                    <FormHelperText>
-                      Use this to instruct the Agent when to query this source.
-                    </FormHelperText>
-                  </FormControl>
-                  {selectedSource.inputs.map(
-                    ({ key, name, type, required, options, helpText }) => (
-                      <FormControl key={key} isRequired={required}>
-                        <FormLabel>{name}</FormLabel>
-                        {type === "input" && (
-                          <Input type="text" {...register(key, { required })} />
-                        )}
-                        {type === "date" && (
-                          <Input type="date" {...register(key, { required })} />
-                        )}
-                        {type === "select" && <Select></Select>}
-                        {helpText && (
-                          <FormHelperText>{helpText}</FormHelperText>
-                        )}
-                      </FormControl>
-                    )
+            <Box position="relative">
+              {selectedSource ? (
+                <Stack
+                  spacing={10}
+                  paddingBottom={5}
+                  as="form"
+                  onSubmit={handleSubmit(
+                    selectedDocument ? onUpdate : onSubmit
+                  )}
+                >
+                  <Stack>
+                    <FormControl isRequired={true}>
+                      <FormLabel>Name</FormLabel>
+                      <Input
+                        type="text"
+                        placeholder="E.g my integration"
+                        {...register("name", { required: true })}
+                      />
+                    </FormControl>
+                    <FormControl isRequired={true}>
+                      <FormLabel>Description</FormLabel>
+                      <Input
+                        type="text"
+                        placeholder="Useful for answering questions about..."
+                        {...register("description", { required: true })}
+                      />
+                      <FormHelperText>
+                        Use this to instruct the Agent when to query this
+                        source.
+                      </FormHelperText>
+                    </FormControl>
+                    {!selectedDocument &&
+                      selectedSource.inputs.map(
+                        ({ key, name, type, required, options, helpText }) => (
+                          <FormControl key={key} isRequired={required}>
+                            <FormLabel>{name}</FormLabel>
+                            {type === "input" && (
+                              <Input
+                                type="text"
+                                {...register(key, { required })}
+                              />
+                            )}
+                            {type === "date" && (
+                              <Input
+                                type="date"
+                                {...register(key, { required })}
+                              />
+                            )}
+                            {type === "select" && <Select></Select>}
+                            {helpText && (
+                              <FormHelperText>{helpText}</FormHelperText>
+                            )}
+                          </FormControl>
+                        )
+                      )}
+                  </Stack>
+                  {selectedSource && (
+                    <HStack
+                      alignItems="flex-end"
+                      justifyContent="flex-end"
+                      spacing={0}
+                    >
+                      <Button
+                        variant="ghost"
+                        mr={3}
+                        onClick={() => setSelectedSource()}
+                        isDisabled={isSubmitting}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        isLoading={isSubmitting}
+                        isDisabled={isSubmitting}
+                      >
+                        {selectedDocument ? "Update" : "Connect"}
+                      </Button>
+                    </HStack>
                   )}
                 </Stack>
-              </Stack>
-            ) : (
-              <Stack spacing={10} paddingBottom={5}>
-                <SearchBar />
-                <SimpleGrid columns={3} gridGap={4}>
-                  {APPLICATIONS.map(({ name, logo, id }) => (
-                    <Card key={id} spacing={0}>
-                      <CardBody>
-                        <Stack
-                          alignItems="center"
-                          justifyContent="center"
-                          spacing={4}
-                        >
-                          <Avatar src={logo} borderRadius="md" />
-                          <Text fontSize="md">{name}</Text>
-                        </Stack>
-                      </CardBody>
-                      <CardFooter paddingTop={0}>
-                        <Button
-                          width="100%"
-                          leftIcon={<Icon as={TbPlus} />}
-                          onClick={() =>
-                            setSelectedSource(
-                              APPLICATIONS.find(({ id: appId }) => appId === id)
-                            )
-                          }
-                        >
-                          Add
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </SimpleGrid>
-              </Stack>
-            )}
+              ) : (
+                <Stack spacing={10} paddingBottom={5}>
+                  <SearchBar onSearch={(values) => handleAppSearch(values)} />
+                  <SimpleGrid
+                    columns={3}
+                    gridGap={4}
+                    maxHeight="400px"
+                    overflow="auto"
+                  >
+                    {filteredAppData
+                      ? filteredAppData.map(({ name, logo, id, is_live }) => (
+                          <Card key={id} spacing={0}>
+                            <CardBody>
+                              <Stack
+                                alignItems="center"
+                                justifyContent="center"
+                                spacing={4}
+                              >
+                                <Avatar src={logo} borderRadius="md" />
+                                <Text fontSize="md">{name}</Text>
+                              </Stack>
+                            </CardBody>
+                            <CardFooter paddingTop={0}>
+                              <Button
+                                isDisabled={!is_live}
+                                width="100%"
+                                leftIcon={is_live && <Icon as={TbPlus} />}
+                                onClick={() =>
+                                  setSelectedSource(
+                                    APPLICATIONS.find(
+                                      ({ id: appId }) => appId === id
+                                    )
+                                  )
+                                }
+                              >
+                                {is_live ? "Add" : "Coming soon"}
+                              </Button>
+                            </CardFooter>
+                          </Card>
+                        ))
+                      : APPLICATIONS.map(({ name, logo, id, is_live }) => (
+                          <Card key={id} spacing={0}>
+                            <CardBody>
+                              <Stack
+                                alignItems="center"
+                                justifyContent="center"
+                                spacing={4}
+                              >
+                                <Avatar src={logo} borderRadius="md" />
+                                <Text fontSize="md">{name}</Text>
+                              </Stack>
+                            </CardBody>
+                            <CardFooter paddingTop={0}>
+                              <Button
+                                isDisabled={!is_live}
+                                width="100%"
+                                leftIcon={is_live && <Icon as={TbPlus} />}
+                                onClick={() =>
+                                  setSelectedSource(
+                                    APPLICATIONS.find(
+                                      ({ id: appId }) => appId === id
+                                    )
+                                  )
+                                }
+                              >
+                                {is_live ? "Add" : "Coming soon"}
+                              </Button>
+                            </CardFooter>
+                          </Card>
+                        ))}
+                  </SimpleGrid>
+                </Stack>
+              )}
+            </Box>
           </ModalBody>
-          {selectedSource && (
-            <ModalFooter>
-              <Button
-                variant="ghost"
-                mr={3}
-                onClick={() => setSelectedSource()}
-                isDisabled={isCreatingDocument}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                isLoading={isSubmitting || isCreatingDocument}
-                isDisabled={isCreatingDocument}
-              >
-                Create
-              </Button>
-            </ModalFooter>
-          )}
         </ModalContent>
       </Modal>
     </Stack>

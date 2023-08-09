@@ -31,6 +31,8 @@ valid_ingestion_types = [
     "PSYCHIC",
     "GITHUB_REPOSITORY",
     "WEBPAGE",
+    "STRIPE",
+    "AIRTABLE",
 ]
 
 
@@ -59,6 +61,27 @@ def upsert_document(
 
     embeddings = OpenAIEmbeddings()
 
+    if type == "STRIPE":
+        pass
+
+    if type == "AIRTABLE":
+        from langchain.document_loaders import AirtableLoader
+
+        api_key = metadata["api_key"]
+        base_id = metadata["base_id"]
+        table_id = metadata["table_id"]
+        loader = AirtableLoader(api_key, table_id, base_id)
+        documents = loader.load()
+        newDocuments = [
+            document.metadata.update({"namespace": document_id}) or document
+            for document in documents
+        ]
+        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
+
+        VectorStoreBase().get_database().from_documents(
+            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
+        )
+
     if type == "WEBPAGE":
         from llama_index import download_loader
 
@@ -76,7 +99,6 @@ def upsert_document(
         chunks = chunkify(docs, chunk_size)
 
         for chunk in chunks:
-            print("running chunk")
             VectorStoreBase().get_database().from_documents(
                 chunk, embeddings, index_name=INDEX_NAME, namespace=document_id
             )

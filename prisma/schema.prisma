@@ -33,6 +33,7 @@ enum DocumentType {
   GITHUB_REPOSITORY
   WEBPAGE
   STRIPE
+  AIRTABLE
 }
 
 enum ToolType {

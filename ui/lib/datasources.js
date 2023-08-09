@@ -13,6 +13,7 @@ export const APPLICATIONS = [
     id: "GITHUB_REPOSITORY",
     name: "Github",
     logo: "./github.png",
+    is_live: true,
     inputs: [
       {
         key: "url",
@@ -33,9 +34,42 @@ export const APPLICATIONS = [
     ],
   },
   {
+    id: "AIRTABLE",
+    name: "Airtable",
+    logo: "./airtable.jpeg",
+    is_live: true,
+    inputs: [
+      {
+        key: "api_key",
+        name: "Personal access token",
+        placeholder: "",
+        helpText: "Enter your personal access token",
+        type: "input",
+        required: true,
+      },
+      {
+        key: "base_id",
+        name: "Base ID",
+        placeholder: "",
+        helpText: "Enter the base ID",
+        type: "input",
+        required: true,
+      },
+      {
+        key: "table_id",
+        name: "Table ID",
+        placeholder: "",
+        helpText: "Enter the table ID",
+        type: "input",
+        required: true,
+      },
+    ],
+  },
+  {
     id: "STRIPE",
     name: "Stripe",
     logo: "./stripe.jpeg",
+    is_live: false,
     inputs: [
       {
         key: "client_secret",
@@ -75,6 +109,48 @@ export const APPLICATIONS = [
       },
     ],
   },
+  {
+    id: "ZENDESK",
+    name: "Zendesk",
+    logo: "./zendesk.png",
+    is_live: false,
+    inputs: [],
+  },
+  {
+    id: "INTERCOM",
+    name: "Intercom",
+    logo: "./intercom.png",
+    is_live: false,
+    inputs: [],
+  },
+  {
+    id: "HUBSPOT",
+    name: "Hubspot",
+    logo: "./hubspot.png",
+    is_live: false,
+    inputs: [],
+  },
+  {
+    id: "SALESFORCE",
+    name: "Salesforce",
+    logo: "./salesforce.png",
+    is_live: false,
+    inputs: [],
+  },
+  {
+    id: "GONG",
+    name: "Gong",
+    logo: "./gong.jpeg",
+    is_live: false,
+    inputs: [],
+  },
+  {
+    id: "SHOPIFY",
+    name: "Shopify",
+    logo: "./shopify.jpeg",
+    is_live: false,
+    inputs: [],
+  },
 ];
 
 export const ACCEPTABLE_APPLICATION_TYPES = APPLICATIONS.map(({ id }) => {
@@ -106,8 +182,6 @@ export const uploadFile = async (file) => {
       ContentType: file.type,
     })
     .promise();
-
-  console.log(result);
 
   return result;
 };
