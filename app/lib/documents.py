@@ -16,11 +16,10 @@ from langchain.document_loaders import (
 from langchain.embeddings.openai import OpenAIEmbeddings
 from llama_index.readers.schema.base import Document
 
-
+from app.lib.loaders.sitemap import SitemapLoader
 from app.lib.parsers import CustomPDFPlumberLoader
 from app.lib.splitters import TextSplitters
 from app.lib.vectorstores.base import VectorStoreBase
-from app.lib.loaders.sitemap import SitemapLoader
 
 valid_ingestion_types = [
     "TXT",
