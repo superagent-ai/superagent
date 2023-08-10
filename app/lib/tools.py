@@ -12,6 +12,7 @@ from langchain.llms.replicate import Replicate
 from langchain.agents.agent_toolkits import ZapierToolkit
 from langchain.agents import AgentType, initialize_agent
 from langchain.utilities.zapier import ZapierNLAWrapper
+from langchain.utilities import MetaphorSearchAPIWrapper
 from langchain.chains.openai_functions.openapi import get_openapi_chain
 from langchain.tools import AIPluginTool
 from langchain.agents import load_tools
@@ -27,6 +28,7 @@ class ToolDescription(Enum):
     AGENT = "useful for when you need help completing something."
     OPENAPI = "useful for when you need to do API requests to a third-party service."
     CHATGPT_PLUGIN = "useful for when you need to interact with a third-party service"
+    METAPHOR = "useful for when you need to search search for answers on the internet."
 
 
 def get_search_tool() -> Any:
@@ -103,6 +105,22 @@ class AgentTool:
         )
 
         return output["data"]
+
+
+class MetaphorTool:
+    def __init__(
+        self,
+        metadata: dict,
+    ) -> Any:
+        self.metadata = metadata
+
+    def run(self, *args) -> str:
+        search = MetaphorSearchAPIWrapper(
+            metaphor_api_key=self.metadata["metaphor_api_key"]
+        )
+        output = search.results(args[0], 10, use_autoprompt=True)
+
+        return output
 
 
 class DocSummarizerTool:

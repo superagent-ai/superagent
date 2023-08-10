@@ -27,6 +27,7 @@ from app.lib.models.tool import (
     ZapierToolInput,
     AgentToolInput,
     OpenApiToolInput,
+    MetaphorToolInput,
 )
 from app.lib.prisma import prisma
 from app.lib.prompts import (
@@ -43,6 +44,7 @@ from app.lib.tools import (
     get_openapi_tool,
     get_chatgpt_plugin_tool,
     AgentTool,
+    MetaphorTool,
     DocSummarizerTool,
 )
 from app.lib.vectorstores.base import VectorStoreBase
@@ -307,6 +309,8 @@ class AgentBase:
         if type == "CHATGPT_PLUGIN":
             # TODO: confirm metadata has (can have) url
             return (get_chatgpt_plugin_tool(metadata), type)
+        if type == "METAPHOR":
+            return (MetaphorTool(metadata=metadata), MetaphorToolInput)
 
     def _get_tools(self) -> list:
         tools = []

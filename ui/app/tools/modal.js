@@ -101,6 +101,22 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
         <ModalBody>
           <Stack spacing={4}>
             <Stack>
+              <FormControl isRequired isInvalid={errors?.type}>
+                <FormLabel>Type</FormLabel>
+                <Select {...register("type", { required: true })}>
+                  <option value="SEARCH">Websearch</option>
+                  <option value="AGENT">Superagent</option>
+                  <option value="WOLFRAM_ALPHA">Wolfram Alpha</option>
+                  <option value="REPLICATE">Replicate</option>
+                  <option value="ZAPIER_NLA">Zapier</option>
+                  <option value="OPENAPI">APIs</option>
+                  <option value="CHATGPT_PLUGIN">ChatGPT Plugin</option>
+                  <option value="METAPHOR">Metaphor Search</option>
+                </Select>
+                {errors?.type && (
+                  <FormErrorMessage>Invalid type</FormErrorMessage>
+                )}
+              </FormControl>
               <FormControl isRequired isInvalid={errors?.name}>
                 <FormLabel>Name</FormLabel>
                 <Input type="text" {...register("name", { required: true })} />
@@ -120,21 +136,6 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
                 </FormHelperText>
                 {errors?.description && (
                   <FormErrorMessage>Invalid description</FormErrorMessage>
-                )}
-              </FormControl>
-              <FormControl isRequired isInvalid={errors?.type}>
-                <FormLabel>Type</FormLabel>
-                <Select {...register("type", { required: true })}>
-                  <option value="SEARCH">Websearch</option>
-                  <option value="AGENT">Superagent</option>
-                  <option value="WOLFRAM_ALPHA">Wolfram Alpha</option>
-                  <option value="REPLICATE">Replicate</option>
-                  <option value="ZAPIER_NLA">Zapier</option>
-                  <option value="OPENAPI">APIs</option>
-                  <option value="CHATGPT_PLUGIN">ChatGPT Plugin</option>
-                </Select>
-                {errors?.type && (
-                  <FormErrorMessage>Invalid type</FormErrorMessage>
                 )}
               </FormControl>
               {type === "OPENAPI" && (
@@ -200,6 +201,26 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
                     </Select>
                   )}
                   <FormHelperText>Select an Agent</FormHelperText>
+                </FormControl>
+              )}
+              {type === "METAPHOR" && (
+                <FormControl isRequired>
+                  <FormLabel>Metaphor api key</FormLabel>
+                  <Input
+                    type="password"
+                    {...register("metaphor_api_key", { required: true })}
+                    placeholder="Enter Metaphor api key..."
+                  />
+                  <FormHelperText>
+                    Obtain your Metaphor API key{" "}
+                    <Link
+                      color="orange.500"
+                      href="https://platform.metaphor.systems/"
+                      target="_blank"
+                    >
+                      here.
+                    </Link>
+                  </FormHelperText>
                 </FormControl>
               )}
               {type === "ZAPIER_NLA" && (

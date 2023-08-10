@@ -2017,6 +2017,20 @@ files = [
 ]
 
 [[package]]
+name = "metaphor-python"
+version = "0.1.11"
+description = "A Python package for the Metaphor API."
+optional = false
+python-versions = "*"
+files = [
+    {file = "metaphor-python-0.1.11.tar.gz", hash = "sha256:80fd993c44cc9d453d99eb65b95147d305f542fdd6fda699e3852e3100beb6ec"},
+    {file = "metaphor_python-0.1.11-py3-none-any.whl", hash = "sha256:0d759ecdf73492a4bafd404d0444935c172bcc4a89334f4f6780863ba488b238"},
+]
+
+[package.dependencies]
+requests = "*"
+
+[[package]]
 name = "monotonic"
 version = "1.6"
 description = "An implementation of time.monotonic() for Python 2 & < 3.3"
@@ -4760,4 +4774,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "2c070bb153ca9335ee343655ed8bd43f4d3e189a4d2600858769b07faa915372"
+content-hash = "66e671abd53b3dc625fdbbbed881b5980954f284d5005a2034c656b5466712a8"

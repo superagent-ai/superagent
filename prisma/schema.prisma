@@ -46,6 +46,7 @@ enum ToolType {
   AGENT
   OPENAPI
   CHATGPT_PLUGIN
+  METAPHOR
 }
 
 model User {
