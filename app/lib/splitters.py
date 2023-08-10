@@ -1,3 +1,4 @@
+import tiktoken
 from langchain.text_splitter import (
     CharacterTextSplitter,
     NLTKTextSplitter,
@@ -12,8 +13,9 @@ class TextSplitters:
         self.documents = documents
         if text_splitter is None:
             self.split_type = "recursive"
-            self.chunk_size = 1000
-            self.chunk_overlap = 0
+            self.chunk_size = 300
+            self.chunk_overlap = 20
+            self.encoding_model = "gpt-3.5-turbo"
 
         else:
             self.split_type = text_splitter["type"]
@@ -52,9 +54,19 @@ class TextSplitters:
         Splits a document into chunks of characters
         using the recursive character text splitter
         """
+        tokenizer_name = tiktoken.encoding_for_model(self.encoding_model)
+
+        tokenizer = tiktoken.get_encoding(tokenizer_name.name)
+
+        def tiktoken_len(text):
+            tokens = tokenizer.encode(text, disallowed_special=())
+            return len(tokens)
 
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap
+            chunk_size=self.chunk_size,
+            chunk_overlap=self.chunk_overlap,
+            length_function=tiktoken_len,
+            separators=["\n\n", "\n", " ", ""],
         )
         docs = text_splitter.split_documents(self.documents)
         return docs
