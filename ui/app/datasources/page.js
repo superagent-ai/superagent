@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next";
 import { options } from "@/lib/next-auth";
-import DocumentsClientPage from "./client-page";
+import DatasourceClientPage from "./client-page";
 import Api from "@/lib/api";
 
 export const metadata = {
@@ -13,5 +13,5 @@ export default async function ApiTokens() {
   const api = new Api(session);
   const documents = await api.getDocuments();
 
-  return <DocumentsClientPage data={documents} session={session} />;
+  return <DatasourceClientPage data={documents} session={session} />;
 }

@@ -16,9 +16,11 @@ from langchain.document_loaders import (
 from langchain.embeddings.openai import OpenAIEmbeddings
 from llama_index.readers.schema.base import Document
 
+
 from app.lib.parsers import CustomPDFPlumberLoader
 from app.lib.splitters import TextSplitters
 from app.lib.vectorstores.base import VectorStoreBase
+from app.lib.loaders.sitemap import SitemapLoader
 
 valid_ingestion_types = [
     "TXT",
@@ -29,7 +31,16 @@ valid_ingestion_types = [
     "FIRESTORE",
     "PSYCHIC",
     "GITHUB_REPOSITORY",
+    "WEBPAGE",
+    "STRIPE",
+    "AIRTABLE",
+    "SITEMAP",
 ]
+
+
+def chunkify(lst, size):
+    """Divide a list into chunks of given size."""
+    return [lst[i : i + size] for i in range(0, len(lst), size)]
 
 
 def upsert_document(
@@ -51,6 +62,66 @@ def upsert_document(
     pinecone.Index(INDEX_NAME)
 
     embeddings = OpenAIEmbeddings()
+
+    if type == "STRIPE":
+        pass
+
+    if type == "AIRTABLE":
+        from langchain.document_loaders import AirtableLoader
+
+        api_key = metadata["api_key"]
+        base_id = metadata["base_id"]
+        table_id = metadata["table_id"]
+        loader = AirtableLoader(api_key, table_id, base_id)
+        documents = loader.load()
+        newDocuments = [
+            document.metadata.update({"namespace": document_id}) or document
+            for document in documents
+        ]
+        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
+
+        VectorStoreBase().get_database().from_documents(
+            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
+        )
+
+    if type == "SITEMAP":
+        filter_urls = metadata["filter_urls"].split(",")
+        loader = SitemapLoader(sitemap_url=url, filter_urls=filter_urls)
+        documents = loader.load()
+        newDocuments = [
+            document.metadata.update({"namespace": document_id}) or document
+            for document in documents
+        ]
+        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
+
+        chunk_size = 100
+        chunks = chunkify(docs, chunk_size)
+
+        for chunk in chunks:
+            VectorStoreBase().get_database().from_documents(
+                chunk, embeddings, index_name=INDEX_NAME, namespace=document_id
+            )
+
+    if type == "WEBPAGE":
+        from llama_index import download_loader
+
+        RemoteDepthReader = download_loader("RemoteDepthReader")
+        depth = int(metadata["depth"])
+        loader = RemoteDepthReader(depth=depth)
+        documents = loader.load_data(url=url)
+        langchain_documents = [d.to_langchain_format() for d in documents]
+        newDocuments = [
+            document.metadata.update({"namespace": document_id}) or document
+            for document in langchain_documents
+        ]
+        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
+        chunk_size = 100
+        chunks = chunkify(docs, chunk_size)
+
+        for chunk in chunks:
+            VectorStoreBase().get_database().from_documents(
+                chunk, embeddings, index_name=INDEX_NAME, namespace=document_id
+            )
 
     if type == "TXT":
         file_response = content
