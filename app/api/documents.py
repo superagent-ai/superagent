@@ -27,6 +27,7 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
         document = prisma.document.create(
             {
                 "type": body.type,
+                "description": body.description,
                 "url": body.url,
                 "content": body.content,
                 "contentHash": content_hash,
@@ -89,6 +90,7 @@ async def read_document(documentId: str, token=Depends(JWTBearer())):
 async def delete_document(documentId: str, token=Depends(JWTBearer())):
     """Delete a document"""
     try:
+        prisma.agentdocument.delete_many(where={"documentId": documentId})
         prisma.document.delete(where={"id": documentId})
         VectorStoreBase().get_database().delete(namespace=documentId)
         return {"success": True, "data": None}

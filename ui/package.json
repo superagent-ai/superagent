@@ -26,6 +26,7 @@
     "@uiw/react-codemirror": "^4.19.16",
     "@vercel/analytics": "^1.0.1",
     "analytics": "^0.8.1",
+    "aws-sdk": "^2.1431.0",
     "axios": "^1.4.0",
     "dayjs": "^1.11.8",
     "eslint-config-next": "13.4.2",

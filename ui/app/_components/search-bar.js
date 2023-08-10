@@ -47,7 +47,7 @@ export default function SearchBar({ onSearch, onReset }) {
           {...register("searchTerm", { required: true })}
         />
       </InputGroup>
-      {searchTerm && (
+      {searchTerm && onReset && (
         <>
           <Button
             leftIcon={<Icon as={TbX} />}

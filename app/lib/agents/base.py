@@ -313,7 +313,7 @@ class AgentBase:
         embeddings = OpenAIEmbeddings()
 
         for agent_document in self.documents:
-            description = (
+            description = agent_document.document.description or (
                 f"useful for finding information about {agent_document.document.name}"
             )
             args_schema = DocumentInput if self.type == "OPENAI" else None
