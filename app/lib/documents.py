@@ -2,9 +2,9 @@ import tempfile
 from tempfile import NamedTemporaryFile
 from urllib.parse import urlparse
 
-import pinecone
 import requests  # type: ignore
 from decouple import config
+from langchain.docstore.document import Document as LangchainDocument
 from langchain.document_loaders import (
     GitLoader,
     PsychicLoader,
@@ -16,11 +16,10 @@ from langchain.document_loaders import (
 from langchain.embeddings.openai import OpenAIEmbeddings
 from llama_index.readers.schema.base import Document
 
-
+from app.lib.loaders.sitemap import SitemapLoader
 from app.lib.parsers import CustomPDFPlumberLoader
 from app.lib.splitters import TextSplitters
 from app.lib.vectorstores.base import VectorStoreBase
-from app.lib.loaders.sitemap import SitemapLoader
 
 valid_ingestion_types = [
     "TXT",
@@ -58,8 +57,6 @@ def upsert_document(
     """Upserts documents to Pinecone index"""
 
     INDEX_NAME = config("PINECONE_INDEX", "superagent")
-
-    pinecone.Index(INDEX_NAME)
 
     embeddings = OpenAIEmbeddings()
 
@@ -140,14 +137,15 @@ def upsert_document(
             raise ValueError("file_response must not be None.")
 
         newDocuments = [
-            document.metadata.update({"namespace": document_id}) or document
+            document.metadata.update({"document_id": document_id}) or document
             for document in documents
         ]
-        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
-        VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
-        )
+        docs: list[LangchainDocument] = TextSplitters(
+            newDocuments, text_splitter
+        ).document_splitter()
+
+        VectorStoreBase().get_database().embed_documents(docs)
 
     if type == "PDF":
         if url is None:

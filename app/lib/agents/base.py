@@ -310,21 +310,22 @@ class AgentBase:
 
     def _get_tools(self) -> list:
         tools = []
-        embeddings = OpenAIEmbeddings()
 
         for agent_document in self.documents:
             description = agent_document.document.description or (
                 f"useful for finding information about {agent_document.document.name}"
             )
             args_schema = DocumentInput if self.type == "OPENAI" else None
-            embeddings = OpenAIEmbeddings()
-            docsearch = (
-                VectorStoreBase()
+
+            docsearch_with_document_id = (
+                lambda prompt: VectorStoreBase()
                 .get_database()
-                .from_existing_index(embeddings, agent_document.document.id)
+                .query_with_document_id(prompt, agent_document.document.id)
             )
+
             summary_tool = DocSummarizerTool(
-                docsearch=docsearch, llm=self._get_llm(has_streaming=False)
+                docsearch=docsearch_with_document_id,
+                llm=self._get_llm(has_streaming=False),
             )
 
             if agent_document.document.type == "CSV":
@@ -352,10 +353,7 @@ class AgentBase:
                         else agent_document.document.name,
                         description=description,
                         args_schema=args_schema,
-                        func=RetrievalQA.from_chain_type(
-                            llm=self._get_llm(has_streaming=False),
-                            retriever=docsearch.as_retriever(),
-                        ),
+                        func=docsearch_with_document_id,
                     )
                 )
                 tools.append(
