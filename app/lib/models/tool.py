@@ -29,5 +29,9 @@ class AgentToolInput(BaseModel):
     query: str = Field()
 
 
+class MetaphorToolInput(BaseModel):
+    query: str = Field()
+
+
 class OpenApiToolInput(BaseModel):
     input: str = Field()
