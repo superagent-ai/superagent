@@ -159,7 +159,7 @@ export const ACCEPTABLE_APPLICATION_TYPES = APPLICATIONS.map(({ id }) => {
 
 export const ACCEPTABLE_STATIC_FILE_TYPES = ["CSV", "PDF", "TXT", "MARKDOWN"];
 
-export const ACCEPTABLE_WEBPAGE_TYPES = ["WEBPAGE", "URL"];
+export const ACCEPTABLE_WEBPAGE_TYPES = ["WEBPAGE", "URL", "SITEMAP"];
 
 export const MIME_TO_TYPE = {
   "text/csv": "CSV",
@@ -184,6 +184,10 @@ export const uploadFile = async (file) => {
     .promise();
 
   return result;
+};
+
+export const isSitemapUrl = (url) => {
+  return url?.endsWith(".xml") || url?.includes("/sitemap");
 };
 
 export const isGithubUrl = (url) => {

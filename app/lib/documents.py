@@ -20,6 +20,7 @@ from llama_index.readers.schema.base import Document
 from app.lib.parsers import CustomPDFPlumberLoader
 from app.lib.splitters import TextSplitters
 from app.lib.vectorstores.base import VectorStoreBase
+from app.lib.loaders.sitemap import SitemapLoader
 
 valid_ingestion_types = [
     "TXT",
@@ -33,6 +34,7 @@ valid_ingestion_types = [
     "WEBPAGE",
     "STRIPE",
     "AIRTABLE",
+    "SITEMAP",
 ]
 
 
@@ -81,6 +83,24 @@ def upsert_document(
         VectorStoreBase().get_database().from_documents(
             docs, embeddings, index_name=INDEX_NAME, namespace=document_id
         )
+
+    if type == "SITEMAP":
+        filter_urls = metadata["filter_urls"].split(",")
+        loader = SitemapLoader(sitemap_url=url, filter_urls=filter_urls)
+        documents = loader.load()
+        newDocuments = [
+            document.metadata.update({"namespace": document_id}) or document
+            for document in documents
+        ]
+        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
+
+        chunk_size = 100
+        chunks = chunkify(docs, chunk_size)
+
+        for chunk in chunks:
+            VectorStoreBase().get_database().from_documents(
+                chunk, embeddings, index_name=INDEX_NAME, namespace=document_id
+            )
 
     if type == "WEBPAGE":
         from llama_index import download_loader

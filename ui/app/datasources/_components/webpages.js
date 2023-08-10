@@ -36,6 +36,7 @@ import {
   AlertTitle,
   AlertDescription,
   Checkbox,
+  Textarea,
 } from "@chakra-ui/react";
 import dayjs from "dayjs";
 import { useForm } from "react-hook-form";
@@ -43,7 +44,7 @@ import { TbCopy, TbPlus, TbTrash, TbPencil } from "react-icons/tb";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useAsyncFn } from "react-use";
 import API from "@/lib/api";
-import { ACCEPTABLE_WEBPAGE_TYPES, isGithubUrl } from "@/lib/datasources";
+import { ACCEPTABLE_WEBPAGE_TYPES, isSitemapUrl } from "@/lib/datasources";
 
 dayjs.extend(relativeTime);
 
@@ -213,11 +214,7 @@ export default function Webpages({ data, session }) {
 
   const onSubmit = useCallback(async (values) => {
     const { name, description, url, include_subpages, ...metadata } = values;
-    const type = isGithubUrl(url)
-      ? "GITHUB_REPOSITORY"
-      : include_subpages
-      ? "WEBPAGE"
-      : "URL";
+    const type = isSitemapUrl(url) ? "SITEMAP" : "URL";
     const payload = {
       name: name,
       description,
@@ -237,6 +234,8 @@ export default function Webpages({ data, session }) {
       position: "top",
       colorScheme: "gray",
     });
+
+    onCancel();
 
     router.refresh();
   }, []);
@@ -327,6 +326,20 @@ export default function Webpages({ data, session }) {
           <ModalCloseButton />
           <ModalBody>
             <Stack spacing={4}>
+              {isSitemapUrl(url) && (
+                <Alert fontSize="md" flexDirection="column" alignItems="left">
+                  <HStack>
+                    <AlertTitle>
+                      Looks like you are trying to import a Sitemap?
+                    </AlertTitle>
+                  </HStack>
+                  <AlertDescription>
+                    You can choose to filter out which urls you using the{" "}
+                    <Code>Filter URLs</Code> field. This is recommended since
+                    Sitemaps can be very large and take a long time to ingest.
+                  </AlertDescription>
+                </Alert>
+              )}
               <Stack>
                 <FormControl isRequired isInvalid={errors?.name}>
                   <FormLabel>Name</FormLabel>
@@ -367,64 +380,20 @@ export default function Webpages({ data, session }) {
                     <FormErrorMessage>Invalid URL</FormErrorMessage>
                   )}
                 </FormControl>
-                {!isGithubUrl(url) && (
+                {isSitemapUrl(url) && (
                   <FormControl>
-                    <Checkbox
-                      {...register("include_subpages")}
+                    <FormLabel>Filter URLs</FormLabel>
+                    <Textarea
                       isDisabled={selectedDocument}
-                    >
-                      Fetch sub pages
-                    </Checkbox>
+                      type="text"
+                      placeholder="https://mysite.com/, https://myblog.com/my-post"
+                      {...register("filter_urls")}
+                    />
                     <FormHelperText>
-                      If enabled could take up to 10 minutes to complete.
+                      Comma separated list of urls to ingest
                     </FormHelperText>
                   </FormControl>
                 )}
-                {isGithubUrl(url) && (
-                  <Stack>
-                    <Alert
-                      fontSize="md"
-                      flexDirection="column"
-                      alignItems="left"
-                    >
-                      <HStack>
-                        <AlertTitle>
-                          Are you importing a Github repository?
-                        </AlertTitle>
-                      </HStack>
-                      <AlertDescription>
-                        Make sure to select which branch to select. This field
-                        will default to main.
-                      </AlertDescription>
-                    </Alert>
-                    <FormControl>
-                      <FormLabel>Branch</FormLabel>
-                      <Input
-                        isDisabled={selectedDocument}
-                        type="text"
-                        placeholder="main"
-                        {...register("branch")}
-                      />
-                      <FormHelperText>
-                        Select a branch, e.g main, master etc.
-                      </FormHelperText>
-                    </FormControl>
-                  </Stack>
-                )}
-                <FormControl>
-                  <FormLabel>Depth</FormLabel>
-                  <Input
-                    isDisabled={selectedDocument}
-                    type="number"
-                    placeholder="2"
-                    {...register("depth")}
-                  />
-                  <FormHelperText>
-                    At which depth should we ingest links on this webpage? Use
-                    with caution as setting a high depth might take a lot of
-                    time to ingest.
-                  </FormHelperText>
-                </FormControl>
               </Stack>
             </Stack>
           </ModalBody>
