@@ -32,7 +32,7 @@ export default async function Share({ searchParams }) {
   const apiToken = decryptToken(token);
   const { data: agent } = await getAgent(agentId, apiToken);
 
-  if (!agent.isPublic) {
+  if (!agent.isPublic && !agent.isListed) {
     redirect("/login");
   }
 
