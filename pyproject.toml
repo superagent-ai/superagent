@@ -53,7 +53,7 @@ vulture = "^2.7"
 airbyte-source-stripe = "^3.17.1"
 pyairtable = "^2.0.0"
 metaphor-python = "^0.1.11"
-langchain = "^0.0.261"
+langchain = "^0.0.262"
 
 
 [build-system]
