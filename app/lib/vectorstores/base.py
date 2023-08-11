@@ -13,5 +13,4 @@ class VectorStoreBase:
     def get_database(self) -> Any:
         if self.vectorstore == "pinecone":
             from app.lib.vectorstores.pinecone import PineconeVectorstore
-
             return PineconeVectorstore()

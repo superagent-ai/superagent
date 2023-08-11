@@ -6,6 +6,7 @@ from langchain.text_splitter import (
     SpacyTextSplitter,
     TokenTextSplitter,
 )
+from langchain.docstore.document import Document
 
 
 class TextSplitters:
@@ -38,7 +39,7 @@ class TextSplitters:
         else:
             return self.character_splitter()
 
-    def character_splitter(self):
+    def character_splitter(self) -> list[Document]:
         """
         Splits a document into chunks of characters using the
         character text splitter (default)
@@ -49,7 +50,7 @@ class TextSplitters:
         docs = text_splitter.split_documents(self.documents)
         return docs
 
-    def recursive_splitter(self):
+    def recursive_splitter(self) -> list[Document]:
         """
         Splits a document into chunks of characters
         using the recursive character text splitter
@@ -71,7 +72,7 @@ class TextSplitters:
         docs = text_splitter.split_documents(self.documents)
         return docs
 
-    def token_splitter(self):
+    def token_splitter(self) -> list[Document]:
         """
         Splits a document into chunks of tokens using the token text splitter
         """
@@ -79,28 +80,31 @@ class TextSplitters:
         text_splitter = TokenTextSplitter(
             chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap
         )
-        docs = text_splitter.split_text(self.documents)
+        texts = text_splitter.split_text(self.documents)
+        docs = [Document(page_content=text) for text in texts]
         return docs
 
-    def spacy_splitter(self):
+    def spacy_splitter(self) -> list[Document]:
         """
         Splits a document into chunks of tokens using the spacy text splitter
         """
 
         text_splitter = SpacyTextSplitter(chunk_size=self.chunk_size)
-        docs = text_splitter.split_text(self.documents)
+        texts = text_splitter.split_text(self.documents)
+        docs = [Document(page_content=text) for text in texts]
         return docs
 
-    def nltk_splitter(self):
+    def nltk_splitter(self) -> list[Document]:
         """
         Splits a document into chunks of tokens using the nltk text splitter
         """
 
         text_splitter = NLTKTextSplitter(chunk_size=self.chunk_size)
-        docs = text_splitter.split_text(self.documents)
+        texts = text_splitter.split_text(self.documents)
+        docs = [Document(page_content=text) for text in texts]
         return docs
 
-    def huggingface_splitter(self):
+    def huggingface_splitter(self) -> list[Document]:
         """
         Splits a document into chunks of tokens using the huggingface text splitter
         """
@@ -117,5 +121,6 @@ class TextSplitters:
         text_splitter = CharacterTextSplitter.from_huggingface_tokenizer(
             tokenizer, chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap
         )
-        docs = text_splitter.split_text(self.documents)
+        texts = text_splitter.split_text(self.documents)
+        docs = [Document(page_content=text) for text in texts]
         return docs

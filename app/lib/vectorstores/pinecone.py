@@ -1,12 +1,13 @@
-import json
 import logging
-import time
+import os
 import uuid
+from typing import Literal
 
+import backoff
 import pinecone
-from decouple import config
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
+from pinecone.core.client.models import QueryResponse
 from pydantic.dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -35,23 +36,23 @@ class Response:
 class PineconeVectorstore:
     def __init__(
         self,
-        index_name: str = config("PINECONE_INDEX", "superagent"),
-        environment: str = config("PINECONE_ENVIRONMENT"),
-        pinecone_api_key: str = config("PINECONE_API_KEY"),
+        index_name: str = os.getenv("PINECONE_INDEX", "superagent"),
+        environment: str = os.getenv("PINECONE_ENVIRONMENT", ""),
+        pinecone_api_key: str = os.getenv("PINECONE_API_KEY", ""),
     ) -> None:
-        if index_name is None:
+        if not index_name:
             raise ValueError(
                 "Please provide a Pinecone Index Name via the "
                 "`PINECONE_INDEX` environment variable."
             )
 
-        if environment is None:
+        if not environment:
             raise ValueError(
                 "Please provide a Pinecone Environment/Region Name via the "
                 "`PINECONE_ENVIRONMENT` environment variable."
             )
 
-        if pinecone_api_key is None:
+        if not pinecone_api_key:
             raise ValueError(
                 "Please provide a Pinecone API key via the "
                 "`PINECONE_API_KEY` environment variable."
@@ -59,16 +60,16 @@ class PineconeVectorstore:
 
         pinecone.init(api_key=pinecone_api_key, environment=environment)
 
-        self.index = pinecone.Index(index_name)
         logger.info(f"Index name: {index_name}")
+        self.index = pinecone.Index(index_name)
 
         self.embeddings = OpenAIEmbeddings(
             model="text-embedding-ada-002"
         )  # type: ignore
 
-    def from_documents(self, docs, document_id):
-        # Upsert vectors with metadata
-        pass
+    @backoff.on_exception(backoff.expo, Exception, max_tries=3)
+    def _embed_with_retry(self, texts):
+        return self.embeddings.embed_documents(texts)
 
     def embed_documents(self, documents: list[Document], batch_size: int = 100):
         chunks = [
@@ -80,8 +81,6 @@ class PineconeVectorstore:
             }
             for i, doc in enumerate(documents)
         ]
-
-        print(f"Chunks: {chunks}")
 
         def batch_generator(chunks, batch_size):
             for i in range(0, len(chunks), batch_size):
@@ -95,7 +94,7 @@ class PineconeVectorstore:
             batch_ids = [chunk["id"] for chunk in batch]
             texts_to_embed = [chunk["text"] for chunk in batch]
 
-            embeddings = self.embed_with_retry(texts_to_embed)
+            embeddings = self._embed_with_retry(texts_to_embed)
 
             to_upsert = list(zip(batch_ids, embeddings, batch))
 
@@ -107,22 +106,6 @@ class PineconeVectorstore:
 
         return self.index.describe_index_stats()
 
-    def embed_with_retry(self, texts, max_retries=3):
-        for attempt in range(max_retries):
-            try:
-                res = self.embeddings.embed_documents(texts)
-                return res
-            except Exception as e:
-                logger.error(
-                    f"Attempt {attempt+1} failed. Retrying to embed documents."
-                    f"Error: {e}"
-                )
-                sleep_time = 2**attempt
-                time.sleep(sleep_time)
-        else:
-            logger.error("Maximum retries exceeded. Failed to embed documents.")
-            raise Exception("Maximum retries exceeded.")
-
     def _extract_match_data(self, match):
         """Extracts id, text, and metadata from a match."""
         id = match.id
@@ -131,17 +114,18 @@ class PineconeVectorstore:
         metadata.pop("text")  # remove text from metadata
         return id, text, metadata
 
-    def _format_response(self, response: dict) -> list[Response]:
+    def _format_response(self, response: QueryResponse) -> list[Response]:
         """
         Formats the response dictionary from the vector database into a list of
         Response objects.
         """
-        # Extract ids, texts, and metadata from matches
+        if not response.get("matches"):
+            return []
+
         ids, texts, metadata = zip(
             *[self._extract_match_data(match) for match in response["matches"]]
         )
 
-        # Create Response objects
         responses = [
             Response(id=id, text=text, metadata=meta)
             for id, text, meta in zip(ids, texts, metadata)
@@ -149,48 +133,93 @@ class PineconeVectorstore:
 
         return responses
 
-    def query(
-        self, prompt: str, metadata_filter: dict | None = None, top_k: int = 5
-    ) -> str:
+    def _query(
+        self,
+        prompt: str,
+        metadata_filter: dict | None = None,
+        top_k: int = 3,
+        namespace: str | None = None,
+    ) -> list[str]:
         """
         Returns results from the vector database.
         """
         vector = self.embeddings.embed_query(prompt)
 
-        raw_responses = self.index.query(
-            vector, filter=metadata_filter, top_k=top_k, include_metadata=True
+        raw_responses: QueryResponse = self.index.query(
+            vector,
+            filter=metadata_filter,
+            top_k=top_k,
+            include_metadata=True,
+            namespace=namespace,
+        )
+        # print(f"Raw responses: {raw_responses}") # leaving for debugging
+
+        formatted_responses = self._format_response(raw_responses)
+
+        return [str(response) for response in formatted_responses]
+
+    def query(
+        self,
+        prompt: str,
+        document_id: str,
+        top_k: int | None,
+        query_type: Literal["document", "all"] = "document",
+    ) -> list[str]:
+        if top_k is None:
+            top_k = 3
+
+        logger.info(f"Executing query with document id in namespace {document_id}")
+        documents_in_namespace = self._query(
+            prompt=prompt,
+            namespace=document_id,
         )
 
-        print(f"Raw responses: {raw_responses}")
+        if documents_in_namespace == [] and query_type == "document":
+            logger.info("No result with namespace. Executing query without namespace.")
+            return self._query(
+                prompt=prompt,
+                metadata_filter={"document_id": document_id},
+                top_k=top_k,
+            )
 
-        responses = self._format_response(raw_responses)
+        # A hack if we want to search in all documents but with backwards compatibility
+        # with namespaces
+        if documents_in_namespace == [] and query_type == "all":
+            logger.info("Querying all documents.")
+            return self._query(
+                prompt=prompt,
+                top_k=top_k,
+            )
 
-        print(f"Formatted responses: {responses}")
+        return documents_in_namespace
 
-        response_dicts = [response.to_dict() for response in responses]
-        json_str = json.dumps(response_dicts)
+    def delete(self, document_id: str):
+        vector_dimensionality = 1536
+        arbitrary_vector = [1.0] * vector_dimensionality
 
-        return json_str
+        try:
+            documents_in_namespace = self.index.query(
+                arbitrary_vector,
+                namespace=document_id,
+                top_k=9999,
+                include_metadata=False,
+                include_values=False,
+            )
 
-    def query_with_document_id(self, prompt: str, document_id: str):
-        return self.query(prompt=prompt, metadata_filter={"document_id": document_id})
+            vector_ids = [match["id"] for match in documents_in_namespace["matches"]]
 
-    # TODO
-    # Missing:
-    # rerank,
-    # chat with many documents
-    # delete document
-    # implementation to other document types
+            if len(vector_ids) == 0:
+                logger.info(
+                    f"No vectors found in namespace `{document_id}`. "
+                    f"Deleting `{document_id}` using default namespace."
+                )
+                self.index.delete(filter={"document_id": document_id}, delete_all=False)
 
-    def from_existing_index(self, doc_ids):
-        print(f"Fetching documents with ids: {doc_ids}")
-        # Fetch vectors and their associated metadata
-        pass
-        # results = pinecone.fetch(index_name=INDEX_NAME, ids=doc_ids)
-        # return results
+            else:
+                logger.info(
+                    f"Deleting {len(vector_ids)} documents in namespace {document_id}"
+                )
+                self.index.delete(ids=vector_ids, delete_all=False)
 
-    def delete_documents(self, document_id):
-        print(f"Deleting documents with id: {document_id}")
-        pass
-        # Delete specific documents from the index
-        # return pinecone.delete(index_name=INDEX_NAME, ids=[document_id])
+        except Exception as e:
+            logger.error(f"Failed to delete {document_id}. Error: {e}")

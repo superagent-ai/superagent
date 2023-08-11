@@ -92,7 +92,7 @@ async def delete_document(documentId: str, token=Depends(JWTBearer())):
     try:
         prisma.agentdocument.delete_many(where={"documentId": documentId})
         prisma.document.delete(where={"id": documentId})
-        VectorStoreBase().get_database().delete(namespace=documentId)
+        VectorStoreBase().get_database().delete(documentId)
         return {"success": True, "data": None}
     except Exception as e:
         logger.error("Couldn't delete document with id {documentId}", exc_info=e)

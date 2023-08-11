@@ -1,10 +1,10 @@
 # flake8: noqa
 import json
 
-from typing import Any, Optional, Type
+from typing import Any
 from enum import Enum
+from app.lib.vectorstores.base import VectorStoreBase
 from decouple import config
-from langchain.agents import Tool
 from langchain.utilities import BingSearchAPIWrapper
 from langchain.utilities.wolfram_alpha import WolframAlphaAPIWrapper
 from langchain.chains.summarize import load_summarize_chain
@@ -15,6 +15,7 @@ from langchain.utilities.zapier import ZapierNLAWrapper
 from langchain.chains.openai_functions.openapi import get_openapi_chain
 from langchain.tools import AIPluginTool
 from langchain.agents import load_tools
+from langchain.docstore.document import Document
 
 from superagent.client import Superagent
 
@@ -106,16 +107,49 @@ class AgentTool:
 
 
 class DocSummarizerTool:
-    def __init__(self, docsearch: Any, llm: Any):
-        self.docsearch = docsearch
+    def __init__(self, document_id: str, llm: Any):
+        self.document_id = document_id
         self.llm = llm
 
     def run(self, *args) -> str:
         """Use the tool."""
+        document_text = (
+            VectorStoreBase()
+            .get_database()
+            .query(
+                prompt=" ",
+                document_id=self.document_id,
+                query_type="document",
+                top_k=9999,
+            )
+        )
+
+        documents = [Document(page_content=text) for text in document_text]
         chain = load_summarize_chain(self.llm, chain_type="stuff")
-        search = self.docsearch.similarity_search(" ")
         summary = chain.run(
-            input_documents=search, question="Write a concise summary within 200 words."
+            input_documents=documents,
+            question="Write a concise summary within 200 words.",
         )
 
         return summary
+
+
+class DocumentTool:
+    def __init__(self, document_id: str, query_type: str = "document"):
+        self.document_id = document_id
+        self.query_type = query_type
+
+    def run(self, prompt: str) -> str:
+        """Use the tool."""
+        results = (
+            VectorStoreBase()
+            .get_database()
+            .query(
+                prompt=prompt,
+                document_id=self.document_id,
+                query_type=self.query_type,
+                top_k=3,
+            )
+        )
+
+        return results

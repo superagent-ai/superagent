@@ -13,7 +13,6 @@ from langchain.document_loaders import (
     WebBaseLoader,
     YoutubeLoader,
 )
-from langchain.embeddings.openai import OpenAIEmbeddings
 from llama_index.readers.schema.base import Document
 
 from app.lib.loaders.sitemap import SitemapLoader
@@ -56,10 +55,6 @@ def upsert_document(
 ) -> None:
     """Upserts documents to Pinecone index"""
 
-    INDEX_NAME = config("PINECONE_INDEX", "superagent")
-
-    embeddings = OpenAIEmbeddings()
-
     if type == "STRIPE":
         pass
 
@@ -72,32 +67,30 @@ def upsert_document(
         loader = AirtableLoader(api_key, table_id, base_id)
         documents = loader.load()
         newDocuments = [
-            document.metadata.update({"namespace": document_id}) or document
+            document.metadata.update({"document_id": document_id}) or document
             for document in documents
         ]
-        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
-        VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
-        )
+        docs: list[LangchainDocument] = TextSplitters(
+            newDocuments, text_splitter
+        ).document_splitter()
+
+        VectorStoreBase().get_database().embed_documents(docs)
 
     if type == "SITEMAP":
         filter_urls = metadata["filter_urls"].split(",")
         loader = SitemapLoader(sitemap_url=url, filter_urls=filter_urls)
         documents = loader.load()
         newDocuments = [
-            document.metadata.update({"namespace": document_id}) or document
+            document.metadata.update({"document_id": document_id}) or document
             for document in documents
         ]
-        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
-        chunk_size = 100
-        chunks = chunkify(docs, chunk_size)
+        docs: list[LangchainDocument] = TextSplitters(
+            newDocuments, text_splitter
+        ).document_splitter()
 
-        for chunk in chunks:
-            VectorStoreBase().get_database().from_documents(
-                chunk, embeddings, index_name=INDEX_NAME, namespace=document_id
-            )
+        VectorStoreBase().get_database().embed_documents(docs)
 
     if type == "WEBPAGE":
         from llama_index import download_loader
@@ -108,17 +101,15 @@ def upsert_document(
         documents = loader.load_data(url=url)
         langchain_documents = [d.to_langchain_format() for d in documents]
         newDocuments = [
-            document.metadata.update({"namespace": document_id}) or document
+            document.metadata.update({"document_id": document_id}) or document
             for document in langchain_documents
         ]
-        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
-        chunk_size = 100
-        chunks = chunkify(docs, chunk_size)
 
-        for chunk in chunks:
-            VectorStoreBase().get_database().from_documents(
-                chunk, embeddings, index_name=INDEX_NAME, namespace=document_id
-            )
+        docs: list[LangchainDocument] = TextSplitters(
+            newDocuments, text_splitter
+        ).document_splitter()
+
+        VectorStoreBase().get_database().embed_documents(docs)
 
     if type == "TXT":
         file_response = content
@@ -154,15 +145,17 @@ def upsert_document(
             file_path=url, from_page=from_page, to_page=to_page
         )
         documents = loader.load()
+
         newDocuments = [
-            document.metadata.update({"namespace": document_id}) or document
+            document.metadata.update({"document_id": document_id}) or document
             for document in documents
         ]
-        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
-        VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
-        )
+        docs: list[LangchainDocument] = TextSplitters(
+            newDocuments, text_splitter
+        ).document_splitter()
+
+        VectorStoreBase().get_database().embed_documents(docs)
 
     if type == "URL":
         if url is None:
@@ -170,16 +163,18 @@ def upsert_document(
         url_list = url.split(",")
         loader = WebBaseLoader(url_list)
         documents = loader.load()
+
         newDocuments = [
             document.metadata.update({"namespace": document_id, "language": "en"})
             or document
             for document in documents
         ]
-        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
-        VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
-        )
+        docs: list[LangchainDocument] = TextSplitters(
+            newDocuments, text_splitter
+        ).document_splitter()
+
+        VectorStoreBase().get_database().embed_documents(docs)
 
     if type == "YOUTUBE":
         if url is None:
@@ -187,15 +182,17 @@ def upsert_document(
         video_id = url.split("youtube.com/watch?v=")[-1]
         loader = YoutubeLoader(video_id=video_id)
         documents = loader.load()
+
         newDocuments = [
-            document.metadata.update({"namespace": document_id}) or document
+            document.metadata.update({"document_id": document_id}) or document
             for document in documents
         ]
-        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
-        VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
-        )
+        docs: list[LangchainDocument] = TextSplitters(
+            newDocuments, text_splitter
+        ).document_splitter()
+
+        VectorStoreBase().get_database().embed_documents(docs)
 
     if type == "MARKDOWN":
         if url is None:
@@ -206,18 +203,21 @@ def upsert_document(
                 temp_file.write(file_response.encode())
                 temp_file.flush()
                 loader = UnstructuredMarkdownLoader(file_path=temp_file.name)
+                documents = loader.load()
+
         else:
             raise ValueError("file_response must not be None.")
 
         newDocuments = [
-            document.metadata.update({"namespace": document_id}) or document
+            document.metadata.update({"document_id": document_id}) or document
             for document in documents
         ]
-        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
-        VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
-        )
+        docs: list[LangchainDocument] = TextSplitters(
+            newDocuments, text_splitter
+        ).document_splitter()
+
+        VectorStoreBase().get_database().embed_documents(docs)
 
     if type == "PSYCHIC":
         if metadata is not None:
@@ -231,15 +231,17 @@ def upsert_document(
             connector_id=connector_id,
         )
         documents = loader.load()
+
         newDocuments = [
-            document.metadata.update({"namespace": document_id}) or document
+            document.metadata.update({"document_id": document_id}) or document
             for document in documents
         ]
-        docs = TextSplitters(newDocuments, text_splitter).document_splitter()
 
-        VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
-        )
+        docs: list[LangchainDocument] = TextSplitters(
+            newDocuments, text_splitter
+        ).document_splitter()
+
+        VectorStoreBase().get_database().embed_documents(docs)
 
     if type == "FIRESTORE":
         from google.cloud import firestore
@@ -262,9 +264,16 @@ def upsert_document(
             doc_str = ", ".join([f"{k}: {v}" for k, v in doc.to_dict().items()])
             documents.append(Document(text=doc_str))
 
-        VectorStoreBase().get_database().from_documents(
-            documents, embeddings, index_name=INDEX_NAME, namespace=document_id
-        )
+        # VectorStoreBase().get_database().from_documents(
+        #     documents, embeddings, index_name=INDEX_NAME, namespace=document_id
+        # )
+        # TODO this might not work since it's lama index Document
+        newDocuments = [
+            document.metadata.update({"document_id": document_id}) or document
+            for document in documents
+        ]
+
+        VectorStoreBase().get_database().embed_documents(newDocuments)
 
     if type == "GITHUB_REPOSITORY":
         parsed_url = urlparse(url)
@@ -280,6 +289,9 @@ def upsert_document(
             )
             docs = loader.load_and_split()
 
-        VectorStoreBase().get_database().from_documents(
-            docs, embeddings, index_name=INDEX_NAME, namespace=document_id
-        )
+        newDocuments = [
+            document.metadata.update({"document_id": document_id}) or document
+            for document in docs
+        ]
+
+        VectorStoreBase().get_database().embed_documents(newDocuments)
