@@ -77,11 +77,9 @@ function DocumentRow({ id, name, createdAt, type, onDelete, onEdit }) {
   return (
     <Tr>
       <Td paddingLeft={0}>
-        <HStack>
-          <Text noOfLines={1} flex={1} fontWeight="bold">
-            {name}
-          </Text>
-        </HStack>
+        <Text noOfLines={1} flex={1} fontWeight="bold">
+          {name}
+        </Text>
       </Td>
       <Td>
         <Tag variant="subtle" colorScheme="green" size="sm">
