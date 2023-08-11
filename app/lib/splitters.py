@@ -1,4 +1,5 @@
 import tiktoken
+from langchain.docstore.document import Document
 from langchain.text_splitter import (
     CharacterTextSplitter,
     NLTKTextSplitter,
@@ -6,7 +7,6 @@ from langchain.text_splitter import (
     SpacyTextSplitter,
     TokenTextSplitter,
 )
-from langchain.docstore.document import Document
 
 
 class TextSplitters:
