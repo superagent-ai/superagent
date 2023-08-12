@@ -45,10 +45,8 @@ export default function AgentDocument({ onSubmit, session }) {
       <Stack spacing={10}>
         <Stack spacing={6}>
           <Stack>
-            <Text fontSize="lg" fontWeight="bold">
-              Add documents
-            </Text>
-            <Text color="gray.500">Add documents to your agent.</Text>
+            <Text fontWeight="bold">Add datasources</Text>
+            <Text color="gray.500">Add datasources to your agent.</Text>
           </Stack>
           <Stack>
             <Box position="relative">
@@ -72,17 +70,17 @@ export default function AgentDocument({ onSubmit, session }) {
                   >
                     <Stack alignItems="center" spacing={4}>
                       <Stack alignItems="center">
-                        <Text as="b">Add your first document</Text>
-                        <Text color="gray.500">
-                          You haven&apos;t added any documents.{" "}
+                        <Text as="b">Add your first datasource</Text>
+                        <Text color="gray.500" fontSize="md">
+                          You haven&apos;t added any datasources.{" "}
                         </Text>
                       </Stack>
-                      <NextLink passHref href="/documents">
+                      <NextLink passHref href="/datasources">
                         <Button
                           leftIcon={<Icon as={TbPlus} />}
                           variant="outline"
                         >
-                          Create document
+                          Create datasource
                         </Button>
                       </NextLink>
                     </Stack>
