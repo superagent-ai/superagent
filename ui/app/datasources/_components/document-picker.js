@@ -46,7 +46,7 @@ export default function DocumentPickerModal({
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent as="form" onSubmit={handleSubmit(onHandleSubmt)}>
-        <ModalHeader>Select document</ModalHeader>
+        <ModalHeader>Select datasource</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <Stack spacing={4}>
@@ -57,7 +57,7 @@ export default function DocumentPickerModal({
             ) : (
               <Stack>
                 <FormControl isRequired isInvalid={errors?.type}>
-                  <FormLabel>Select document</FormLabel>
+                  <FormLabel>Select datasource</FormLabel>
                   <Select {...register("documentId", { required: true })}>
                     {documents.map(({ id, name }) => (
                       <option key={id} value={id}>
@@ -66,7 +66,7 @@ export default function DocumentPickerModal({
                     ))}
                   </Select>
                   {errors?.type && (
-                    <FormErrorMessage>Select a document</FormErrorMessage>
+                    <FormErrorMessage>Select a datasource</FormErrorMessage>
                   )}
                 </FormControl>
               </Stack>
