@@ -73,13 +73,6 @@ export const MAIN_MENU = [
 
 export const FOOTER_MENU = [
   {
-    id: "billing",
-    label: "Billing",
-    path: null,
-    onClick: () => createPortalUrl(),
-    icon: TbCreditCard,
-  },
-  {
     id: "docs",
     label: "Documentation",
     path: "https://docs.superagent.sh",
