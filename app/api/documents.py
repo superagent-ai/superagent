@@ -45,12 +45,10 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
                 content=body.content,
                 type=body.type,
                 document_id=document.id,
-                authorization=body.authorization,
                 metadata=body.metadata,
                 text_splitter=body.splitter,
                 from_page=body.from_page,
                 to_page=body.to_page,
-                user_id=token["userId"],
             )
         return {"success": True, "data": document}
     except Exception as e:
