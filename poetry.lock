@@ -1688,13 +1688,13 @@ format-nongpl = ["idna", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3986-va
 
 [[package]]
 name = "langchain"
-version = "0.0.260"
+version = "0.0.262"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = ">=3.8.1,<4.0"
 files = [
-    {file = "langchain-0.0.260-py3-none-any.whl", hash = "sha256:5ad68342bde9bc5d4590bb042c3fbcfdf800053750e38b621e7f26c88a15e3dc"},
-    {file = "langchain-0.0.260.tar.gz", hash = "sha256:e9a5c3dca51806b7829abaf8406cb9b17a8ab8fba05ffc6350ef92a813b5db8d"},
+    {file = "langchain-0.0.262-py3-none-any.whl", hash = "sha256:2b8b77ba61f208b9ad0c5cf0a651349abb2f448d1804332c5b485c902d05cfbf"},
+    {file = "langchain-0.0.262.tar.gz", hash = "sha256:2cb545cb855ce783f9f272f08a346018b087c0d842012d225ed479ac312624c8"},
 ]
 
 [package.dependencies]
@@ -1718,12 +1718,11 @@ clarifai = ["clarifai (>=9.1.0)"]
 cohere = ["cohere (>=4,<5)"]
 docarray = ["docarray[hnswlib] (>=0.32.0,<0.33.0)"]
 embeddings = ["sentence-transformers (>=2,<3)"]
-extended-testing = ["amazon-textract-caller (<2)", "atlassian-python-api (>=3.36.0,<4.0.0)", "beautifulsoup4 (>=4,<5)", "bibtexparser (>=1.4.0,<2.0.0)", "cassio (>=0.0.7,<0.0.8)", "chardet (>=5.1.0,<6.0.0)", "esprima (>=4.0.1,<5.0.0)", "feedparser (>=6.0.10,<7.0.0)", "geopandas (>=0.13.1,<0.14.0)", "gitpython (>=3.1.32,<4.0.0)", "gql (>=3.4.1,<4.0.0)", "html2text (>=2020.1.16,<2021.0.0)", "jinja2 (>=3,<4)", "jq (>=1.4.1,<2.0.0)", "lxml (>=4.9.2,<5.0.0)", "mwparserfromhell (>=0.6.4,<0.7.0)", "mwxml (>=0.3.3,<0.4.0)", "newspaper3k (>=0.2.8,<0.3.0)", "openai (>=0,<1)", "pandas (>=2.0.1,<3.0.0)", "pdfminer-six (>=20221105,<20221106)", "pgvector (>=0.1.6,<0.2.0)", "psychicapi (>=0.8.0,<0.9.0)", "py-trello (>=0.19.0,<0.20.0)", "pymupdf (>=1.22.3,<2.0.0)", "pypdf (>=3.4.0,<4.0.0)", "pypdfium2 (>=4.10.0,<5.0.0)", "pyspark (>=3.4.0,<4.0.0)", "rank-bm25 (>=0.2.2,<0.3.0)", "rapidfuzz (>=3.1.1,<4.0.0)", "requests-toolbelt (>=1.0.0,<2.0.0)", "scikit-learn (>=1.2.2,<2.0.0)", "streamlit (>=1.18.0,<2.0.0)", "sympy (>=1.12,<2.0)", "telethon (>=1.28.5,<2.0.0)", "tqdm (>=4.48.0)", "xata (>=1.0.0a7,<2.0.0)", "xinference (>=0.0.6,<0.0.7)", "xmltodict (>=0.13.0,<0.14.0)", "zep-python (>=0.32)"]
+extended-testing = ["amazon-textract-caller (<2)", "anthropic (>=0.3,<0.4)", "atlassian-python-api (>=3.36.0,<4.0.0)", "beautifulsoup4 (>=4,<5)", "betabageldb (==0.2.32)", "bibtexparser (>=1.4.0,<2.0.0)", "cassio (>=0.0.7,<0.0.8)", "chardet (>=5.1.0,<6.0.0)", "esprima (>=4.0.1,<5.0.0)", "feedparser (>=6.0.10,<7.0.0)", "geopandas (>=0.13.1,<0.14.0)", "gitpython (>=3.1.32,<4.0.0)", "gql (>=3.4.1,<4.0.0)", "html2text (>=2020.1.16,<2021.0.0)", "jinja2 (>=3,<4)", "jq (>=1.4.1,<2.0.0)", "lxml (>=4.9.2,<5.0.0)", "mwparserfromhell (>=0.6.4,<0.7.0)", "mwxml (>=0.3.3,<0.4.0)", "newspaper3k (>=0.2.8,<0.3.0)", "openai (>=0,<1)", "pandas (>=2.0.1,<3.0.0)", "pdfminer-six (>=20221105,<20221106)", "pgvector (>=0.1.6,<0.2.0)", "psychicapi (>=0.8.0,<0.9.0)", "py-trello (>=0.19.0,<0.20.0)", "pymupdf (>=1.22.3,<2.0.0)", "pypdf (>=3.4.0,<4.0.0)", "pypdfium2 (>=4.10.0,<5.0.0)", "pyspark (>=3.4.0,<4.0.0)", "rank-bm25 (>=0.2.2,<0.3.0)", "rapidfuzz (>=3.1.1,<4.0.0)", "requests-toolbelt (>=1.0.0,<2.0.0)", "scikit-learn (>=1.2.2,<2.0.0)", "streamlit (>=1.18.0,<2.0.0)", "sympy (>=1.12,<2.0)", "telethon (>=1.28.5,<2.0.0)", "tqdm (>=4.48.0)", "xata (>=1.0.0a7,<2.0.0)", "xinference (>=0.0.6,<0.0.7)", "xmltodict (>=0.13.0,<0.14.0)", "zep-python (>=0.32)"]
 javascript = ["esprima (>=4.0.1,<5.0.0)"]
 llms = ["anthropic (>=0.3,<0.4)", "clarifai (>=9.1.0)", "cohere (>=4,<5)", "huggingface_hub (>=0,<1)", "manifest-ml (>=0.0.1,<0.0.2)", "nlpcloud (>=1,<2)", "openai (>=0,<1)", "openllm (>=0.1.19)", "openlm (>=0.0.5,<0.0.6)", "torch (>=1,<3)", "transformers (>=4,<5)", "xinference (>=0.0.6,<0.0.7)"]
 openai = ["openai (>=0,<1)", "tiktoken (>=0.3.2,<0.4.0)"]
 qdrant = ["qdrant-client (>=1.3.1,<2.0.0)"]
-scheduled-testing = ["openai (>=0,<1)"]
 text-helpers = ["chardet (>=5.1.0,<6.0.0)"]
 
 [[package]]
@@ -2015,6 +2014,20 @@ files = [
     {file = "mccabe-0.7.0-py2.py3-none-any.whl", hash = "sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e"},
     {file = "mccabe-0.7.0.tar.gz", hash = "sha256:348e0240c33b60bbdf4e523192ef919f28cb2c3d7d5c7794f74009290f236325"},
 ]
+
+[[package]]
+name = "metaphor-python"
+version = "0.1.11"
+description = "A Python package for the Metaphor API."
+optional = false
+python-versions = "*"
+files = [
+    {file = "metaphor-python-0.1.11.tar.gz", hash = "sha256:80fd993c44cc9d453d99eb65b95147d305f542fdd6fda699e3852e3100beb6ec"},
+    {file = "metaphor_python-0.1.11-py3-none-any.whl", hash = "sha256:0d759ecdf73492a4bafd404d0444935c172bcc4a89334f4f6780863ba488b238"},
+]
+
+[package.dependencies]
+requests = "*"
 
 [[package]]
 name = "monotonic"
@@ -4760,4 +4773,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "2c070bb153ca9335ee343655ed8bd43f4d3e189a4d2600858769b07faa915372"
+content-hash = "1e202e70b5d02ef37af42b8b3e42d88c677faef9b3058104794d4fbda4432e80"

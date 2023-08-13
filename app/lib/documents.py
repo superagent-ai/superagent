@@ -14,11 +14,14 @@ from langchain.document_loaders import (
     YoutubeLoader,
 )
 from llama_index.readers.schema.base import Document
+from llama_index import download_loader
 
 from app.lib.loaders.sitemap import SitemapLoader
 from app.lib.parsers import CustomPDFPlumberLoader
 from app.lib.splitters import TextSplitters
 from app.lib.vectorstores.base import VectorStoreBase
+
+NotionPageReader = download_loader("NotionPageReader")
 
 valid_ingestion_types = [
     "TXT",
@@ -33,6 +36,7 @@ valid_ingestion_types = [
     "STRIPE",
     "AIRTABLE",
     "SITEMAP",
+    "NOTION",
 ]
 
 
@@ -58,12 +62,28 @@ def upsert_document(
     if type == "STRIPE":
         pass
 
+    if type == "NOTION":
+        integration_token: str = metadata["integration_token"]
+        page_ids: str = metadata["page_ids"]
+        loader = NotionPageReader(integration_token=integration_token)
+        documents = loader.load_langchain_documents(page_ids=page_ids.split(","))
+        newDocuments = [
+            document.metadata.update({"document_id": document_id}) or document
+            for document in documents
+        ]
+
+        docs: list[LangchainDocument] = TextSplitters(
+            newDocuments, text_splitter
+        ).document_splitter()
+
+        VectorStoreBase().get_database().embed_documents(docs)
+
     if type == "AIRTABLE":
         from langchain.document_loaders import AirtableLoader
 
-        api_key = metadata["api_key"]
-        base_id = metadata["base_id"]
-        table_id = metadata["table_id"]
+        api_key: str = metadata["api_key"]
+        base_id: str = metadata["base_id"]
+        table_id: str = metadata["table_id"]
         loader = AirtableLoader(api_key, table_id, base_id)
         documents = loader.load()
         newDocuments = [
@@ -78,8 +98,8 @@ def upsert_document(
         VectorStoreBase().get_database().embed_documents(docs)
 
     if type == "SITEMAP":
-        filter_urls = metadata["filter_urls"].split(",")
-        loader = SitemapLoader(sitemap_url=url, filter_urls=filter_urls)
+        filter_urls: str = metadata["filter_urls"]
+        loader = SitemapLoader(sitemap_url=url, filter_urls=filter_urls.split(","))
         documents = loader.load()
         newDocuments = [
             document.metadata.update({"document_id": document_id}) or document

@@ -12,11 +12,11 @@
    cp ui/.env.example ui/.env
    ```
 
-2. Copy the `.docker/docker.example.env` into a `docker.env` file.
+2. Copy the `.docker/docker.env.example` into a `docker.env` file.
 
    ``` bash
    # the example values are placeholders but they will work just fine locally.
-   cp .docker/docker.example.env .docker/docker.env
+   cp .docker/docker.env.example .docker/docker.env
    ```
 
 3. Set the NETWORK_HOST mode suitable for your setup:

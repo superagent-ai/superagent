@@ -105,9 +105,7 @@ async def oauth_handler(body: OAuth):
                 "accessToken": body.access_token,
             }
         )
-        prisma.profile.create(
-            {"userId": user.id, "metadata": json.dumps(body.metadata)}
-        )
+        prisma.profile.create({"userId": user.id})
 
         if user:
             return {"success": True, "data": user}

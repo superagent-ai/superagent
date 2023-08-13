@@ -34,6 +34,30 @@ export const APPLICATIONS = [
     ],
   },
   {
+    id: "NOTION",
+    name: "Notion",
+    logo: "./notion.png",
+    is_live: true,
+    inputs: [
+      {
+        key: "integration_token",
+        name: "Notion integration token",
+        placeholder: "",
+        helpText: "Enter your token here...",
+        type: "input",
+        required: true,
+      },
+      {
+        key: "page_ids",
+        name: "Page IDs",
+        placeholder: "",
+        helpText: "Enter the ID of the pages you like to add.",
+        type: "textarea",
+        required: true,
+      },
+    ],
+  },
+  {
     id: "AIRTABLE",
     name: "Airtable",
     logo: "./airtable.jpeg",
