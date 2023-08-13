@@ -36,6 +36,7 @@ from app.lib.prompts import (
     DEFAULT_AGENT_PROMPT,
 )
 from app.lib.tools import (
+    DocumentTool,
     ToolDescription,
     get_search_tool,
     get_wolfram_alpha_tool,
@@ -314,21 +315,22 @@ class AgentBase:
 
     def _get_tools(self) -> list:
         tools = []
-        embeddings = OpenAIEmbeddings()
 
         for agent_document in self.documents:
             description = agent_document.document.description or (
-                f"useful for finding information about {agent_document.document.name}"
+                f"useful for finding information in specific {agent_document.document.name}"
             )
             args_schema = DocumentInput if self.type == "OPENAI" else None
-            embeddings = OpenAIEmbeddings()
-            docsearch = (
-                VectorStoreBase()
-                .get_database()
-                .from_existing_index(embeddings, agent_document.document.id)
-            )
+
             summary_tool = DocSummarizerTool(
-                docsearch=docsearch, llm=self._get_llm(has_streaming=False)
+                document_id=agent_document.document.id,
+                llm=self._get_llm(has_streaming=False),
+            )
+
+            docsearch_tool = DocumentTool(document_id=agent_document.document.id)
+
+            docsearch_tool_all = DocumentTool(
+                document_id=agent_document.document.id, query_type="all"
             )
 
             if agent_document.document.type == "CSV":
@@ -356,10 +358,17 @@ class AgentBase:
                         else agent_document.document.name,
                         description=description,
                         args_schema=args_schema,
-                        func=RetrievalQA.from_chain_type(
-                            llm=self._get_llm(has_streaming=False),
-                            retriever=docsearch.as_retriever(),
-                        ),
+                        func=docsearch_tool.run,
+                    )
+                )
+                tools.append(
+                    Tool(
+                        name="document_database"
+                        if self.type == "OPENAI"
+                        else agent_document.document.name,
+                        description="Useful to search for information in all documents",
+                        args_schema=args_schema,
+                        func=docsearch_tool_all.run,
                     )
                 )
                 tools.append(

@@ -45,12 +45,10 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
                 content=body.content,
                 type=body.type,
                 document_id=document.id,
-                authorization=body.authorization,
                 metadata=body.metadata,
                 text_splitter=body.splitter,
                 from_page=body.from_page,
                 to_page=body.to_page,
-                user_id=token["userId"],
             )
         return {"success": True, "data": document}
     except Exception as e:
@@ -92,7 +90,7 @@ async def delete_document(documentId: str, token=Depends(JWTBearer())):
     try:
         prisma.agentdocument.delete_many(where={"documentId": documentId})
         prisma.document.delete(where={"id": documentId})
-        VectorStoreBase().get_database().delete(namespace=documentId)
+        VectorStoreBase().get_database().delete(documentId)
         return {"success": True, "data": None}
     except Exception as e:
         logger.error("Couldn't delete document with id {documentId}", exc_info=e)
