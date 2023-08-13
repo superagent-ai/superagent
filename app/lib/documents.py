@@ -3,8 +3,6 @@ from tempfile import NamedTemporaryFile
 from urllib.parse import urlparse
 
 import requests
-from decouple import config
-from langchain.docstore.document import Document as LangchainDocument
 from langchain.document_loaders import (
     GitLoader,
     TextLoader,
@@ -12,7 +10,6 @@ from langchain.document_loaders import (
     WebBaseLoader,
     YoutubeLoader,
 )
-from llama_index.readers.schema.base import Document
 from llama_index import download_loader
 
 from app.lib.loaders.sitemap import SitemapLoader
