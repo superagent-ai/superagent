@@ -30,10 +30,17 @@ const getAgent = async (agentId, token) =>
 export default async function Share({ searchParams }) {
   const { agentId, token } = searchParams;
   const apiToken = decryptToken(token);
-  const { data: agent } = await getAgent(agentId, apiToken);
 
-  if (!agent.isPublic && !agent.isListed) {
-    redirect("/login");
+  try {
+    const { data: agent } = await getAgent(agentId, apiToken);
+
+    if (!agent.isPublic && !agent.isListed) {
+      redirect("/login");
+    }
+
+    return <ShareClientPage agent={agent} token={apiToken} />;
+  } catch (error) {
+    redirect("/agents");
   }
 
   return <ShareClientPage agent={agent} token={apiToken} />;
