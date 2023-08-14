@@ -35,12 +35,17 @@ import { BeatLoader } from "react-spinners";
 import { SUPERAGENT_VERSION } from "@/lib/constants";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 
-function LoadingMessage() {
+function LoadingMessage({ name = "Bot" }) {
   return (
     <Container maxW="5xl">
-      <HStack spacing={4}>
-        <BeatLoader color="white" size={8} />
-        <Text color="#777">Thinking...</Text>
+      <HStack spacing={2}>
+        <BeatLoader color="white" size={5} />
+        <Text fontSize="md">
+          <Text fontWeight="bold" as="span">
+            {name}
+          </Text>{" "}
+          is typing...
+        </Text>
       </HStack>
     </Container>
   );
@@ -278,7 +283,6 @@ export default function ShareClientPage({ agent, token }) {
           {messages.map(({ type, message }, index) => (
             <Message key={index} agent={agent} type={type} message={message} />
           ))}
-          {isSubmitting && <LoadingMessage />}
         </Box>
         <Box
           position="absolute"
@@ -297,33 +301,35 @@ export default function ShareClientPage({ agent, token }) {
           height="50px"
         />
       </Stack>
-
-      <InputGroup
-        size="lg"
-        maxWidth="5xl"
-        marginX="auto"
-        as="form"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <Input
-          variant="filled"
-          boxShadow="md"
-          backgroundColor="#333"
-          type="text"
-          placeholder="Enter an input..."
-          fontSize="md"
-          isDisabled={isSubmitting}
-          {...register("input", { required: true })}
-        />
-        <InputRightElement>
-          <IconButton
-            isLoading={isSubmitting}
+      <Stack>
+        {isSubmitting && <LoadingMessage name={agent.name} />}
+        <InputGroup
+          size="lg"
+          maxWidth="5xl"
+          marginX="auto"
+          as="form"
+          onSubmit={handleSubmit(onSubmit)}
+        >
+          <Input
+            variant="filled"
+            boxShadow="md"
+            backgroundColor="#333"
+            type="text"
+            placeholder="Enter an input..."
+            fontSize="md"
             isDisabled={isSubmitting}
-            variant="ghost"
-            icon={<Icon as={TbSend} />}
+            {...register("input", { required: true })}
           />
-        </InputRightElement>
-      </InputGroup>
+          <InputRightElement>
+            <IconButton
+              isLoading={isSubmitting}
+              isDisabled={isSubmitting}
+              variant="ghost"
+              icon={<Icon as={TbSend} />}
+            />
+          </InputRightElement>
+        </InputGroup>
+      </Stack>
     </Stack>
   );
 }
