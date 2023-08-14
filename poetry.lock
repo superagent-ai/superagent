@@ -1688,13 +1688,13 @@ format-nongpl = ["idna", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3986-va
 
 [[package]]
 name = "langchain"
-version = "0.0.262"
+version = "0.0.264"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = ">=3.8.1,<4.0"
 files = [
-    {file = "langchain-0.0.262-py3-none-any.whl", hash = "sha256:2b8b77ba61f208b9ad0c5cf0a651349abb2f448d1804332c5b485c902d05cfbf"},
-    {file = "langchain-0.0.262.tar.gz", hash = "sha256:2cb545cb855ce783f9f272f08a346018b087c0d842012d225ed479ac312624c8"},
+    {file = "langchain-0.0.264-py3-none-any.whl", hash = "sha256:3d548a30ff6deeb2f21ea6abaa6c70bda56d2bafe4580590e63196774961a76b"},
+    {file = "langchain-0.0.264.tar.gz", hash = "sha256:c6a9d35ddfbdfae4ad80f77c4335435bc612f74e849c96351ce76224e1e60b30"},
 ]
 
 [package.dependencies]
@@ -1718,7 +1718,7 @@ clarifai = ["clarifai (>=9.1.0)"]
 cohere = ["cohere (>=4,<5)"]
 docarray = ["docarray[hnswlib] (>=0.32.0,<0.33.0)"]
 embeddings = ["sentence-transformers (>=2,<3)"]
-extended-testing = ["amazon-textract-caller (<2)", "anthropic (>=0.3,<0.4)", "atlassian-python-api (>=3.36.0,<4.0.0)", "beautifulsoup4 (>=4,<5)", "betabageldb (==0.2.32)", "bibtexparser (>=1.4.0,<2.0.0)", "cassio (>=0.0.7,<0.0.8)", "chardet (>=5.1.0,<6.0.0)", "esprima (>=4.0.1,<5.0.0)", "feedparser (>=6.0.10,<7.0.0)", "geopandas (>=0.13.1,<0.14.0)", "gitpython (>=3.1.32,<4.0.0)", "gql (>=3.4.1,<4.0.0)", "html2text (>=2020.1.16,<2021.0.0)", "jinja2 (>=3,<4)", "jq (>=1.4.1,<2.0.0)", "lxml (>=4.9.2,<5.0.0)", "mwparserfromhell (>=0.6.4,<0.7.0)", "mwxml (>=0.3.3,<0.4.0)", "newspaper3k (>=0.2.8,<0.3.0)", "openai (>=0,<1)", "pandas (>=2.0.1,<3.0.0)", "pdfminer-six (>=20221105,<20221106)", "pgvector (>=0.1.6,<0.2.0)", "psychicapi (>=0.8.0,<0.9.0)", "py-trello (>=0.19.0,<0.20.0)", "pymupdf (>=1.22.3,<2.0.0)", "pypdf (>=3.4.0,<4.0.0)", "pypdfium2 (>=4.10.0,<5.0.0)", "pyspark (>=3.4.0,<4.0.0)", "rank-bm25 (>=0.2.2,<0.3.0)", "rapidfuzz (>=3.1.1,<4.0.0)", "requests-toolbelt (>=1.0.0,<2.0.0)", "scikit-learn (>=1.2.2,<2.0.0)", "streamlit (>=1.18.0,<2.0.0)", "sympy (>=1.12,<2.0)", "telethon (>=1.28.5,<2.0.0)", "tqdm (>=4.48.0)", "xata (>=1.0.0a7,<2.0.0)", "xinference (>=0.0.6,<0.0.7)", "xmltodict (>=0.13.0,<0.14.0)", "zep-python (>=0.32)"]
+extended-testing = ["amazon-textract-caller (<2)", "anthropic (>=0.3,<0.4)", "atlassian-python-api (>=3.36.0,<4.0.0)", "beautifulsoup4 (>=4,<5)", "betabageldb (==0.2.32)", "bibtexparser (>=1.4.0,<2.0.0)", "cassio (>=0.0.7,<0.0.8)", "chardet (>=5.1.0,<6.0.0)", "esprima (>=4.0.1,<5.0.0)", "feedparser (>=6.0.10,<7.0.0)", "geopandas (>=0.13.1,<0.14.0)", "gitpython (>=3.1.32,<4.0.0)", "gql (>=3.4.1,<4.0.0)", "html2text (>=2020.1.16,<2021.0.0)", "jinja2 (>=3,<4)", "jq (>=1.4.1,<2.0.0)", "lxml (>=4.9.2,<5.0.0)", "mwparserfromhell (>=0.6.4,<0.7.0)", "mwxml (>=0.3.3,<0.4.0)", "newspaper3k (>=0.2.8,<0.3.0)", "openai (>=0,<1)", "pandas (>=2.0.1,<3.0.0)", "pdfminer-six (>=20221105,<20221106)", "pgvector (>=0.1.6,<0.2.0)", "psychicapi (>=0.8.0,<0.9.0)", "py-trello (>=0.19.0,<0.20.0)", "pymupdf (>=1.22.3,<2.0.0)", "pypdf (>=3.4.0,<4.0.0)", "pypdfium2 (>=4.10.0,<5.0.0)", "pyspark (>=3.4.0,<4.0.0)", "rank-bm25 (>=0.2.2,<0.3.0)", "rapidfuzz (>=3.1.1,<4.0.0)", "requests-toolbelt (>=1.0.0,<2.0.0)", "scikit-learn (>=1.2.2,<2.0.0)", "streamlit (>=1.18.0,<2.0.0)", "sympy (>=1.12,<2.0)", "telethon (>=1.28.5,<2.0.0)", "tqdm (>=4.48.0)", "xata (>=1.0.0a7,<2.0.0)", "xinference (>=0.0.6,<0.0.7)", "xmltodict (>=0.13.0,<0.14.0)", "zep-python (>=1.0.1,<1.1.0)"]
 javascript = ["esprima (>=4.0.1,<5.0.0)"]
 llms = ["anthropic (>=0.3,<0.4)", "clarifai (>=9.1.0)", "cohere (>=4,<5)", "huggingface_hub (>=0,<1)", "manifest-ml (>=0.0.1,<0.0.2)", "nlpcloud (>=1,<2)", "openai (>=0,<1)", "openllm (>=0.1.19)", "openlm (>=0.0.5,<0.0.6)", "torch (>=1,<3)", "transformers (>=4,<5)", "xinference (>=0.0.6,<0.0.7)"]
 openai = ["openai (>=0,<1)", "tiktoken (>=0.3.2,<0.4.0)"]
@@ -4773,4 +4773,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "1e202e70b5d02ef37af42b8b3e42d88c677faef9b3058104794d4fbda4432e80"
+content-hash = "0862a7fd909b985c3a28dc14415e1dfb8b4775f592ec447635aad5a5a1bc3b65"
