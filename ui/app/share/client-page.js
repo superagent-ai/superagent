@@ -1,10 +1,15 @@
 "use client";
 import {
-  Button,
   Box,
+  Button,
   Code,
+  Center,
   Container,
-  Circle,
+  Drawer,
+  DrawerBody,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
   HStack,
   Icon,
   IconButton,
@@ -15,41 +20,37 @@ import {
   OrderedList,
   Stack,
   Text,
-  Tag,
   useColorModeValue,
   Avatar,
   useToast,
   Divider,
   UnorderedList,
+  useDisclosure,
+  Card,
 } from "@chakra-ui/react";
-import NextLink from "next/link";
-import React, { useState } from "react";
-import { TbArrowRight, TbSend, TbCopy, TbAlignJustified } from "react-icons/tb";
-import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import React, { useCallback, useState } from "react";
+import {
+  TbSend,
+  TbCopy,
+  TbAlignJustified,
+  TbMenu,
+  TbPlus,
+} from "react-icons/tb";
 import { useForm } from "react-hook-form";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { coldarkDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { BeatLoader } from "react-spinners";
-import { SUPERAGENT_VERSION } from "@/lib/constants";
 import { motion } from "framer-motion";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { MemoizedReactMarkdown } from "@/lib/markdown";
+import { useShareSession } from "@/lib/share-session";
+import { useAsync, useAsyncFn } from "react-use";
 
-function isFirstNCharsSame(str, n) {
-  if (str.length < n) {
-    return false;
-  }
-
-  const firstChar = str[0];
-  for (let i = 1; i < n; i++) {
-    if (str[i] !== firstChar) {
-      return false;
-    }
-  }
-
-  return true;
-}
+dayjs.extend(relativeTime);
 
 function PulsatingCursor() {
   return (
@@ -63,7 +64,6 @@ function PulsatingCursor() {
         duration: 0.5,
         repeat: Infinity,
       }}
-      onAnimationStart={() => console.log("Animation started")}
     >
       ▍
     </motion.div>
@@ -75,7 +75,7 @@ function LoadingMessage({ name = "Bot" }) {
     <Container maxW="5xl">
       <HStack spacing={2}>
         <BeatLoader color="white" size={5} />
-        <Text fontSize="md">
+        <Text fontSize="md" color="gray.500">
           <Text fontWeight="bold" as="span">
             {name}
           </Text>{" "}
@@ -83,6 +83,72 @@ function LoadingMessage({ name = "Bot" }) {
         </Text>
       </HStack>
     </Container>
+  );
+}
+
+function Navbar({
+  sessions = [],
+  selectedSession,
+  onCreate = () => {},
+  onSelect = () => {},
+}) {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const [{ loading: isCreatingNewSession }, handleCreate] =
+    useAsyncFn(async () => {
+      return onCreate();
+    }, [onCreate]);
+
+  return (
+    <HStack paddingY={[4, 4]} position="absolute" top={0}>
+      <IconButton icon={<Icon as={TbMenu} />} onClick={onOpen} />
+      <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerBody>
+            {sessions.length === 0 && (
+              <Center flex={1}>
+                <Text color="gray.500" fontSize="md">
+                  No conversations found
+                </Text>
+              </Center>
+            )}
+            <Stack marginTop={10}>
+              {sessions?.map(({ id, created_at, name }) => (
+                <Card
+                  onClick={() => onSelect(id)}
+                  key={id}
+                  padding={4}
+                  cursor="pointer"
+                  borderWidth="1px"
+                  borderColor={
+                    selectedSession.id === id ? "orange.500" : "transparent"
+                  }
+                  _hover={{ borderWidth: "1px", borderColor: "orange.500" }}
+                >
+                  <HStack justifyContent="space-between">
+                    <Text noOfLines={1} fontSize="md">
+                      {name}
+                    </Text>
+                    <Text noOfLines={1} fontSize="md" color="gray.500">
+                      {dayjs(created_at).fromNow()}
+                    </Text>
+                  </HStack>
+                </Card>
+              ))}
+            </Stack>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
+      <Button
+        leftIcon={<Icon as={TbPlus} />}
+        onClick={async () => await handleCreate()}
+        isLoading={isCreatingNewSession}
+      >
+        New
+      </Button>
+    </HStack>
   );
 }
 
@@ -175,16 +241,29 @@ function Message({ agent, message, type }) {
 }
 
 export default function ShareClientPage({ agent, token }) {
-  const toast = useToast();
   const [messages, setMessages] = useState([]);
-  const fontColor = useColorModeValue("white", "white");
-  const session = useSession();
+  const [selectedSession, setSelectedSession] = useState();
+  const { getSessions, updateSession, createSession } = useShareSession({
+    agent,
+  });
+  const router = useRouter();
   const {
     register,
     handleSubmit,
     reset,
     formState: { isSubmitting },
   } = useForm();
+  const { value: shareSessions } = useAsync(async () => {
+    const sessions = await getSessions();
+    const sortedSessions = sessions.sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
+    const latestSession = sortedSessions[0];
+
+    setSelectedSession(latestSession);
+
+    return sortedSessions;
+  }, [agent, setSelectedSession]);
 
   const onSubmit = async (values) => {
     const { input } = values;
@@ -211,6 +290,7 @@ export default function ShareClientPage({ agent, token }) {
         body: JSON.stringify({
           input: { input },
           has_streaming: true,
+          session: selectedSession.id,
         }),
         async onmessage(event) {
           if (event.data !== "[END]") {
@@ -232,57 +312,42 @@ export default function ShareClientPage({ agent, token }) {
       }
     );
 
+    if (selectedSession.name === "New chat!") {
+      await updateSession(selectedSession.id, {
+        name: input,
+        updated_at: new Date(),
+      });
+
+      router.refresh();
+    }
+
     reset();
   };
 
-  const handleCopyShareLink = () => {
-    const baseUrl =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "https://app.superagent.sh";
+  const handleCreateSession = useCallback(async () => {
+    const session = await createSession();
 
-    navigator.clipboard.writeText(
-      `${baseUrl}/share?agentId=${agent.id}&token=${token}`
-    );
+    setSelectedSession(session);
+    setMessages([]);
+    router.refresh();
+  }, []);
 
-    toast({
-      description: "Share link copied!",
-      position: "top",
-      colorScheme: "gray",
-    });
-  };
+  const handleSelectSession = useCallback(
+    async (id) => {
+      const session = shareSessions.find(
+        ({ id: sessionId }) => sessionId === id
+      );
+
+      setSelectedSession(session);
+      setMessages([]);
+    },
+    [shareSessions]
+  );
 
   return (
-    <Stack
-      minHeight="100vh"
-      flex={1}
-      overflow="hidden"
-      paddingX={[4, 6]}
-      spacing={6}
-      paddingY={[6, 4]}
-    >
-      {!session.data && (
-        <HStack justifyContent="space-between">
-          <HStack spacing={4}>
-            <Text as="strong" color={fontColor} fontSize="lg">
-              Superagent
-            </Text>
-            <Tag size="sm">{SUPERAGENT_VERSION}</Tag>
-          </HStack>
-          <HStack>
-            <IconButton
-              onClick={() => handleCopyShareLink()}
-              icon={<Icon as={TbCopy} fontSize="lg" />}
-            />
-            <NextLink passHref href="/">
-              <Button rightIcon={<Icon as={TbArrowRight} />}>Login</Button>
-            </NextLink>
-          </HStack>
-        </HStack>
-      )}
+    <Stack minHeight="100vh" flex={1} overflow="hidden" spacing={6}>
       <Stack
         flex={1}
-        borderRadius="lg"
         justifyContent={messages.length > 0 ? "flex-start" : "center"}
         paddingX={[2, 4]}
         paddingY={[2, 10]}
@@ -326,7 +391,7 @@ export default function ShareClientPage({ agent, token }) {
           right={0}
           bottom={0}
           overflow="auto"
-          paddingY={10}
+          paddingY={12}
         >
           {messages.map(({ type, message }, index) => (
             <Message key={index} agent={agent} type={type} message={message} />
@@ -347,6 +412,12 @@ export default function ShareClientPage({ agent, token }) {
           left={0}
           right={0}
           height="50px"
+        />
+        <Navbar
+          sessions={shareSessions}
+          selectedSession={selectedSession}
+          onCreate={handleCreateSession}
+          onSelect={handleSelectSession}
         />
       </Stack>
       <Stack>
@@ -377,6 +448,17 @@ export default function ShareClientPage({ agent, token }) {
             />
           </InputRightElement>
         </InputGroup>
+        <Text textAlign="center" fontSize="xs" color="gray.500">
+          Powered by{" "}
+          <Link
+            fontWeight="bold"
+            href="https://www.superagent.sh"
+            target="_blank"
+            color={useColorModeValue("black", "white")}
+          >
+            superagent.sh
+          </Link>
+        </Text>
       </Stack>
     </Stack>
   );
