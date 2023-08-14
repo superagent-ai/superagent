@@ -12,6 +12,8 @@ import {
   InputGroup,
   InputRightElement,
   Link,
+  ListItem,
+  OrderedList,
   Stack,
   Text,
   Tag,
@@ -19,6 +21,7 @@ import {
   Avatar,
   useToast,
   Divider,
+  UnorderedList,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
 import React, { useState } from "react";
@@ -27,23 +30,30 @@ import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { coldarkDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { BeatLoader } from "react-spinners";
 import { SUPERAGENT_VERSION } from "@/lib/constants";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 
-function LoadingMessage() {
+function LoadingMessage({ name = "Bot" }) {
   return (
     <Container maxW="5xl">
-      <HStack spacing={4}>
-        <BeatLoader color="white" size={8} />
-        <Text color="#777">Thinking...</Text>
+      <HStack spacing={2}>
+        <BeatLoader color="white" size={5} />
+        <Text fontSize="md">
+          <Text fontWeight="bold" as="span">
+            {name}
+          </Text>{" "}
+          is typing...
+        </Text>
       </HStack>
     </Container>
   );
 }
 
 function Message({ agent, message, type }) {
+  const toast = useToast();
+
   return (
     <Container
       maxW="5xl"
@@ -56,7 +66,7 @@ function Message({ agent, message, type }) {
           <Circle
             width={4}
             height={4}
-            backgroundColor="orange.500"
+            backgroundColor="purple.500"
             marginTop={1}
           />
         ) : (
@@ -65,15 +75,30 @@ function Message({ agent, message, type }) {
         {type === "human" ? (
           <Text>{message}</Text>
         ) : (
-          <Box>
+          <Box maxWidth="95%">
             <ReactMarkdown
               components={{
+                ol({ children }) {
+                  return <OrderedList>{children}</OrderedList>;
+                },
+                ul({ children }) {
+                  return <UnorderedList>{children}</UnorderedList>;
+                },
+                p({ children }) {
+                  return <Text marginBottom={2}>{children}</Text>;
+                },
                 code({ node, inline, className, children, ...props }) {
                   const value = String(children).replace(/\n$/, "");
                   const match = /language-(\w+)/.exec(className || "");
 
                   const handleCopyCode = () => {
                     navigator.clipboard.writeText(value);
+
+                    toast({
+                      description: "Copied to clipboard",
+                      position: "top",
+                      colorScheme: "gray",
+                    });
                   };
 
                   return !inline ? (
@@ -87,13 +112,14 @@ function Message({ agent, message, type }) {
                         />
                       </HStack>
                       <SyntaxHighlighter
+                        showLineNumbers
                         codeTagProps={{
                           style: {
                             lineHeight: "inherit",
                             fontSize: "13px",
                           },
                         }}
-                        style={dracula}
+                        style={coldarkDark}
                         language={(match && match[1]) || ""}
                       >
                         {value}
@@ -257,7 +283,6 @@ export default function ShareClientPage({ agent, token }) {
           {messages.map(({ type, message }, index) => (
             <Message key={index} agent={agent} type={type} message={message} />
           ))}
-          {isSubmitting && <LoadingMessage />}
         </Box>
         <Box
           position="absolute"
@@ -276,33 +301,35 @@ export default function ShareClientPage({ agent, token }) {
           height="50px"
         />
       </Stack>
-
-      <InputGroup
-        size="lg"
-        maxWidth="5xl"
-        marginX="auto"
-        as="form"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <Input
-          variant="filled"
-          boxShadow="md"
-          backgroundColor="#333"
-          type="text"
-          placeholder="Enter an input..."
-          fontSize="md"
-          isDisabled={isSubmitting}
-          {...register("input", { required: true })}
-        />
-        <InputRightElement>
-          <IconButton
-            isLoading={isSubmitting}
+      <Stack>
+        {isSubmitting && <LoadingMessage name={agent.name} />}
+        <InputGroup
+          size="lg"
+          maxWidth="5xl"
+          marginX="auto"
+          as="form"
+          onSubmit={handleSubmit(onSubmit)}
+        >
+          <Input
+            variant="filled"
+            boxShadow="md"
+            backgroundColor="#333"
+            type="text"
+            placeholder="Enter an input..."
+            fontSize="md"
             isDisabled={isSubmitting}
-            variant="ghost"
-            icon={<Icon as={TbSend} />}
+            {...register("input", { required: true })}
           />
-        </InputRightElement>
-      </InputGroup>
+          <InputRightElement>
+            <IconButton
+              isLoading={isSubmitting}
+              isDisabled={isSubmitting}
+              variant="ghost"
+              icon={<Icon as={TbSend} />}
+            />
+          </InputRightElement>
+        </InputGroup>
+      </Stack>
     </Stack>
   );
 }
