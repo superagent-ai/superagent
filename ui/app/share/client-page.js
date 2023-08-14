@@ -142,7 +142,7 @@ function Navbar({
         </DrawerContent>
       </Drawer>
       <Button leftIcon={<Icon as={TbPlus} />} onClick={onCreate}>
-        New
+        New chat
       </Button>
     </HStack>
   );
