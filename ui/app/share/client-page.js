@@ -363,6 +363,7 @@ export default function ShareClientPage({ agent, token }) {
             borderWidth="1px"
             borderRadius="md"
             padding={5}
+            zIndex={2222}
           >
             <Stack spacing={4}>
               <Avatar src={agent.avatarUrl || "./logo.png"} />
@@ -432,6 +433,8 @@ export default function ShareClientPage({ agent, token }) {
         >
           <Input
             variant="filled"
+            autoFocus={false}
+            autoCorrect={false}
             boxShadow="md"
             backgroundColor="#333"
             type="text"
@@ -445,6 +448,7 @@ export default function ShareClientPage({ agent, token }) {
               isLoading={isSubmitting}
               isDisabled={isSubmitting}
               variant="ghost"
+              type="submit"
               icon={<Icon as={TbSend} />}
             />
           </InputRightElement>
