@@ -16,11 +16,11 @@ export const useShareSession = ({ agent }) => {
 
   const getSessions = async () => {
     const sessions = await localforage.getItem("sa-share-session");
-    const filteredSessions = sessions.filter(
+    const filteredSessions = sessions?.filter(
       ({ agent_id }) => agent_id === agent.id
     );
 
-    if (filteredSessions.length === 0) {
+    if (!filteredSessions || filteredSessions.length === 0) {
       return localforage.setItem("sa-share-session", [
         {
           name: "New chat!",
