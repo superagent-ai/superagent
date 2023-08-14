@@ -30,7 +30,7 @@ import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { coldarkDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { BeatLoader } from "react-spinners";
 import { SUPERAGENT_VERSION } from "@/lib/constants";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
@@ -47,6 +47,8 @@ function LoadingMessage() {
 }
 
 function Message({ agent, message, type }) {
+  const toast = useToast();
+
   return (
     <Container
       maxW="5xl"
@@ -59,7 +61,7 @@ function Message({ agent, message, type }) {
           <Circle
             width={4}
             height={4}
-            backgroundColor="orange.500"
+            backgroundColor="purple.500"
             marginTop={1}
           />
         ) : (
@@ -86,6 +88,12 @@ function Message({ agent, message, type }) {
 
                   const handleCopyCode = () => {
                     navigator.clipboard.writeText(value);
+
+                    toast({
+                      description: "Copied to clipboard",
+                      position: "top",
+                      colorScheme: "gray",
+                    });
                   };
 
                   return !inline ? (
@@ -99,13 +107,14 @@ function Message({ agent, message, type }) {
                         />
                       </HStack>
                       <SyntaxHighlighter
+                        showLineNumbers
                         codeTagProps={{
                           style: {
                             lineHeight: "inherit",
                             fontSize: "13px",
                           },
                         }}
-                        style={dracula}
+                        style={coldarkDark}
                         language={(match && match[1]) || ""}
                       >
                         {value}
