@@ -22,10 +22,10 @@ import {
   Text,
   useColorModeValue,
   Avatar,
-  useToast,
   Divider,
   UnorderedList,
   useDisclosure,
+  useToast,
   Card,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
@@ -94,15 +94,15 @@ function Navbar({
 }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [{ loading: isCreatingNewSession }, handleCreate] =
-    useAsyncFn(async () => {
-      return onCreate();
-    }, [onCreate]);
-
   return (
     <HStack paddingY={[4, 4]} position="absolute" top={0}>
       <IconButton icon={<Icon as={TbMenu} />} onClick={onOpen} />
-      <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
+      <Drawer
+        isOpen={isOpen}
+        placement="left"
+        onClose={onClose}
+        zIndex={999999}
+      >
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
@@ -141,11 +141,7 @@ function Navbar({
           </DrawerBody>
         </DrawerContent>
       </Drawer>
-      <Button
-        leftIcon={<Icon as={TbPlus} />}
-        onClick={async () => await handleCreate()}
-        isLoading={isCreatingNewSession}
-      >
+      <Button leftIcon={<Icon as={TbPlus} />} onClick={onCreate}>
         New
       </Button>
     </HStack>
@@ -241,6 +237,7 @@ function Message({ agent, message, type }) {
 }
 
 export default function ShareClientPage({ agent, token }) {
+  const toast = useToast();
   const [messages, setMessages] = useState([]);
   const [selectedSession, setSelectedSession] = useState();
   const { getSessions, updateSession, createSession } = useShareSession({
@@ -327,10 +324,15 @@ export default function ShareClientPage({ agent, token }) {
   const handleCreateSession = useCallback(async () => {
     const session = await createSession();
 
+    toast({
+      description: "New chat created!",
+      position: "top",
+      colorScheme: "gray",
+    });
     setSelectedSession(session);
     setMessages([]);
     router.refresh();
-  }, []);
+  }, [toast]);
 
   const handleSelectSession = useCallback(
     async (id) => {
@@ -361,7 +363,6 @@ export default function ShareClientPage({ agent, token }) {
             borderWidth="1px"
             borderRadius="md"
             padding={5}
-            zIndex={99999}
           >
             <Stack spacing={4}>
               <Avatar src={agent.avatarUrl || "./logo.png"} />
