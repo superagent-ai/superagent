@@ -12,7 +12,6 @@ import {
   InputGroup,
   InputRightElement,
   Link,
-  ListItem,
   OrderedList,
   Stack,
   Text,
@@ -25,7 +24,7 @@ import {
 } from "@chakra-ui/react";
 import NextLink from "next/link";
 import React, { useState } from "react";
-import { TbArrowRight, TbSend, TbCopy } from "react-icons/tb";
+import { TbArrowRight, TbSend, TbCopy, TbAlignJustified } from "react-icons/tb";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import remarkGfm from "remark-gfm";
@@ -33,7 +32,43 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { coldarkDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { BeatLoader } from "react-spinners";
 import { SUPERAGENT_VERSION } from "@/lib/constants";
-import { ReactMarkdown } from "react-markdown/lib/react-markdown";
+import { motion } from "framer-motion";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { MemoizedReactMarkdown } from "@/lib/markdown";
+
+function isFirstNCharsSame(str, n) {
+  if (str.length < n) {
+    return false;
+  }
+
+  const firstChar = str[0];
+  for (let i = 1; i < n; i++) {
+    if (str[i] !== firstChar) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function PulsatingCursor() {
+  return (
+    <motion.div
+      initial="start"
+      animate={{
+        scale: [1, 1.05, 1],
+        opacity: [0, 1, 0],
+      }}
+      transition={{
+        duration: 0.5,
+        repeat: Infinity,
+      }}
+      onAnimationStart={() => console.log("Animation started")}
+    >
+      ▍
+    </motion.div>
+  );
+}
 
 function LoadingMessage({ name = "Bot" }) {
   return (
@@ -63,12 +98,7 @@ function Message({ agent, message, type }) {
     >
       <HStack alignItems="flex-start" spacing={4}>
         {type === "human" ? (
-          <Circle
-            width={4}
-            height={4}
-            backgroundColor="purple.500"
-            marginTop={1}
-          />
+          <Icon as={TbAlignJustified} color="gray.500" marginTop={1} />
         ) : (
           <Avatar size="xs" src={agent.avatarUrl || "./logo.png"} />
         )}
@@ -76,7 +106,8 @@ function Message({ agent, message, type }) {
           <Text>{message}</Text>
         ) : (
           <Box maxWidth="95%">
-            <ReactMarkdown
+            {message.length === 0 && <PulsatingCursor />}
+            <MemoizedReactMarkdown
               components={{
                 ol({ children }) {
                   return <OrderedList>{children}</OrderedList>;
@@ -135,7 +166,7 @@ function Message({ agent, message, type }) {
               remarkPlugins={[remarkGfm]}
             >
               {message}
-            </ReactMarkdown>
+            </MemoizedReactMarkdown>
           </Box>
         )}
       </HStack>
@@ -157,13 +188,19 @@ export default function ShareClientPage({ agent, token }) {
 
   const onSubmit = async (values) => {
     const { input } = values;
+    let message = "";
 
     setMessages((previousMessages) => [
       ...previousMessages,
       { type: "human", message: input },
     ]);
 
-    const response = await fetch(
+    setMessages((previousMessages) => [
+      ...previousMessages,
+      { type: "ai", message },
+    ]);
+
+    await fetchEventSource(
       `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agent.id}/predict`,
       {
         method: "POST",
@@ -173,16 +210,27 @@ export default function ShareClientPage({ agent, token }) {
         },
         body: JSON.stringify({
           input: { input },
-          has_streaming: false,
+          has_streaming: true,
         }),
+        async onmessage(event) {
+          if (event.data !== "[END]") {
+            message += event.data === "" ? `${event.data} \n` : event.data;
+            setMessages((previousMessages) => {
+              let updatedMessages = [...previousMessages];
+
+              for (let i = updatedMessages.length - 1; i >= 0; i--) {
+                if (updatedMessages[i].type === "ai") {
+                  updatedMessages[i].message = message;
+                  break;
+                }
+              }
+
+              return updatedMessages;
+            });
+          }
+        },
       }
     );
-    const output = await response.json();
-
-    setMessages((previousMessages) => [
-      ...previousMessages,
-      { type: "ai", message: output.data },
-    ]);
 
     reset();
   };
