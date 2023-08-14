@@ -12,6 +12,8 @@ import {
   InputGroup,
   InputRightElement,
   Link,
+  ListItem,
+  OrderedList,
   Stack,
   Text,
   Tag,
@@ -19,6 +21,7 @@ import {
   Avatar,
   useToast,
   Divider,
+  UnorderedList,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
 import React, { useState } from "react";
@@ -65,9 +68,18 @@ function Message({ agent, message, type }) {
         {type === "human" ? (
           <Text>{message}</Text>
         ) : (
-          <Box>
+          <Box maxWidth="95%">
             <ReactMarkdown
               components={{
+                ol({ children }) {
+                  return <OrderedList>{children}</OrderedList>;
+                },
+                ul({ children }) {
+                  return <UnorderedList>{children}</UnorderedList>;
+                },
+                p({ children }) {
+                  return <Text marginBottom={2}>{children}</Text>;
+                },
                 code({ node, inline, className, children, ...props }) {
                   const value = String(children).replace(/\n$/, "");
                   const match = /language-(\w+)/.exec(className || "");
