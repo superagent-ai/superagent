@@ -64,13 +64,16 @@ export default function PromptsClientPage({ data, session }) {
     };
 
     if (selectedPrompt) {
+      console.log("patch");
       await api.patchPrompt(selectedPrompt, payload);
 
       if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
         analytics.track("Updated Prompt", { ...payload });
       }
     } else {
+      console.log("create");
       await api.createPrompt(payload);
+
       if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
         analytics.track("Created Prompt", { ...payload });
       }
@@ -197,6 +200,7 @@ export default function PromptsClientPage({ data, session }) {
         size="xl"
         onClose={() => {
           reset();
+          setSelectedPrompt();
           onClose();
         }}
       >
@@ -261,6 +265,7 @@ export default function PromptsClientPage({ data, session }) {
               mr={3}
               onClick={() => {
                 reset();
+                setSelectedPrompt();
                 onClose();
               }}
             >
