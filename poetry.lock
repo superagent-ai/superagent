@@ -3826,13 +3826,13 @@ requests = {version = ">=2.20", markers = "python_version >= \"3.0\""}
 
 [[package]]
 name = "superagent-py"
-version = "0.0.29"
+version = "0.0.51"
 description = ""
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "superagent_py-0.0.29-py3-none-any.whl", hash = "sha256:bedb5681a5a9395dcfa4ae8175dd876628b6551d6aea6a8ce46d5096749c75ef"},
-    {file = "superagent_py-0.0.29.tar.gz", hash = "sha256:a6c276f6810bb25656c6b93f7c35154d0c20cf6e427c4d87d2cd6624903f20ab"},
+    {file = "superagent_py-0.0.51-py3-none-any.whl", hash = "sha256:319450c2401ba8781d53c8566473232e1edd9d4be5879d5df107c707f46d4a0d"},
+    {file = "superagent_py-0.0.51.tar.gz", hash = "sha256:451927ca562a132a129920adfc7c6a0ec0667aa2de3fbd0b16d65a752402e172"},
 ]
 
 [package.dependencies]
@@ -4773,4 +4773,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "431fa76b3509d9634db39ddf4fbf88a0f193b0bc6038110abbc6ff771b6607d4"
+content-hash = "24c2f264c734459eb8dc2b92e9c5dd21279d45774d036ad9c06fba3209eddb2e"
