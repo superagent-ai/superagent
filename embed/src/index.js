@@ -88,8 +88,8 @@ function SuperagentWidget({ agentId, apiKey, type }) {
       <ChakraProvider>
         {agent && !isOpen && (
           <Avatar
-            width="60px"
-            height="60px"
+            width="55px"
+            height="55px"
             src={agent?.data?.avatarUrl || "https://app.superagent.sh/logo.png"}
             _hover={{transform: "scale(1.1)", transition: "0.2s all"}} 
             position="fixed"
@@ -103,8 +103,8 @@ function SuperagentWidget({ agentId, apiKey, type }) {
           <IconButton
             borderRadius="full"
             icon={<Icon as={TbX} fontSize="2xl" />}
-            width="60px"
-            height="60px"
+            width="55px"
+            height="55px"
             src={agent?.data?.avatarUrl || "https://app.superagent.sh/logo.png"}
             _hover={{transform: "scale(1.1)", transition: "0.2s all"}} 
             position="fixed"
@@ -131,7 +131,7 @@ function SuperagentWidget({ agentId, apiKey, type }) {
 }
 
 function init(options) {
-  const mountElement = document.getElementById(options.mountPoint || 'root');
+  const mountElement = document.getElementById(options.mountPoint || 'superagent-chat');
   ReactDOM.render(<SuperagentWidget {...options} />, mountElement);
 }
 

@@ -3,14 +3,13 @@ import { useState } from "react";
 import {
   Button,
   Box,
-  Card,
+  Code,
   Divider,
   HStack,
   FormControl,
   Icon,
   IconButton,
   Input,
-  Image,
   Link,
   Modal,
   ModalOverlay,
@@ -35,15 +34,17 @@ import { useSession } from "next-auth/react";
 import {
   TbChevronLeft,
   TbAlertTriangle,
-  TbCopy,
   TbLink,
   TbShare,
   TbApps,
   TbCode,
+  TbCopy,
 } from "react-icons/tb";
 import NextLink from "next/link";
+import { CodeBlock, dracula } from "react-code-blocks";
 import API from "@/lib/api";
 import { useCallback } from "react";
+import { MemoizedReactMarkdown } from "@/lib/markdown";
 
 const algorithm = "aes-128-cbc";
 const key = process.env.NEXT_PUBLIC_SHARABLE_KEY_SECRET;
@@ -77,6 +78,19 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
   const router = useRouter();
   const session = useSession();
   const toast = useToast();
+  const embedCode = `<!-- This can be placed anywhere -->
+<div id="superagent-chat"></div>
+
+<!-- This should be placed before the 
+closing </body> tag -->
+<script src="./dist/web.js"></script>
+<script>
+Superagent({
+  agentId: "${agent?.id}",
+  apiKey: "${apiToken?.token}",
+  type: "inline" // inline or popup
+});
+</script>`;
 
   const handleShareUpdate = useCallback(
     async (event) => {
@@ -122,11 +136,11 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
     )}`;
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(getShareLink());
+  const copyToClipboard = (content) => {
+    navigator.clipboard.writeText(content || getShareLink());
 
     toast({
-      description: "Share link copied!",
+      description: "Copied to clipboard!",
       position: "top",
       colorScheme: "gray",
     });
@@ -254,44 +268,38 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
                 </ModalBody>
               </ModalContent>
             </Modal>
-            <Modal isOpen={isEmbedModalOpen} onClose={onEmbedModalClose}>
+            <Modal
+              size="lg"
+              isOpen={isEmbedModalOpen}
+              onClose={onEmbedModalClose}
+            >
               <ModalOverlay />
               <ModalContent>
                 <ModalHeader>Embed agent</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody paddingBottom={5}>
-                  <RadioGroup
-                    defaultValue="inline"
-                    name="radio"
-                    colorScheme="green"
-                  >
-                    <Stack divider={<StackDivider />}>
-                      <HStack justifyContent="space-between">
-                        <Stack spacing={0}>
-                          <Text as="b">Inline</Text>
-                          <Text
-                            fontSize="sm"
-                            color={useColorModeValue("gray.500", "gray.300")}
-                          >
-                            Embed a chat ui inline in your app
-                          </Text>
-                        </Stack>
-                        <Radio value="inline" />
-                      </HStack>
-                      <HStack justifyContent="space-between">
-                        <Stack spacing={0}>
-                          <Text as="b">Pop-up</Text>
-                          <Text
-                            fontSize="sm"
-                            color={useColorModeValue("gray.500", "gray.300")}
-                          >
-                            Embed a pop-up chat UI in your app
-                          </Text>
-                        </Stack>
-                        <Radio value="popup" />
-                      </HStack>
-                    </Stack>
-                  </RadioGroup>
+                  <Stack spacing={4}>
+                    <Text fontSize="md">
+                      Copy the following code and place it before the closing{" "}
+                      <Code>{"</body>"}</Code> tag. You can choose between{" "}
+                      <Code>inline</Code> or <Code>popup</Code> as options.
+                    </Text>
+                    <Box fontFamily="monospace" position="relative">
+                      <IconButton
+                        icon={<Icon as={TbCopy} fontSize="xl" />}
+                        position="absolute"
+                        top={2}
+                        right={2}
+                        onClick={() => copyToClipboard(embedCode)}
+                      />
+                      <CodeBlock
+                        text={embedCode}
+                        language="html"
+                        showLineNumbers
+                        theme={dracula}
+                      />
+                    </Box>
+                  </Stack>
                 </ModalBody>
               </ModalContent>
             </Modal>
