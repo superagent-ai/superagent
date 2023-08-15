@@ -46,7 +46,6 @@ from app.lib.tools import (
     get_chatgpt_plugin_tool,
     AgentTool,
     MetaphorTool,
-    DocSummarizerTool,
 )
 from app.lib.vectorstores.base import VectorStoreBase
 
@@ -321,14 +320,7 @@ class AgentBase:
                 f"useful for finding information in specific {agent_document.document.name}"
             )
             args_schema = DocumentInput if self.type == "OPENAI" else None
-
-            summary_tool = DocSummarizerTool(
-                document_id=agent_document.document.id,
-                llm=self._get_llm(has_streaming=False),
-            )
-
             docsearch_tool = DocumentTool(document_id=agent_document.document.id)
-
             docsearch_tool_all = DocumentTool(
                 document_id=agent_document.document.id, query_type="all"
             )
@@ -369,13 +361,6 @@ class AgentBase:
                         description="Useful to search for information in all documents",
                         args_schema=args_schema,
                         func=docsearch_tool_all.run,
-                    )
-                )
-                tools.append(
-                    Tool.from_function(
-                        func=summary_tool.run,
-                        name="document-summarizer",
-                        description="useful for summarizing a whole document",
                     )
                 )
 
