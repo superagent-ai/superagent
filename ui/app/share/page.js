@@ -3,6 +3,8 @@ import ShareClientPage from "./client-page";
 import { redirect } from "next/navigation";
 import crypto from "crypto";
 
+export const revalidate = 0;
+
 export const metadata = {
   title: "Superagent",
   description: "Create AI Agents in seconds",

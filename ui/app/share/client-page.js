@@ -346,6 +346,8 @@ export default function ShareClientPage({ agent, token }) {
     [shareSessions]
   );
 
+  console.log(agent.avatarUrl);
+
   return (
     <Stack minHeight="100vh" flex={1} overflow="hidden" spacing={6}>
       <Stack
@@ -434,7 +436,6 @@ export default function ShareClientPage({ agent, token }) {
           <Input
             variant="filled"
             autoFocus={false}
-            autoCorrect={false}
             boxShadow="md"
             backgroundColor="#333"
             type="text"
