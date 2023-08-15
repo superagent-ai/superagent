@@ -1,8 +1,8 @@
 {
-  "name": "embed",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "superagent-chat-embed",
+  "version": "0.0.2",
+  "description": "A embadable chat widget.",
+  "main": "dist/web.js",
   "scripts": {
     "start": "webpack serve --mode development",
     "build": "webpack --mode production"

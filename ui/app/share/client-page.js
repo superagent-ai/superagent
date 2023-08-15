@@ -363,7 +363,7 @@ export default function ShareClientPage({ agent, token }) {
             borderWidth="1px"
             borderRadius="md"
             padding={5}
-            zIndex={10}
+            zIndex={1}
           >
             <Stack spacing={4}>
               <Avatar src={agent.avatarUrl || "./logo.png"} />

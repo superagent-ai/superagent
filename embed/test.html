@@ -6,14 +6,18 @@
     <title>Widget Test</title>
 </head>
 <body>
-    <div id="superagent-chat"></div>
-    <script src="./dist/web.js"></script>
-    <script>
-        Superagent({
-            agentId: "cll81zy8n0025sv1mt3hybaoe",
-            apiKey: "3e1bbfce81364f36ab2e29b1dd2fcf70",
-            type: "popup"
-        });
-    </script>
+    <!-- This can be placed anywhere -->
+<div id="superagent-chat"></div>
+
+<!-- This should be placed before the 
+closing </body> tag -->
+<script src="https://unpkg.com/superagent-chat-embed/dist/web.js"></script>
+<script>
+Superagent({
+  agentId: "cll81zy8n0025sv1mt3hybaoe",
+  apiKey: "3e1bbfce81364f36ab2e29b1dd2fcf70",
+  type: "popup" // inline or popup
+});
+</script>
 </body>
 </html>

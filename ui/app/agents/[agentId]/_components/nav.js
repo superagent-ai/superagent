@@ -25,8 +25,6 @@ import {
   useDisclosure,
   StackDivider,
   useColorModeValue,
-  RadioGroup,
-  Radio,
 } from "@chakra-ui/react";
 import crypto from "crypto";
 import { useRouter } from "next/navigation";
@@ -44,7 +42,6 @@ import NextLink from "next/link";
 import { CodeBlock, dracula } from "react-code-blocks";
 import API from "@/lib/api";
 import { useCallback } from "react";
-import { MemoizedReactMarkdown } from "@/lib/markdown";
 
 const algorithm = "aes-128-cbc";
 const key = process.env.NEXT_PUBLIC_SHARABLE_KEY_SECRET;
@@ -70,7 +67,6 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
     onOpen: onEmbedModalOpen,
     onClose: onEmbedModalClose,
   } = useDisclosure();
-  const [selectedEmbedMethod, setSelectedEmbedMethod] = useState("inline");
   const [isChecked, setIsChecked] = useState(agent.isPublic);
   const [isListingChecked, setIsListingChecked] = useState(agent.isListed);
   const [isChangingShareStatus, setIsChangingShareStatus] = useState();
@@ -83,7 +79,7 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
 
 <!-- This should be placed before the 
 closing </body> tag -->
-<script src="./dist/web.js"></script>
+<script src="https://unpkg.com/superagent-chat-embed/dist/web.js"></script>
 <script>
 Superagent({
   agentId: "${agent?.id}",

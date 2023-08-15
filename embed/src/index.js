@@ -88,6 +88,7 @@ function SuperagentWidget({ agentId, apiKey, type }) {
       <ChakraProvider>
         {agent && !isOpen && (
           <Avatar
+            boxShadow="md"
             width="55px"
             height="55px"
             src={agent?.data?.avatarUrl || "https://app.superagent.sh/logo.png"}
@@ -101,6 +102,7 @@ function SuperagentWidget({ agentId, apiKey, type }) {
         )}
         {agent && isOpen && (
           <IconButton
+            boxShadow="md"
             borderRadius="full"
             icon={<Icon as={TbX} fontSize="2xl" />}
             width="55px"
