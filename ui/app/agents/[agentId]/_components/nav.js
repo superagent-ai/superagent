@@ -3,30 +3,43 @@ import { useState } from "react";
 import {
   Button,
   Box,
+  Code,
   Divider,
   HStack,
   FormControl,
-  FormLabel,
   Icon,
   IconButton,
+  Input,
   Link,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
   Text,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverHeader,
-  PopoverBody,
-  PopoverCloseButton,
   Stack,
   Switch,
   Spinner,
   useToast,
+  useDisclosure,
+  StackDivider,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import crypto from "crypto";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { TbChevronLeft, TbAlertTriangle, TbCopy, TbLink } from "react-icons/tb";
+import {
+  TbChevronLeft,
+  TbAlertTriangle,
+  TbLink,
+  TbShare,
+  TbApps,
+  TbCode,
+  TbCopy,
+} from "react-icons/tb";
 import NextLink from "next/link";
+import { CodeBlock, dracula } from "react-code-blocks";
 import API from "@/lib/api";
 import { useCallback } from "react";
 
@@ -44,6 +57,16 @@ const encrypt = (token) => {
 };
 
 export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
+  const {
+    isOpen: isShareModalOpen,
+    onOpen: onShareModalOpen,
+    onClose: onShareModalClose,
+  } = useDisclosure();
+  const {
+    isOpen: isEmbedModalOpen,
+    onOpen: onEmbedModalOpen,
+    onClose: onEmbedModalClose,
+  } = useDisclosure();
   const [isChecked, setIsChecked] = useState(agent.isPublic);
   const [isListingChecked, setIsListingChecked] = useState(agent.isListed);
   const [isChangingShareStatus, setIsChangingShareStatus] = useState();
@@ -51,6 +74,19 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
   const router = useRouter();
   const session = useSession();
   const toast = useToast();
+  const embedCode = `<!-- This can be placed anywhere -->
+<div id="superagent-chat"></div>
+
+<!-- This should be placed before the 
+closing </body> tag -->
+<script src="https://unpkg.com/superagent-chat-embed/dist/web.js"></script>
+<script>
+Superagent({
+  agentId: "${agent?.id}",
+  apiKey: "${apiToken?.token}",
+  type: "inline" // inline or popup
+});
+</script>`;
 
   const handleShareUpdate = useCallback(
     async (event) => {
@@ -85,18 +121,22 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
     [agent, router, session]
   );
 
-  const copyToClipboard = () => {
+  const getShareLink = () => {
     const baseUrl =
       typeof window !== "undefined"
         ? window.location.origin
         : "https://app.superagent.sh";
 
-    navigator.clipboard.writeText(
-      `${baseUrl}/share?agentId=${agent.id}&token=${encrypt(apiToken?.token)}`
-    );
+    return `${baseUrl}/share?agentId=${agent.id}&token=${encrypt(
+      apiToken?.token
+    )}`;
+  };
+
+  const copyToClipboard = (content) => {
+    navigator.clipboard.writeText(content || getShareLink());
 
     toast({
-      description: "Share link copied!",
+      description: "Copied to clipboard!",
       position: "top",
       colorScheme: "gray",
     });
@@ -130,43 +170,32 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
           )}
         </HStack>
         {apiToken && (
-          <Box>
-            <Popover>
-              <PopoverTrigger>
-                <Button rightIcon={<Icon as={TbCopy} fontSize="xl" />}>
-                  Share
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <PopoverCloseButton />
-                <PopoverHeader fontSize="md" fontWeight="bold">
-                  Sharing options
-                </PopoverHeader>
-                <PopoverBody>
+          <HStack>
+            <Button leftIcon={<Icon as={TbCode} />} onClick={onEmbedModalOpen}>
+              Embed
+            </Button>
+            <Button leftIcon={<Icon as={TbShare} />} onClick={onShareModalOpen}>
+              Share
+            </Button>
+            <Modal isOpen={isShareModalOpen} onClose={onShareModalClose}>
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>Share settings</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody paddingBottom={5}>
                   <Stack>
+                    <Text
+                      fontSize="md"
+                      color={useColorModeValue("gray.500", "gray.300")}
+                    >
+                      Use the following link to share your agents with users
+                      outside of Superagent.
+                    </Text>
                     <HStack>
-                      <FormControl display="flex" alignItems="center">
-                        {isChangingShareStatus ? (
-                          <Spinner size="sm" />
-                        ) : (
-                          <Switch
-                            isChecked={isChecked}
-                            colorScheme="green"
-                            id="is-visible"
-                            onChange={handleShareUpdate}
-                          />
-                        )}
-                        <FormLabel
-                          htmlFor="is-visible"
-                          marginBottom="0"
-                          marginLeft={2}
-                        >
-                          Create public chat
-                        </FormLabel>
-                      </FormControl>
+                      <Input value={getShareLink()} isDisabled={true} />
                       <Button
+                        colorScheme="green"
                         isDisabled={!agent.isPublic}
-                        variant="ghost"
                         onClick={() => copyToClipboard()}
                         size="sm"
                         leftIcon={<Icon as={TbLink} fontSize="xl" />}
@@ -174,32 +203,103 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
                         Link
                       </Button>
                     </HStack>
-                    <HStack>
-                      <FormControl display="flex" alignItems="center">
-                        {isChangingListingStatus ? (
-                          <Spinner size="sm" />
-                        ) : (
-                          <Switch
-                            isChecked={isListingChecked}
-                            colorScheme="green"
-                            id="is-visible"
-                            onChange={handleListingStatus}
-                          />
-                        )}
-                        <FormLabel
-                          htmlFor="is-visible"
-                          marginBottom="0"
-                          marginLeft={2}
-                        >
-                          List in library
-                        </FormLabel>
-                      </FormControl>
+                  </Stack>
+                  <Stack divider={<StackDivider />} marginTop={5}>
+                    <HStack justifyContent="space-between">
+                      <HStack spacing={4}>
+                        <Icon as={TbShare} fontSize="4xl" />
+                        <Stack spacing={0}>
+                          <Text as="b">Public access</Text>
+                          <Text
+                            fontSize="sm"
+                            color={useColorModeValue("gray.500", "gray.300")}
+                          >
+                            Make this Agent publicly accessible
+                          </Text>
+                        </Stack>
+                      </HStack>
+                      <Box>
+                        <FormControl>
+                          {isChangingShareStatus ? (
+                            <Spinner size="sm" />
+                          ) : (
+                            <Switch
+                              isChecked={isChecked}
+                              colorScheme="green"
+                              onChange={handleShareUpdate}
+                            />
+                          )}
+                        </FormControl>
+                      </Box>
+                    </HStack>
+                    <HStack justifyContent="space-between">
+                      <HStack spacing={4}>
+                        <Icon as={TbApps} fontSize="4xl" />
+                        <Stack spacing={0}>
+                          <Text as="b">List in library</Text>
+                          <Text
+                            fontSize="sm"
+                            color={useColorModeValue("gray.500", "gray.300")}
+                          >
+                            List this agent in public agent library
+                          </Text>
+                        </Stack>
+                      </HStack>
+                      <Box>
+                        <FormControl display="flex" alignItems="center">
+                          {isChangingListingStatus ? (
+                            <Spinner size="sm" />
+                          ) : (
+                            <Switch
+                              isChecked={isListingChecked}
+                              colorScheme="green"
+                              id="is-visible"
+                              onChange={handleListingStatus}
+                            />
+                          )}
+                        </FormControl>
+                      </Box>
                     </HStack>
                   </Stack>
-                </PopoverBody>
-              </PopoverContent>
-            </Popover>
-          </Box>
+                </ModalBody>
+              </ModalContent>
+            </Modal>
+            <Modal
+              size="lg"
+              isOpen={isEmbedModalOpen}
+              onClose={onEmbedModalClose}
+            >
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>Embed agent</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody paddingBottom={5}>
+                  <Stack spacing={4}>
+                    <Text fontSize="md">
+                      Copy the following code and place it before the closing{" "}
+                      <Code>{"</body>"}</Code> tag. You can choose between{" "}
+                      <Code>inline</Code> or <Code>popup</Code> as options.
+                    </Text>
+                    <Box fontFamily="monospace" position="relative">
+                      <IconButton
+                        icon={<Icon as={TbCopy} fontSize="xl" />}
+                        position="absolute"
+                        top={2}
+                        right={2}
+                        onClick={() => copyToClipboard(embedCode)}
+                      />
+                      <CodeBlock
+                        text={embedCode}
+                        language="html"
+                        showLineNumbers
+                        theme={dracula}
+                      />
+                    </Box>
+                  </Stack>
+                </ModalBody>
+              </ModalContent>
+            </Modal>
+          </HStack>
         )}
       </HStack>
       <Divider />

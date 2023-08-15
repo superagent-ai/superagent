@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Test</title>
+</head>
+<body>
+    <!-- This can be placed anywhere -->
+<div id="superagent-chat"></div>
+
+<!-- This should be placed before the 
+closing </body> tag -->
+<script src="https://unpkg.com/superagent-chat-embed/dist/web.js"></script>
+<script>
+Superagent({
+  agentId: "cll81zy8n0025sv1mt3hybaoe",
+  apiKey: "3e1bbfce81364f36ab2e29b1dd2fcf70",
+  type: "popup" // inline or popup
+});
+</script>
+</body>
+</html>
