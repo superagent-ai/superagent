@@ -1,5 +1,6 @@
 # flake8: noqa
 import json
+import requests
 
 from typing import Any
 from enum import Enum
@@ -97,15 +98,16 @@ class AgentTool:
         self.api_key = api_key
 
     def run(self, *args) -> str:
-        superagent = Superagent(
-            environment="https://api.superagent.sh", token=self.api_key
-        )
-        agent_id = self.metadata["agentId"]
-        output = superagent.agent.prompt_agent(
-            agent_id=agent_id, input={"input": args[0]}
-        )
+        url = f"https://api.superagent.sh/api/v1/agents/{self.metadata['agentId']}/predict"
+        headers = {
+            "content-type": "application/json",
+            "authorization": f"Bearar {self.api_key}",
+        }
+        data = {"has_streaming": False, "input": {"input": args[0]}}
+        response = requests.post(url, json=data, headers=headers)
+        response_json = response.json()
 
-        return output["data"]
+        return response_json.get("data")
 
 
 class MetaphorTool:
