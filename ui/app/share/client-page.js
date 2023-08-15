@@ -351,7 +351,7 @@ export default function ShareClientPage({ agent, token }) {
       <Stack
         flex={1}
         justifyContent={messages.length > 0 ? "flex-start" : "center"}
-        paddingX={[2, 4]}
+        paddingX={4}
         paddingY={[2, 10]}
         position="relative"
         overflow="hidden"
@@ -422,7 +422,7 @@ export default function ShareClientPage({ agent, token }) {
           onSelect={handleSelectSession}
         />
       </Stack>
-      <Stack>
+      <Stack paddingX={4} paddingBottom={4}>
         {isSubmitting && <LoadingMessage name={agent.name} />}
         <InputGroup
           size="lg"
