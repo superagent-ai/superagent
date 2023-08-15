@@ -43,7 +43,7 @@ const styles = {
     width: "450px",
     height: "600px",
     display: "flex",
-    borderRadius: "lg",
+    borderRadius: "2xl",
     alignItems: "center",
     justifyContent: "center",
     boxShadow: "md",
