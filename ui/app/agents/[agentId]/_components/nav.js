@@ -3,12 +3,14 @@ import { useState } from "react";
 import {
   Button,
   Box,
+  Card,
   Divider,
   HStack,
   FormControl,
   Icon,
   IconButton,
   Input,
+  Image,
   Link,
   Modal,
   ModalOverlay,
@@ -24,9 +26,8 @@ import {
   useDisclosure,
   StackDivider,
   useColorModeValue,
-  InputGroup,
-  InputRightElement,
-  InputRightAddon,
+  RadioGroup,
+  Radio,
 } from "@chakra-ui/react";
 import crypto from "crypto";
 import { useRouter } from "next/navigation";
@@ -38,6 +39,7 @@ import {
   TbLink,
   TbShare,
   TbApps,
+  TbCode,
 } from "react-icons/tb";
 import NextLink from "next/link";
 import API from "@/lib/api";
@@ -57,7 +59,17 @@ const encrypt = (token) => {
 };
 
 export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isShareModalOpen,
+    onOpen: onShareModalOpen,
+    onClose: onShareModalClose,
+  } = useDisclosure();
+  const {
+    isOpen: isEmbedModalOpen,
+    onOpen: onEmbedModalOpen,
+    onClose: onEmbedModalClose,
+  } = useDisclosure();
+  const [selectedEmbedMethod, setSelectedEmbedMethod] = useState("inline");
   const [isChecked, setIsChecked] = useState(agent.isPublic);
   const [isListingChecked, setIsListingChecked] = useState(agent.isListed);
   const [isChangingShareStatus, setIsChangingShareStatus] = useState();
@@ -148,11 +160,14 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
           )}
         </HStack>
         {apiToken && (
-          <Box>
-            <Button leftIcon={<Icon as={TbShare} />} onClick={onOpen}>
+          <HStack>
+            <Button leftIcon={<Icon as={TbCode} />} onClick={onEmbedModalOpen}>
+              Embed
+            </Button>
+            <Button leftIcon={<Icon as={TbShare} />} onClick={onShareModalOpen}>
               Share
             </Button>
-            <Modal isOpen={isOpen} onClose={onClose}>
+            <Modal isOpen={isShareModalOpen} onClose={onShareModalClose}>
               <ModalOverlay />
               <ModalContent>
                 <ModalHeader>Share settings</ModalHeader>
@@ -239,7 +254,48 @@ export default function AgentNavbar({ agent, apiToken, hasApiTokenWarning }) {
                 </ModalBody>
               </ModalContent>
             </Modal>
-          </Box>
+            <Modal isOpen={isEmbedModalOpen} onClose={onEmbedModalClose}>
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>Embed agent</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody paddingBottom={5}>
+                  <RadioGroup
+                    defaultValue="inline"
+                    name="radio"
+                    colorScheme="green"
+                  >
+                    <Stack divider={<StackDivider />}>
+                      <HStack justifyContent="space-between">
+                        <Stack spacing={0}>
+                          <Text as="b">Inline</Text>
+                          <Text
+                            fontSize="sm"
+                            color={useColorModeValue("gray.500", "gray.300")}
+                          >
+                            Embed a chat ui inline in your app
+                          </Text>
+                        </Stack>
+                        <Radio value="inline" />
+                      </HStack>
+                      <HStack justifyContent="space-between">
+                        <Stack spacing={0}>
+                          <Text as="b">Pop-up</Text>
+                          <Text
+                            fontSize="sm"
+                            color={useColorModeValue("gray.500", "gray.300")}
+                          >
+                            Embed a pop-up chat UI in your app
+                          </Text>
+                        </Stack>
+                        <Radio value="popup" />
+                      </HStack>
+                    </Stack>
+                  </RadioGroup>
+                </ModalBody>
+              </ModalContent>
+            </Modal>
+          </HStack>
         )}
       </HStack>
       <Divider />
