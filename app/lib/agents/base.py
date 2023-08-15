@@ -353,16 +353,6 @@ class AgentBase:
                         func=docsearch_tool.run,
                     )
                 )
-                tools.append(
-                    Tool(
-                        name="document_database"
-                        if self.type == "OPENAI"
-                        else agent_document.document.name,
-                        description="Useful to search for information in all documents",
-                        args_schema=args_schema,
-                        func=docsearch_tool_all.run,
-                    )
-                )
 
         for agent_tool in self.tools:
             tool, args_schema = self._get_tool_and_input_by_type(
