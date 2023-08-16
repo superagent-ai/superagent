@@ -449,7 +449,6 @@ export default function ShareClientPage({ agent, token }) {
             type="text"
             placeholder="Enter an input..."
             fontSize="md"
-            isDisabled={isSubmitting}
             {...register("input", { required: true })}
           />
           <InputRightElement>
