@@ -6,6 +6,7 @@ from starlette.requests import Request
 from app.lib.auth.prisma import JWTBearer
 from app.lib.models.agent_document import AgentDocument
 from app.lib.prisma import prisma
+from response import Response
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -28,6 +29,7 @@ def parse_filter_params(request: Request):
     "/agent-documents",
     name="Create agent document",
     description="Create a agent document",
+    response_model=Response[AgentDocument],
 )
 async def create_agent_document(body: AgentDocument, token=Depends(JWTBearer())):
     """Create api token endpoint"""

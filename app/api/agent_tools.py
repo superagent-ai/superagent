@@ -6,6 +6,7 @@ from starlette.requests import Request
 from app.lib.auth.prisma import JWTBearer
 from app.lib.models.agent_tool import AgentTool
 from app.lib.prisma import prisma
+from response import Response
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +79,7 @@ async def read_agent_tools(
     "/agent-tools/{agentToolId}",
     name="Get agent tool",
     description="Get a specific agent tool",
+    response_model=Response[AgentTool],
 )
 async def read_agent_tool(agentToolId: str, token=Depends(JWTBearer())):
     """Get an agent tool"""

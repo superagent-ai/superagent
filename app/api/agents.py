@@ -16,6 +16,8 @@ from app.lib.auth.prisma import JWTBearer
 from app.lib.models.agent import Agent, PredictAgent
 from app.lib.prisma import prisma
 
+from .response import Response
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
@@ -73,6 +75,7 @@ async def read_agents(token=Depends(JWTBearer())):
     "/agents/library",
     name="List library agents",
     description="List all library agents",
+    response_model=Response[Agent]
 )
 async def read_library_agents(token=Depends(JWTBearer())):
     """Library agentsendpoint"""
