@@ -3,6 +3,7 @@ from typing import Dict
 
 import bcrypt
 import jwt
+import json
 import requests as req
 from azure.identity import DefaultAzureCredential
 from decouple import config
@@ -79,7 +80,8 @@ class JWTBearer(HTTPBearer):
                         raise HTTPException(
                             status_code=403, detail="Invalid token or expired token."
                         )
-                    return signJWT(tokens_data.userId)
+
+                    return json.loads(tokens_data.json())
 
             return decodeJWT(credentials.credentials)
 
