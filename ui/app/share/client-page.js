@@ -402,6 +402,7 @@ export default function ShareClientPage({ agent, token }) {
           right={0}
           bottom={0}
           overflow="auto"
+          paddingX={5}
           paddingY={12}
         >
           {messages.map(({ type, message }, index) => (
