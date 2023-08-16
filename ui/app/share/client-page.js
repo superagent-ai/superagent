@@ -171,6 +171,13 @@ function Message({ agent, message, type }) {
             {message.length === 0 && <PulsatingCursor />}
             <MemoizedReactMarkdown
               components={{
+                a({ children, href }) {
+                  return (
+                    <Link href={href} color="orange.500" target="_blank">
+                      {children}
+                    </Link>
+                  );
+                },
                 ol({ children }) {
                   return <OrderedList>{children}</OrderedList>;
                 },
