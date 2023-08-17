@@ -1,15 +1,13 @@
 import json
 import logging
-import threading
 from queue import Queue
 from typing import Any, Dict
 
 from decouple import config
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security.api_key import APIKey
-from starlette.responses import StreamingResponse
 
-from app.lib.agents.base import AgentBase
+from app.lib.agents.handler import AgentHandler
 from app.lib.agents.factory import AgentFactory
 from app.lib.auth.api import get_api_key
 from app.lib.auth.prisma import JWTBearer
@@ -156,11 +154,7 @@ async def run_agent(
     background_tasks: BackgroundTasks,
     api_key: APIKey = Depends(get_api_key),
 ):
-    """Agent detail endpoint"""
-    agent = prisma.agent.find_unique(
-        where={"id": agentId},
-        include={"prompt": True},
-    )
+    agent = prisma.agent.find_unique(where={"id": agentId}, include={"prompt": True})
 
     if not agent:
         logger.error(f"Cannot run agent with id: {agentId} not found")
@@ -170,121 +164,13 @@ async def run_agent(
         )
 
     data_queue = Queue()
-    agent_base = create_agent_base(agent, body, api_key, data_queue)
-    agent_strategy = AgentFactory.create_agent(agent_base)
+    handler = AgentHandler(agent, body, api_key, data_queue)
+    agent_strategy = AgentFactory.create_agent(handler.create_agent_base())
     agent_executor = agent_strategy.get_agent(session=body.session)
 
     if body.has_streaming:
-        return await handle_streaming(
-            agent,
-            body,
-            api_key,
-            agent_executor,
-            agentId,
-            background_tasks,
-            data_queue,
-        )
+        return await handler.handle_streaming(agent_executor, agentId, background_tasks)
 
-    return await handle_non_streaming(
-        agent_base, agent_executor, body, agentId, background_tasks
+    return await handler.handle_non_streaming(
+        handler.create_agent_base(), agent_executor, agentId, background_tasks
     )
-
-
-def create_agent_base(agent, body, api_key, data_queue=None):
-    on_llm_new_token = (
-        lambda token: (print(f"Token: {token}"), data_queue.put(token))
-        if data_queue
-        else None
-    )
-    on_llm_end = (
-        lambda: (print("End token"), data_queue.put("[END]")) if data_queue else None
-    )
-
-    return AgentBase(
-        agent=agent,
-        has_streaming=body.has_streaming,
-        api_key=api_key,
-        on_llm_new_token=on_llm_new_token,
-        on_llm_end=on_llm_end,
-        on_chain_end=lambda outputs: None,
-    )
-
-
-async def handle_streaming(
-    agent,
-    body,
-    api_key,
-    agent_executor,
-    agentId,
-    background_tasks,
-    data_queue,
-):
-    agent_base = create_agent_base(agent, body, api_key, data_queue)
-    threading.Thread(
-        target=conversation_run_thread,
-        args=(
-            agent_base,
-            agent_executor,
-            body.input,
-            body.session,
-            agentId,
-            background_tasks,
-            data_queue,
-        ),
-    ).start()
-    response = StreamingResponse(
-        event_stream(data_queue), media_type="text/event-stream"
-    )
-    return response
-
-
-def conversation_run_thread(
-    agent_base, agent_executor, message, session, agentId, background_tasks, data_queue
-):
-    result = agent_executor(agent_base.process_payload(payload=message.get("input")))
-    output = result.get("output") or result.get("result")
-    data_queue.put(output)
-
-    background_tasks.add_task(
-        agent_base.create_agent_memory, agentId, session, "AI", output
-    )
-
-    if config("SUPERAGENT_TRACING"):
-        trace = agent_base._format_trace(trace=result)
-        background_tasks.add_task(agent_base.save_intermediate_steps, trace)
-
-    data_queue.put("[END]")
-
-
-def event_stream(data_queue: Queue) -> str:
-    while True:
-        data = data_queue.get()
-        if data == "[END]":
-            yield f"data: {data}\n\n"
-            break
-        yield f"data: {data}\n\n"
-
-
-async def handle_non_streaming(
-    agent_base, agent_executor, body, agentId, background_tasks
-):
-    result = agent_executor(agent_base.process_payload(payload=body.input))
-    output = result.get("output") or result.get("result")
-
-    background_tasks.add_task(
-        agent_base.create_agent_memory,
-        agentId,
-        body.session,
-        "HUMAN",
-        json.dumps(body.input.get("input")),
-    )
-    background_tasks.add_task(
-        agent_base.create_agent_memory, agentId, body.session, "AI", output
-    )
-
-    if config("SUPERAGENT_TRACING"):
-        trace = agent_base._format_trace(trace=result)
-        background_tasks.add_task(agent_base.save_intermediate_steps, trace)
-        return {"success": True, "data": output, "trace": json.loads(trace)}
-
-    return {"success": True, "data": output}
