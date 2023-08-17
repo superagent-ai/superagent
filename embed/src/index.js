@@ -39,8 +39,7 @@ const styles = {
     position: "fixed",
     cursor: "pointer",
     bottom: "90px", 
-    right: "20px",
-    width: "450px",
+    maxWidth: "450px",
     height: "600px",
     display: "flex",
     borderRadius: "2xl",
@@ -88,6 +87,7 @@ function SuperagentWidget({ agentId, apiKey, type }) {
       <ChakraProvider>
         {agent && !isOpen && (
           <Avatar
+            zIndex={99999999}
             boxShadow="md"
             width="55px"
             height="55px"
@@ -102,6 +102,7 @@ function SuperagentWidget({ agentId, apiKey, type }) {
         )}
         {agent && isOpen && (
           <IconButton
+            zIndex={99999999}
             boxShadow="md"
             borderRadius="full"
             icon={<Icon as={TbX} fontSize="2xl" />}
@@ -117,7 +118,13 @@ function SuperagentWidget({ agentId, apiKey, type }) {
           />
         )}
         {agent && (
-          <Box {...styles.modalContainer} display={!isOpen && "none"}>
+          <Box 
+            {...styles.modalContainer} 
+            display={!isOpen && "none"} 
+            zIndex={99999999} 
+            left={["5px", null, null]} 
+            right={["5px", "20px"]}
+          >
             <iframe
               style={styles.iframe} 
               width="100%"

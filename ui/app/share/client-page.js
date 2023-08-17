@@ -382,9 +382,7 @@ export default function ShareClientPage({ agent, token }) {
               <Text fontSize="md">{agent.description}</Text>
               <Divider />
               <Text color="gray.500" fontSize="sm">
-                This agent was created using Superagent. It leverages the{" "}
-                {agent?.llm?.model} large language model. Note that this agent
-                was marked as public by it's creator.
+                This agent was created using Superagent.
               </Text>
               <Text color="gray.500" fontSize="sm">
                 More info:{" "}
