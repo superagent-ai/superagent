@@ -84,7 +84,7 @@ closing </body> tag -->
 Superagent({
   agentId: "${agent?.id}",
   apiKey: "${apiToken?.token}",
-  type: "inline" // inline or popup
+  type: "inline"
 });
 </script>`;
 
