@@ -5,11 +5,12 @@ from typing import Any, Dict, Generator, Optional
 
 from decouple import config
 from queue import Queue
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks
 from starlette.responses import StreamingResponse
 
 from app.lib.models.agent import PredictAgent
 from app.lib.agents.base import AgentBase
+
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -18,7 +19,7 @@ router = APIRouter()
 class AgentHandler:
     def __init__(
         self,
-        agent,
+        agent: Any,
         body: PredictAgent,
         api_key: str,
         data_queue: Optional[Queue] = None,
@@ -28,7 +29,7 @@ class AgentHandler:
         self.api_key = api_key
         self.data_queue = data_queue
 
-    def create_agent_base(self):
+    def create_agent_base(self) -> AgentBase:
         on_llm_new_token = (
             lambda token: (print(f"Token: {token}"), self.data_queue.put(token))
             if self.data_queue
@@ -49,7 +50,9 @@ class AgentHandler:
             on_chain_end=lambda outputs: None,
         )
 
-    async def handle_streaming(self, agent_executor, agentId, background_tasks):
+    async def handle_streaming(
+        self, agent_executor, agentId: str, background_tasks: BackgroundTasks
+    ) -> StreamingResponse:
         agent_base = self.create_agent_base()
         threading.Thread(
             target=self.conversation_run_thread,
@@ -65,8 +68,14 @@ class AgentHandler:
         return StreamingResponse(self.event_stream(), media_type="text/event-stream")
 
     def conversation_run_thread(
-        self, agent_base, agent_executor, message, session, agentId, background_tasks
-    ):
+        self,
+        agent_base: AgentBase,
+        agent_executor: Any,
+        message: Dict[str, Any],
+        session: str,
+        agentId: str,
+        background_tasks: BackgroundTasks,
+    ) -> None:
         result = agent_executor(
             agent_base.process_payload(payload=message.get("input"))
         )
@@ -83,7 +92,7 @@ class AgentHandler:
 
         self.data_queue.put("[END]")
 
-    def event_stream(self):
+    def event_stream(self) -> Generator[str, None, None]:
         while True:
             data = self.data_queue.get()
             if data == "[END]":
@@ -92,8 +101,12 @@ class AgentHandler:
             yield f"data: {data}\n\n"
 
     async def handle_non_streaming(
-        self, agent_base, agent_executor, agentId, background_tasks
-    ):
+        self,
+        agent_base: AgentBase,
+        agent_executor: Any,
+        agentId: str,
+        background_tasks: BackgroundTasks,
+    ) -> Dict[str, Any]:
         result = agent_executor(agent_base.process_payload(payload=self.body.input))
         output = result.get("output") or result.get("result")
 
