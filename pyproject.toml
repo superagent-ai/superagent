@@ -18,7 +18,6 @@ python-decouple = "^3.8"
 pydantic = "^1.10.7"
 sse-starlette = "^1.5.0"
 unstructured = "^0.6.4"
-prisma = "^0.8.2"
 bcrypt = "^4.0.1"
 pyjwt = "^2.7.0"
 ruff = "^0.0.265"
@@ -52,8 +51,9 @@ vulture = "^2.7"
 airbyte-source-stripe = "^3.17.1"
 pyairtable = "^2.0.0"
 metaphor-python = "^0.1.11"
-langchain = "^0.0.264"
 superagent-py = "^0.0.51"
+langchain = "^0.0.268"
+prisma = "^0.9.1"
 
 
 [build-system]
