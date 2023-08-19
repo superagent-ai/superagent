@@ -51,7 +51,6 @@ function MenuLink({ label, icon, path, ...properties }) {
 
 export default function AppBody({ children, session }) {
   const { toggleColorMode, colorMode } = useColorMode();
-  console.log(session);
 
   return (
     <AppShell
