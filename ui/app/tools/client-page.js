@@ -42,17 +42,17 @@ function ToolCard({ id, name, createdAt, type, onDelete, onEdit }) {
   );
   return (
     <Stack borderWidth="1px" borderRadius="md" padding={4}>
-        <HStack justifyContent="space-between" flex={1}>
-          <Text noOfLines={1} as="b" flex={1}>
-            {name}
-          </Text>
-          <Text fontSize="sm" color="gray.500">
-            {dayjs(createdAt).fromNow()}
-          </Text>
-        </HStack>
-        <Text fontSize="sm" color="gray.500">
-          {`Id: ${id}`}
+      <HStack justifyContent="space-between" flex={1}>
+        <Text noOfLines={1} as="b" flex={1}>
+          {name}
         </Text>
+        <Text fontSize="sm" color="gray.500">
+          {dayjs(createdAt).fromNow()}
+        </Text>
+      </HStack>
+      <Text fontSize="sm" color="gray.500">
+        {`Id: ${id}`}
+      </Text>
       <HStack justifyContent="space-between">
         <Tag variant="subtle" colorScheme="green" size="sm">
           {type}
@@ -194,6 +194,7 @@ export default function ToolsClientPage({ data, session }) {
                   name={name}
                   type={type}
                   onDelete={(id) => handleDelete(id)}
+                  handleEdit={(id) => handleEdit(id)}
                 />
               ))
             : data?.map(({ id, createdAt, name, type }) => (

@@ -191,17 +191,18 @@ model Tag {
 }
 
 model Tool {
-  id          String      @id @default(cuid()) @db.VarChar(255)
-  name        String
-  description String?     @db.Text()
-  type        ToolType?
-  metadata    Json?
-  userId      String      @db.VarChar(255)
-  user        User        @relation(fields: [userId], references: [id])
-  createdAt   DateTime?   @default(now())
-  updatedAt   DateTime?   @updatedAt
-  Agent       Agent[]
-  AgentTool   AgentTool[]
+  id           String      @id @default(cuid()) @db.VarChar(255)
+  name         String
+  description  String?     @db.Text()
+  type         ToolType?
+  metadata     Json?
+  userId       String      @db.VarChar(255)
+  returnDirect Boolean     @default(false)
+  user         User        @relation(fields: [userId], references: [id])
+  createdAt    DateTime?   @default(now())
+  updatedAt    DateTime?   @updatedAt
+  Agent        Agent[]
+  AgentTool    AgentTool[]
 }
 
 model AgentTool {

@@ -5,6 +5,7 @@ class Tool(BaseModel):
     name: str
     type: str
     description: str
+    returnDirect: bool = False
     authorization: dict = None
     metadata: dict = None
 

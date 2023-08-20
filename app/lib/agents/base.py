@@ -6,13 +6,11 @@ from slugify import slugify
 from decouple import config
 from langchain import HuggingFaceHub
 from langchain.agents import Tool, create_csv_agent, AgentType
-from langchain.chains import RetrievalQA
 from langchain.chat_models import (
     AzureChatOpenAI,
     ChatAnthropic,
     ChatOpenAI,
 )
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
@@ -47,7 +45,6 @@ from app.lib.tools import (
     AgentTool,
     MetaphorTool,
 )
-from app.lib.vectorstores.base import VectorStoreBase
 
 
 class AgentBase:
@@ -369,9 +366,9 @@ class AgentBase:
                     or ToolDescription[agent_tool.tool.type].value,
                     args_schema=args_schema if self.type == "OPENAI" else None,
                     func=tool.run if agent_tool.tool.type != "REPLICATE" else tool,
+                    return_direct=agent_tool.tool.returnDirect,
                 )
             )
-
         return tools
 
     def _get_agent_tools(self) -> Any:

@@ -123,7 +123,7 @@ class MetaphorTool:
         )
         output = search.results(args[0], 10, use_autoprompt=True)
 
-        return output
+        return str(output)
 
 
 class DocSummarizerTool:
