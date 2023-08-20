@@ -13,14 +13,25 @@ from app.lib.agents.base import AgentBase
 from app.lib.agents.factory import AgentFactory
 from app.lib.auth.api import get_api_key
 from app.lib.auth.prisma import JWTBearer
-from app.lib.models.agent import Agent, PredictAgent
+from app.lib.models.agent import (
+    Agent,
+    PredictAgent,
+    AgentOutput,
+    AgentListOutput,
+    PredictAgentOutput,
+)
 from app.lib.prisma import prisma
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/agents", name="Create agent", description="Create a new agent")
+@router.post(
+    "/agents",
+    name="Create agent",
+    description="Create a new agent",
+    response_model=AgentOutput,
+)
 async def create_agent(body: Agent, token=Depends(JWTBearer())):
     """Agents endpoint"""
     try:
@@ -47,7 +58,12 @@ async def create_agent(body: Agent, token=Depends(JWTBearer())):
         )
 
 
-@router.get("/agents", name="List all agents", description="List all agents")
+@router.get(
+    "/agents",
+    name="List all agents",
+    description="List all agents",
+    response_model=AgentListOutput,
+)
 async def read_agents(token=Depends(JWTBearer())):
     """Agents endpoint"""
     try:
@@ -73,6 +89,7 @@ async def read_agents(token=Depends(JWTBearer())):
     "/agents/library",
     name="List library agents",
     description="List all library agents",
+    response_model=AgentListOutput,
 )
 async def read_library_agents(token=Depends(JWTBearer())):
     """Library agentsendpoint"""
@@ -94,7 +111,12 @@ async def read_library_agents(token=Depends(JWTBearer())):
     )
 
 
-@router.get("/agents/{agentId}", name="Get agent", description="Get a specific agent")
+@router.get(
+    "/agents/{agentId}",
+    name="Get agent",
+    description="Get a specific agent",
+    response_model=AgentOutput,
+)
 async def read_agent(agentId: str, token=Depends(JWTBearer())):
     """Agent detail endpoint"""
     agent = prisma.agent.find_unique(where={"id": agentId}, include={"prompt": True})
@@ -110,7 +132,10 @@ async def read_agent(agentId: str, token=Depends(JWTBearer())):
 
 
 @router.delete(
-    "/agents/{agentId}", name="Delete agent", description="Delete a specific agent"
+    "/agents/{agentId}",
+    name="Delete agent",
+    description="Delete a specific agent",
+    response_model=AgentOutput,
 )
 async def delete_agent(agentId: str, token=Depends(JWTBearer())):
     """Delete agent endpoint"""
@@ -127,7 +152,10 @@ async def delete_agent(agentId: str, token=Depends(JWTBearer())):
 
 
 @router.patch(
-    "/agents/{agentId}", name="Patch agent", description="Patch a specific agent"
+    "/agents/{agentId}",
+    name="Patch agent",
+    description="Patch a specific agent",
+    response_model=AgentOutput,
 )
 async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
     """Patch agent endpoint"""
@@ -137,18 +165,19 @@ async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
 
     try:
         prisma.agent.update(data=body, where={"id": agentId})
+        return {"success": True, "data": None}
     except Exception as e:
         logger.error(f"Couldn't patch agent with id {agentId}", exc_info=e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-    return {"success": True, "data": None}
 
 
 @router.post(
     "/agents/{agentId}/predict",
     name="Prompt agent",
     description="Invoke a specific agent",
+    response_model=PredictAgentOutput,
 )
 async def run_agent(
     agentId: str,
