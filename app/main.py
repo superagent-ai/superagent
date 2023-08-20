@@ -33,8 +33,8 @@ logging.basicConfig(
 
 app = FastAPI(
     title="Superagent",
-    description="Bring your agents to production",
-    version="0.0.7",
+    description="Build, manage and deploy LLM-powered Agents",
+    version="0.0.55",
 )
 
 app.add_middleware(
