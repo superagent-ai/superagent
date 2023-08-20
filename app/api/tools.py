@@ -4,7 +4,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.lib.auth.prisma import JWTBearer
-from app.lib.models.tool import Tool
+from app.lib.models.tool import Tool, ToolOutput, ToolListOutput
 from app.lib.prisma import prisma
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/tools", name="Create a tool", description="Create a new tool")
+@router.post(
+    "/tools",
+    name="Create a tool",
+    description="Create a new tool",
+    response_model=ToolOutput,
+)
 async def create_tool(body: Tool, token=Depends(JWTBearer())):
     """Create tool endpoint"""
     try:
@@ -34,7 +39,12 @@ async def create_tool(body: Tool, token=Depends(JWTBearer())):
         )
 
 
-@router.get("/tools", name="List tools", description="List all tools")
+@router.get(
+    "/tools",
+    name="List tools",
+    description="List all tools",
+    response_model=ToolListOutput,
+)
 async def read_tools(token=Depends(JWTBearer())):
     """List tools endpoint"""
     try:
@@ -55,6 +65,7 @@ async def read_tools(token=Depends(JWTBearer())):
     "/tools/{toolId}",
     name="Get tool",
     description="Get a specific tool",
+    response_model=ToolOutput,
 )
 async def read_tool(toolId: str, token=Depends(JWTBearer())):
     """Get tool endpoint"""
@@ -72,6 +83,7 @@ async def read_tool(toolId: str, token=Depends(JWTBearer())):
     "/tools/{toolId}",
     name="Delete tool",
     description="Delete a specific tool",
+    response_model=ToolOutput,
 )
 async def delete_tool(toolId: str, token=Depends(JWTBearer())):
     """Delete tool endpoint"""
@@ -85,7 +97,12 @@ async def delete_tool(toolId: str, token=Depends(JWTBearer())):
         )
 
 
-@router.patch("/tools/{toolId}", name="Patch tool", description="Patch a specific tool")
+@router.patch(
+    "/tools/{toolId}",
+    name="Patch tool",
+    description="Patch a specific tool",
+    response_model=ToolOutput,
+)
 async def patch_tool(toolId: str, body: dict, token=Depends(JWTBearer())):
     """Patch tool endpoint"""
     try:

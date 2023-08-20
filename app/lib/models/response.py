@@ -165,7 +165,7 @@ class Tool(BaseModel):
     name: str
     description: Optional[str]
     type: Optional[ToolType]
-    metadata: Optional[Json]
+    metadata: Optional[dict]
     userId: str
     returnDirect: bool
     createdAt: Optional[datetime]
