@@ -4,7 +4,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.lib.auth.prisma import JWTBearer
-from app.lib.models.prompt import Prompt
+from app.lib.models.prompt import Prompt, PromptListOutput, PromptOutput
 from app.lib.prisma import prisma
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/prompts", name="Create a prompt", description="Create a new prompt")
+@router.post(
+    "/prompts",
+    name="Create a prompt",
+    description="Create a new prompt",
+    response_model=PromptOutput,
+)
 async def create_prompt(body: Prompt, token=Depends(JWTBearer())):
     """Create prompt endpoint"""
 
@@ -34,7 +39,12 @@ async def create_prompt(body: Prompt, token=Depends(JWTBearer())):
     )
 
 
-@router.get("/prompts", name="List prompts", description="List all prompts")
+@router.get(
+    "/prompts",
+    name="List prompts",
+    description="List all prompts",
+    response_model=PromptListOutput,
+)
 async def read_prompts(token=Depends(JWTBearer())):
     """List prompts endpoint"""
     try:
@@ -55,6 +65,7 @@ async def read_prompts(token=Depends(JWTBearer())):
     "/prompts/{promptId}",
     name="Get prompt",
     description="Get a specific prompt",
+    response_model=PromptOutput,
 )
 async def read_prompt(promptId: str, token=Depends(JWTBearer())):
     """Get prompt endpoint"""
@@ -74,6 +85,7 @@ async def read_prompt(promptId: str, token=Depends(JWTBearer())):
     "/prompts/{promptId}",
     name="Delete prompt",
     description="Delete a specific prompt",
+    response_model=PromptOutput,
 )
 async def delete_prompt(promptId: str, token=Depends(JWTBearer())):
     """Delete prompt endpoint"""
@@ -88,7 +100,10 @@ async def delete_prompt(promptId: str, token=Depends(JWTBearer())):
 
 
 @router.patch(
-    "/prompts/{promptId}", name="Patch prompt", description="Patch a specific prompt"
+    "/prompts/{promptId}",
+    name="Patch prompt",
+    description="Patch a specific prompt",
+    response_model=PromptOutput,
 )
 async def patch_prompt(promptId: str, body: dict, token=Depends(JWTBearer())):
     """Patch prompt endpoint"""

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.lib.api_tokens import generate_api_token
 from app.lib.auth.prisma import JWTBearer
-from app.lib.models.api_token import ApiToken
+from app.lib.models.api_token import ApiToken, ApiTokenListOutput, ApiTokenOutput
 from app.lib.prisma import prisma
 
 logger = logging.getLogger(__name__)
@@ -13,7 +13,10 @@ router = APIRouter()
 
 
 @router.post(
-    "/api-tokens", name="Create API token", description="Create a new API token"
+    "/api-tokens",
+    name="Create API token",
+    description="Create a new API token",
+    response_model=ApiTokenOutput,
 )
 async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
     """Create api token endpoint"""
@@ -37,7 +40,12 @@ async def create_api_token(body: ApiToken, token=Depends(JWTBearer())):
         )
 
 
-@router.get("/api-tokens", name="List API tokens", description="List all API tokens")
+@router.get(
+    "/api-tokens",
+    name="List API tokens",
+    description="List all API tokens",
+    response_model=ApiTokenListOutput,
+)
 async def read_api_tokens(token=Depends(JWTBearer())):
     """List api tokens endpoint"""
     try:
@@ -60,6 +68,7 @@ async def read_api_tokens(token=Depends(JWTBearer())):
     "/api-tokens/{tokenId}",
     name="Get API token",
     description="Get a specific API token",
+    response_model=ApiTokenOutput,
 )
 async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
     """Get an api token endpoint"""
@@ -83,6 +92,7 @@ async def read_api_token(tokenId: str, token=Depends(JWTBearer())):
     "/api-tokens/{tokenId}",
     name="Delete API token",
     description="Delete a specific API token",
+    response_model=ApiTokenOutput,
 )
 async def delete_api_token(tokenId: str, token=Depends(JWTBearer())):
     """Delete api token endpoint"""

@@ -1,9 +1,8 @@
-from pydantic import BaseModel, Json
-from typing import List, Optional, Any
 from datetime import datetime
-
-# Enums
 from enum import Enum
+from typing import List, Optional
+
+from pydantic import BaseModel
 
 
 class AgentType(str, Enum):
@@ -63,7 +62,7 @@ class User(BaseModel):
 class Profile(BaseModel):
     id: str
     userId: str
-    metadata: Optional[Json]
+    metadata: Optional[dict]
 
 
 class Document(BaseModel):
@@ -75,12 +74,12 @@ class Document(BaseModel):
     content: Optional[str]
     contentHash: Optional[str]
     name: str
-    splitter: Optional[Json]
+    splitter: Optional[dict]
     createdAt: Optional[datetime]
     updatedAt: Optional[datetime]
-    index: Optional[Json]
-    authorization: Optional[Json]
-    metadata: Optional[Json]
+    index: Optional[dict]
+    authorization: Optional[dict]
+    metadata: Optional[dict]
 
 
 class Agent(BaseModel):
@@ -126,7 +125,7 @@ class AgentTrace(BaseModel):
     id: str
     userId: str
     agentId: str
-    data: Json
+    data: dict
     createdAt: Optional[datetime]
     updatedAt: Optional[datetime]
 
@@ -135,7 +134,7 @@ class Prompt(BaseModel):
     id: str
     name: str
     template: str
-    input_variables: Json
+    input_variables: list
     userId: str
     createdAt: Optional[datetime]
     updatedAt: Optional[datetime]
@@ -145,6 +144,7 @@ class Prompt(BaseModel):
 class AgentDocument(BaseModel):
     id: str
     documentId: Optional[str]
+    document: Optional[Document]
     agentId: str
     createdAt: Optional[datetime]
     updatedAt: Optional[datetime]
@@ -175,6 +175,7 @@ class Tool(BaseModel):
 class AgentTool(BaseModel):
     id: str
     toolId: Optional[str]
+    tool: Optional[Tool]
     agentId: str
     createdAt: Optional[datetime]
     updatedAt: Optional[datetime]

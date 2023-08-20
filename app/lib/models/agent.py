@@ -1,5 +1,7 @@
-from pydantic import BaseModel
 from typing import List
+
+from pydantic import BaseModel
+
 from app.lib.models.response import Agent as BaseAgent
 
 

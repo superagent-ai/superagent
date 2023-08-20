@@ -15,9 +15,9 @@ from app.lib.auth.api import get_api_key
 from app.lib.auth.prisma import JWTBearer
 from app.lib.models.agent import (
     Agent,
-    PredictAgent,
-    AgentOutput,
     AgentListOutput,
+    AgentOutput,
+    PredictAgent,
     PredictAgentOutput,
 )
 from app.lib.prisma import prisma

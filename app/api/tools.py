@@ -4,7 +4,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.lib.auth.prisma import JWTBearer
-from app.lib.models.tool import Tool, ToolOutput, ToolListOutput
+from app.lib.models.tool import Tool, ToolListOutput, ToolOutput
 from app.lib.prisma import prisma
 
 logger = logging.getLogger(__name__)
