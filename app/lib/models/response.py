@@ -90,7 +90,7 @@ class Agent(BaseModel):
     userId: str
     documentId: Optional[str]
     toolId: Optional[str]
-    tags: Optional[List]
+    tags: Optional[List[dict]]
     promptId: Optional[str]
     prompt: Optional[dict]
     name: str
