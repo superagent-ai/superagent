@@ -39,7 +39,7 @@ You can follow the [roadmap here](https://github.com/users/homanp/projects/4)
 
 ## 🎥 Tutorials
 
-We post regular tutorials on our [Youtube channel](https://www.youtube.com/channel/UCBeXnF8gh2EwAmOIwpmfjmA)
+We post tutorials regularly on our [Youtube channel](https://www.youtube.com/channel/UCBeXnF8gh2EwAmOIwpmfjmA). Make sure to check them out! 
 
 ## 🛠️ Getting Started
 
