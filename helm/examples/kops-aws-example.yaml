@@ -1,0 +1,122 @@
+## Example use defined helm values for Kubernetes running via KOPS with AWS ALB deployment
+## Not all possible env vars are set in this example, and values have been replaced with dummy values e.g $(VALUE)
+image:
+  api:
+    repository: 494103795089.dkr.ecr.eu-west-1.amazonaws.com/$(Build.Repository.Name)-api
+    tag: $(Build.BuildNumber)
+    pullPolicy: IfNotPresent
+
+  ui:
+    repository: 494103795089.dkr.ecr.eu-west-1.amazonaws.com/$(Build.Repository.Name)-ui
+    tag: $(Build.BuildNumber)
+    pullPolicy: IfNotPresent
+
+api:
+  resources:
+    limits:
+      memory: 500Mi
+    requests:
+      memory: 500Mi
+
+  service:
+    type: NodePort
+    port: 80
+
+  env:
+    - name: OPENAI_API_KEY
+      value: $(OPENAI_API_KEY)
+    - name: DATABASE_URL
+      value: $(DATABASE_URL)
+    - name: DATABASE_MIGRATION_URL
+      value: $(DATABASE_URL)
+    - name: JWT_SECRET
+      value: $(JWT_SECRET)
+    ## Pinecone vector store
+    - name: VECTORSTORE
+      value: pinecone
+    - name: PINECONE_API_KEY
+      value: $(PINECONE_API_KEY)
+    - name: PINECONE_ENVIRONMENT
+      value: us-west1-gcp
+    - name: SUPERAGENT_TRACING
+      value: 'True'
+    - name: PSYCHIC_API_KEY
+      value: $(PSYCHIC_API_KEY)
+    - name: BING_SUBSCRIPTION_KEY
+      value: $(BING_SUBSCRIPTION_KEY)
+    - name: BING_SEARCH_URL
+      value: https://api.bing.microsoft.com/v7.0/search
+    - name: REPLICATE_API_TOKEN
+      value: $(REPLICATE_API_TOKEN)
+    - name: ZAPIER_NLA_API_KEY
+      value: $(ZAPIER_NLA_API_KEY)
+    - name: ANTHROPIC_API_KEY
+      value: $(ANTHROPIC_API_KEY)
+    - name: HUGGINGFACEHUB_API_TOKEN
+      value: $(HUGGINGFACEHUB_API_TOKEN)
+
+ui:
+  resources:
+    limits:
+      memory: 500Mi
+    requests:
+      memory: 500Mi
+
+  service:
+    type: NodePort
+    port: 80
+
+  env:
+    - name: NEXTAUTH_URL
+      value: 'http://superagent-ui.systems.kubernetes.testing.aws.zen.co.uk/'
+    - name: NEXTAUTH_SECRET
+      value: superagent
+    - name: NEXT_PUBLIC_SUPERAGENT_API_URL
+      value: 'http://superagent-api.systems.kubernetes.testing.aws.zen.co.uk/api/v1'
+    - name: NEXT_PUBLIC_SHARABLE_KEY_SECRET
+      value: $(NEXT_PUBLIC_SHARABLE_KEY_SECRET)
+    - name: NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY
+      value: $(NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY)
+
+ingress:
+  enabled: true
+  annotations:
+    alb.ingress.kubernetes.io/group.name: internal-$(Build.Repository.Name)
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+  hosts:
+    - host: 'superagent-api.systems.kubernetes.testing.aws.zen.co.uk'
+      paths:
+        - path: '/*'
+          pathType: ImplementationSpecific
+          serviceName: 'superagent-api'
+
+    - host: superagent-ui.systems.kubernetes.testing.aws.zen.co.uk
+      paths:
+        - path: '/*'
+          pathType: ImplementationSpecific
+          serviceName: 'superagent-ui'
+
+postgresql:
+  enabled: true
+
+pgadmin4:
+  enabled: true
+  service:
+    type: NodePort
+    port: 80
+  ingress:
+    enabled: true
+    annotations:
+      alb.ingress.kubernetes.io/group.name: internal-$(Build.Repository.Name)
+      kubernetes.io/ingress.class: alb
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+      alb.ingress.kubernetes.io/scheme: internal
+      alb.ingress.kubernetes.io/backend-protocol: HTTP
+    hosts:
+      - host: 'superagent-pgadmin.systems.kubernetes.testing.aws.zen.co.uk'
+        paths:
+          - path: '/*'
+            pathType: ImplementationSpecific

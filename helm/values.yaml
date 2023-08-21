@@ -1,0 +1,376 @@
+# Default values for superagent.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  api:
+    # You must docker build and push the api to a container registry and provide a valid image repository and tag
+    repository: <-- YOUR API IMAGE REPOSITORY -->
+    tag: <-- YOUR API IMAGE TAG -->
+    pullPolicy: IfNotPresent
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    imagePullSecrets: []
+    #   - myRegistryKeySecretName
+  ui:
+    # You must docker build and push the ui to a container registry and provide a valid image repository and tag
+    repository: <-- YOUR UI IMAGE REPOSITORY -->
+    tag: <-- YOUR UI IMAGE TAG -->
+    pullPolicy: IfNotPresent
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    imagePullSecrets: []
+    #   - myRegistryKeySecretName
+
+api:
+  enabled: true
+  replicas: 1
+  resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  container:
+    command: ['/bin/sh', '-c']
+    args:
+      [
+        'sleep 3; prisma migrate deploy; gunicorn --bind :$PORT --workers 2 --timeout 0  --worker-class uvicorn.workers.UvicornWorker  --threads 8 app.main:app',
+      ]
+
+  # env: {}
+  env:
+  ## Pick the env vars you want to set from the list below and provide the value in your deployment values.yml
+  ## Please check the superagent README files and documentation for more information
+  # - name: OPENAI_API_KEY
+  #   value:
+  # - name: DATABASE_URL
+  #   value: postgresql://admin:password@superagent-postgresql:5432/superagent
+  # - name: DATABASE_MIGRATION_URL
+  #   value: postgresql://admin:password@superagent-postgresql:5432/superagent
+  # # Mandatory for Neon DB
+  # - name: DATABASE_SHADOW_URL
+  #   value:
+  # - name: JWT_SECRET
+  #   value:
+
+  # ## Pinecone Vector Store
+  # - name: VECTORSTORE
+  #   value: pinecone
+  # - name: PINECONE_API_KEY
+  #   value:
+  # - name: PINECONE_ENVIRONMENT
+  #   value:
+  # - name: PINECONE_INDEX
+  #   value: superagent
+
+  # - name: SUPERAGENT_TRACING
+  #   value: False
+
+  # # Mandatory if you want to run Psychic
+  # - name: PSYCHIC_API_KEY
+  #   value:
+
+  # # Mandatory if you want to run tools
+  # - name: BING_SUBSCRIPTION_KEY
+  #   value:
+  # - name: BING_SEARCH_URL
+  #   value:
+  # - name: WOLFRAM_ALPHA_APPID
+  #   value:
+  # - name: REPLICATE_API_TOKEN
+  #   value:
+  # - name: ZAPIER_NLA_API_KEY
+  #   value:
+
+  # # Mandatory if you want to support other LLMs
+  # - name: ANTHROPIC_API_KEY
+  #   value:
+  # - name: COHERE_API_KEY
+  #   value:
+  # - name: HUGGINGFACEHUB_API_TOKEN
+  #   value:
+  # - name: AZURE_API_KEY
+  #   value:
+  # - name: AZURE_API_TYPE
+  #   value: azure
+  # - name: AZURE_API_BASE
+  #   value:
+  # - name: AZURE_API_VERSION
+  #   value:
+
+  # # Optional for OAuth
+  # - name: GOOGLE_CLIENT_ID
+  #   value:
+  # - name: AZURE_AD_CLIENT_ID
+  #   value:
+  # - name: AZURE_AD_TENANT_ID
+  #   value:
+
+  # # Option Langsmith tracing
+  # - name: LANGCHAIN_TRACING_V2
+  #   value: True
+  # - name: LANGCHAIN_ENDPOINT
+  #   value: https://api.smith.langchain.com
+  # - name: LANGCHAIN_API_KEY
+  #   value:
+
+  # CusterIP service settings
+  service:
+    type: ClusterIP
+    port: 8080
+    annotations: {}
+    labels: {}
+    clusterIP: ''
+  # Or alternative NodePort service settings
+  # service:
+  #   type: NodePort
+  #   port: 8080
+  #   annotations: {}
+  #   labels: {}
+
+  health:
+    startup: /
+    ready: /
+    liveness: /
+    initialDelaySeconds: 60
+
+ui:
+  enabled: true
+  replicas: 1
+  resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  ## Workaround for NEXT_PUBLIC env vars, which can usually only be set at build time,
+  ## this script overwrites the Next.js public env vars at container startup with the values from your helm values env: section
+  ## Comment out the container section if you wish to provide your own '.env.production' file seperately.
+  container:
+    command: ['/bin/sh', '-c']
+    args:
+      [
+        'cp /app/env/.env.production /app/.env.production; ./app/override-env.sh',
+      ]
+  ## Pick the env vars you want to set from the list below and provide the value in your deployment values.yml
+  ## Please check the superagent README files and documentation for more information
+  env:
+    # - name: NEXTAUTH_URL
+    #   value:
+    # - name: NEXTAUTH_SECRET
+    #   value:
+    # - name: NEXT_PUBLIC_SUPERAGENT_API_URL
+    #   value:
+    # - name: NEXT_PUBLIC_AWS_S3_BUCKET
+    #   value:
+    # - name: NEXT_PUBLIC_AWS_S3_REGION
+    #   value:
+    # - name: NEXT_PUBLIC_AMAZON_S3_ACCESS_KEY_ID
+    #   value:
+    # - name: NEXT_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY
+    #   value:
+    # # Shareable Key Needs to be exactly 16 characters, do not wrap value in quotes
+    # - name: NEXT_PUBLIC_SHARABLE_KEY_SECRET
+    #   value:
+    # # Optional OAuth values
+    # - name: NEXT_PUBLIC_GITHUB_CLIENT_ID
+    #   value:
+    # - name: NEXT_PUBLIC_GITHUB_CLIENT_SECRET
+    #   value:
+    # - name: NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    #   value:
+    # - name: NEXT_PUBLIC_GOOGLE_CLIENT_SECRET
+    #   value:
+    # - name: NEXT_PUBLIC_AZURE_AD_CLIENT_ID
+    #   value:
+    # - name: NEXT_PUBLIC_AZURE_AD_CLIENT_SECRET
+    #   value:
+    # - name: NEXT_PUBLIC_AZURE_AD_TENANT_ID
+    #   value:
+    # # Optional variables
+    # - name: NEXT_PUBLIC_STRIPE_SECRET_KEY
+    #   value:
+    # - name: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    #   value:
+    # - name: NEXT_PUBLIC_SEGMENT_WRITE_KEY
+    #   value:
+    # - name: NEXT_PUBLIC_STRIPE_FREE_PLAN_ID
+    #   value:
+    # - name: NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY
+    #   value:
+
+  service:
+    type: ClusterIP
+    port: 3000
+    annotations: {}
+    labels: {}
+    clusterIP: ''
+  # Or alternative NodePort service settings
+  # service:
+  #   type: NodePort
+  #   port: 3000
+  #   annotations: {}
+  #   labels: {}
+
+  health:
+    startup: /
+    ready: /
+    liveness: /
+    initialDelaySeconds: 60
+
+ingress:
+  enabled: false
+  className: ''
+  annotations:
+    {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    # nginx.ingress.kubernetes.io/backend-protocol: HTTP
+    # nginx.ingress.kubernetes.io/proxy-body-size: 15m
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: superagent-ui.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          serviceName: superagent-ui
+    - host: superagent-api.local
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: superagent-api
+    # - host: pgadmin.local
+    #   paths:
+    #     - path: /
+    #       pathType: Prefix
+    #       serviceName: pgadmin
+    #       servicePort: 80
+
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - superagent-example.local
+
+## Example alternative ingress AWS ALB ingress controller
+# ingress:
+#   enabled: false
+#   className: ''
+#   annotations:
+#     alb.ingress.kubernetes.io/group.name: superagent
+#   hosts:
+#   - host: superagent.aws.domain.co.uk
+#     paths:
+#     - path: '/*'
+#       pathType: ImplementationSpecific
+#       serviceName: superagent-ui
+
+#   - host: superagent-api.aws.domain.co.uk
+#     paths:
+#     - path: '/*'
+#       pathType: ImplementationSpecific
+#       serviceName: superagent-api
+
+#   # - host: pgadmin.aws.domain.co.uk
+#   #   paths:
+#   #   - path: '/*'
+#   #     pathType: ImplementationSpecific
+#   #     serviceName: 'pgadmin'
+#   #     servicePort: 80
+
+#   tls: []
+#   #  - secretName: chart-example-tls
+#   #    hosts:
+#   #      - superagent-example.local
+
+# Global node selector
+# If set, this will apply to all superagent components
+# Individual components can be set to a different node selector
+nodeSelector: {}
+
+# Global tolerations
+# If set, this will apply to all superagent components
+# Individual components can be set to a different tolerations
+tolerations: []
+
+# Global affinity
+# If set, this will apply to all superagent components
+# Individual components can be set to a different affinity
+affinity: {}
+
+###################################
+# Deploy a postgresql database in the same namespace,
+# uses the bitnami/postgresql which is defined as a sub chart
+# For more information on configuring the postgresql sub chart see https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
+# - these configs are only used when `postgresql.enabled` is true
+###################################
+postgresql:
+  enabled: false
+  name: postgres
+  global:
+    storageClass: ''
+    postgresql:
+      auth:
+        postgresPassword: 'superagentai123456'
+        username: 'admin'
+        password: 'password'
+        database: 'superagent'
+  architecture: standalone
+  primary:
+    resources:
+      limits: {}
+      requests: {}
+    persistence:
+      enabled: true
+      storageClass: ''
+      accessModes:
+        - ReadWriteOnce
+      size: 8Gi
+
+###################################
+# Deploy a pgadmin to administer postgresql same namespace,
+# uses the helm/pgadmin which is defined as a sub chart
+# For more information on configuring the postgresql sub chart see https://github.com/rowanruseler/helm-charts/blob/master/charts/pgadmin4/values.yaml
+# - these configs are only used when `pgadmin.enabled` is true
+###################################
+pgadmin4:
+  enabled: false
+  env:
+    # can be email or nickname
+    email: dev@superagent.sh
+    password: password
+
+  service:
+    type: ClusterIP
+    clusterIP: ''
+    loadBalancerIP: ''
+    port: 80
+    targetPort: 80
+    # targetPort: 4181 To be used with a proxy extraContainer
+    portName: http
+# Alternative NodePort service settings
+# service:
+#   type: NodePort
+#   port: 80
+#   targetPort: 80
+#   portName: http
