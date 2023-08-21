@@ -1,4 +1,6 @@
 # flake8: noqa
+import tempfile
+import os
 import json
 from typing import Any, Tuple
 
@@ -309,6 +311,34 @@ class AgentBase:
         if type == "METAPHOR":
             return (MetaphorTool(metadata=metadata), MetaphorToolInput)
 
+    def _get_csv_agent(self, agent_document):
+        llm = self._get_llm(has_streaming=False)
+        verbose = True
+        agent_type = (
+            AgentType.OPENAI_FUNCTIONS
+            if self.type == "OPENAI"
+            else AgentType.ZERO_SHOT_REACT_DESCRIPTION
+        )
+
+        if agent_document.document.url:
+            path = agent_document.document.url
+        else:
+            with tempfile.NamedTemporaryFile(delete=False) as temp:
+                temp.write(agent_document.document.content.encode())
+                path = temp.name
+
+        csv_agent = create_csv_agent(
+            llm=llm,
+            path=path,
+            verbose=verbose,
+            agent_type=agent_type,
+        )
+
+        if not agent_document.document.url:
+            os.unlink(path)
+
+        return csv_agent
+
     def _get_tools(self) -> list:
         tools = []
 
@@ -323,14 +353,7 @@ class AgentBase:
             )
 
             if agent_document.document.type == "CSV":
-                csv_agent = create_csv_agent(
-                    llm=self._get_llm(has_streaming=False),
-                    path=agent_document.document.url,
-                    verbose=True,
-                    agent_type=AgentType.OPENAI_FUNCTIONS
-                    if self.type == "OPENAI"
-                    else AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-                )
+                csv_agent = self._get_csv_agent(agent_document=agent_document)
                 tools.append(
                     Tool(
                         name=slugify(agent_document.document.name),
