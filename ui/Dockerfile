@@ -37,6 +37,7 @@ COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/package-lock.json ./package-lock.json
 COPY --from=build /app/env/.env.production ./env/.env.production
 COPY --from=build /app/override-env.sh ./override-env.sh
+RUN chmod +x override-env.sh
 
 # Install production dependencies only
 RUN npm ci --only=production
