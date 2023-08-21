@@ -34,12 +34,12 @@ spec:
       - image: "{{ .Values.image.ui.repository }}:{{ .Values.image.ui.tag }}"
         imagePullPolicy: "{{ .Values.image.ui.pullPolicy }}"
         name: {{ template "superagent.ui.fullname" . }}
-        {{- if .Values.api.container }}
-        {{- if .Values.api.container.command }}
-        command: {{ .Values.api.container.command | toJson }}
+        {{- if .Values.ui.container }}
+        {{- if .Values.ui.container.command }}
+        command: {{ .Values.ui.container.command | toJson }}
         {{- end }}
-        {{- if .Values.api.container.args }}
-        args: {{ .Values.api.container.args | toJson }}
+        {{- if .Values.ui.container.args }}
+        args: {{ .Values.ui.container.args | toJson }}
         {{- end }}
         {{- end }}
         env:
