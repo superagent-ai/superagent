@@ -59,7 +59,7 @@
     # DATABASE_SHADOW_URL= # Mandatory for Neon DB
 
     # 'host' network mode
-    DATABASE_URL=postgresql://admin:password@locahost:5432/superagent
+    DATABASE_URL=postgresql://admin:password@localhost:5432/superagent
     DATABASE_MIGRATION_URL=postgresql://admin:password@localhost:5432/superagent
     # DATABASE_SHADOW_URL= # Mandatory for Neon DB
     ```

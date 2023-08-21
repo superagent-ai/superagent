@@ -63,7 +63,7 @@ To get started with Superagent, follow these steps:
 
 In the `.docker` folder there are multiple docker-compose files.
 
-The main `docker-conpose.yml` file will start up the API and a Postgres DB in docker. You can optionally also run the UI in docker too.
+The main `docker-compose.yml` file will start up the API and a Postgres DB in docker. You can optionally also run the UI in docker too.
 
 The other docker compose files can be used individually, or in combination to start up just the bits you need.
 
