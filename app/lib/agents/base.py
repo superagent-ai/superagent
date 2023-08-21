@@ -323,7 +323,6 @@ class AgentBase:
         if agent_document.document.url:
             path = agent_document.document.url
         else:
-            # Write the content to a temporary file
             with tempfile.NamedTemporaryFile(delete=False) as temp:
                 temp.write(agent_document.document.content.encode())
                 path = temp.name
@@ -336,7 +335,6 @@ class AgentBase:
         )
 
         if not agent_document.document.url:
-            # If we used a temporary file, delete it after we're done
             os.unlink(path)
 
         return csv_agent
