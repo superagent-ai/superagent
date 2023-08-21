@@ -8,16 +8,21 @@ class SignIn(BaseModel):
     password: str
 
 
+class SignInOut(BaseModel):
+    token: str
+    user: User
+
+
+class SignInOutput(BaseModel):
+    success: bool
+    data: dict
+
+
 class SignUp(BaseModel):
     email: str
     password: str
     name: str = None
     metadata: dict = None
-
-
-class SignInOut(BaseModel):
-    token: str
-    user: User
 
 
 class OAuth(BaseModel):

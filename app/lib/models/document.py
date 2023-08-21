@@ -1,4 +1,8 @@
+from typing import List
+
 from pydantic import BaseModel, Field
+
+from app.lib.models.response import Document as BaseDocument
 
 
 class Document(BaseModel):
@@ -16,3 +20,13 @@ class Document(BaseModel):
 
 class DocumentInput(BaseModel):
     question: str = Field()
+
+
+class DocumentOuput(BaseModel):
+    success: bool
+    data: BaseDocument = None
+
+
+class DocumentListOutput(BaseModel):
+    success: bool
+    data: List[BaseDocument]

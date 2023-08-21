@@ -1,9 +1,9 @@
+import json
 from datetime import datetime, timedelta, timezone
 from typing import Dict
 
 import bcrypt
 import jwt
-import json
 import requests as req
 from azure.identity import DefaultAzureCredential
 from decouple import config
