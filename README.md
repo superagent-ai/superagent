@@ -37,9 +37,11 @@ Checkout the [full documentation here](https://docs.Superagent.sh/).
 
 You can follow the [roadmap here](https://github.com/users/homanp/projects/4)
 
-## 🛠️ Getting Started
+## 🎥 Tutorials
 
-[![GETTING STARTED WITH SUPERAGENT](https://img.youtube.com/vi/TK2EyVIZDZU/0.jpg)](https://www.youtube.com/watch?v=TK2EyVIZDZU "Everything Is AWESOME")
+We post regular tutorials on our [Youtube channel](https://www.youtube.com/channel/UCBeXnF8gh2EwAmOIwpmfjmA)
+
+## 🛠️ Getting Started
 
 To get started with Superagent, follow these steps:
 
