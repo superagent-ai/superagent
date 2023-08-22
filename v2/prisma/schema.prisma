@@ -1,0 +1,57 @@
+generator client {
+  provider  = "prisma-client-py"
+  interface = "asyncio"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
+}
+
+enum DocumentType {
+  TXT
+  PDF
+  CSV
+  YOUTUBE
+  OPENAPI
+  URL
+  MARKDOWN
+  FIRESTORE
+  PSYCHIC
+  GITHUB_REPOSITORY
+  WEBPAGE
+  STRIPE
+  AIRTABLE
+  SITEMAP
+  NOTION
+}
+
+enum ToolType {
+  BROWSER
+  SEARCH
+  WOLFRAM_ALPHA
+  REPLICATE
+  ZAPIER_NLA
+  AGENT
+  OPENAPI
+  CHATGPT_PLUGIN
+  METAPHOR
+}
+
+model Agent {
+  id        Int      @id @default(autoincrement())
+  name      String
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  llm       LLM      @relation(fields: [llmId], references: [id])
+  llmId     Int      @unique
+}
+
+model LLM {
+  id        Int      @id @default(autoincrement())
+  agent     Agent?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
