@@ -47,3 +47,6 @@ next-env.d.ts
 # docker
 .docker/docker.env
 .docker/data/
+
+# supabase
+v2.code-workspace
