@@ -88,6 +88,7 @@ async def read_tool(toolId: str, token=Depends(JWTBearer())):
 async def delete_tool(toolId: str, token=Depends(JWTBearer())):
     """Delete tool endpoint"""
     try:
+        prisma.agenttool.delete_many(where={"toolId": toolId})
         prisma.tool.delete(where={"id": toolId})
         return {"success": True, "data": None}
     except Exception as e:
