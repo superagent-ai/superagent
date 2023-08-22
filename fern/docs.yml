@@ -1,17 +1,21 @@
 instances:
   - url: https://superagent.docs.buildwithfern.com
+    custom-domain: docs.superagent.sh
 
 navigation:
+  - section: Overview
+    contents:
+      - page: Introduction
+        path: ./mdx/intro.mdx
+      - page: Platform
+        path: ./mdx/platform.mdx
+      - page: Concepts
+        path: ./mdx/concepts.mdx
   - api: API Reference
 colors:
-  accentPrimary: 
-    dark: "#FDC537"
-    light: "#FDC537"
-  background:
-    light: "#FFFFFF"
+  accentPrimary: "#FDC537"
 logo:
   dark: ./assets/logo-dark.png
-  light: ./assets/logo-light.png
   height: 24
   href: https://www.superagent.sh/
 favicon: ./assets/favicon.png
