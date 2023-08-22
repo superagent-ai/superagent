@@ -1,0 +1,28 @@
+instances:
+  - url: https://superagent.docs.buildwithfern.com
+
+navigation:
+  - api: API Reference
+colors:
+  accentPrimary: 
+    dark: "#FDC537"
+    light: "#FDC537"
+  background:
+    light: "#FFFFFF"
+logo:
+  dark: ./assets/logo-dark.png
+  light: ./assets/logo-light.png
+  height: 24
+  href: https://www.superagent.sh/
+favicon: ./assets/favicon.png
+title: Superagent | Docs
+navbar-links:
+  - type: secondary
+    text: Discord
+    url: https://discord.com/invite/mhmJUTjW4b
+  - type: secondary
+    text: Github
+    url: https://github.com/homanp/superagent
+  - type: primary
+    text: Login
+    url: https://app.superagent.sh/login
