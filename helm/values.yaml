@@ -168,8 +168,8 @@ ui:
   ## this script overwrites the Next.js public env vars at container startup with the values from your helm values env: section
   ## Comment out the container section if you wish to provide your own '.env.production' file seperately.
   container:
-    command: ['/bin/sh', '-c']
-    args: ['cp env/.env.production .env.production; ./override-env.sh']
+    command: ['/bin/bash', '-c']
+    args: ['./override-env.sh']
   ## Pick the env vars you want to set from the list below and provide the value in your deployment values.yml
   ## Please check the superagent README files and documentation for more information
   env:
