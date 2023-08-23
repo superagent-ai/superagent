@@ -395,7 +395,11 @@ minio:
 
   resources:
     requests:
-      memory: 2Gi
+      memory: 6Gi
+
+  persistence:
+    enabled: true
+    size: 20Gi
 
   service:
     type: ClusterIP
@@ -445,7 +449,6 @@ minio:
   #       paths:
   #         - path: '/*'
   #           pathType: ImplementationSpecific
-  #           serviceName: 'superagent-minio'
 
   consoleService:
     type: ClusterIP
@@ -456,7 +459,7 @@ minio:
     externalIPs: []
     annotations: {}
     ## Alternative NodePort service settings
-  # service:
+  # consoleService:
   #   type: NodePort
   #   port: 80
   #   targetPort: 80
