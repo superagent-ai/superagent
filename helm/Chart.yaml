@@ -39,9 +39,9 @@ dependencies:
     tags:
       - pgadmin
 
-  - name: minio
-    version: 1.15.4
-    repository: https://charts.min.io
-    condition: minio.enabled
-    tags:
-      - pgadmin
+  # - name: minio
+  #   version: 1.15.4
+  #   repository: https://charts.min.io
+  #   condition: minio.enabled
+  #   tags:
+  #     - pgadmin
