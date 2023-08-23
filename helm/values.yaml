@@ -387,118 +387,115 @@ pgadmin4:
 # - to use minio with superagent set the UI env var NEXT_PUBLIC_AWS_ENDPOINT to your minio service endpoint
 ###################################
 
-#### I need to be able to override the AWS Endpoint for local development
-# - name: NEXT_PUBLIC_AWS_ENDPOINT
-#   value: http://minio:9000
-# minio:
-#   enabled: false
-#   rootUser: 'root'
-#   rootPassword: 'password'
-#   replicas: 2
+minio:
+  enabled: false
+  rootUser: 'root'
+  rootPassword: 'password'
+  replicas: 2
 
-#   resources:
-#     requests:
-#       memory: 2Gi
+  resources:
+    requests:
+      memory: 2Gi
 
-#   service:
-#     type: ClusterIP
-#     clusterIP: ~
-#     port: '9000'
-#     nodePort: 32000
-#     loadBalancerIP: ~
-#     externalIPs: []
-#     annotations: {}
-#     ## Alternative NodePort service settings
-#   # service:
-#   #   type: NodePort
-#   #   port: 80
-#   #   targetPort: 80
-#   #   portName: http
+  service:
+    type: ClusterIP
+    clusterIP: ~
+    port: '9000'
+    nodePort: 32000
+    loadBalancerIP: ~
+    externalIPs: []
+    annotations: {}
+    ## Alternative NodePort service settings
+  # service:
+  #   type: NodePort
+  #   port: 80
+  #   targetPort: 80
+  #   portName: http
 
-#   ingress:
-#     enabled: false
-#     ingressClassName: ~
-#     labels:
-#       {}
-#       # node-role.kubernetes.io/ingress: platform
-#     annotations:
-#       {}
-#       # kubernetes.io/ingress.class: nginx
-#       # kubernetes.io/tls-acme: "true"
-#       # kubernetes.io/ingress.allow-http: "false"
-#       # kubernetes.io/ingress.global-static-ip-name: ""
-#       # nginx.ingress.kubernetes.io/secure-backends: "true"
-#       # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-#       # nginx.ingress.kubernetes.io/whitelist-source-range: 0.0.0.0/0
-#     path: /
-#     hosts:
-#       - minio-example.local
-#     tls: []
-#   ## Example AWS ALB ingress controller
-#   # ingress:
-#   #   enabled: true
-#   #   annotations:
-#   #     alb.ingress.kubernetes.io/group.name: internal-$(Build.Repository.Name)
-#   #     kubernetes.io/ingress.class: alb
-#   #     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
-#   #     alb.ingress.kubernetes.io/scheme: internal
-#   #     alb.ingress.kubernetes.io/backend-protocol: HTTP
-#   #   hosts:
-#   #     - host: 'superagent-minio.aws.domain.co.uk'
-#   #       paths:
-#   #         - path: '/*'
-#   #           pathType: ImplementationSpecific
-#   #           serviceName: 'superagent-minio'
+  ingress:
+    enabled: false
+    ingressClassName: ~
+    labels:
+      {}
+      # node-role.kubernetes.io/ingress: platform
+    annotations:
+      {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+      # kubernetes.io/ingress.allow-http: "false"
+      # kubernetes.io/ingress.global-static-ip-name: ""
+      # nginx.ingress.kubernetes.io/secure-backends: "true"
+      # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      # nginx.ingress.kubernetes.io/whitelist-source-range: 0.0.0.0/0
+    path: /
+    hosts:
+      - minio-example.local
+    tls: []
+  ## Example AWS ALB ingress controller
+  # ingress:
+  #   enabled: true
+  #   annotations:
+  #     alb.ingress.kubernetes.io/group.name: internal-$(Build.Repository.Name)
+  #     kubernetes.io/ingress.class: alb
+  #     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+  #     alb.ingress.kubernetes.io/scheme: internal
+  #     alb.ingress.kubernetes.io/backend-protocol: HTTP
+  #   hosts:
+  #     - host: 'superagent-minio.aws.domain.co.uk'
+  #       paths:
+  #         - path: '/*'
+  #           pathType: ImplementationSpecific
+  #           serviceName: 'superagent-minio'
 
-#   consoleService:
-#     type: ClusterIP
-#     clusterIP: ~
-#     port: '9001'
-#     nodePort: 32001
-#     loadBalancerIP: ~
-#     externalIPs: []
-#     annotations: {}
-#     ## Alternative NodePort service settings
-#   # service:
-#   #   type: NodePort
-#   #   port: 80
-#   #   targetPort: 80
-#   #   portName: http
+  consoleService:
+    type: ClusterIP
+    clusterIP: ~
+    port: '9001'
+    nodePort: 32001
+    loadBalancerIP: ~
+    externalIPs: []
+    annotations: {}
+    ## Alternative NodePort service settings
+  # service:
+  #   type: NodePort
+  #   port: 80
+  #   targetPort: 80
+  #   portName: http
 
-#   consoleIngress:
-#     enabled: false
-#     ingressClassName: ~
-#     labels:
-#       {}
-#       # node-role.kubernetes.io/ingress: platform
-#     annotations:
-#       {}
-#       # kubernetes.io/ingress.class: nginx
-#       # kubernetes.io/tls-acme: "true"
-#       # kubernetes.io/ingress.allow-http: "false"
-#       # kubernetes.io/ingress.global-static-ip-name: ""
-#       # nginx.ingress.kubernetes.io/secure-backends: "true"
-#       # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-#       # nginx.ingress.kubernetes.io/whitelist-source-range: 0.0.0.0/0
-#     path: /
-#     hosts:
-#       - console.minio-example.local
-#     tls: []
-#     #  - secretName: chart-example-tls
-#     #    hosts:
-#     #      - chart-example.local
-# ## Example AWS ALB ingress controller
-# # consoleIngress:
-# #   enabled: true
-# #   annotations:
-# #     alb.ingress.kubernetes.io/group.name: internal-$(Build.Repository.Name)
-# #     kubernetes.io/ingress.class: alb
-# #     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
-# #     alb.ingress.kubernetes.io/scheme: internal
-# #     alb.ingress.kubernetes.io/backend-protocol: HTTP
-# #   hosts:
-# #     - host: 'superagent-minio-console.aws.domain.co.uk'
-# #       paths:
-# #         - path: '/*'
-# #           pathType: ImplementationSpecific
-# #           serviceName: 'superagent-minio-console'
+  consoleIngress:
+    enabled: false
+    ingressClassName: ~
+    labels:
+      {}
+      # node-role.kubernetes.io/ingress: platform
+    annotations:
+      {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+      # kubernetes.io/ingress.allow-http: "false"
+      # kubernetes.io/ingress.global-static-ip-name: ""
+      # nginx.ingress.kubernetes.io/secure-backends: "true"
+      # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      # nginx.ingress.kubernetes.io/whitelist-source-range: 0.0.0.0/0
+    path: /
+    hosts:
+      - console.minio-example.local
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+## Example AWS ALB ingress controller
+# consoleIngress:
+#   enabled: true
+#   annotations:
+#     alb.ingress.kubernetes.io/group.name: internal-$(Build.Repository.Name)
+#     kubernetes.io/ingress.class: alb
+#     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+#     alb.ingress.kubernetes.io/scheme: internal
+#     alb.ingress.kubernetes.io/backend-protocol: HTTP
+#   hosts:
+#     - host: 'superagent-minio-console.aws.domain.co.uk'
+#       paths:
+#         - path: '/*'
+#           pathType: ImplementationSpecific
+#           serviceName: 'superagent-minio-console'
