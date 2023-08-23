@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 echo "Checking and replacing NEXT_PUBLIC_ vars in .next with values from container environment"
 
