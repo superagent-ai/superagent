@@ -3,7 +3,6 @@ FROM node:18-alpine AS build
 
 # Install dependencies only when needed
 RUN apk add --no-cache libc6-compat
-RUN apk add --no-cache bash
 
 # Set working directory
 WORKDIR /app
@@ -20,6 +19,9 @@ RUN npm run build
 
 # Runner stage
 FROM node:18-alpine AS runner
+
+# Install bash in the runner stage
+RUN apk add --no-cache bash
 
 # Set environment variables
 ENV NODE_ENV production
