@@ -37,7 +37,8 @@ spec:
               value: password
             - name: MINIO_ROOT_USER
               value: root
-          image: minio/minio:latest
+          image: quay.io/minio/minio:latest
+          imagePullPolicy: Always
           name: minio
           ports:
             - name: http
