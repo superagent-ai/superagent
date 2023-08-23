@@ -296,6 +296,7 @@ export default function ShareClientPage({ agent, token }) {
           has_streaming: true,
           session: selectedSession.id,
         }),
+        openWhenHidden: true,
         async onmessage(event) {
           if (event.data !== "[END]") {
             message += event.data === "" ? `${event.data} \n` : event.data;
