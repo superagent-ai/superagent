@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe convert -c -f docker-compose.yml -f docker-compose.app.yml -f docker-compose.deps.yml -o ../../helm
+    kompose.version: 1.28.0 (c4137012e)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: minio
+  name: minio
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: http
+      name: http
+    - name: "9000"
+      port: 9000
+      targetPort: 9000
+  selector:
+    io.kompose.service: minio
+status:
+  loadBalancer: {}
