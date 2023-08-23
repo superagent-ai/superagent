@@ -2,7 +2,8 @@
 FROM node:18-alpine AS build
 
 # Install dependencies only when needed
-RUN apk add --no-cache libc6-compat bash
+RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache bash
 
 # Set working directory
 WORKDIR /app
