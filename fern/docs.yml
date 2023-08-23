@@ -1,0 +1,32 @@
+instances:
+  - url: https://superagent.docs.buildwithfern.com
+    custom-domain: docs.superagent.sh
+
+navigation:
+  - section: Overview
+    contents:
+      - page: Introduction
+        path: ./mdx/intro.mdx
+      - page: Platform
+        path: ./mdx/platform.mdx
+      - page: Concepts
+        path: ./mdx/concepts.mdx
+  - api: API Reference
+colors:
+  accentPrimary: "#FDC537"
+logo:
+  dark: ./assets/logo-dark.png
+  height: 24
+  href: https://www.superagent.sh/
+favicon: ./assets/favicon.png
+title: Superagent | Docs
+navbar-links:
+  - type: secondary
+    text: Discord
+    url: https://discord.com/invite/mhmJUTjW4b
+  - type: secondary
+    text: Github
+    url: https://github.com/homanp/superagent
+  - type: primary
+    text: Login
+    url: https://app.superagent.sh/login

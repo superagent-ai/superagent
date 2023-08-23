@@ -35,3 +35,8 @@ jobs:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: fern generate --group publish --log-level debug --version ${{ github.ref_name }}
+      
+      - name: Update Docs
+        env:
+          FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
+        run: fern generate --docs
