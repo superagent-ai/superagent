@@ -31,6 +31,7 @@ langchain = "^0.0.268"
 prisma = "^0.9.1"
 lamini = "^0.0.21"
 pytest = "^7.4.0"
+prefect = "^2.11.4"
 
 
 [build-system]
