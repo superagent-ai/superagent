@@ -38,10 +38,3 @@ dependencies:
     condition: pgadmin.enabled
     tags:
       - pgadmin
-
-  - name: minio
-    version: 5.0.13
-    repository: https://charts.min.io
-    condition: minio.enabled
-    tags:
-      - minio

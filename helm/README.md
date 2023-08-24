@@ -1,139 +1,219 @@
 # Superagent Helm Charts
 
-## TL;DR
-
- Carefully review the values and prepare your own values, this chart is not expected to run without first configuring the values to your needs.
-
-```console
-helm repo add runix https://helm.runix.net
-helm install ./helm
-```
-
 ## Introduction
 
 This chart bootstraps a [superagent](https://github.com/homanp/superagent) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
-## Install the Chart
+## Setup
 
-To install the chart with the release name `my-release`:
+ Carefully review the values and prepare your own values, this chart is not expected to run without first configuring the values to your needs.
 
-```console
-$ # Helm 3
-helm install my-release ./helm
+### Pre-requisites
+
+Clone the latest version of superagent
+
+``` bash
+LATEST_TAG=$(curl --silent "https://api.github.com/repos/homanp/superagent/releases/latest" | jq -r .tag_name)
+echo cloning superagent release $LATEST_TAG
+git clone --branch $LATEST_TAG https://github.com/homanp/superagent.git
 ```
 
-The command deploys pgAdmin4 on the Kubernetes cluster in the default configuration. The configuration section lists the parameters that can be configured during installation.
+ Provide the UI `NEXT_PUBLIC_` env vars - see [Dealing with NextJS NEXT_PUBLIC_ env vars](#dealing-with-nextjs-next_public_-env-vars)
 
-> **Tip**: List all releases using `helm list`
+``` bash
+cp .env.production superagent/ui/.env.production
+```
+
+Build the docker images and push to a docker registry, set the repository, image and tag in your `myValues.yml`. See []()
+
+### Sub chart dependencies
+
+In order to run the chart, you must add the repositories included as sub charts.
+
+```console
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add runix https://helm.runix.net
+helm repo update
+helm dependency update
+helm dependency build
+```
+
+## Install or Upgrade the Chart
+
+First, create the `superagent` namespace, this command can be run multiple times without erroring if the namespace exists, useful for CI
+
+``` bash
+kubectl create namespace superagent --dry-run=client -o yaml | kubectl apply -f -
+``````
+
+To install or upgrade the chart with the release name `superagent` in the namespace `superagent`, using a custom myValues.yml file, this can be used to both install and update the release.
+
+``` bash
+# Helm 3
+helm upgrade --install superagent ./helm -f myValues.yml -n superagent
+```
 
 ## Uninstall the Chart
 
-To uninstall/delete the `my-release` deployment:
+To uninstall/delete the `superagent` deployment:
 
-```console
-helm uninstall my-release -- my-namepace
-helm delete --purge my-release
+``` bash
+helm uninstall superagent -n superagent
+helm delete --purge superagent
+
+# Check for any pvc/pv and delete them manually if needed
+kubectl get pvc --all-namespaces | grep superagent
+kubectl delete pvc <PVC_NAME> -n superagent
+kubectl get pv | grep superagent
+kubectl delete pv <PV_NAME>
 ```
 
-The command removes nearly all the Kubernetes components associated with the chart and deletes the release.
+The commands remove all the Kubernetes components associated with the chart and deletes the release.
+
+Check for any left overs with:
+
+``` bash
+kubectl get all,configmap,secret,pvc,pv,ingress,role,rolebinding,clusterrole,clusterrolebinding --all-namespaces -l release=superagent
+```
 
 ## Configuration
 
+Here are the top level values for reference.
+
+> **Tip**: For more detailed information, you can view the default [values.yaml](https://github.com/homanp/superagent/blob/master/helm/values.yaml) and look at the [examples](https://github.com/homanp/superagent/blob/master/helm/examples) for examples on how to configure the values to suit your deployment.
+
 | Parameter | Description | Default |
 | --------- | ----------- | ------- |
-| `replicaCount` | Number of pgadmin4 replicas | `1` |
-| `image.registry` | Docker image registry | `docker.io` |
-| `image.repository` | Docker image | `dpage/pgadmin4` |
-| `image.tag` | Docker image tag | `""` |
-| `image.pullPolicy` | Docker image pull policy | `IfNotPresent` |
-| `annotations` | Deployment Annotations | `{}` |
-| `priorityClassName` | Deployment priorityClassName | `""` |
-| `command` | Deployment command override | `""` |
-| `service.type` | Service type (ClusterIP, NodePort or LoadBalancer) | `ClusterIP` |
-| `service.clusterIP` | Service type Cluster IP | `""` |
-| `service.loadBalancerIP` | Service Load Balancer IP | `""` |
-| `service.annotations` | Service Annotations | `{}` |
-| `service.port` | Service port | `80` |
-| `service.portName` | Name of the port on the service | `http` |
-| `service.targetPort` | Internal service port | `http` |
-| `service.nodePort` | Kubernetes service nodePort | `` |
-| `serviceAccount.create` | Creates a ServiceAccount for the pod. | `false` |
-| `serviceAccount.annotations` | Annotations to add to the service account. | `{}` |
-| `serviceAccount.name` | The name of the service account. Otherwise uses the fullname. | `` |
-| `strategy` | Specifies the strategy used to replace old Pods by new ones | `{}` |
-| `serverDefinitions.enabled` | Enables Server Definitions | `false` |
-| `serverDefinitions.servers` | Pre-configured server parameters | `{}` |
-| `networkPolicy.enabled` | Enables Network Policy | `true` |
-| `ingress.enabled` | Enables Ingress | `false` |
+| `image.api.repository` | API image repository | `<-- YOUR API IMAGE REPOSITORY -->` |
+| `image.api.tag` | API image tag | `<-- YOUR API IMAGE TAG -->` |
+| `image.api.pullPolicy` | API image pull policy | `IfNotPresent` |
+| `image.ui.repository` | UI image repository | `<-- YOUR UI IMAGE REPOSITORY -->` |
+| `image.ui.tag` | UI image tag | `<-- YOUR UI IMAGE TAG -->` |
+| `image.ui.pullPolicy` | UI image pull policy | `IfNotPresent` |
+| `api.enabled` | Enable API component | `true` |
+| `api.replicas` | Number of API replicas | `1` |
+| `api.resources` | API resource limits and requests | `{}` |
+| `ui.enabled` | Enable UI component | `true` |
+| `ui.replicas` | Number of UI replicas | `1` |
+| `ui.resources` | UI resource limits and requests | `{}` |
+| `ingress.enabled` | Enable ingress | `false` |
+| `ingress.className` | Ingress class name | `''` |
 | `ingress.annotations` | Ingress annotations | `{}` |
-| `ingress.ingressClassName` | Ingress class name | `""` |
-| `ingress.hosts.host` | Ingress accepted hostname | `nil` |
-| `ingress.hosts.paths` | Ingress paths list | `[]` |
-| `ingress.tls` | Ingress TLS configuration | `[]` |
-| `extraConfigmapMounts` | Additional configMap volume mounts for pgadmin4 pod | `[]` |
-| `extraSecretMounts` | Additional secret volume mounts for pgadmin4 pod | `[]` |
-| `extraContainers` | Sidecar containers to add to the pgadmin4 pod  | `"[]"` |
-| `existingSecret` | The name of an existing secret containing the pgadmin4 default password. | `""` |
-| `secretKeys.pgadminPasswordKey` | Name of key in existing secret to use for default pgadmin credentials. Only used when `existingSecret` is set. | `"password"` |
-| `extraInitContainers` | Sidecar init containers to add to the pgadmin4 pod  | `"[]"` |
-| `env.email` | pgAdmin4 default email. Needed chart reinstall for apply changes | `chart@domain.com` |
-| `env.password` | pgAdmin4 default password. Needed chart reinstall for apply changes | `SuperSecret` |
-| `env.pgpassfile` | Path to pgpasssfile (optional). Needed chart reinstall for apply changes | `` |
-| `env.enhanced_cookie_protection` | Allows pgAdmin4 to create session cookies based on IP address | `"False"` |
-| `env.contextPath` | Context path for accessing pgadmin (optional) | `` |
-| `envVarsFromConfigMaps` | Array of ConfigMap names to load as environment variables | `[]` |
-| `envVarsFromSecrets` | Array of Secret names to load as environment variables | `[]` |
-| `persistentVolume.enabled` | If true, pgAdmin4 will create a Persistent Volume Claim | `true` |
-| `persistentVolume.accessMode` | Persistent Volume access Mode | `ReadWriteOnce` |
-| `persistentVolume.size` | Persistent Volume size | `10Gi` |
-| `persistentVolume.storageClass` | Persistent Volume Storage Class | `unset` |
-| `persistentVolume.existingClaim` | Persistent Volume existing claim name | | `unset` |
-| `securityContext` | Custom [pod security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) for pgAdmin4 pod | `` |
-| `containerSecurityContext` | Custom [security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) for pgAdmin4 container | `` |
-| `livenessProbe` | [liveness probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) initial delay and timeout | `` |
-| `startupProbe` | [startup probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) initial delay and timeout | `` |
-| `readinessProbe` | [readiness probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) initial delay and timeout | `` |
-| `VolumePermissions.enabled` | Enables init container that changes volume permissions in the data directory  | `false` |
-| `extraDeploy` | list of extra manifests to deploy | `[]` |
-| `extraInitContainers` | Init containers to launch alongside the app | `[]` |
-| `containerPorts.http` | Sets http port inside pgadmin container | `80` |
-| `resources` | CPU/memory resource requests/limits | `{}` |
-| `autoscaling.enabled` | Enables Autoscaling | `false` |
-| `autoscaling.minReplicas` | Minimum amount of Replicas | `1` |
-| `autoscaling.maxReplicas` | Maximum amount of Replicas| `100` |
-| `autoscaling.targetCPUUtilizationPercentage` | Target CPU Utilization in percentage | `80` |
-| `nodeSelector` | Node labels for pod assignment | `{}` |
-| `tolerations` | Node tolerations for pod assignment | `[]` |
-| `affinity` | Node affinity for pod assignment | `{}` |
-| `podAnnotations` | Annotations for pod | `{}` |
-| `podLabels` | Labels for pod | `{}` |
-| `namespace` | Namespace where to deploy resources | `null` |
-| `init.resources` | Init container CPU/memory resource requests/limits | `{}` |
-| `test.image.registry` | Docker image registry for test | `docker.io` |
-| `test.image.repository` | Docker image for test | `busybox` |
-| `test.image.tag` | Docker image tag for test| `latest` |
-| `test.resources` | CPU/memory resource requests/limits for test | `{}` |
-| `test.securityContext` | Custom [security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) for test Pod | `` |
+| `ingress.hosts` | Ingress hosts | `superagent-ui.local`, `superagent-api.local` |
+| `ingress.tls` | Ingress TLS settings | `[]` |
+| `postgresql.enabled` | Enable PostgreSQL subchart | `false` |
+| `postgresql.global.postgresql.auth.username` | PostgreSQL username | `admin` |
+| `postgresql.global.postgresql.auth.password` | PostgreSQL password | `password` |
+| `postgresql.global.postgresql.auth.database` | PostgreSQL database | `superagent` |
+| `pgadmin4.enabled` | Enable pgAdmin4 subchart | `false` |
+| `pgadmin4.env.email` | pgAdmin4 email | `dev@superagent.sh` |
+| `pgadmin4.env.password` | pgAdmin4 password | `password` |
 
-Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example:
+Provide a YAML file that specifies the values for the parameters while installing the chart. For example:
 
-```console
-$ # Helm 2
-helm install ./helm --name my-release \
-  --set env.password=SuperSecret
-$ # Helm 3
-helm install my-release ./helm \
-  --set env.password=SuperSecret
+  ``` bash
+  # Helm 3
+  helm upgrade --install superagent ./helm -f myValues.yml -n superagent
+  ```
+
+## Dealing with NextJS NEXT_PUBLIC_ env vars
+
+As superagent UI is build using NextJS, some of the environment variables passed into the Docker container running in Kubernetes will be ignored unless they are provided at the time the image is built. There are a couple of ways to deal with this.
+
+1. Copy your own `.env.production` in the `ui` folder, with the values for any `NEXT_PUBLIC_` env vars that you are using (dont include any values for non NEXT_PUBLIC_ env vars) and only include the ones you are actually using.
+
+``` bash
+cp .env.production superagent/ui/.env.production
 ```
 
-Alternatively, a YAML file that specifies the values for the parameters can be
-provided while installing the chart. For example:
+2. Alternatively you can check in the following file in the `ui` folder, this contains placeholders for the `NEXT_PUBLIC_` vars which will be automatically replaced with the `ui.env:` values provided in the your helm `myValues.yml` file. This means you can just configure all of the env vars in your `myValues.yml` via your CI and enables multi environment deployments.
 
-```console
-$ # Helm 2
-helm install ./helm --name my-release -f values.yaml
-$ # Helm 3
-helm install my-release ./helm -f values.yaml
+Take the example below, and uncomment the exect values you need, delete the rest
+
+``` yaml
+NEXT_PUBLIC_SUPERAGENT_API_URL=APP_NEXT_PUBLIC_SUPERAGENT_API_URL
+NEXT_PUBLIC_AWS_S3_BUCKET=APP_NEXT_PUBLIC_AWS_S3_BUCKET
+NEXT_PUBLIC_AWS_S3_REGION=APP_NEXT_PUBLIC_AWS_S3_REGION
+NEXT_PUBLIC_AMAZON_S3_ACCESS_KEY_ID=APP_NEXT_PUBLIC_AMAZON_S3_ACCESS_KEY_ID
+NEXT_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY=APP_NEXT_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY
+# NEXT_PUBLIC_AWS_OVERRIDE_S3_BASEURL=APP_NEXT_PUBLIC_AWS_OVERRIDE_S3_BASEURL
+NEXT_PUBLIC_SHARABLE_KEY_SECRET=APP_NEXT_PUBLIC_SHARABLE_KEY_SECRET
+# NEXT_PUBLIC_GITHUB_CLIENT_ID=APP_NEXT_PUBLIC_GITHUB_CLIENT_ID
+# NEXT_PUBLIC_GITHUB_CLIENT_SECRET=APP_NEXT_PUBLIC_GITHUB_CLIENT_SECRET
+# NEXT_PUBLIC_GOOGLE_CLIENT_ID=APP_NEXT_PUBLIC_GOOGLE_CLIENT_ID
+# NEXT_PUBLIC_GOOGLE_CLIENT_SECRET=APP_NEXT_PUBLIC_GOOGLE_CLIENT_SECRET
+# NEXT_PUBLIC_AZURE_AD_CLIENT_ID=APP_NEXT_PUBLIC_AZURE_AD_CLIENT_ID
+# NEXT_PUBLIC_AZURE_AD_CLIENT_SECRET=APP_NEXT_PUBLIC_AZURE_AD_CLIENT_SECRET
+# NEXT_PUBLIC_AZURE_AD_TENANT_ID=APP_NEXT_PUBLIC_AZURE_AD_TENANT_ID
+# NEXT_PUBLIC_STRIPE_SECRET_KEY=APP_NEXT_PUBLIC_STRIPE_SECRET_KEY
+# NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=APP_NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+# NEXT_PUBLIC_SEGMENT_WRITE_KEY=APP_NEXT_PUBLIC_SEGMENT_WRITE_KEY
+# NEXT_PUBLIC_STRIPE_FREE_PLAN_ID=APP_NEXT_PUBLIC_STRIPE_FREE_PLAN_ID
+# NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY=APP_NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY
 ```
 
-> **Tip**: You can use the default [values.yaml](https://github.com/homanp/superagent/blob/master/helm/values.yaml) and look on [examples](https://github.com/homanp/superagent/blob/master/chhelmarts/examples/).
+Then copy this into the `superagent/ui` folder before you build the docker images.
+
+``` bash
+cp .env.production superagent/ui/.env.production
+```
+
+## Preparing Docker Images
+
+Before deploying the Helm chart, you need to build and push Docker images for both the API and UI components. Below are the steps to do so:
+
+### Build and Push API Docker Image
+
+This short guide outlines the steps needed to build and push the images and configure the helm chart values wih the image details, your usage will vary depending on your setup, here are the basics.
+
+1. Navigate to the root directory of the project where the `Dockerfile` for the API is located.
+
+    ``` bash
+    cd superagent
+    ```
+
+2. Build the Docker image:
+
+    ``` bash
+    docker build -t superagent-api:<your-tag> .
+    ```
+
+3. Push the image to your Docker repository:
+
+    ``` bash
+    docker push superagent-api:<your-tag> 
+    ```
+
+### Build and Push UI Docker Image
+
+1. Navigate to the `ui` directory where the `Dockerfile` for the UI is located.
+
+    ``` bash
+    cd superagent/ui
+    ```
+
+2. Build the Docker image:
+
+    ``` bash
+    docker build -t superagent-ui:<your-tag> .
+    ```
+
+3. Push the image to your Docker repository:
+
+    ```console
+    docker push superagent-ui:<your-tag>
+    ```
+
+### Update Helm Chart Values
+
+After successfully pushing the images, update the `myValues.yml` file with the image details:
+
+```yaml
+image:
+  api:
+    repository: your-api-image-repository
+    tag: your-api-image-tag
+  ui:
+    repository: your-ui-image-repository
+    tag: your-ui-image-tag
+```
