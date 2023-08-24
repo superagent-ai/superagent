@@ -39,19 +39,34 @@ enum ToolType {
   METAPHOR
 }
 
+enum LLMProvider {
+  OPENAI
+}
+
+enum LLMModel {
+  GPT_3_5_TURBO_16K_0613
+  GPT_3_5_TURBO_0613
+  GPT_4_0613
+  GPT_4_32K_0613
+}
+
 model Agent {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   name      String
   isActive  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   llm       LLM      @relation(fields: [llmId], references: [id])
-  llmId     Int      @unique
+  llmId     String   @unique
 }
 
 model LLM {
-  id        Int      @id @default(autoincrement())
+  id        String      @id @default(uuid())
+  provider  LLMProvider @default(OPENAI)
+  model     LLMModel    @default(GPT_3_5_TURBO_16K_0613)
+  apiKey    String
+  options   Json?
   agent     Agent?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 }
