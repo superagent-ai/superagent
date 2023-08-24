@@ -1,6 +1,6 @@
 {
   "name": "superagent-chat-embed",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A embadable chat widget.",
   "main": "dist/web.js",
   "scripts": {
