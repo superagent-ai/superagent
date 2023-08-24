@@ -18,14 +18,11 @@ router = APIRouter()
 )
 async def create(body: LLMRequest, api_user=Depends(get_current_api_user)):
     """Endpoint for creating an LLM"""
-    print(f"{body}")
     try:
         data = await prisma.llm.create(
             {
+                **body.dict(),
                 "apiUserId": api_user.id,
-                "model": body.model,
-                "provider": body.provider,
-                "apiKey": body.apiKey,
                 "options": Json(body.options),
             }
         )
@@ -80,10 +77,8 @@ async def update(llm_id: str, body: LLMRequest, api_user=Depends(get_current_api
         data = await prisma.llm.update(
             where={"id": llm_id},
             data={
+                **body.dict(),
                 "apiUserId": api_user.id,
-                "model": body.model,
-                "provider": body.provider,
-                "apiKey": body.apiKey,
                 "options": Json(body.options),
             },
         )

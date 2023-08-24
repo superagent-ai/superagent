@@ -17,9 +17,7 @@ router = APIRouter()
 async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     """Endpoint for creating an agent"""
     try:
-        data = await prisma.agent.create(
-            {"name": body.name, "isActive": body.isActive, "apiUserId": api_user.id}
-        )
+        data = await prisma.agent.create({**body.dict(), "apiUserId": api_user.id})
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -88,9 +86,7 @@ async def update(
         data = await prisma.agent.update(
             where={"id": agent_id},
             data={
-                "name": body.name,
-                "llmId": body.llmId,
-                "isActive": body.isActive,
+                **body.dict(),
                 "apiUserId": api_user.id,
             },
         )
@@ -125,8 +121,8 @@ async def add_llm(
 ):
     """Endpoint for adding an LLM to an agent"""
     try:
-        agent_llm = await prisma.agentllm.create(
-            {"llmId": body.llmId, "agentId": agent_id},
+        await prisma.agentllm.create(
+            {**body.dict(), "agentId": agent_id},
             include={"agent": {"include": {"llms": {"include": {"llm": True}}}}},
         )
         return {"success": True, "data": None}

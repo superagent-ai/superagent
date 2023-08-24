@@ -11,6 +11,13 @@ class AgentLLM(BaseModel):
     llmId: str
 
 
+class Datasource(BaseModel):
+    name: str
+    description: str
+    type: str
+    url: Optional[str]
+
+
 class LLM(BaseModel):
     provider: str
     model: str

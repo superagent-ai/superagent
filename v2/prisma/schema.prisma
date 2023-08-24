@@ -50,25 +50,59 @@ enum LLMModel {
   GPT_4_32K_0613
 }
 
+enum DatasourceType {
+  TXT
+  PDF
+  CSV
+  YOUTUBE
+  FUNCTION
+}
+
 model ApiUser {
-  id        String   @id @default(uuid())
-  token     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  agents    Agent[]
-  llms      LLM[]
+  id         String       @id @default(uuid())
+  token      String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  agents     Agent[]
+  llms       LLM[]
+  Datasource Datasource[]
 }
 
 model Agent {
-  id        String     @id @default(uuid())
-  name      String
-  isActive  Boolean    @default(false)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  llms      AgentLLM[]
-  prompt    String?
-  apiUserId String
-  apiUser   ApiUser    @relation(fields: [apiUserId], references: [id])
+  id              String            @id @default(uuid())
+  name            String
+  isActive        Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  llms            AgentLLM[]
+  prompt          String?
+  apiUserId       String
+  apiUser         ApiUser           @relation(fields: [apiUserId], references: [id])
+  AgentDatasource AgentDatasource[]
+}
+
+model Datasource {
+  id              String            @id @default(uuid())
+  name            String
+  description     String?
+  url             String?
+  type            DatasourceType
+  apiUserId       String
+  apiUser         ApiUser           @relation(fields: [apiUserId], references: [id])
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  AgentDatasource AgentDatasource[]
+}
+
+model AgentDatasource {
+  agentId      String
+  datasourceId String
+  agent        Agent      @relation(fields: [agentId], references: [id])
+  datasource   Datasource @relation(fields: [datasourceId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@id([agentId, datasourceId])
 }
 
 model LLM {
