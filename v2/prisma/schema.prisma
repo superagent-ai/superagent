@@ -51,13 +51,13 @@ enum LLMModel {
 }
 
 model Agent {
-  id        String   @id @default(uuid())
+  id        String     @id @default(uuid())
   name      String
-  isActive  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  llm       LLM      @relation(fields: [llmId], references: [id])
-  llmId     String   @unique
+  isActive  Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  llms      AgentLLM[]
+  prompt    String?
 }
 
 model LLM {
@@ -66,7 +66,18 @@ model LLM {
   model     LLMModel    @default(GPT_3_5_TURBO_16K_0613)
   apiKey    String
   options   Json?
-  agent     Agent?
+  agents    AgentLLM[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+}
+
+model AgentLLM {
+  agentId   String
+  llmId     String
+  agent     Agent    @relation(fields: [agentId], references: [id])
+  llm       LLM      @relation(fields: [llmId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([agentId, llmId])
 }

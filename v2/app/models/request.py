@@ -4,8 +4,11 @@ from typing import Optional, Dict
 
 class Agent(BaseModel):
     isActive: bool = True
-    llmId: str
     name: str
+
+
+class AgentLLM(BaseModel):
+    llmId: str
 
 
 class LLM(BaseModel):
