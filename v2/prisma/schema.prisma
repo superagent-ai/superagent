@@ -50,6 +50,15 @@ enum LLMModel {
   GPT_4_32K_0613
 }
 
+model ApiUser {
+  id        String   @id @default(uuid())
+  token     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  agents    Agent[]
+  llms      LLM[]
+}
+
 model Agent {
   id        String     @id @default(uuid())
   name      String
@@ -58,6 +67,8 @@ model Agent {
   updatedAt DateTime   @updatedAt
   llms      AgentLLM[]
   prompt    String?
+  apiUserId String
+  apiUser   ApiUser    @relation(fields: [apiUserId], references: [id])
 }
 
 model LLM {
@@ -69,6 +80,8 @@ model LLM {
   agents    AgentLLM[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  apiUserId String
+  apiUser   ApiUser     @relation(fields: [apiUserId], references: [id])
 }
 
 model AgentLLM {

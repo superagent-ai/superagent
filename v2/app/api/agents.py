@@ -1,6 +1,6 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.utils.prisma import prisma
-from app.utils.api import handle_exception
+from app.utils.api import handle_exception, get_current_api_user
 from app.models.response import Agent as AgentResponse, AgentList as AgentListResponse
 from app.models.request import Agent as AgentRequest, AgentLLM as AgentLLMRequest
 
@@ -14,10 +14,12 @@ router = APIRouter()
     description="Create a new agent",
     response_model=AgentResponse,
 )
-async def create(body: AgentRequest):
+async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     """Endpoint for creating an agent"""
     try:
-        data = await prisma.agent.create({"name": body.name, "isActive": body.isActive})
+        data = await prisma.agent.create(
+            {"name": body.name, "isActive": body.isActive, "apiUserId": api_user.id}
+        )
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -29,10 +31,12 @@ async def create(body: AgentRequest):
     description="List all agents",
     response_model=AgentListResponse,
 )
-async def list():
+async def list(api_user=Depends(get_current_api_user)):
     """Endpoint for listing all agents"""
     try:
-        data = await prisma.agent.find_many(take=100, include={"llms": True})
+        data = await prisma.agent.find_many(
+            take=100, where={"apiUserId": api_user.id}, include={"llms": True}
+        )
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -44,10 +48,12 @@ async def list():
     description="Get a single agent",
     response_model=AgentResponse,
 )
-async def get(agent_id: str):
+async def get(agent_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for getting a single agent"""
     try:
-        data = await prisma.agent.find_unique(where={"id": agent_id})
+        data = await prisma.agent.find_unique(
+            where={"id": agent_id, "apiUserId": api_user.id}
+        )
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -59,10 +65,10 @@ async def get(agent_id: str):
     description="Delete an agent",
     response_model=None,
 )
-async def delete(agent_id: str):
+async def delete(agent_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for deleting an agent"""
     try:
-        await prisma.agent.delete(where={"id": agent_id})
+        await prisma.agent.delete(where={"id": agent_id, "apiUserId": api_user.id})
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
@@ -74,12 +80,19 @@ async def delete(agent_id: str):
     description="Patch an agent",
     response_model=AgentResponse,
 )
-async def update(agent_id: str, body: AgentRequest):
+async def update(
+    agent_id: str, body: AgentRequest, api_user=Depends(get_current_api_user)
+):
     """Endpoint for patching an agent"""
     try:
         data = await prisma.agent.update(
             where={"id": agent_id},
-            data={"name": body.name, "llmId": body.llmId, "isActive": body.isActive},
+            data={
+                "name": body.name,
+                "llmId": body.llmId,
+                "isActive": body.isActive,
+                "apiUserId": api_user.id,
+            },
         )
         return {"success": True, "data": data}
     except Exception as e:
@@ -91,7 +104,7 @@ async def update(agent_id: str, body: AgentRequest):
     name="invoke",
     description="Invoke an agent",
 )
-async def invoke(agent_id: str):
+async def invoke(agent_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for invoking an agent"""
     try:
         # Your code here
@@ -107,7 +120,9 @@ async def invoke(agent_id: str):
     description="Add LLM to agent",
     response_model=AgentResponse,
 )
-async def add_llm(agent_id: str, body: AgentLLMRequest):
+async def add_llm(
+    agent_id: str, body: AgentLLMRequest, api_user=Depends(get_current_api_user)
+):
     """Endpoint for adding an LLM to an agent"""
     try:
         agent_llm = await prisma.agentllm.create(
@@ -124,7 +139,9 @@ async def add_llm(agent_id: str, body: AgentLLMRequest):
     name="remove_llm",
     description="Remove LLM from agent",
 )
-async def remove_llm(agent_id: str, llm_id: str):
+async def remove_llm(
+    agent_id: str, llm_id: str, api_user=Depends(get_current_api_user)
+):
     """Endpoint for removing an LLM from an agent"""
     try:
         await prisma.agentllm.delete(

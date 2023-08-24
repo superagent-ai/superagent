@@ -3,6 +3,11 @@ from typing import List, Optional
 from prisma.models import Agent, LLM
 
 
+class ApiUser(BaseModel):
+    success: bool
+    data: Optional[dict]
+
+
 class Agent(BaseModel):
     success: bool
     data: Optional[dict]
