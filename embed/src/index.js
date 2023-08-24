@@ -121,9 +121,9 @@ function SuperagentWidget({ agentId, apiKey, type }) {
           <Box 
             {...styles.modalContainer} 
             display={!isOpen && "none"} 
-            zIndex={99999999} 
-            left={["5px", null, null]} 
-            right={["5px", "20px"]}
+            zIndex={99999999}
+            minWidth={["100%", "450px"]}
+            right={["0", "20px", "20px"]}
           >
             <iframe
               style={styles.iframe} 
