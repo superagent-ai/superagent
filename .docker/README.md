@@ -44,6 +44,15 @@ docker-compose --env-file docker.env down
 
 # Additionally remove orphaned containers if there are any
 docker-compose --env-file docker.env down --remove-orphans
+
+# Delete eveything including volumes images, this will result in total data loss
+docker-compose --env-file docker.env down --rmi all -v
+
+# Remove all unused networks
+docker network prune
+
+# To remove all stopped containers, unused networks, dangling images, and build cache, you can use:
+docker system prune
 ```
 
 ## Setup environment variables
