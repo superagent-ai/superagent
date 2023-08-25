@@ -76,8 +76,11 @@ docker system prune
 
 3. Set the NETWORK_MODE mode suitable for your setup:
 
+   You can create a network to use with `docker network create superagent_default`
+
    ``` bash
-   # Default docker network, same as not having set NETWORK_MODE in docker-compose files. 
+   # Create and use a docker network, this will allow all the services to communicate with each other even if you start them seperately.
+   # Create the network first with `docker network create superagent_default`
    NETWORK_MODE=superagent_default
 
    # Simulate running the docker resources on localhost
