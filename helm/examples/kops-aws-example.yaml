@@ -1,0 +1,133 @@
+## An example values.yaml file for deploying SuperAgent to Kubernetes on AWS
+## Dummy values are used throughout, carefully replace with your own values
+image:
+  api:
+    repository: 123456789123.dkr.ecr.eu-west-1.amazonaws.com/superagent-api
+    tag: $(YOUR.Tag)
+    pullPolicy: IfNotPresent
+
+  ui:
+    repository: 123456789123.dkr.ecr.eu-west-1.amazonaws.com/superagent-ui
+    tag: $(YOUR.Tag)
+    pullPolicy: IfNotPresent
+
+api:
+  resources:
+    limits:
+      memory: 2Gi
+    requests:
+      memory: 2Gi
+
+  service:
+    type: NodePort
+    port: 80
+
+  env:
+    - name: OPENAI_API_KEY
+      value: $(YOUR_OPENAI_API_KEY)
+    - name: DATABASE_URL
+      value: $(YOUR_DATABASE_URL)
+    - name: DATABASE_MIGRATION_URL
+      value: $(YOUR_DATABASE_URL)
+    - name: JWT_SECRET
+      value: $(YOUR_JWT_SECRET)
+    ## Pinecone vector store
+    - name: VECTORSTORE
+      value: pinecone
+    - name: PINECONE_API_KEY
+      value: $(YOUR_PINECONE_API_KEY)
+    - name: PINECONE_ENVIRONMENT
+      value: us-west1-gcp
+    - name: SUPERAGENT_TRACING
+      value: 'True'
+    - name: PSYCHIC_API_KEY
+      value: $(YOUR_PSYCHIC_API_KEY)
+    - name: BING_SUBSCRIPTION_KEY
+      value: $(YOUR_BING_SUBSCRIPTION_KEY)
+    - name: BING_SEARCH_URL
+      value: https://api.bing.microsoft.com/v7.0/search
+    - name: REPLICATE_API_TOKEN
+      value: $(YOUR_REPLICATE_API_TOKEN)
+    - name: ZAPIER_NLA_API_KEY
+      value: $(YOUR_ZAPIER_NLA_API_KEY)
+    - name: ANTHROPIC_API_KEY
+      value: $(YOUR_ANTHROPIC_API_KEY)
+    - name: HUGGINGFACEHUB_API_TOKEN
+      value: $(YOUR_HUGGINGFACEHUB_API_TOKEN)
+    ### ... any other ENV vars you want to set based on the .env.example files in superagent
+
+ui:
+  resources:
+    limits:
+      memory: 2Gi
+    requests:
+      memory: 2Gi
+
+  service:
+    type: NodePort
+    port: 80
+
+  env:
+    - name: NEXTAUTH_URL
+      value: 'http://superagent.kubernetes.aws.domain.co.uk/'
+    - name: NEXTAUTH_SECRET
+      value: superagent
+    - name: NEXT_PUBLIC_SUPERAGENT_API_URL
+      value: 'http://superagent.kubernetes.aws.domain.co.uk/api/v1'
+    - name: NEXT_PUBLIC_SHARABLE_KEY_SECRET
+      value: $(YOUR_NEXT_PUBLIC_SHARABLE_KEY_SECRET)
+    - name: NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY
+      value: $(YOUR_NEXT_PUBLIC_PSYCHIC_PUBLIC_KEY)
+    ## S3
+    - name: NEXT_PUBLIC_AWS_S3_BUCKET
+      value: $(YOUR_S3_BUCKET)
+    - name: NEXT_PUBLIC_AWS_S3_REGION
+      value: $(YOUR_S3_REGION)
+    - name: NEXT_PUBLIC_AMAZON_S3_ACCESS_KEY_ID
+      value: $(YOUR_S3_ACCESS_KEY_ID)
+    - name: NEXT_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY
+      value: $(YOUR_S3_SECRET_ACCESS_KEY)
+    ## Optionally override the AWS S3 Base URL for use with Minio local S3 replacement
+    - name: NEXT_PUBLIC_AWS_OVERRIDE_S3_BASEURL
+      value: http://minio.kubernetes.aws.domain.co.uk
+    ### ... any other ENV vars you want to set based on the .env.example files in superagent
+
+ingress:
+  enabled: true
+  annotations:
+    alb.ingress.kubernetes.io/group.name: superagent
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+  hosts:
+    - host: 'superagent.kubernetes.aws.domain.co.uk'
+      paths:
+        - path: '/api/v1/*'
+          pathType: ImplementationSpecific
+          serviceName: 'superagent-api'
+        - path: '/*'
+          pathType: ImplementationSpecific
+          serviceName: 'superagent-ui'
+
+postgresql:
+  enabled: true
+
+pgadmin4:
+  enabled: true
+  service:
+    type: NodePort
+    port: 80
+  ingress:
+    enabled: true
+    annotations:
+      alb.ingress.kubernetes.io/group.name: internal-$(Build.Repository.Name)
+      kubernetes.io/ingress.class: alb
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+      alb.ingress.kubernetes.io/scheme: internal
+      alb.ingress.kubernetes.io/backend-protocol: HTTP
+    hosts:
+      - host: 'superagent-pgadmin.kubernetes.aws.domain.co.uk'
+        paths:
+          - path: '/*'
+            pathType: ImplementationSpecific

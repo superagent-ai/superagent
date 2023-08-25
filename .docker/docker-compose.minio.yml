@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  # Use minio to mock s3
+  minio:
+    container_name: minio
+    network_mode: ${NETWORK_MODE}
+    image: "quay.io/minio/minio:latest"
+    restart: unless-stopped
+    ports:
+      # S3 compatible API
+      - "9000:9000"
+      # Minio console (Web UI)
+      - "9090:9090"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - "minio:/data/minio"
+    command: minio server /data/minio --console-address ":9090"
+
+volumes:
+  minio:
