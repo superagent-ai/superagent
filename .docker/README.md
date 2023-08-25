@@ -76,18 +76,15 @@ docker system prune
 
 3. Set the NETWORK_MODE mode suitable for your setup:
 
-   You can create a network to use with `docker network create superagent_default`
+   You can create a custom network to use with `docker network create superagent_default`
 
    ``` bash
    # Create and use a docker network, this will allow all the services to communicate with each other even if you start them seperately.
    # Create the network first with `docker network create superagent_default`
    NETWORK_MODE=superagent_default
 
-   # Simulate running the docker resources on localhost
+   # Or Simulate running the docker resources on localhost
    NETWORK_MODE=host
-
-   # Custom network, for some cloud deployments
-   NETWORK_MODE=mycustom_network_name
    ```
 
    If running `superagent_default` mode, you may need to add the docker host names for the services to your `hosts` file on Windows, then use these values in place of `localhost` or `127.0.0.1` in your `.env` files. This is especially needed when running the UI in docker as the browser will not be able to access the docker host, while the UI server code can.
