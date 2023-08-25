@@ -4,6 +4,12 @@ AWS.config.update({
   accessKeyId: process.env.NEXT_PUBLIC_AMAZON_S3_ACCESS_KEY_ID,
   secretAccessKey: process.env.NEXT_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY,
   region: process.env.NEXT_PUBLIC_AWS_S3_REGION,
+  ...(process.env.NEXT_PUBLIC_AWS_OVERRIDE_S3_BASEURL
+    ? {
+        endpoint: process.env.NEXT_PUBLIC_AWS_OVERRIDE_S3_BASEURL,
+        s3ForcePathStyle: true,
+      }
+    : {}),
 });
 
 const s3 = new AWS.S3();

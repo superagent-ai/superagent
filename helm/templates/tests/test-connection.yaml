@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "superagent.fullname" . }}-test-connection"
+  labels:
+    {{- include "superagent.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "superagent.api.fullname" . }}:{{ .Values.api.service.port }}']
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "superagent.ui.fullname" . }}:{{ .Values.ui.service.port }}']
+  restartPolicy: Never
