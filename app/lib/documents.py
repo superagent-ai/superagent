@@ -40,14 +40,16 @@ valid_ingestion_types = [
     "NOTION",
 ]
 
+
 def chunkify(lst, size):
     """Divide a list into chunks of given size."""
     return [lst[i : i + size] for i in range(0, len(lst), size)]
 
+
 def load_documents(type, metadata, url, content, from_page, to_page):
     try:
         logger.info(f"Loading documents of type: {type}")
-        
+
         if type == "STRIPE":
             return []
 
@@ -59,6 +61,7 @@ def load_documents(type, metadata, url, content, from_page, to_page):
 
         if type == "AIRTABLE":
             from langchain.document_loaders import AirtableLoader
+
             loader = AirtableLoader(
                 metadata["api_key"], metadata["table_id"], metadata["base_id"]
             )
@@ -71,6 +74,7 @@ def load_documents(type, metadata, url, content, from_page, to_page):
 
         if type == "WEBPAGE":
             from llama_index import download_loader
+
             RemoteDepthReader = download_loader("RemoteDepthReader")
             depth = int(metadata["depth"])
             loader = RemoteDepthReader(depth=depth)
@@ -148,6 +152,7 @@ def load_documents(type, metadata, url, content, from_page, to_page):
         logger.error(f"Error loading documents of type: {type}. Error: {e}")
         raise
 
+
 def embed_documents(documents, document_id, text_splitter):
     try:
         logger.info(f"Embedding documents for document_id: {document_id}")
@@ -158,8 +163,11 @@ def embed_documents(documents, document_id, text_splitter):
         docs = TextSplitters(newDocuments, text_splitter).document_splitter()
         VectorStoreBase().get_database().embed_documents(docs)
     except Exception as e:
-        logger.error(f"Error embedding documents for document_id: {document_id}. Error: {e}")
+        logger.error(
+            f"Error embedding documents for document_id: {document_id}. Error: {e}"
+        )
         raise
+
 
 def upsert_document(
     type: str,
@@ -172,7 +180,9 @@ def upsert_document(
     metadata=None,
 ):
     try:
-        logger.info(f"Upserting document for document_id: {document_id} of type: {type}")
+        logger.info(
+            f"Upserting document for document_id: {document_id} of type: {type}"
+        )
         documents = load_documents(type, metadata, url, content, from_page, to_page)
         if documents:
             embed_documents(documents, document_id, text_splitter)
