@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 from app.utils.prisma import prisma
 from app.utils.api import handle_exception, get_current_api_user
 from app.utils.prisma import prisma
 from app.utils.api import handle_exception
-from app.utils.datasource import finetune
 from app.models.response import (
     Datasource as DatasourceResponse,
     DatasourceList as DatasourceListResponse,
@@ -19,11 +18,13 @@ router = APIRouter()
     description="Create a new datasource",
     response_model=DatasourceResponse,
 )
-async def create(body: DatasourceRequest, api_user=Depends(get_current_api_user)):
+async def create(
+    body: DatasourceRequest,
+    api_user=Depends(get_current_api_user),
+):
     """Endpoint for creating an datasource"""
     try:
         data = await prisma.datasource.create({**body.dict(), "apiUserId": api_user.id})
-        finetune(datasource=data)
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)

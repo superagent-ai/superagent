@@ -2,7 +2,11 @@ from fastapi import APIRouter, Depends
 from app.utils.prisma import prisma
 from app.utils.api import handle_exception, get_current_api_user
 from app.models.response import Agent as AgentResponse, AgentList as AgentListResponse
-from app.models.request import Agent as AgentRequest, AgentLLM as AgentLLMRequest
+from app.models.request import (
+    Agent as AgentRequest,
+    AgentLLM as AgentLLMRequest,
+    AgentDatasource as AgentDatasourceRequest,
+)
 
 router = APIRouter()
 
@@ -121,10 +125,7 @@ async def add_llm(
 ):
     """Endpoint for adding an LLM to an agent"""
     try:
-        await prisma.agentllm.create(
-            {**body.dict(), "agentId": agent_id},
-            include={"agent": {"include": {"llms": {"include": {"llm": True}}}}},
-        )
+        await prisma.agentllm.create({**body.dict(), "agentId": agent_id})
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
@@ -142,6 +143,51 @@ async def remove_llm(
     try:
         await prisma.agentllm.delete(
             where={"agentId_llmId": {"agentId": agent_id, "llmId": llm_id}}
+        )
+        return {"success": True, "data": None}
+    except Exception as e:
+        handle_exception(e)
+
+
+# Agent Datasource endpoints
+@router.post(
+    "/agents/{agent_id}/datasources",
+    name="add_datasource",
+    description="Add datasource to agent",
+    response_model=AgentResponse,
+)
+async def add_datasource(
+    agent_id: str, body: AgentDatasourceRequest, api_user=Depends(get_current_api_user)
+):
+    """Endpoint for adding a datasource to an agent"""
+    try:
+        await prisma.agentdatasource.create({**body.dict(), "agentId": agent_id})
+
+        # TODO:
+        # Run prefect flow for processing
+
+        return {"success": True, "data": None}
+    except Exception as e:
+        handle_exception(e)
+
+
+@router.delete(
+    "/agents/{agent_id}/datasources/{datasource_id}",
+    name="remove_datasource",
+    description="Remove datasource from agent",
+)
+async def remove_datasource(
+    agent_id: str, datasource_id: str, api_user=Depends(get_current_api_user)
+):
+    """Endpoint for removing a datasource from an agent"""
+    try:
+        await prisma.agentdatasource.delete(
+            where={
+                "agentId_datasourceId": {
+                    "agentId": agent_id,
+                    "datasourceId": datasource_id,
+                }
+            }
         )
         return {"success": True, "data": None}
     except Exception as e:

@@ -1,5 +1,3 @@
-from prefect import flow
-
 VALID_INGESTION_TYPES = [
     "TXT",
     "PDF",
@@ -9,8 +7,3 @@ VALID_INGESTION_TYPES = [
     "WEBPAGE",
     "NOTION",
 ]
-
-
-@flow(name="finetune", log_prints=True, retries=0)
-def finetune(datasource: dict) -> None:
-    print("Hello workd")

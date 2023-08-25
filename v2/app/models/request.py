@@ -11,6 +11,10 @@ class AgentLLM(BaseModel):
     llmId: str
 
 
+class AgentDatasource(BaseModel):
+    datasourceId: str
+
+
 class Datasource(BaseModel):
     name: str
     description: str
