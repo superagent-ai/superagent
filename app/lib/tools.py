@@ -83,8 +83,8 @@ def get_chatgpt_plugin_tool(metadata: dict) -> Any:
 
 
 def get_openapi_tool(metadata: dict) -> Any:
-    openapi_url = metadata["openApiUrl"]
-    headers = metadata["headers"]
+    openapi_url = metadata.get("openApiUrl")
+    headers = metadata.get("headers")
     agent = get_openapi_chain(
         spec=openapi_url, headers=json.loads(headers) if headers else None
     )
