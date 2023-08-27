@@ -1,6 +1,8 @@
+import asyncio
 from fastapi import APIRouter, Depends
 from app.utils.prisma import prisma
 from app.utils.api import handle_exception, get_current_api_user
+from app.datasource.flow import process_datasource
 from app.models.response import Agent as AgentResponse, AgentList as AgentListResponse
 from app.models.request import (
     Agent as AgentRequest,
@@ -157,15 +159,26 @@ async def remove_llm(
     response_model=AgentResponse,
 )
 async def add_datasource(
-    agent_id: str, body: AgentDatasourceRequest, api_user=Depends(get_current_api_user)
+    agent_id: str,
+    body: AgentDatasourceRequest,
+    api_user=Depends(get_current_api_user),
 ):
     """Endpoint for adding a datasource to an agent"""
     try:
-        await prisma.agentdatasource.create({**body.dict(), "agentId": agent_id})
+        # await prisma.agentdatasource.create({**body.dict(), "agentId": agent_id})
 
         # TODO:
         # Run prefect flow for processing
+        async def run_datasource_flow():
+            try:
+                await process_datasource(body.datasourceId, agent_id)
+            except Exception as flow_exception:
+                # Handle exceptions within the flow
+                # This can be logging or any other form of error handling
+                handle_exception(flow_exception)
 
+        # Schedule the flow to run in the background
+        asyncio.create_task(run_datasource_flow())
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)

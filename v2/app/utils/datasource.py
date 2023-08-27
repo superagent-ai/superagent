@@ -1,9 +1,0 @@
-VALID_INGESTION_TYPES = [
-    "TXT",
-    "PDF",
-    "YOUTUBE",
-    "MARKDOWN",
-    "GITHUB_REPOSITORY",
-    "WEBPAGE",
-    "NOTION",
-]
