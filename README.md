@@ -103,7 +103,7 @@ To run this project, you will need to add the following environment variables to
 
 `WOLFRAM_ALPHA_APPID` - Wolfram Alpha App ID (found in your Wolfram Alpha dashboard)
 
-`REPLICATE_API_TOKEN` - Replicate API token (found in uour [replicate](https://replication.com) dashboard)
+`REPLICATE_API_TOKEN` - Replicate API token (found in uour [replicate](https://replicate.com/) dashboard)
 
 **If you plan on using other Language Models**
 
