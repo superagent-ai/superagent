@@ -2,7 +2,7 @@ groups:
   publish:
     generators:
       - name: fernapi/fern-python-sdk
-        version: 0.4.1
+        version: 0.4.4
         output:
           location: pypi
           package-name: superagent-py
