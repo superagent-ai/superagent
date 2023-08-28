@@ -2,7 +2,7 @@ import asyncio
 from fastapi import APIRouter, Depends
 from app.utils.prisma import prisma
 from app.utils.api import handle_exception, get_current_api_user
-from app.datasource.flow import process_datasource
+from app.datasource.flow import process_datasource, revalidate_datasource
 from app.models.response import Agent as AgentResponse, AgentList as AgentListResponse
 from app.models.request import (
     Agent as AgentRequest,
@@ -174,15 +174,16 @@ async def add_datasource(
             }
         )
 
-        if not agent_datasource:
+        if agent_datasource:
+            raise Exception("Agent datasource already exists")
 
-            async def run_datasource_flow():
-                try:
-                    await process_datasource(body.datasourceId, agent_id)
-                except Exception as flow_exception:
-                    handle_exception(flow_exception)
+        async def run_datasource_flow():
+            try:
+                await process_datasource(body.datasourceId, agent_id)
+            except Exception as flow_exception:
+                handle_exception(flow_exception)
 
-            asyncio.create_task(run_datasource_flow())
+        asyncio.create_task(run_datasource_flow())
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
@@ -206,6 +207,14 @@ async def remove_datasource(
                 }
             }
         )
+
+        async def run_datasource_revalidate_flow():
+            try:
+                await revalidate_datasource(agent_id)
+            except Exception as flow_exception:
+                handle_exception(flow_exception)
+
+        asyncio.create_task(run_datasource_revalidate_flow())
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
