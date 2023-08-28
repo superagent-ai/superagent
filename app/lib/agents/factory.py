@@ -1,9 +1,10 @@
 from app.lib.agents.agent import DefaultAgent, OpenAIAgent, ReactAgent
+from app.lib.agents.base import AgentBase
 
 
 class AgentFactory:
     @staticmethod
-    def create_agent(agent_base):
+    def create_agent(agent_base: AgentBase):
         if agent_base.type == "OPENAI":
             if agent_base.tools or agent_base.documents:
                 return OpenAIAgent(agent_base)

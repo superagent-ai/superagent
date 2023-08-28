@@ -1,5 +1,3 @@
-from typing import Any
-
 from langchain.agents import (
     AgentExecutor,
     AgentType,
@@ -9,6 +7,7 @@ from langchain.agents import (
 from langchain.chains import LLMChain
 from langchain.prompts import MessagesPlaceholder
 
+from app.lib.agents.base import AgentBase
 from app.lib.agents.strategy import AgentStrategy
 from app.lib.parsers import CustomOutputParser
 
@@ -17,7 +16,7 @@ class DefaultAgent(AgentStrategy):
     def __init__(self, agent_base):
         self.agent_base = agent_base
 
-    def get_agent(self, session: str = None) -> Any:
+    def get_agent(self, session: str | None = None) -> AgentExecutor:
         llm = self.agent_base._get_llm()
         memory = self.agent_base._get_memory(session)
         prompt = self.agent_base._get_prompt()
@@ -33,10 +32,10 @@ class DefaultAgent(AgentStrategy):
 
 
 class OpenAIAgent(AgentStrategy):
-    def __init__(self, agent_base):
+    def __init__(self, agent_base: AgentBase):
         self.agent_base = agent_base
 
-    def get_agent(self, session: str = None) -> Any:
+    def get_agent(self, session: str | None = None) -> AgentExecutor:
         llm = self.agent_base._get_llm()
         tools = self.agent_base._get_tools()
         memory = self.agent_base._get_memory(session)
@@ -64,9 +63,9 @@ class OpenAIAgent(AgentStrategy):
 
 class ReactAgent(AgentStrategy):
     def __init__(self, agent_base):
-        self.agent_base = agent_base
+        self.agent_base: AgentBase = agent_base
 
-    def get_agent(self, session: str = None) -> Any:
+    def get_agent(self, session: str | None = None) -> AgentExecutor:
         llm = self.agent_base._get_llm()
         memory = self.agent_base._get_memory(session)
         tools = self.agent_base._get_tools()

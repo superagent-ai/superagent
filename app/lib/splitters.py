@@ -10,7 +10,7 @@ from langchain.text_splitter import (
 
 
 class TextSplitters:
-    def __init__(self, documents, text_splitter):
+    def __init__(self, documents: list[Document], text_splitter):
         self.documents = documents
         if text_splitter is None:
             self.split_type = "recursive"
