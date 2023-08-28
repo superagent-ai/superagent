@@ -76,6 +76,7 @@ model Agent {
   updatedAt       DateTime          @updatedAt
   llms            AgentLLM[]
   prompt          String?
+  finetune        String?
   apiUserId       String
   apiUser         ApiUser           @relation(fields: [apiUserId], references: [id])
   AgentDatasource AgentDatasource[]
