@@ -2,11 +2,13 @@
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Avatar,
   Box,
   Button,
   HStack,
   Icon,
   Spacer,
+  Stack,
   Tag,
   Text,
   useColorMode,
@@ -17,7 +19,7 @@ import {
   SidebarToggleButton,
   SidebarSection,
   NavGroup,
-} from '@saas-ui/react'
+} from "@saas-ui/react";
 import { SUPERAGENT_VERSION } from "../../lib/constants";
 import { FOOTER_MENU, MAIN_MENU } from "../../lib/sidebar-menu";
 import { TbMoon, TbSun } from "react-icons/tb";
@@ -39,7 +41,7 @@ function MenuLink({ label, icon, path, ...properties }) {
         marginY={"0.5"}
         size="md"
         variant="ghost"
-        opacity={isActive ? "1": "0.7"}
+        opacity={isActive ? "1" : "0.7"}
       >
         {label}
       </Button>
@@ -48,7 +50,8 @@ function MenuLink({ label, icon, path, ...properties }) {
 }
 
 export default function AppBody({ children, session }) {
-  const { toggleColorMode, colorMode } = useColorMode()
+  const { toggleColorMode, colorMode } = useColorMode();
+
   return (
     <AppShell
       variant="fixed"
@@ -56,59 +59,78 @@ export default function AppBody({ children, session }) {
       maxH="100vh"
       overflow="hidden"
       sidebar={
-        session &&
-        <Sidebar>
-          <SidebarToggleButton />
-          <SidebarSection direction="row">
-          <HStack width="full" justifyContent="space-between" paddingX="2">
-            <Text as="strong" fontSize="2xl">
-              Superagent
-            </Text>
-            <Spacer />
-            <Tag size="sm">{SUPERAGENT_VERSION}</Tag>
-            </HStack>
-          </SidebarSection>
-          <SidebarSection flex="1" overflowY="auto" paddingTop={2}>
-            <NavGroup>
-            {MAIN_MENU.map(({ icon, id, label, path, ...properties }) => (
-              <MenuLink
-                key={id}
-                label={label}
-                icon={icon}
-                path={path}
-                {...properties}
-              />
-            ))}
-            </NavGroup>
-
-          </SidebarSection>
-          <SidebarSection>
-          <MenuLink
-            onClick={(e) => {
-              e.preventDefault()
-              toggleColorMode()
-            }}
-            icon={colorMode === 'dark' ? TbSun : TbMoon}
-            label={colorMode === 'dark' ? 'Light mode' : 'Dark mode'}
-          />
-          {FOOTER_MENU.filter(
-                ({ id }) =>
-                  process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY || id !== "billing"
-              ).map(({ icon, id, label, path, ...properties }) => (
+        session && (
+          <Sidebar>
+            <SidebarToggleButton />
+            <SidebarSection direction="row">
+              <HStack width="full" justifyContent="space-between" paddingX="2">
+                <Text as="strong" fontSize="2xl">
+                  Superagent
+                </Text>
+                <Spacer />
+                <Tag size="sm">{SUPERAGENT_VERSION}</Tag>
+              </HStack>
+            </SidebarSection>
+            <SidebarSection flex="1" overflowY="auto" paddingTop={2}>
+              <NavGroup>
+                {MAIN_MENU.map(({ icon, id, label, path, ...properties }) => (
                   <MenuLink
+                    key={id}
                     label={label}
                     icon={icon}
                     path={path}
                     {...properties}
                   />
+                ))}
+              </NavGroup>
+            </SidebarSection>
+            <SidebarSection>
+              <MenuLink
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleColorMode();
+                }}
+                icon={colorMode === "dark" ? TbSun : TbMoon}
+                label={colorMode === "dark" ? "Light mode" : "Dark mode"}
+              />
+              {FOOTER_MENU.filter(
+                ({ id }) =>
+                  process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY || id !== "billing"
+              ).map(({ icon, id, label, path, ...properties }) => (
+                <MenuLink
+                  label={label}
+                  icon={icon}
+                  path={path}
+                  {...properties}
+                />
               ))}
-          </SidebarSection>
-        </Sidebar>
+              <HStack
+                paddingX={3}
+                borderTopWidth="1px"
+                paddingY={4}
+                spacing={3}
+              >
+                <Avatar
+                  size="xs"
+                  name={session?.user?.user?.email || session?.user?.email}
+                />
+                <Stack spacing={0}>
+                  <Text fontSize="sm" noOfLines={1} color="gray.500">
+                    {session?.user?.user?.name || session?.user?.name}
+                  </Text>
+                  <Text fontSize="sm" noOfLines={1} color="gray.500">
+                    {session?.user?.user?.email || session?.user?.email}
+                  </Text>
+                </Stack>
+              </HStack>
+            </SidebarSection>
+          </Sidebar>
+        )
       }
-      >
-        <Box as="main" flex="1" overflowY="auto">
-          {children}
-        </Box>
-      </AppShell>
+    >
+      <Box as="main" flex="1" overflowY="auto">
+        {children}
+      </Box>
+    </AppShell>
   );
 }

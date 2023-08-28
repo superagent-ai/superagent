@@ -1,6 +1,7 @@
 import re
-import requests
 from xml.etree import ElementTree
+
+import requests
 from bs4 import BeautifulSoup
 from langchain.schema import Document
 

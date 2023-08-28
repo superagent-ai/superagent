@@ -37,6 +37,7 @@ import {
   SimpleGrid,
   Avatar,
   Select,
+  Textarea,
 } from "@chakra-ui/react";
 import dayjs from "dayjs";
 import { useForm } from "react-hook-form";
@@ -65,7 +66,7 @@ function DocumentRow({ id, name, createdAt, type, onDelete, onEdit }) {
       await onDelete(id);
 
       toast({
-        description: "Document deleted",
+        description: "Datasource deleted",
         position: "top",
         colorScheme: "gray",
       });
@@ -188,7 +189,7 @@ export default function Applications({ data, session }) {
     await api.deleteDocument({ id });
 
     if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
-      analytics.track("Deleted Document", { id });
+      analytics.track("Deleted Datasource", { id });
     }
 
     setData();
@@ -209,11 +210,11 @@ export default function Applications({ data, session }) {
       await api.createDocument(payload);
 
       if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
-        analytics.track("Connected application", { ...payload });
+        analytics.track("Connected datasource", { ...payload });
       }
 
       toast({
-        description: "Application connected",
+        description: "Datasource connected",
         position: "top",
         colorScheme: "gray",
       });
@@ -246,11 +247,11 @@ export default function Applications({ data, session }) {
     await api.patchDocument(selectedDocument, payload);
 
     if (process.env.NEXT_PUBLIC_SEGMENT_WRITE_KEY) {
-      analytics.track("Updated Application", { ...payload });
+      analytics.track("Updated Datasource", { ...payload });
     }
 
     toast({
-      description: "Application updated",
+      description: "Datasource updated",
       position: "top",
       colorScheme: "gray",
     });
@@ -378,19 +379,35 @@ export default function Applications({ data, session }) {
                     </FormControl>
                     {!selectedDocument &&
                       selectedSource.inputs.map(
-                        ({ key, name, type, required, options, helpText }) => (
+                        ({
+                          key,
+                          name,
+                          type,
+                          required,
+                          options,
+                          placeholder,
+                          helpText,
+                        }) => (
                           <FormControl key={key} isRequired={required}>
                             <FormLabel>{name}</FormLabel>
                             {type === "input" && (
                               <Input
                                 type="text"
+                                placeholder={placeholder}
                                 {...register(key, { required })}
                               />
                             )}
                             {type === "date" && (
                               <Input
                                 type="date"
+                                placeholder={placeholder}
                                 {...register(key, { required })}
+                              />
+                            )}
+                            {type === "textarea" && (
+                              <Textarea
+                                {...register(key, { required })}
+                                placeholder={placeholder}
                               />
                             )}
                             {type === "select" && <Select></Select>}

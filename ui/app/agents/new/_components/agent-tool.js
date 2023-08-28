@@ -48,9 +48,7 @@ export default function AgentTool({ onSubmit, session }) {
       <Stack spacing={10}>
         <Stack spacing={6}>
           <Stack>
-            <Text fontSize="lg" fontWeight="bold">
-              Add tools
-            </Text>
+            <Text fontWeight="bold">Add tools</Text>
             <Text color="gray.500">
               Connect your agent to third party tools.
             </Text>

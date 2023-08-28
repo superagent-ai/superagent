@@ -4,6 +4,12 @@ AWS.config.update({
   accessKeyId: process.env.NEXT_PUBLIC_AMAZON_S3_ACCESS_KEY_ID,
   secretAccessKey: process.env.NEXT_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY,
   region: process.env.NEXT_PUBLIC_AWS_S3_REGION,
+  ...(process.env.NEXT_PUBLIC_AWS_OVERRIDE_S3_BASEURL
+    ? {
+        endpoint: process.env.NEXT_PUBLIC_AWS_OVERRIDE_S3_BASEURL,
+        s3ForcePathStyle: true,
+      }
+    : {}),
 });
 
 const s3 = new AWS.S3();
@@ -29,6 +35,30 @@ export const APPLICATIONS = [
         placeholder: "main",
         helpText: "Select the repo branch",
         type: "input",
+        required: true,
+      },
+    ],
+  },
+  {
+    id: "NOTION",
+    name: "Notion",
+    logo: "./notion.png",
+    is_live: true,
+    inputs: [
+      {
+        key: "integration_token",
+        name: "Notion integration token",
+        placeholder: "",
+        helpText: "Enter your token here...",
+        type: "input",
+        required: true,
+      },
+      {
+        key: "page_ids",
+        name: "Page IDs",
+        placeholder: "",
+        helpText: "Enter the ID of the pages you like to add.",
+        type: "textarea",
         required: true,
       },
     ],

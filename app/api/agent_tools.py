@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from starlette.requests import Request
 
 from app.lib.auth.prisma import JWTBearer
-from app.lib.models.agent_tool import AgentTool
+from app.lib.models.agent_tool import AgentTool, AgentToolListOutput, AgentToolOutput
 from app.lib.prisma import prisma
 
 logger = logging.getLogger(__name__)
@@ -29,6 +29,7 @@ def parse_filter_params(request: Request):
     "/agent-tools",
     name="Create agent tool",
     description="Create a agent tool",
+    response_model=AgentToolOutput,
 )
 async def create_agent_tool(body: AgentTool, token=Depends(JWTBearer())):
     """Create agent tool endpoint"""
@@ -53,6 +54,7 @@ async def create_agent_tool(body: AgentTool, token=Depends(JWTBearer())):
     "/agent-tools",
     name="List agent tools",
     description="List all agent tools",
+    response_model=AgentToolListOutput,
 )
 async def read_agent_tools(
     filters: dict = Depends(parse_filter_params),
@@ -78,6 +80,7 @@ async def read_agent_tools(
     "/agent-tools/{agentToolId}",
     name="Get agent tool",
     description="Get a specific agent tool",
+    response_model=AgentToolOutput,
 )
 async def read_agent_tool(agentToolId: str, token=Depends(JWTBearer())):
     """Get an agent tool"""
@@ -97,6 +100,7 @@ async def read_agent_tool(agentToolId: str, token=Depends(JWTBearer())):
     "/agent-tools/{agentToolId}",
     name="Delete agent tool",
     description="Delete a specific agent tool",
+    response_model=AgentToolOutput,
 )
 async def delete_agent_tool(agentToolId: str, token=Depends(JWTBearer())):
     """Delete agent tool endpoint"""

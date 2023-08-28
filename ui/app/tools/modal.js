@@ -20,6 +20,8 @@ import {
   FormErrorMessage,
   Textarea,
   Center,
+  Switch,
+  HStack,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { useSession } from "next-auth/react";
@@ -36,7 +38,7 @@ const REPLICATE_ARGUMENTS = { image_dimensions: "512x512" };
 const AUTHENTICATION_ARGUMENTS = { authorization: "Bearer: " };
 
 export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
-  const [selectedTool, setSelectedTool] = useState();
+  const [selectedTool, setSelectedTool] = useState(tool);
   const {
     formState: { isSubmitting, errors },
     handleSubmit,
@@ -44,7 +46,13 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
     reset,
     setValue,
     watch,
-  } = useForm({ values: { arguments: REPLICATE_ARGUMENTS } });
+  } = useForm({
+    values: {
+      ...tool,
+      arguments: REPLICATE_ARGUMENTS,
+      returnDirect: tool?.returnDirect,
+    },
+  });
   const type = watch("type");
   const headers = watch("headers");
   const args = watch("arguments");
@@ -52,8 +60,14 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
   const [{ loading: isLoadingAgents, value: agents = [] }, getAgents] =
     useAsyncFn(async (api) => api.getAgents(), []);
   const onHandleSubmt = async (values) => {
-    const { type, name, description, ...metadata } = values;
-    await onSubmit({ type, name, description, metadata: { ...metadata } });
+    const { type, name, description, returnDirect, ...metadata } = values;
+    await onSubmit({
+      type,
+      name,
+      description,
+      returnDirect,
+      metadata: { ...metadata },
+    });
     reset();
   };
 
@@ -76,6 +90,7 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
     setValue("name", selectedTool?.name);
     setValue("description", selectedTool?.description);
     setValue("type", selectedTool?.type);
+    setValue("returnDirect", selectedTool?.returnDirect);
 
     if (selectedTool) {
       for (const [key, value] of Object.entries(selectedTool?.metadata)) {
@@ -89,7 +104,6 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
       isOpen={isOpen}
       onClose={() => {
         reset();
-        setSelectedTool();
         onClose();
       }}
       size="xl"
@@ -101,6 +115,22 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
         <ModalBody>
           <Stack spacing={4}>
             <Stack>
+              <FormControl isRequired isInvalid={errors?.type}>
+                <FormLabel>Type</FormLabel>
+                <Select {...register("type", { required: true })}>
+                  <option value="SEARCH">Websearch</option>
+                  <option value="AGENT">Superagent</option>
+                  <option value="WOLFRAM_ALPHA">Wolfram Alpha</option>
+                  <option value="REPLICATE">Replicate</option>
+                  <option value="ZAPIER_NLA">Zapier</option>
+                  <option value="OPENAPI">APIs</option>
+                  <option value="CHATGPT_PLUGIN">ChatGPT Plugin</option>
+                  <option value="METAPHOR">Metaphor Search</option>
+                </Select>
+                {errors?.type && (
+                  <FormErrorMessage>Invalid type</FormErrorMessage>
+                )}
+              </FormControl>
               <FormControl isRequired isInvalid={errors?.name}>
                 <FormLabel>Name</FormLabel>
                 <Input type="text" {...register("name", { required: true })} />
@@ -120,21 +150,6 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
                 </FormHelperText>
                 {errors?.description && (
                   <FormErrorMessage>Invalid description</FormErrorMessage>
-                )}
-              </FormControl>
-              <FormControl isRequired isInvalid={errors?.type}>
-                <FormLabel>Type</FormLabel>
-                <Select {...register("type", { required: true })}>
-                  <option value="SEARCH">Websearch</option>
-                  <option value="AGENT">Superagent</option>
-                  <option value="WOLFRAM_ALPHA">Wolfram Alpha</option>
-                  <option value="REPLICATE">Replicate</option>
-                  <option value="ZAPIER_NLA">Zapier</option>
-                  <option value="OPENAPI">APIs</option>
-                  <option value="CHATGPT_PLUGIN">ChatGPT Plugin</option>
-                </Select>
-                {errors?.type && (
-                  <FormErrorMessage>Invalid type</FormErrorMessage>
                 )}
               </FormControl>
               {type === "OPENAPI" && (
@@ -202,6 +217,26 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
                   <FormHelperText>Select an Agent</FormHelperText>
                 </FormControl>
               )}
+              {type === "METAPHOR" && (
+                <FormControl isRequired>
+                  <FormLabel>Metaphor api key</FormLabel>
+                  <Input
+                    type="password"
+                    {...register("metaphor_api_key", { required: true })}
+                    placeholder="Enter Metaphor api key..."
+                  />
+                  <FormHelperText>
+                    Obtain your Metaphor API key{" "}
+                    <Link
+                      color="orange.500"
+                      href="https://platform.metaphor.systems/"
+                      target="_blank"
+                    >
+                      here.
+                    </Link>
+                  </FormHelperText>
+                </FormControl>
+              )}
               {type === "ZAPIER_NLA" && (
                 <FormControl isRequired>
                   <FormLabel>Zapier NLA api key</FormLabel>
@@ -264,11 +299,26 @@ export default function ToolsModal({ onSubmit, onClose, isOpen, tool }) {
                   </FormControl>
                 </>
               )}
+              <FormControl>
+                <FormLabel>Return without modification</FormLabel>
+                <Switch {...register("returnDirect")} colorScheme="green" />
+                <FormHelperText>
+                  Enable this if you wish the AI to return the response from
+                  this tool without further evaluation.
+                </FormHelperText>
+              </FormControl>
             </Stack>
           </Stack>
         </ModalBody>
         <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={onClose}>
+          <Button
+            variant="ghost"
+            mr={3}
+            onClick={() => {
+              reset();
+              onClose();
+            }}
+          >
             Cancel
           </Button>
           <Button type="submit" isLoading={isSubmitting}>

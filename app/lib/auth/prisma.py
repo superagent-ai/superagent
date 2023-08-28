@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta, timezone
 from typing import Dict
 
@@ -67,7 +68,7 @@ class JWTBearer(HTTPBearer):
             if credentials.credentials.startswith("oauth_"):
                 accessToken = credentials.credentials.split("oauth_")[-1]
                 oauth_data = prisma.user.find_first(where={"accessToken": accessToken})
-                await self.validateOAuthData(oauth_data)
+                self.validateOAuthData(oauth_data)
                 return dict({"userId": oauth_data.id})
             else:
                 if not self.verify_jwt(credentials.credentials):
@@ -79,7 +80,8 @@ class JWTBearer(HTTPBearer):
                         raise HTTPException(
                             status_code=403, detail="Invalid token or expired token."
                         )
-                    return signJWT(tokens_data.userId)
+
+                    return json.loads(tokens_data.json())
 
             return decodeJWT(credentials.credentials)
 
@@ -99,7 +101,7 @@ class JWTBearer(HTTPBearer):
 
         return isTokenValid
 
-    async def validateOAuthData(self, oauth_data) -> bool:
+    def validateOAuthData(self, oauth_data) -> bool:
         if oauth_data.provider == "google":
             self.verify_google_token(oauth_data.accessToken)
         elif oauth_data.provider == "github":
@@ -108,10 +110,10 @@ class JWTBearer(HTTPBearer):
             self.verify_azure_token(oauth_data.accessToken)
         return True
 
-    async def verify_github_token(self, accessToken: str) -> bool:
+    def verify_github_token(self, accessToken: str) -> bool:
         uri = "https://api.github.com/user"
         headers = {"Authorization": f"token {accessToken}"}
-        res = await req.get(uri, headers=headers)
+        res = req.get(uri, headers=headers)
         if res.status_code == 200:
             return True
         else:
@@ -128,12 +130,12 @@ class JWTBearer(HTTPBearer):
         except ValueError:
             return False
 
-    async def verify_azure_token(self, accessToken: str) -> bool:
+    def verify_azure_token(self, accessToken: str) -> bool:
         try:
             credentials = DefaultAzureCredential(
                 exclude_managed_identity_credential=False
             )
-            token = await credentials.get_token("https://management.azure.com/.default")
+            token = credentials.get_token("https://management.azure.com/.default")
             if token.token == accessToken:
                 return True
             else:

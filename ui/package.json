@@ -32,10 +32,12 @@
     "eslint-config-next": "13.4.2",
     "framer-motion": "^10.12.21",
     "ky": "^0.33.3",
+    "localforage": "^1.10.0",
     "next": "^13.4.8",
     "next-auth": "^4.22.1",
     "prettier": "^2.8.8",
     "react": "18.2.0",
+    "react-code-blocks": "^0.1.3",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.43.9",
     "react-icons": "^4.8.0",
@@ -45,7 +47,8 @@
     "react-use": "^17.4.0",
     "remark-gfm": "^3.0.1",
     "stripe": "^12.5.0",
-    "titleize": "^3.0.0"
+    "titleize": "^3.0.0",
+    "uuid": "^9.0.0"
   },
   "author": "Ismail Pelaseyed",
   "license": "MIT",

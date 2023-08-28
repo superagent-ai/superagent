@@ -17,8 +17,6 @@ services:
     depends_on:
       pgdb:
         condition: service_healthy
-      pgadmin:
-        condition: service_started
     restart: unless-stopped
 
   pgdb:
@@ -31,7 +29,7 @@ services:
         source: pgdb-data
         target: "/var/lib/postgresql/data"
     environment:
-      POSTGRES_DB: postgres
+      POSTGRES_DB: admin
       POSTGRES_USER: ${DBUSER}
       POSTGRES_PASSWORD: ${DBPASS}
     ports:
@@ -51,6 +49,8 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
       PGADMIN_LISTEN_ADDRESS: 0.0.0.0
       PGADMIN_LISTEN_PORT: 5050
+    ports:
+      - 5050:5050
     volumes:
       - type: volume
         source: pgadmin-data

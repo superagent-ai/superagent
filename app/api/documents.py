@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.lib.auth.prisma import JWTBearer
 from app.lib.documents import upsert_document, valid_ingestion_types
-from app.lib.models.document import Document
+from app.lib.models.document import Document, DocumentListOutput, DocumentOuput
 from app.lib.prisma import prisma
 from app.lib.vectorstores.base import VectorStoreBase
 
@@ -15,7 +15,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/documents", name="Create document", description="Create a new document")
+@router.post(
+    "/documents",
+    name="Create document",
+    description="Create a new document",
+    response_model=DocumentOuput,
+)
 async def create_document(body: Document, token=Depends(JWTBearer())):
     """Create document endpoint"""
     try:
@@ -45,12 +50,10 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
                 content=body.content,
                 type=body.type,
                 document_id=document.id,
-                authorization=body.authorization,
                 metadata=body.metadata,
                 text_splitter=body.splitter,
                 from_page=body.from_page,
                 to_page=body.to_page,
-                user_id=token["userId"],
             )
         return {"success": True, "data": document}
     except Exception as e:
@@ -58,7 +61,12 @@ async def create_document(body: Document, token=Depends(JWTBearer())):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@router.get("/documents", name="List documents", description="List all documents")
+@router.get(
+    "/documents",
+    name="List documents",
+    description="List all documents",
+    response_model=DocumentListOutput,
+)
 async def read_documents(token=Depends(JWTBearer())):
     """List documents endpoint"""
     documents = prisma.document.find_many(
@@ -73,6 +81,7 @@ async def read_documents(token=Depends(JWTBearer())):
     "/documents/{documentId}",
     name="Get document",
     description="Get a specific document",
+    response_model=DocumentOuput,
 )
 async def read_document(documentId: str, token=Depends(JWTBearer())):
     """Get a single document"""
@@ -86,13 +95,14 @@ async def read_document(documentId: str, token=Depends(JWTBearer())):
     "/documents/{documentId}",
     name="Delete document",
     description="Delete a specific document",
+    response_model=DocumentOuput,
 )
 async def delete_document(documentId: str, token=Depends(JWTBearer())):
     """Delete a document"""
     try:
         prisma.agentdocument.delete_many(where={"documentId": documentId})
         prisma.document.delete(where={"id": documentId})
-        VectorStoreBase().get_database().delete(namespace=documentId)
+        VectorStoreBase().get_database().delete(documentId)
         return {"success": True, "data": None}
     except Exception as e:
         logger.error("Couldn't delete document with id {documentId}", exc_info=e)
@@ -105,6 +115,7 @@ async def delete_document(documentId: str, token=Depends(JWTBearer())):
     "/documents/{documentId}",
     name="Patch document",
     description="Patch a specific document",
+    response_model=DocumentOuput,
 )
 async def patch_document(documentId: str, body: dict, token=Depends(JWTBearer())):
     """Patch document endpoint"""

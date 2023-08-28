@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.lib.auth.prisma import JWTBearer
-from app.lib.models.tag import Tag
+from app.lib.models.tag import Tag, TagListOutput, TagOutput
 from app.lib.prisma import prisma
 
 logger = logging.getLogger(__name__)
@@ -11,7 +11,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/tags", name="Create a tag", description="Create a new tag")
+@router.post(
+    "/tags",
+    name="Create a tag",
+    description="Create a new tag",
+    response_model=TagOutput,
+)
 async def create_tag(body: Tag, token=Depends(JWTBearer())):
     """Create tag endpoint"""
     try:
@@ -30,7 +35,9 @@ async def create_tag(body: Tag, token=Depends(JWTBearer())):
         )
 
 
-@router.get("/tags", name="List tags", description="List all tags")
+@router.get(
+    "/tags", name="List tags", description="List all tags", response_model=TagListOutput
+)
 async def read_tags(token=Depends(JWTBearer())):
     """List tags endpoint"""
     try:
@@ -50,6 +57,7 @@ async def read_tags(token=Depends(JWTBearer())):
     "/tags/{tagId}",
     name="Get tag",
     description="Get a specific tag",
+    response_model=TagOutput,
 )
 async def read_tag(tagId: str, token=Depends(JWTBearer())):
     """Get tag endpoint"""
@@ -67,6 +75,7 @@ async def read_tag(tagId: str, token=Depends(JWTBearer())):
     "/tags/{tagId}",
     name="Delete tag",
     description="Delete a specific tag",
+    response_model=TagOutput,
 )
 async def delete_tag(tagId: str, token=Depends(JWTBearer())):
     """Delete tag endpoint"""
@@ -80,7 +89,12 @@ async def delete_tag(tagId: str, token=Depends(JWTBearer())):
         )
 
 
-@router.patch("/tags/{tagId}", name="Patch tag", description="Patch a specific tag")
+@router.patch(
+    "/tags/{tagId}",
+    name="Patch tag",
+    description="Patch a specific tag",
+    response_model=TagOutput,
+)
 async def patch_tag(tagId: str, body: dict, token=Depends(JWTBearer())):
     """Patch tag endpoint"""
     try:

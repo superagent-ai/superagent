@@ -431,7 +431,7 @@ export default function AgentDetailClientPage({
             ))}
           </HStack>
           <Divider />
-          <PanelHeading title="Documents" onCreate={onDocumentModalOpen} />
+          <PanelHeading title="Datasources" onCreate={onDocumentModalOpen} />
           <HStack paddingX={6} paddingY={6} flexWrap="wrap" gap={2} spacing={0}>
             {documents.map(({ id, document }) => (
               <AgentDocument

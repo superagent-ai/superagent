@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.lib.auth.prisma import JWTBearer
+from app.lib.models.users import UserOutput
 from app.lib.prisma import prisma
 
 logger = logging.getLogger(__name__)
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/users/me")
+@router.get("/users/me", response_model=UserOutput)
 async def read_user_me(token=Depends(JWTBearer())):
     try:
         if "userId" in token:
@@ -30,7 +31,7 @@ async def read_user_me(token=Depends(JWTBearer())):
     )
 
 
-@router.get("/users/{userId}")
+@router.get("/users/{userId}", response_model=UserOutput)
 async def read_user(userId: str):
     try:
         user = prisma.user.find_unique(where={"id": userId}, include={"profile": True})

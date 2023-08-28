@@ -8,7 +8,7 @@ from app.lib.auth.prisma import (
     signJWT,
     validatePassword,
 )
-from app.lib.models.auth import OAuth, SignIn, SignInOut, SignUp
+from app.lib.models.auth import OAuth, SignIn, SignInOut, SignInOutput, SignUp
 from app.lib.prisma import prisma
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/auth/sign-in")
+@router.post("/auth/sign-in", response_model=SignInOutput)
 async def sign_in(signIn: SignIn):
     try:
         user = prisma.user.find_first(
@@ -49,7 +49,7 @@ async def sign_in(signIn: SignIn):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@router.post("/auth/sign-up")
+@router.post("/auth/sign-up", response_model=SignInOutput)
 async def sign_up(body: SignUp):
     try:
         encryptPassword(body.password)
@@ -105,9 +105,7 @@ async def oauth_handler(body: OAuth):
                 "accessToken": body.access_token,
             }
         )
-        prisma.profile.create(
-            {"userId": user.id, "metadata": json.dumps(body.metadata)}
-        )
+        prisma.profile.create({"userId": user.id})
 
         if user:
             return {"success": True, "data": user}

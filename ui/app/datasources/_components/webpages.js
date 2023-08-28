@@ -369,7 +369,7 @@ export default function Webpages({ data, session }) {
                 </FormControl>
                 <FormControl isRequired isInvalid={errors?.url}>
                   <FormLabel>URL</FormLabel>
-                  <Input
+                  <Textarea
                     type="text"
                     isDisabled={selectedDocument}
                     placeholder="airbnb.com"

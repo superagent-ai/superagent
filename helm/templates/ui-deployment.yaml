@@ -1,0 +1,95 @@
+{{- if and .Values.ui.enabled}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+{{ include "superagent.user.annotations" . | indent 4 }}
+    descriptions: ui server
+  labels:
+{{- include "superagent.labels" . | nindent 4 }}
+    component: ui
+    # app: {{ template "superagent.ui.fullname" . }}
+{{ include "superagent.user.labels" . | indent 4 }}
+  name: {{ template "superagent.ui.fullname" . }}
+spec:
+  replicas: {{ .Values.ui.replicas }}
+  selector:
+    matchLabels:
+{{- include "superagent.selectorLabels" . | nindent 6 }}
+      component: ui
+  template:
+    metadata:
+      annotations:
+{{ include "superagent.user.annotations" . | indent 8 }}
+      labels:
+{{- include "superagent.selectorLabels" . | nindent 8 }}
+        component: ui
+{{ include "superagent.user.labels" . | indent 8 }}
+    spec:
+      {{- with .Values.image.ui.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - image: "{{ .Values.image.ui.repository }}:{{ .Values.image.ui.tag }}"
+        imagePullPolicy: "{{ .Values.image.ui.pullPolicy }}"
+        name: {{ template "superagent.ui.fullname" . }}
+        {{- if .Values.ui.container }}
+        {{- if .Values.ui.container.command }}
+        command: {{ .Values.ui.container.command | toJson }}
+        {{- end }}
+        {{- if .Values.ui.container.args }}
+        args: {{ .Values.ui.container.args | toJson }}
+        {{- end }}
+        {{- end }}
+        env:
+        {{- if .Values.ui.env }}
+          {{- toYaml .Values.ui.env | nindent 8 }}
+        {{- end }}
+        ports:
+          - name: http
+            containerPort: 3000
+            protocol: TCP
+        # startupProbe:
+        #   httpGet:
+        #     path: {{ .Values.ui.health.startup }}
+        #     port: ui
+        #   failureThreshold: 6
+        #   initialDelaySeconds: {{ .Values.ui.health.initialDelaySeconds }}
+        # livenessProbe:
+        #   httpGet:
+        #     path: {{ .Values.ui.health.liveness }}
+        #     port: ui
+        #   initialDelaySeconds: {{ .Values.ui.health.initialDelaySeconds }}
+        # readinessProbe:
+        #   httpGet:
+        #     path: {{ .Values.ui.health.ready }}
+        #     port: ui
+        #   initialDelaySeconds: {{ .Values.ui.health.initialDelaySeconds }}
+        resources:
+          {{- toYaml .Values.ui.resources | nindent 12 }}
+    {{- if and (.Values.nodeSelector) (not .Values.ui.nodeSelector) }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+    {{- end }}
+    {{- if .Values.ui.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.ui.nodeSelector | indent 8 }}
+    {{- end }}
+    {{- if and (.Values.affinity) (not .Values.ui.affinity) }}
+      affinity:
+{{ toYaml .Values.affinity | indent 8 }}
+    {{- end }}
+    {{- if .Values.ui.affinity }}
+      affinity:
+{{ toYaml .Values.ui.affinity | indent 8 }}
+    {{- end }}
+    {{- if and (.Values.tolerations) (not .Values.ui.tolerations) }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+    {{- end }}
+    {{- if .Values.ui.tolerations }}
+      tolerations:
+{{ toYaml .Values.ui.tolerations | indent 8 }}
+    {{- end }}
+{{- end }}

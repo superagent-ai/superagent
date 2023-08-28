@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: Build, manage and deploy LLM-powered Agents
-  version: 0.0.47
+  version: 0.0.55
 paths:
   /api/v1/agents:
     get:
@@ -16,7 +16,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AgentListOutput'
       security:
         - JWTBearer: []
     post:
@@ -29,14 +30,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Agent'
+              $ref: '#/components/schemas/app__lib__models__agent__Agent'
         required: true
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AgentOutput'
         '422':
           description: Validation Error
           content:
@@ -57,7 +59,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AgentListOutput'
       security:
         - JWTBearer: []
   /api/v1/agents/{agentId}:
@@ -79,7 +82,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AgentOutput'
         '422':
           description: Validation Error
           content:
@@ -106,7 +110,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AgentOutput'
         '422':
           description: Validation Error
           content:
@@ -140,7 +145,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AgentOutput'
         '422':
           description: Validation Error
           content:
@@ -174,7 +180,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/PredictAgentOutput'
         '422':
           description: Validation Error
           content:
@@ -204,7 +211,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AgentDocumentListOuput'
         '422':
           description: Validation Error
           content:
@@ -223,14 +231,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentDocument'
+              $ref: '#/components/schemas/app__lib__models__agent_document__AgentDocument'
         required: true
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AgentDocumentOutput'
         '422':
           description: Validation Error
           content:
@@ -258,7 +267,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AgentDocumentOutput'
         '422':
           description: Validation Error
           content:
@@ -285,7 +295,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AgentDocumentOutput'
         '422':
           description: Validation Error
           content:
@@ -306,7 +317,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/TagListOutput'
       security:
         - JWTBearer: []
     post:
@@ -319,14 +331,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Tag'
+              $ref: '#/components/schemas/app__lib__models__tag__Tag'
         required: true
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/TagOutput'
         '422':
           description: Validation Error
           content:
@@ -354,7 +367,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/TagOutput'
         '422':
           description: Validation Error
           content:
@@ -381,7 +395,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/TagOutput'
         '422':
           description: Validation Error
           content:
@@ -415,7 +430,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/TagOutput'
         '422':
           description: Validation Error
           content:
@@ -444,7 +460,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AgentToolListOutput'
         '422':
           description: Validation Error
           content:
@@ -463,14 +480,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentTool'
+              $ref: '#/components/schemas/app__lib__models__agent_tool__AgentTool'
         required: true
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AgentToolOutput'
         '422':
           description: Validation Error
           content:
@@ -498,7 +516,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AgentToolOutput'
         '422':
           description: Validation Error
           content:
@@ -525,7 +544,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AgentToolOutput'
         '422':
           description: Validation Error
           content:
@@ -551,7 +571,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/SignInOutput'
         '422':
           description: Validation Error
           content:
@@ -575,7 +596,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/SignInOutput'
         '422':
           description: Validation Error
           content:
@@ -617,7 +639,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/UserOutput'
       security:
         - JWTBearer: []
   /api/v1/users/{userId}:
@@ -638,7 +661,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/UserOutput'
         '422':
           description: Validation Error
           content:
@@ -657,7 +681,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ApiTokenListOutput'
       security:
         - JWTBearer: []
     post:
@@ -670,14 +695,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ApiToken'
+              $ref: '#/components/schemas/app__lib__models__api_token__ApiToken'
         required: true
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ApiTokenOutput'
         '422':
           description: Validation Error
           content:
@@ -705,7 +731,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ApiTokenOutput'
         '422':
           description: Validation Error
           content:
@@ -732,7 +759,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ApiTokenOutput'
         '422':
           description: Validation Error
           content:
@@ -753,7 +781,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/DocumentListOutput'
       security:
         - JWTBearer: []
     post:
@@ -766,14 +795,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Document'
+              $ref: '#/components/schemas/app__lib__models__document__Document'
         required: true
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/DocumentOuput'
         '422':
           description: Validation Error
           content:
@@ -801,7 +831,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/DocumentOuput'
         '422':
           description: Validation Error
           content:
@@ -828,7 +859,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/DocumentOuput'
         '422':
           description: Validation Error
           content:
@@ -862,7 +894,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/DocumentOuput'
         '422':
           description: Validation Error
           content:
@@ -883,7 +916,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/PromptListOutput'
       security:
         - JWTBearer: []
     post:
@@ -896,14 +930,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Prompt'
+              $ref: '#/components/schemas/app__lib__models__prompt__Prompt'
         required: true
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/PromptOutput'
         '422':
           description: Validation Error
           content:
@@ -931,7 +966,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/PromptOutput'
         '422':
           description: Validation Error
           content:
@@ -958,7 +994,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/PromptOutput'
         '422':
           description: Validation Error
           content:
@@ -992,7 +1029,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/PromptOutput'
         '422':
           description: Validation Error
           content:
@@ -1013,7 +1051,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ToolListOutput'
       security:
         - JWTBearer: []
     post:
@@ -1026,14 +1065,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Tool'
+              $ref: '#/components/schemas/app__lib__models__tool__Tool'
         required: true
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ToolOutput'
         '422':
           description: Validation Error
           content:
@@ -1061,7 +1101,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ToolOutput'
         '422':
           description: Validation Error
           content:
@@ -1088,7 +1129,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ToolOutput'
         '422':
           description: Validation Error
           content:
@@ -1122,7 +1164,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ToolOutput'
         '422':
           description: Validation Error
           content:
@@ -1148,108 +1191,164 @@ paths:
         - JWTBearer: []
 components:
   schemas:
-    Agent:
-      title: Agent
+    AgentDocumentListOuput:
+      title: AgentDocumentListOuput
       required:
-        - name
-        - type
+        - success
+        - data
       type: object
       properties:
-        name:
-          title: Name
-          type: string
-        type:
-          title: Type
-          type: string
-        description:
-          title: Description
-          type: string
-        avatarUrl:
-          title: Avatarurl
-          type: string
-        llm:
-          title: Llm
-          type: object
-        hasMemory:
-          title: Hasmemory
+        success:
+          title: Success
           type: boolean
-          default: false
-        promptId:
-          title: Promptid
-          type: string
-    AgentDocument:
-      title: AgentDocument
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/app__lib__models__response__AgentDocument'
+    AgentDocumentOutput:
+      title: AgentDocumentOutput
       required:
-        - agentId
-        - documentId
+        - success
       type: object
       properties:
-        agentId:
-          title: Agentid
-          type: string
-        documentId:
-          title: Documentid
-          type: string
-    AgentTool:
-      title: AgentTool
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/app__lib__models__response__AgentDocument'
+    AgentListOutput:
+      title: AgentListOutput
       required:
-        - agentId
-        - toolId
+        - success
+        - data
       type: object
       properties:
-        agentId:
-          title: Agentid
-          type: string
-        toolId:
-          title: Toolid
-          type: string
-    ApiToken:
-      title: ApiToken
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/app__lib__models__response__Agent'
+    AgentOutput:
+      title: AgentOutput
       required:
-        - description
+        - success
       type: object
       properties:
-        description:
-          title: Description
-          type: string
-    Document:
-      title: Document
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/app__lib__models__response__Agent'
+    AgentToolListOutput:
+      title: AgentToolListOutput
       required:
-        - type
-        - name
+        - success
+        - data
       type: object
       properties:
-        type:
-          title: Type
-          type: string
-        url:
-          title: Url
-          type: string
-        description:
-          title: Description
-          type: string
-        content:
-          title: Content
-          type: string
-        name:
-          title: Name
-          type: string
-        authorization:
-          title: Authorization
-          type: object
-        metadata:
-          title: Metadata
-          type: object
-        from_page:
-          title: From Page
-          type: integer
-          default: 1
-        to_page:
-          title: To Page
-          type: integer
-        splitter:
-          title: Splitter
-          type: object
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/app__lib__models__response__AgentTool'
+    AgentToolOutput:
+      title: AgentToolOutput
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/app__lib__models__response__AgentTool'
+    AgentType:
+      title: AgentType
+      enum:
+        - REACT
+        - PLANSOLVE
+        - OPENAI
+      type: string
+      description: An enumeration.
+    ApiTokenListOutput:
+      title: ApiTokenListOutput
+      required:
+        - success
+        - data
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/app__lib__models__response__ApiToken'
+    ApiTokenOutput:
+      title: ApiTokenOutput
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/app__lib__models__response__ApiToken'
+    DocumentListOutput:
+      title: DocumentListOutput
+      required:
+        - success
+        - data
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/app__lib__models__response__Document'
+    DocumentOuput:
+      title: DocumentOuput
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/app__lib__models__response__Document'
+    DocumentType:
+      title: DocumentType
+      enum:
+        - TXT
+        - PDF
+        - CSV
+        - YOUTUBE
+        - OPENAPI
+        - URL
+        - MARKDOWN
+        - FIRESTORE
+        - PSYCHIC
+        - GITHUB_REPOSITORY
+        - WEBPAGE
+        - STRIPE
+        - AIRTABLE
+        - SITEMAP
+        - NOTION
+      type: string
+      description: An enumeration.
     HTTPValidationError:
       title: HTTPValidationError
       type: object
@@ -1294,24 +1393,49 @@ components:
         session:
           title: Session
           type: string
-    Prompt:
-      title: Prompt
+    PredictAgentOutput:
+      title: PredictAgentOutput
       required:
-        - name
-        - input_variables
-        - template
+        - success
+        - data
+        - trace
       type: object
       properties:
-        name:
-          title: Name
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
           type: string
-        input_variables:
-          title: Input Variables
+        trace:
+          title: Trace
+          type: object
+    PromptListOutput:
+      title: PromptListOutput
+      required:
+        - success
+        - data
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
           type: array
-          items: {}
-        template:
-          title: Template
-          type: string
+          items:
+            $ref: '#/components/schemas/app__lib__models__response__Prompt'
+    PromptOutput:
+      title: PromptOutput
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/app__lib__models__response__Prompt'
     SignIn:
       title: SignIn
       required:
@@ -1325,6 +1449,19 @@ components:
         password:
           title: Password
           type: string
+    SignInOutput:
+      title: SignInOutput
+      required:
+        - success
+        - data
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: object
     SignUp:
       title: SignUp
       required:
@@ -1344,42 +1481,120 @@ components:
         metadata:
           title: Metadata
           type: object
-    Tag:
-      title: Tag
+    TagListOutput:
+      title: TagListOutput
       required:
-        - name
-        - color
+        - success
+        - data
       type: object
       properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/app__lib__models__response__Tag'
+    TagOutput:
+      title: TagOutput
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/app__lib__models__response__Tag'
+    ToolListOutput:
+      title: ToolListOutput
+      required:
+        - success
+        - data
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/app__lib__models__response__Tool'
+    ToolOutput:
+      title: ToolOutput
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/app__lib__models__response__Tool'
+    ToolType:
+      title: ToolType
+      enum:
+        - BROWSER
+        - SEARCH
+        - WOLFRAM_ALPHA
+        - REPLICATE
+        - ZAPIER_NLA
+        - AGENT
+        - OPENAPI
+        - CHATGPT_PLUGIN
+        - METAPHOR
+      type: string
+      description: An enumeration.
+    User:
+      title: User
+      required:
+        - id
+        - email
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        email:
+          title: Email
+          type: string
+        password:
+          title: Password
+          type: string
         name:
           title: Name
           type: string
-        color:
-          title: Color
+        createdAt:
+          title: Createdat
           type: string
-    Tool:
-      title: Tool
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        deletedAt:
+          title: Deletedat
+          type: string
+          format: date-time
+        provider:
+          title: Provider
+          type: string
+        accessToken:
+          title: Accesstoken
+          type: string
+    UserOutput:
+      title: UserOutput
       required:
-        - name
-        - type
-        - description
+        - success
       type: object
       properties:
-        name:
-          title: Name
-          type: string
-        type:
-          title: Type
-          type: string
-        description:
-          title: Description
-          type: string
-        authorization:
-          title: Authorization
-          type: object
-        metadata:
-          title: Metadata
-          type: object
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/User'
     ValidationError:
       title: ValidationError
       required:
@@ -1401,6 +1616,472 @@ components:
         type:
           title: Error Type
           type: string
+    app__lib__models__agent__Agent:
+      title: Agent
+      required:
+        - name
+        - type
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        type:
+          title: Type
+          type: string
+        description:
+          title: Description
+          type: string
+        avatarUrl:
+          title: Avatarurl
+          type: string
+        llm:
+          title: Llm
+          type: object
+        hasMemory:
+          title: Hasmemory
+          type: boolean
+          default: false
+        promptId:
+          title: Promptid
+          type: string
+    app__lib__models__agent_document__AgentDocument:
+      title: AgentDocument
+      required:
+        - agentId
+        - documentId
+      type: object
+      properties:
+        agentId:
+          title: Agentid
+          type: string
+        documentId:
+          title: Documentid
+          type: string
+    app__lib__models__agent_tool__AgentTool:
+      title: AgentTool
+      required:
+        - agentId
+        - toolId
+      type: object
+      properties:
+        agentId:
+          title: Agentid
+          type: string
+        toolId:
+          title: Toolid
+          type: string
+    app__lib__models__api_token__ApiToken:
+      title: ApiToken
+      required:
+        - description
+      type: object
+      properties:
+        description:
+          title: Description
+          type: string
+    app__lib__models__document__Document:
+      title: Document
+      required:
+        - type
+        - name
+      type: object
+      properties:
+        type:
+          title: Type
+          type: string
+        url:
+          title: Url
+          type: string
+        description:
+          title: Description
+          type: string
+        content:
+          title: Content
+          type: string
+        name:
+          title: Name
+          type: string
+        authorization:
+          title: Authorization
+          type: object
+        metadata:
+          title: Metadata
+          type: object
+        from_page:
+          title: From Page
+          type: integer
+          default: 1
+        to_page:
+          title: To Page
+          type: integer
+        splitter:
+          title: Splitter
+          type: object
+    app__lib__models__prompt__Prompt:
+      title: Prompt
+      required:
+        - name
+        - input_variables
+        - template
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        input_variables:
+          title: Input Variables
+          type: array
+          items: {}
+        template:
+          title: Template
+          type: string
+    app__lib__models__response__Agent:
+      title: Agent
+      required:
+        - id
+        - userId
+        - name
+        - type
+        - llm
+        - hasMemory
+        - isPublic
+        - isListed
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        description:
+          title: Description
+          type: string
+        avatarUrl:
+          title: Avatarurl
+          type: string
+        shareableToken:
+          title: Shareabletoken
+          type: string
+        userId:
+          title: Userid
+          type: string
+        documentId:
+          title: Documentid
+          type: string
+        toolId:
+          title: Toolid
+          type: string
+        tags:
+          title: Tags
+          type: array
+          items:
+            type: object
+        promptId:
+          title: Promptid
+          type: string
+        prompt:
+          title: Prompt
+          type: object
+        name:
+          title: Name
+          type: string
+        type:
+          $ref: '#/components/schemas/AgentType'
+        llm:
+          title: Llm
+          type: object
+        hasMemory:
+          title: Hasmemory
+          type: boolean
+        isPublic:
+          title: Ispublic
+          type: boolean
+        isListed:
+          title: Islisted
+          type: boolean
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+    app__lib__models__response__AgentDocument:
+      title: AgentDocument
+      required:
+        - id
+        - agentId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        documentId:
+          title: Documentid
+          type: string
+        document:
+          $ref: '#/components/schemas/app__lib__models__response__Document'
+        agentId:
+          title: Agentid
+          type: string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        deletedAt:
+          title: Deletedat
+          type: string
+          format: date-time
+    app__lib__models__response__AgentTool:
+      title: AgentTool
+      required:
+        - id
+        - agentId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        toolId:
+          title: Toolid
+          type: string
+        tool:
+          $ref: '#/components/schemas/app__lib__models__response__Tool'
+        agentId:
+          title: Agentid
+          type: string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        deletedAt:
+          title: Deletedat
+          type: string
+          format: date-time
+    app__lib__models__response__ApiToken:
+      title: ApiToken
+      required:
+        - id
+        - userId
+        - description
+        - token
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        userId:
+          title: Userid
+          type: string
+        description:
+          title: Description
+          type: string
+        token:
+          title: Token
+          type: string
+    app__lib__models__response__Document:
+      title: Document
+      required:
+        - id
+        - userId
+        - type
+        - name
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        description:
+          title: Description
+          type: string
+        userId:
+          title: Userid
+          type: string
+        type:
+          $ref: '#/components/schemas/DocumentType'
+        url:
+          title: Url
+          type: string
+        content:
+          title: Content
+          type: string
+        contentHash:
+          title: Contenthash
+          type: string
+        name:
+          title: Name
+          type: string
+        splitter:
+          title: Splitter
+          type: object
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        index:
+          title: Index
+          type: object
+        authorization:
+          title: Authorization
+          type: object
+        metadata:
+          title: Metadata
+          type: object
+    app__lib__models__response__Prompt:
+      title: Prompt
+      required:
+        - id
+        - name
+        - template
+        - input_variables
+        - userId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        template:
+          title: Template
+          type: string
+        input_variables:
+          title: Input Variables
+          type: array
+          items: {}
+        userId:
+          title: Userid
+          type: string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        deletedAt:
+          title: Deletedat
+          type: string
+          format: date-time
+    app__lib__models__response__Tag:
+      title: Tag
+      required:
+        - id
+        - name
+        - userId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        color:
+          title: Color
+          type: string
+        userId:
+          title: Userid
+          type: string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+    app__lib__models__response__Tool:
+      title: Tool
+      required:
+        - id
+        - name
+        - userId
+        - returnDirect
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        type:
+          $ref: '#/components/schemas/ToolType'
+        metadata:
+          title: Metadata
+          type: object
+        userId:
+          title: Userid
+          type: string
+        returnDirect:
+          title: Returndirect
+          type: boolean
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+    app__lib__models__tag__Tag:
+      title: Tag
+      required:
+        - name
+        - color
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        color:
+          title: Color
+          type: string
+    app__lib__models__tool__Tool:
+      title: Tool
+      required:
+        - name
+        - type
+        - description
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        type:
+          title: Type
+          type: string
+        description:
+          title: Description
+          type: string
+        returnDirect:
+          title: Returndirect
+          type: boolean
+          default: false
+        authorization:
+          title: Authorization
+          type: object
+        metadata:
+          title: Metadata
+          type: object
   securitySchemes:
     JWTBearer:
       type: http

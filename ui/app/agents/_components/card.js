@@ -11,13 +11,13 @@ import {
 } from "@chakra-ui/react";
 import dayjs from "dayjs";
 import NextLink from "next/link";
-import { TbTrash, TbCopy, TbPlayerPlay } from "react-icons/tb";
+import { TbTrash, TbCopy, TbPlayerPlay, TbPencil } from "react-icons/tb";
 import { useAsyncFn } from "react-use";
 import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
 
-export default function AgentCard({ id, name, createdAt, onDelete }) {
+export default function AgentCard({ id, name, createdAt, onDelete, onEdit }) {
   const toast = useToast();
 
   const copyToClipboard = () => {
@@ -70,14 +70,18 @@ export default function AgentCard({ id, name, createdAt, onDelete }) {
           </Button>
         </NextLink>
         <HStack spacing={0}>
-          <HStack>
-            <IconButton
-              variant="ghost"
-              size="sm"
-              icon={<Icon fontSize="lg" as={TbCopy} color="gray.500" />}
-              onClick={() => copyToClipboard()}
-            />
-          </HStack>
+          <IconButton
+            variant="ghost"
+            size="sm"
+            icon={<Icon fontSize="lg" as={TbPencil} color="gray.500" />}
+            onClick={() => onEdit(id)}
+          />
+          <IconButton
+            variant="ghost"
+            size="sm"
+            icon={<Icon fontSize="lg" as={TbCopy} color="gray.500" />}
+            onClick={() => copyToClipboard()}
+          />
           <HStack justifyContent="flex-end">
             <IconButton
               size="sm"

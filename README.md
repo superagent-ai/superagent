@@ -37,11 +37,11 @@ Checkout the [full documentation here](https://docs.Superagent.sh/).
 
 You can follow the [roadmap here](https://github.com/users/homanp/projects/4)
 
-## 🛠️ Getting Started
+## 🎥 Tutorials
 
-<div align="center">
-<img alt="Getting started" src="https://cdn.loom.com/sessions/thumbnails/7869ed5dc7614205b62249bedfbc49e0-1688459140526-with-play.gif" />
-</div>
+We post tutorials regularly on our [Youtube channel](https://www.youtube.com/channel/UCBeXnF8gh2EwAmOIwpmfjmA). Make sure to check them out! 
+
+## 🛠️ Getting Started
 
 To get started with Superagent, follow these steps:
 
@@ -63,7 +63,7 @@ To get started with Superagent, follow these steps:
 
 In the `.docker` folder there are multiple docker-compose files.
 
-The main `docker-conpose.yml` file will start up the API and a Postgres DB in docker. You can optionally also run the UI in docker too.
+The main `docker-compose.yml` file will start up the API and a Postgres DB in docker. You can optionally also run the UI in docker too.
 
 The other docker compose files can be used individually, or in combination to start up just the bits you need.
 
@@ -103,7 +103,7 @@ To run this project, you will need to add the following environment variables to
 
 `WOLFRAM_ALPHA_APPID` - Wolfram Alpha App ID (found in your Wolfram Alpha dashboard)
 
-`REPLICATE_API_TOKEN` - Replicate API token (found in uour [replicate](https://replication.com) dashboard)
+`REPLICATE_API_TOKEN` - Replicate API token (found in uour [replicate](https://replicate.com/) dashboard)
 
 **If you plan on using other Language Models**
 

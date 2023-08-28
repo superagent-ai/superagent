@@ -1,4 +1,6 @@
 # flake8: noqa
+import tempfile
+import os
 import json
 from typing import Any, Tuple
 
@@ -6,13 +8,11 @@ from slugify import slugify
 from decouple import config
 from langchain import HuggingFaceHub
 from langchain.agents import Tool, create_csv_agent, AgentType
-from langchain.chains import RetrievalQA
 from langchain.chat_models import (
     AzureChatOpenAI,
     ChatAnthropic,
     ChatOpenAI,
 )
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
@@ -27,6 +27,7 @@ from app.lib.models.tool import (
     ZapierToolInput,
     AgentToolInput,
     OpenApiToolInput,
+    MetaphorToolInput,
 )
 from app.lib.prisma import prisma
 from app.lib.prompts import (
@@ -35,6 +36,7 @@ from app.lib.prompts import (
     DEFAULT_AGENT_PROMPT,
 )
 from app.lib.tools import (
+    DocumentTool,
     ToolDescription,
     get_search_tool,
     get_wolfram_alpha_tool,
@@ -43,9 +45,8 @@ from app.lib.tools import (
     get_openapi_tool,
     get_chatgpt_plugin_tool,
     AgentTool,
-    DocSummarizerTool,
+    MetaphorTool,
 )
-from app.lib.vectorstores.base import VectorStoreBase
 
 
 class AgentBase:
@@ -307,35 +308,52 @@ class AgentBase:
         if type == "CHATGPT_PLUGIN":
             # TODO: confirm metadata has (can have) url
             return (get_chatgpt_plugin_tool(metadata), type)
+        if type == "METAPHOR":
+            return (MetaphorTool(metadata=metadata), MetaphorToolInput)
+
+    def _get_csv_agent(self, agent_document):
+        llm = self._get_llm(has_streaming=False)
+        verbose = True
+        agent_type = (
+            AgentType.OPENAI_FUNCTIONS
+            if self.type == "OPENAI"
+            else AgentType.ZERO_SHOT_REACT_DESCRIPTION
+        )
+
+        if agent_document.document.url:
+            path = agent_document.document.url
+        else:
+            with tempfile.NamedTemporaryFile(delete=False) as temp:
+                temp.write(agent_document.document.content.encode())
+                path = temp.name
+
+        csv_agent = create_csv_agent(
+            llm=llm,
+            path=path,
+            verbose=verbose,
+            agent_type=agent_type,
+        )
+
+        if not agent_document.document.url:
+            os.unlink(path)
+
+        return csv_agent
 
     def _get_tools(self) -> list:
         tools = []
-        embeddings = OpenAIEmbeddings()
 
         for agent_document in self.documents:
             description = agent_document.document.description or (
-                f"useful for finding information about {agent_document.document.name}"
+                f"useful for finding information in specific {agent_document.document.name}"
             )
             args_schema = DocumentInput if self.type == "OPENAI" else None
-            embeddings = OpenAIEmbeddings()
-            docsearch = (
-                VectorStoreBase()
-                .get_database()
-                .from_existing_index(embeddings, agent_document.document.id)
-            )
-            summary_tool = DocSummarizerTool(
-                docsearch=docsearch, llm=self._get_llm(has_streaming=False)
+            docsearch_tool = DocumentTool(document_id=agent_document.document.id)
+            docsearch_tool_all = DocumentTool(
+                document_id=agent_document.document.id, query_type="all"
             )
 
             if agent_document.document.type == "CSV":
-                csv_agent = create_csv_agent(
-                    llm=self._get_llm(has_streaming=False),
-                    path=agent_document.document.url,
-                    verbose=True,
-                    agent_type=AgentType.OPENAI_FUNCTIONS
-                    if self.type == "OPENAI"
-                    else AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-                )
+                csv_agent = self._get_csv_agent(agent_document=agent_document)
                 tools.append(
                     Tool(
                         name=slugify(agent_document.document.name),
@@ -352,17 +370,7 @@ class AgentBase:
                         else agent_document.document.name,
                         description=description,
                         args_schema=args_schema,
-                        func=RetrievalQA.from_chain_type(
-                            llm=self._get_llm(has_streaming=False),
-                            retriever=docsearch.as_retriever(),
-                        ),
-                    )
-                )
-                tools.append(
-                    Tool.from_function(
-                        func=summary_tool.run,
-                        name="document-summarizer",
-                        description="useful for summarizing a whole document",
+                        func=docsearch_tool.run,
                     )
                 )
 
@@ -381,9 +389,9 @@ class AgentBase:
                     or ToolDescription[agent_tool.tool.type].value,
                     args_schema=args_schema if self.type == "OPENAI" else None,
                     func=tool.run if agent_tool.tool.type != "REPLICATE" else tool,
+                    return_direct=agent_tool.tool.returnDirect,
                 )
             )
-
         return tools
 
     def _get_agent_tools(self) -> Any:
