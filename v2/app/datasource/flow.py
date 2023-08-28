@@ -1,23 +1,36 @@
 from prefect import task, flow
+from decouple import config
 from app.utils.prisma import prisma
 from prisma.models import Datasource
+from llama import LLMEngine, Type, Context
+from app.datasource.loader import DataLoader
+
+
+class Document(Type):
+    text: str = Context("A document")
+    metadata: dict = Context("Metadata associated with the document")
 
 
 @task
 async def handle_finetune(datasource: Datasource):
     print(f"FINETUNE: {datasource.id}")
+    data_loader = DataLoader(datasource)
+    data = data_loader.load()
+    llm = LLMEngine(
+        id="QA",
+        config={"production.key": config("LAMINI_API_KEY")},
+        model_name="chat/gpt-3.5-turbo",
+    )
+    documents = [
+        Document(text=document.page_content, metadata=document.metadata)
+        for document in data
+    ]
+    return llm.save_data(documents)
 
 
 @task
 async def handle_vectorization(datasource: Datasource):
     print(f"VECTORIZE: {datasource.id}")
-
-
-@task
-async def create_agent_datasource(datasource_id: str, agent_id: str):
-    await prisma.agentdatasource.create(
-        {"datasourceId": datasource_id, "agentId": agent_id}
-    )
 
 
 VALID_INGESTION_TYPES = {

@@ -165,20 +165,24 @@ async def add_datasource(
 ):
     """Endpoint for adding a datasource to an agent"""
     try:
-        # await prisma.agentdatasource.create({**body.dict(), "agentId": agent_id})
+        agent_datasource = await prisma.agentdatasource.find_unique(
+            where={
+                "agentId_datasourceId": {
+                    "agentId": agent_id,
+                    "datasourceId": body.datasourceId,
+                }
+            }
+        )
 
-        # TODO:
-        # Run prefect flow for processing
-        async def run_datasource_flow():
-            try:
-                await process_datasource(body.datasourceId, agent_id)
-            except Exception as flow_exception:
-                # Handle exceptions within the flow
-                # This can be logging or any other form of error handling
-                handle_exception(flow_exception)
+        if not agent_datasource:
 
-        # Schedule the flow to run in the background
-        asyncio.create_task(run_datasource_flow())
+            async def run_datasource_flow():
+                try:
+                    await process_datasource(body.datasourceId, agent_id)
+                except Exception as flow_exception:
+                    handle_exception(flow_exception)
+
+            asyncio.create_task(run_datasource_flow())
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
