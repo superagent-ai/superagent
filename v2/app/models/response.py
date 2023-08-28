@@ -12,6 +12,21 @@ class Agent(BaseModel):
     data: Optional[dict]
 
 
+class AgentDatasource(BaseModel):
+    success: bool
+    data: Optional[dict]
+
+
+class AgentDatasosurceList(BaseModel):
+    success: bool
+    data: Optional[List[dict]]
+
+
+class AgentInvoke(BaseModel):
+    success: bool
+    data: dict
+
+
 class Datasource(BaseModel):
     success: bool
     data: Optional[dict]

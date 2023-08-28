@@ -69,30 +69,29 @@ model ApiUser {
 }
 
 model Agent {
-  id              String            @id @default(uuid())
-  name            String
-  isActive        Boolean           @default(false)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  llms            AgentLLM[]
-  prompt          String?
-  finetune        String?
-  apiUserId       String
-  apiUser         ApiUser           @relation(fields: [apiUserId], references: [id])
-  AgentDatasource AgentDatasource[]
+  id          String            @id @default(uuid())
+  name        String
+  isActive    Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  llms        AgentLLM[]
+  prompt      String?
+  apiUserId   String
+  apiUser     ApiUser           @relation(fields: [apiUserId], references: [id])
+  datasources AgentDatasource[]
 }
 
 model Datasource {
-  id              String            @id @default(uuid())
-  name            String
-  description     String?
-  url             String?
-  type            DatasourceType
-  apiUserId       String
-  apiUser         ApiUser           @relation(fields: [apiUserId], references: [id])
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  AgentDatasource AgentDatasource[]
+  id          String            @id @default(uuid())
+  name        String
+  description String?
+  url         String?
+  type        DatasourceType
+  apiUserId   String
+  apiUser     ApiUser           @relation(fields: [apiUserId], references: [id])
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  datasources AgentDatasource[]
 }
 
 model AgentDatasource {

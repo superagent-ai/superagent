@@ -3,11 +3,18 @@ from fastapi import APIRouter, Depends
 from app.utils.prisma import prisma
 from app.utils.api import handle_exception, get_current_api_user
 from app.datasource.flow import process_datasource, revalidate_datasource
-from app.models.response import Agent as AgentResponse, AgentList as AgentListResponse
+from app.agents.base import AgentBase
+from app.models.response import (
+    Agent as AgentResponse,
+    AgentList as AgentListResponse,
+    AgentInvoke as AgentInvokeResponse,
+    AgentDatasosurceList as AgentDatasosurceListResponse,
+)
 from app.models.request import (
     Agent as AgentRequest,
     AgentLLM as AgentLLMRequest,
     AgentDatasource as AgentDatasourceRequest,
+    AgentInvoke as AgentInvokeRequest,
 )
 
 router = APIRouter()
@@ -105,12 +112,16 @@ async def update(
     "/agents/{agent_id}/invoke",
     name="invoke",
     description="Invoke an agent",
+    response_model=AgentInvokeResponse,
 )
-async def invoke(agent_id: str, api_user=Depends(get_current_api_user)):
+async def invoke(
+    agent_id: str, body: AgentInvokeRequest, api_user=Depends(get_current_api_user)
+):
     """Endpoint for invoking an agent"""
     try:
-        # Your code here
-        pass
+        agent = await AgentBase(agent_id=agent_id).get_agent()
+        output = await agent.acall(inputs=body.dict())
+        return {"success": True, "data": output}
     except Exception as e:
         handle_exception(e)
 
@@ -185,6 +196,23 @@ async def add_datasource(
 
         asyncio.create_task(run_datasource_flow())
         return {"success": True, "data": None}
+    except Exception as e:
+        handle_exception(e)
+
+
+@router.get(
+    "/agents/{agent_id}/datasources",
+    name="list_datasources",
+    description="List agent datasources",
+    response_model=AgentDatasosurceListResponse,
+)
+async def list_datasources(agent_id: str, api_user=Depends(get_current_api_user)):
+    """Endpoint for listing agent datasources"""
+    try:
+        agent_datasources = await prisma.agentdatasource.find_many(
+            where={"agentId": agent_id}
+        )
+        return {"success": True, "data": agent_datasources}
     except Exception as e:
         handle_exception(e)
 

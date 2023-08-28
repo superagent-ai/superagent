@@ -15,6 +15,10 @@ class AgentDatasource(BaseModel):
     datasourceId: str
 
 
+class AgentInvoke(BaseModel):
+    input: str
+
+
 class Datasource(BaseModel):
     name: str
     description: str
