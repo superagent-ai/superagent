@@ -2,6 +2,7 @@
 import tempfile
 import os
 import json
+import time
 from typing import Any, Tuple
 
 from slugify import slugify
@@ -13,6 +14,7 @@ from langchain.chat_models import (
     ChatAnthropic,
     ChatOpenAI,
 )
+from langchain.docstore.document import Document
 from langchain.llms import Cohere, OpenAI
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.prompts.prompt import PromptTemplate
@@ -47,6 +49,12 @@ from app.lib.tools import (
     AgentTool,
     MetaphorTool,
 )
+from app.lib.vectorstores.base import VectorStoreBase
+from app.lib.vectorstores.pinecone import PineconeVectorStore
+import logging
+import ast
+
+logger = logging.getLogger(__name__)
 
 
 class AgentBase:
@@ -55,6 +63,7 @@ class AgentBase:
         agent: dict,
         api_key: str = None,
         has_streaming: bool = False,
+        cache_ttl: int = None,
         on_llm_new_token=None,
         on_llm_end=None,
         on_chain_end=None,
@@ -64,6 +73,7 @@ class AgentBase:
         self.userId = agent.userId
         self.document = agent.document
         self.has_memory = agent.hasMemory
+        self.cache_ttl = cache_ttl or 86400
         self.type = agent.type
         self.llm = agent.llm
         self.prompt = agent.prompt
@@ -237,7 +247,7 @@ class AgentBase:
         # Use ChatOpenAI as default llm in agents
         return ChatOpenAI(temperature=0, openai_api_key=self._get_api_key())
 
-    def _get_memory(self, session) -> Any:
+    def _get_memory(self, session) -> ConversationBufferMemory:
         history = ChatMessageHistory()
 
         if self.has_memory:
@@ -339,7 +349,7 @@ class AgentBase:
 
         return csv_agent
 
-    def _get_tools(self) -> list:
+    def _get_tools(self) -> list[Tool]:
         tools = []
 
         for agent_document in self.documents:
@@ -347,7 +357,9 @@ class AgentBase:
                 f"useful for finding information in specific {agent_document.document.name}"
             )
             args_schema = DocumentInput if self.type == "OPENAI" else None
+
             docsearch_tool = DocumentTool(document_id=agent_document.document.id)
+
             docsearch_tool_all = DocumentTool(
                 document_id=agent_document.document.id, query_type="all"
             )
@@ -443,6 +455,44 @@ class AgentBase:
                 "session": sessionId,
             }
         )
+
+    def cache_message(
+        self, agent_id: str, session_id: str, query: str, ai_message: str
+    ):
+        vectorstore: PineconeVectorStore = VectorStoreBase().get_database()
+
+        metadata = {
+            "agentId": agent_id,
+            "sessionId": str(session_id),
+            "text": query,
+            "cached_message": ai_message,
+            "type": "cache",
+            "timestamp": time.time(),
+        }
+
+        query_doc = Document(page_content=query, metadata=metadata)
+        vectorstore.embed_documents([query_doc])
+        logger.info(f"cached message: {ai_message}")
+
+    def get_cached_result(self, query: str) -> str | None:
+        vectorstore: PineconeVectorStore = VectorStoreBase().get_database()
+
+        results = vectorstore.query(
+            prompt=query,
+            metadata_filter={"agentId": self.id},
+            min_score=0.9,
+        )
+        if results:
+            timestamp: float = results[0].metadata.get("timestamp", 0.0)
+            if timestamp and time.time() - timestamp > self.cache_ttl:
+                vectorstore.clear_cache(
+                    agent_id=self.id, document_id=results[0].metadata.get("id", "")
+                )
+            else:
+                cached_message: str = results[0].metadata.get("cached_message", "")
+                return cached_message
+
+        return None
 
     def save_intermediate_steps(self, trace: dict) -> None:
         prisma.agenttrace.create(

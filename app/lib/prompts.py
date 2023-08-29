@@ -25,8 +25,8 @@ class CustomPromptTemplate(StringPromptTemplate):
         return self.template.format(**kwargs)
 
 
-default_chat_template = """Assistant is designed to be able to assist with a wide range of tasks, from answering 
-simple questions to providing in-depth explanations and discussions on a wide range of 
+default_chat_template = """Assistant is designed to be able to assist with a wide range of tasks, from answering
+simple questions to providing in-depth explanations and discussions on a wide range of
 topics.
 
 {chat_history}
@@ -50,7 +50,7 @@ Observation: the result of the action
 Thought: I now know the final answer
 Final Answer: the final answer to the original input question
 
-Always include "Final Answer:" when answering. 
+Always include "Final Answer:" when answering.
 
 Begin!
 

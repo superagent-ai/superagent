@@ -19,8 +19,6 @@ from langchain.tools import AIPluginTool
 from langchain.agents import load_tools
 from langchain.docstore.document import Document
 
-from superagent.client import Superagent
-
 
 class ToolDescription(Enum):
     SEARCH = "useful for when you need to search for answers on the internet. You should ask targeted questions."
@@ -83,8 +81,8 @@ def get_chatgpt_plugin_tool(metadata: dict) -> Any:
 
 
 def get_openapi_tool(metadata: dict) -> Any:
-    openapi_url = metadata["openApiUrl"]
-    headers = metadata["headers"]
+    openapi_url = metadata.get("openApiUrl")
+    headers = metadata.get("headers")
     agent = get_openapi_chain(
         spec=openapi_url, headers=json.loads(headers) if headers else None
     )
@@ -136,7 +134,7 @@ class DocSummarizerTool:
         document_text = (
             VectorStoreBase()
             .get_database()
-            .query(
+            .query_documents(
                 prompt=" ",
                 document_id=self.document_id,
                 query_type="document",
@@ -164,7 +162,7 @@ class DocumentTool:
         results = (
             VectorStoreBase()
             .get_database()
-            .query(
+            .query_documents(
                 prompt=prompt,
                 document_id=self.document_id,
                 query_type=self.query_type,

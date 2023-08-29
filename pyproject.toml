@@ -53,7 +53,8 @@ pyairtable = "^2.0.0"
 metaphor-python = "^0.1.11"
 superagent-py = "^0.0.51"
 prisma = "^0.9.1"
-langchain = "^0.0.272"
+openapi-schema-pydantic = "^1.2.4"
+langchain = "^0.0.274"
 
 
 [build-system]
