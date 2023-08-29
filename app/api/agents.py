@@ -179,6 +179,12 @@ async def patch_agent(agentId: str, body: dict, token=Depends(JWTBearer())):
     description="Invoke a specific agent",
     response_model=PredictAgentOutput,
 )
+@router.post(
+    "/agents/{agentId}/predict",
+    name="Prompt agent",
+    description="Invoke a specific agent",
+    response_model=PredictAgentOutput,
+)
 async def run_agent(
     agentId: str,
     body: PredictAgent,
@@ -187,7 +193,9 @@ async def run_agent(
 ):
     """Agent detail endpoint"""
     input = body.input
+    query: str = json.dumps(input.get("input"))
     has_streaming = body.has_streaming
+    cache_ttl = body.cache_ttl
     session_id = body.session
     agent = prisma.agent.find_unique(
         where={"id": agentId},
@@ -221,17 +229,37 @@ async def run_agent(
                     agent=agent,
                     has_streaming=has_streaming,
                     api_key=api_key,
+                    cache_ttl=cache_ttl,
                     on_llm_new_token=on_llm_new_token,
                     on_llm_end=on_llm_end,
                     on_chain_end=on_chain_end,
                 )
 
             def conversation_run_thread(input: dict) -> None:
-                agent_base = get_agent_base()
+                agent_base: AgentBase = get_agent_base()
                 agent_strategy = AgentFactory.create_agent(agent_base)
-                agent_executor = agent_strategy.get_agent(session=session_id)
-                result = agent_executor(agent_base.process_payload(payload=input))
-                output = result.get("output") or result.get("result")
+
+                cached_result = agent_base.get_cached_result(query)
+                # Cache hit
+                if cached_result:
+                    result: dict = {"output": cached_result, "intermediate_steps": []}
+                    logger.info(f"Cached hit: {cached_result}")
+                    output = cached_result
+                else:
+                    result = agent_strategy.get_agent(session=session_id)(
+                        agent_base.process_payload(payload=input)
+                    )
+                    output = result.get("output") or result.get("result")
+                    logger.info(f"Cached missed: {output}")
+
+                    background_tasks.add_task(
+                        agent_base.cache_message,
+                        agent_id=agentId,
+                        session_id=session_id,
+                        query=query,
+                        ai_message=str(output),
+                    )
+
                 background_tasks.add_task(
                     agent_base.create_agent_memory, agentId, session_id, "AI", output
                 )
@@ -253,24 +281,46 @@ async def run_agent(
                 agent=agent, has_streaming=has_streaming, api_key=api_key
             )
             agent_strategy = AgentFactory.create_agent(agent_base)
-            agent_executor = agent_strategy.get_agent(session=session_id)
-            result = agent_executor(agent_base.process_payload(payload=input))
-            output = result.get("output") or result.get("result")
+
+            cached_result = agent_base.get_cached_result(query)
+            # Cache hit
+            if cached_result:
+                result: dict = {"output": cached_result, "intermediate_steps": []}
+                logger.info(f"Cached hit: {cached_result}")
+                output = cached_result
+            else:
+                result = agent_strategy.get_agent(session=session_id)(
+                    agent_base.process_payload(payload=input)
+                )
+                output = result.get("output") or result.get("result")
+                logger.info(f"Cached missed: {output}")
+
+                background_tasks.add_task(
+                    agent_base.cache_message,
+                    agent_id=agentId,
+                    session_id=session_id,
+                    query=query,
+                    ai_message=str(output),
+                )
+
             background_tasks.add_task(
                 agent_base.create_agent_memory,
-                agentId,
-                session_id,
-                "HUMAN",
-                json.dumps(input.get("input")),
+                agentId=agentId,
+                sessionId=session_id,
+                author="HUMAN",
+                message=query,
             )
             background_tasks.add_task(
-                agent_base.create_agent_memory, agentId, session_id, "AI", output
+                agent_base.create_agent_memory,
+                agentId=agentId,
+                sessionId=session_id,
+                author="AI",
+                message=str(output),
             )
 
             if config("SUPERAGENT_TRACING"):
                 trace = agent_base._format_trace(trace=result)
                 background_tasks.add_task(agent_base.save_intermediate_steps, trace)
-
                 return {"success": True, "data": output, "trace": json.loads(trace)}
 
             return {"success": True, "data": output}

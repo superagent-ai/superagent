@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class Response:
     id: str
     text: str
-    metadata: dict | None = None
+    metadata: dict
 
     def to_dict(self):
         return {
@@ -33,7 +33,7 @@ class Response:
         self.metadata = metadata or {}
 
 
-class PineconeVectorstore:
+class PineconeVectorStore:
     def __init__(
         self,
         index_name: str = os.getenv("PINECONE_INDEX", "superagent"),
@@ -93,10 +93,11 @@ class PineconeVectorstore:
         for batch in batch_gen:
             batch_ids = [chunk["id"] for chunk in batch]
             texts_to_embed = [chunk["text"] for chunk in batch]
+            logger.debug(f"Texts to embed: {texts_to_embed}")
 
             embeddings = self._embed_with_retry(texts_to_embed)
-
             to_upsert = list(zip(batch_ids, embeddings, batch))
+            logger.debug(f"Upserting: {to_upsert}")
 
             try:
                 res = self.index.upsert(vectors=to_upsert)
@@ -109,9 +110,9 @@ class PineconeVectorstore:
     def _extract_match_data(self, match):
         """Extracts id, text, and metadata from a match."""
         id = match.id
-        text = match.metadata["text"]
+        text = match.metadata.get("text")
         metadata = match.metadata
-        metadata.pop("text")  # remove text from metadata
+        metadata.pop("text")
         return id, text, metadata
 
     def _format_response(self, response: QueryResponse) -> list[Response]:
@@ -133,13 +134,14 @@ class PineconeVectorstore:
 
         return responses
 
-    def _query(
+    def query(
         self,
         prompt: str,
         metadata_filter: dict | None = None,
         top_k: int = 3,
         namespace: str | None = None,
-    ) -> list[str]:
+        min_score: float | None = None,  # new argument for minimum similarity score
+    ) -> list[Response]:
         """
         Returns results from the vector database.
         """
@@ -152,13 +154,20 @@ class PineconeVectorstore:
             include_metadata=True,
             namespace=namespace,
         )
-        # print(f"Raw responses: {raw_responses}") # leaving for debugging
+        logger.debug(f"Raw responses: {raw_responses}")  # leaving for debugging
+
+        # filter raw_responses based on the minimum similarity score if min_score is set
+        if min_score is not None:
+            raw_responses["matches"] = [
+                match
+                for match in raw_responses["matches"]
+                if match["score"] >= min_score
+            ]
 
         formatted_responses = self._format_response(raw_responses)
+        return formatted_responses
 
-        return [str(response) for response in formatted_responses]
-
-    def query(
+    def query_documents(
         self,
         prompt: str,
         document_id: str,
@@ -169,14 +178,14 @@ class PineconeVectorstore:
             top_k = 3
 
         logger.info(f"Executing query with document id in namespace {document_id}")
-        documents_in_namespace = self._query(
+        documents_in_namespace = self.query(
             prompt=prompt,
             namespace=document_id,
         )
 
         if documents_in_namespace == [] and query_type == "document":
             logger.info("No result with namespace. Executing query without namespace.")
-            return self._query(
+            documents_in_namespace = self.query(
                 prompt=prompt,
                 metadata_filter={"document_id": document_id},
                 top_k=top_k,
@@ -186,12 +195,12 @@ class PineconeVectorstore:
         # with namespaces
         if documents_in_namespace == [] and query_type == "all":
             logger.info("Querying all documents.")
-            return self._query(
+            documents_in_namespace = self.query(
                 prompt=prompt,
                 top_k=top_k,
             )
 
-        return documents_in_namespace
+        return [str(response) for response in documents_in_namespace]
 
     def delete(self, document_id: str):
         vector_dimensionality = 1536
@@ -223,3 +232,17 @@ class PineconeVectorstore:
 
         except Exception as e:
             logger.error(f"Failed to delete {document_id}. Error: {e}")
+
+    def clear_cache(self, agent_id: str, document_id: str | None = None):
+        logger.info(f"Clearing cache for agentId `{agent_id}`.")
+        try:
+            filter_dict = {"agentId": agent_id, "type": "cache"}
+            if document_id:
+                filter_dict["document_id"] = document_id
+
+            self.index.delete(filter=dict(filter_dict), delete_all=False)
+            logger.info(f"Deleted vectors with agentId `{agent_id}`.")
+        except Exception as e:
+            logger.error(
+                f"Failed to delete vectors with agentId `{agent_id}`. Error: {e}"
+            )
