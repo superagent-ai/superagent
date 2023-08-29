@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: Build, manage and deploy LLM-powered Agents
-  version: 0.0.55
+  version: 0.0.59
 paths:
   /api/v1/agents:
     get:
@@ -1393,6 +1393,9 @@ components:
         session:
           title: Session
           type: string
+        cache_ttl:
+          title: Cache Ttl
+          type: integer
     PredictAgentOutput:
       title: PredictAgentOutput
       required:
