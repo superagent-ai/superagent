@@ -258,7 +258,7 @@ export default function AgentDetailClientPage({
   const [message, setMessage] = useState(null);
   const [response, setResponse] = useState(null);
   const {
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting },
     handleSubmit,
     register,
   } = useForm();

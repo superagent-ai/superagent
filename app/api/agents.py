@@ -245,6 +245,7 @@ async def run_agent(
                     result: dict = {"output": cached_result, "intermediate_steps": []}
                     logger.info(f"Cached hit: {cached_result}")
                     output = cached_result
+
                 else:
                     result = agent_strategy.get_agent(session=session_id)(
                         agent_base.process_payload(payload=input)
@@ -278,7 +279,10 @@ async def run_agent(
 
         else:
             agent_base = AgentBase(
-                agent=agent, has_streaming=has_streaming, api_key=api_key
+                agent=agent,
+                has_streaming=has_streaming,
+                api_key=api_key,
+                cache_ttl=cache_ttl,
             )
             agent_strategy = AgentFactory.create_agent(agent_base)
 
