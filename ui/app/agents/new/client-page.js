@@ -30,7 +30,7 @@ export default function NewAgentClientPage({ session }) {
 
   const createAgent = async ({ name, description, avatarUrl }) => {
     let promptId;
-    const { type, prompt, llm, has_memory, documents, tools } = data;
+    const { type, prompt, llm, has_memory, has_cache, documents, tools } = data;
 
     if (prompt) {
       const prompt_ = await api.createPrompt({
@@ -49,6 +49,7 @@ export default function NewAgentClientPage({ session }) {
       type,
       llm,
       hasMemory: has_memory,
+      hasCache: has_cache,
       promptId: promptId,
     });
 
@@ -149,9 +150,9 @@ export default function NewAgentClientPage({ session }) {
         {activeStep === "LLM" && (
           <AgentLLM
             data={data}
-            onSubmit={({ llm, has_memory }) => {
+            onSubmit={({ llm, has_memory, has_cache }) => {
               const activeIndex = STEP_OPTIONS.indexOf("LLM");
-              setData({ ...data, llm, has_memory });
+              setData({ ...data, llm, has_memory, has_cache });
               setActiveStep(STEP_OPTIONS[activeIndex + 1]);
             }}
           />

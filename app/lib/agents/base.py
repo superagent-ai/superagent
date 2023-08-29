@@ -61,9 +61,9 @@ class AgentBase:
     def __init__(
         self,
         agent: dict,
+        cache_ttl: int = 0,
         api_key: str = None,
         has_streaming: bool = False,
-        cache_ttl: int = None,
         on_llm_new_token=None,
         on_llm_end=None,
         on_chain_end=None,
@@ -73,7 +73,7 @@ class AgentBase:
         self.userId = agent.userId
         self.document = agent.document
         self.has_memory = agent.hasMemory
-        self.cache_ttl = cache_ttl or 86400
+        self.cache_ttl = cache_ttl
         self.type = agent.type
         self.llm = agent.llm
         self.prompt = agent.prompt
@@ -476,14 +476,15 @@ class AgentBase:
 
     def get_cached_result(self, query: str) -> str | None:
         vectorstore: PineconeVectorStore = VectorStoreBase().get_database()
-
         results = vectorstore.query(
             prompt=query,
             metadata_filter={"agentId": self.id},
             min_score=0.9,
         )
+
         if results:
             timestamp: float = results[0].metadata.get("timestamp", 0.0)
+
             if timestamp and time.time() - timestamp > self.cache_ttl:
                 vectorstore.clear_cache(
                     agent_id=self.id, document_id=results[0].metadata.get("id", "")

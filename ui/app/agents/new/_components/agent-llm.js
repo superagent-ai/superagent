@@ -31,9 +31,9 @@ export default function AgentLLM({ onSubmit, data }) {
   } = useForm({ values: { provider: "openai-chat" } });
   const provider = watch("provider");
   const handleOnSubmit = async (values) => {
-    const { api_key, provider, model, has_memory } = values;
+    const { api_key, provider, model, has_memory, has_cache } = values;
 
-    onSubmit({ llm: { provider, model, api_key }, has_memory });
+    onSubmit({ llm: { provider, model, api_key }, has_memory, has_cache });
   };
 
   useEffect(() => {
@@ -130,6 +130,22 @@ export default function AgentLLM({ onSubmit, data }) {
             <FormHelperText>
               Enabling Agent memory increases the amount of context the model
               has.
+            </FormHelperText>
+          </FormControl>
+          <FormControl isInvalid={errors?.has_cache}>
+            <HStack alignItems="center">
+              <FormLabel marginTop={1}>Enable cache</FormLabel>
+              <Switch
+                name="has_cache"
+                {...register("has_cache")}
+                colorScheme="green"
+              />
+            </HStack>
+
+            <FormHelperText>
+              Enabling cache will in some cases speed up the inference of the
+              agent and save tokens. Caching is experimental and does not work
+              with streaming.
             </FormHelperText>
           </FormControl>
         </Stack>

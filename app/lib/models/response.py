@@ -97,6 +97,7 @@ class Agent(BaseModel):
     type: AgentType
     llm: dict
     hasMemory: bool
+    hasCache: bool
     isPublic: bool
     isListed: bool
     createdAt: Optional[datetime]
