@@ -42,7 +42,7 @@ export default function Register() {
       payload.metadata = { stripe_customer_id: stripeCustomerId, subscription };
     }
 
-    const user = await ky
+    await ky
       .post(`${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/auth/sign-up`, {
         json: payload,
       })
