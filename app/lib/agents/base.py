@@ -63,6 +63,7 @@ class AgentBase:
         agent: dict,
         api_key: str = None,
         has_streaming: bool = False,
+        cache_ttl: int = None,
         on_llm_new_token=None,
         on_llm_end=None,
         on_chain_end=None,
@@ -72,7 +73,7 @@ class AgentBase:
         self.userId = agent.userId
         self.document = agent.document
         self.has_memory = agent.hasMemory
-        self.cache_ttl = 86400  # 24 hours
+        self.cache_ttl = cache_ttl or 86400
         self.type = agent.type
         self.llm = agent.llm
         self.prompt = agent.prompt

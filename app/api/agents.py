@@ -195,6 +195,7 @@ async def run_agent(
     input = body.input
     query: str = json.dumps(input.get("input"))
     has_streaming = body.has_streaming
+    cache_ttl = body.cache_ttl
     session_id = body.session
     agent = prisma.agent.find_unique(
         where={"id": agentId},
@@ -228,6 +229,7 @@ async def run_agent(
                     agent=agent,
                     has_streaming=has_streaming,
                     api_key=api_key,
+                    cache_ttl=cache_ttl,
                     on_llm_new_token=on_llm_new_token,
                     on_llm_end=on_llm_end,
                     on_chain_end=on_chain_end,
