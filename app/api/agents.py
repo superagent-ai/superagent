@@ -239,13 +239,15 @@ async def run_agent(
                 agent_base: AgentBase = get_agent_base()
                 agent_strategy = AgentFactory.create_agent(agent_base)
 
-                cached_result = agent_base.get_cached_result(query)
-                # Cache hit
-                if cached_result:
-                    result: dict = {"output": cached_result, "intermediate_steps": []}
-                    logger.info(f"Cached hit: {cached_result}")
-                    output = cached_result
-
+                if cache_ttl > 0:
+                    cached_result = agent_base.get_cached_result(query)
+                    if cached_result:
+                        result: dict = {
+                            "output": cached_result,
+                            "intermediate_steps": [],
+                        }
+                        logger.info(f"Cached hit: {cached_result}")
+                        output = cached_result
                 else:
                     result = agent_strategy.get_agent(session=session_id)(
                         agent_base.process_payload(payload=input)
@@ -286,12 +288,13 @@ async def run_agent(
             )
             agent_strategy = AgentFactory.create_agent(agent_base)
 
-            cached_result = agent_base.get_cached_result(query)
-            # Cache hit
-            if cached_result:
-                result: dict = {"output": cached_result, "intermediate_steps": []}
-                logger.info(f"Cached hit: {cached_result}")
-                output = cached_result
+            if cache_ttl > 0:
+                cached_result = agent_base.get_cached_result(query)
+                # Cache hit
+                if cached_result:
+                    result: dict = {"output": cached_result, "intermediate_steps": []}
+                    logger.info(f"Cached hit: {cached_result}")
+                    output = cached_result
             else:
                 result = agent_strategy.get_agent(session=session_id)(
                     agent_base.process_payload(payload=input)
