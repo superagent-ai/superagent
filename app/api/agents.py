@@ -201,7 +201,6 @@ async def run_agent(
         where={"id": agentId},
         include={"prompt": True},
     )
-    print("CACHE TTL:", type(cache_ttl))
 
     if agent:
         if has_streaming:
