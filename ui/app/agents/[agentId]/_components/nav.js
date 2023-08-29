@@ -1,6 +1,10 @@
 "use client";
 import { useState } from "react";
 import {
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
   Button,
   Box,
   Code,
@@ -303,6 +307,18 @@ Superagent({
         )}
       </HStack>
       <Divider />
+      {!apiToken && (
+        <Alert status="warning" borderRadius="none">
+          <AlertIcon />
+          <AlertTitle fontSize="md">Missing API token</AlertTitle>
+          <AlertDescription fontSize="md">
+            You need to create an API token before running this agent.{" "}
+            <NextLink passHref href="/api-tokens">
+              <Link textDecoration="underline">Create a token</Link>
+            </NextLink>
+          </AlertDescription>
+        </Alert>
+      )}
     </>
   );
 }
