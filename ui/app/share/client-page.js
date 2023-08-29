@@ -295,7 +295,7 @@ export default function ShareClientPage({ agent, token }) {
           input: { input },
           has_streaming: true,
           session: selectedSession.id,
-          cache_ttl: agent.hasCache ? 86400 : 0,
+          cache_ttl: 0,
         }),
         openWhenHidden: true,
         async onmessage(event) {
