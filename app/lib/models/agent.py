@@ -29,7 +29,7 @@ class PredictAgent(BaseModel):
     input: dict
     has_streaming: bool = False
     session: str = None
-    cache_ttl: int = None
+    cache_ttl: int = 86400
 
 
 class PredictAgentOutput(BaseModel):

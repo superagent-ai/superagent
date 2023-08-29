@@ -201,6 +201,7 @@ async def run_agent(
         where={"id": agentId},
         include={"prompt": True},
     )
+    print("CACHE TTL:", type(cache_ttl))
 
     if agent:
         if has_streaming:
@@ -278,7 +279,10 @@ async def run_agent(
 
         else:
             agent_base = AgentBase(
-                agent=agent, has_streaming=has_streaming, api_key=api_key
+                agent=agent,
+                has_streaming=has_streaming,
+                api_key=api_key,
+                cache_ttl=cache_ttl,
             )
             agent_strategy = AgentFactory.create_agent(agent_base)
 
