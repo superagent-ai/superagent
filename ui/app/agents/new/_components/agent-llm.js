@@ -144,7 +144,8 @@ export default function AgentLLM({ onSubmit, data }) {
 
             <FormHelperText>
               Enabling cache will in some cases speed up the inference of the
-              agent and save tokens.
+              agent and save tokens. Caching is experimental and does not work
+              with streaming.
             </FormHelperText>
           </FormControl>
         </Stack>
