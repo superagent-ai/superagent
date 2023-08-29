@@ -291,7 +291,6 @@ export default function AgentDetailClientPage({
         body: JSON.stringify({
           input: { input },
           has_streaming: false,
-          cache_ttl: 0,
         }),
       }
     );
