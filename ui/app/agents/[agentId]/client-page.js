@@ -291,7 +291,7 @@ export default function AgentDetailClientPage({
         body: JSON.stringify({
           input: { input },
           has_streaming: false,
-          cache_ttl: agent.hasCache ? 86400 : 0,
+          cache_ttl: 0,
         }),
       }
     );

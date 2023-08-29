@@ -61,7 +61,7 @@ class AgentBase:
     def __init__(
         self,
         agent: dict,
-        cache_ttl: int = 86400,
+        cache_ttl: int = 0,
         api_key: str = None,
         has_streaming: bool = False,
         on_llm_new_token=None,
