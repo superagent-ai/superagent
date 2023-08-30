@@ -1,10 +1,9 @@
 import asyncio
-
 from typing import AsyncIterable
+
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
-
-from langchain.callbacks import AsyncIteratorCallbackHandler
+from langchain.callbacks import get_openai_callback
 
 from app.agents.base import AgentBase
 from app.datasource.flow import process_datasource, revalidate_datasource
@@ -34,6 +33,7 @@ from app.models.response import (
 )
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
+from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 
 router = APIRouter()
 
@@ -138,13 +138,12 @@ async def invoke(
     """Endpoint for invoking an agent"""
 
     async def send_message(
-        agent: AgentBase, content: str, callback: AsyncIteratorCallbackHandler
+        agent: AgentBase, content: str, callback: CustomAsyncIteratorCallbackHandler
     ) -> AsyncIterable[str]:
         task = asyncio.create_task(agent.acall(inputs={"input": content}))
         try:
             async for token in callback.aiter():
-                print(token)
-                yield token
+                yield f"data: {token}\n\n"
         except Exception as e:
             print(f"Caught exception: {e}")
         finally:
@@ -156,7 +155,7 @@ async def invoke(
         session_id = body.sessionId
         input = body.input
         enable_streaming = body.enableStreaming
-        callback = AsyncIteratorCallbackHandler()
+        callback = CustomAsyncIteratorCallbackHandler()
         agent = await AgentBase(
             agent_id=agent_id,
             session_id=session_id,

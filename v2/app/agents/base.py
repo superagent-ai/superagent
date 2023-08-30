@@ -6,13 +6,13 @@ from langchain.chat_models import ChatOpenAI
 from langchain.memory.motorhead_memory import MotorheadMemory
 from langchain.prompts import MessagesPlaceholder
 from langchain.schema import SystemMessage
-from langchain.callbacks import AsyncIteratorCallbackHandler
 
 from app.datasource.flow import VALID_FINETUNE_TYPES
 from app.models.tools import DatasourceInput
 from app.tools.datasource import DatasourceTool
 from app.utils.llm import LLM_MAPPING
 from app.utils.prisma import prisma
+from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.models import Agent, AgentDatasource, AgentLLM
 
 DEFAULT_PROMPT = "You are a helpful AI Assistant"
@@ -24,7 +24,7 @@ class AgentBase:
         agent_id: str,
         session_id: str = None,
         enable_streaming: bool = False,
-        callback: AsyncIteratorCallbackHandler = None,
+        callback: CustomAsyncIteratorCallbackHandler = None,
     ):
         self.agent_id = agent_id
         self.session_id = session_id
@@ -38,7 +38,6 @@ class AgentBase:
                 tool = DatasourceTool(
                     metadata={"agent_id": self.agent_id},
                     args_schema=DatasourceInput,
-                    return_direct=True,
                 )
                 tools.append(tool)
         return tools
@@ -93,5 +92,6 @@ class AgentBase:
             },
             memory=memory,
             return_intermediate_steps=True,
+            verbose=True,
         )
         return agent

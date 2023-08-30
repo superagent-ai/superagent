@@ -1,3 +1,4 @@
+# flake8: noqa
 from typing import Optional
 
 from decouple import config
@@ -16,7 +17,8 @@ class DatasourceTool(BaseTool):
     description = "useful for when you need to answer questions"
 
     def _run(
-        self, question: str, run_manager: Optional[CallbackManagerForToolRun] = None
+        self,
+        question: str,
     ) -> str:
         """Use the tool."""
 
@@ -38,7 +40,6 @@ class DatasourceTool(BaseTool):
     async def _arun(
         self,
         question: str,
-        run_manager: Optional[AsyncCallbackManagerForToolRun] = None,
     ) -> str:
         """Use the tool asynchronously."""
 

@@ -81,7 +81,6 @@ class DataLoader:
         depth = int(self.datasource.metadata.get("depth"))
         loader = RemoteDepthReader(depth=depth)
         return loader.load_langchain_documents(url=self.datasource.url)
-        pass
 
     def load_notion(self):
         NotionPageReader = download_loader("NotionPageReader")
