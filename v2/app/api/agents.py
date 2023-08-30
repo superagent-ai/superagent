@@ -235,14 +235,19 @@ async def add_datasource(
         if agent_datasource:
             raise Exception("Agent datasource already exists")
 
-        async def run_datasource_flow():
-            try:
-                await process_datasource(body.datasourceId, agent_id)
-            except Exception as flow_exception:
-                handle_exception(flow_exception)
+        agent_datasource = await prisma.agentdatasource.create(
+            {"datasourceId": body.datasourceId, "agentId": agent_id},
+            include={"datasource": True},
+        )
 
-        asyncio.create_task(run_datasource_flow())
-        return {"success": True, "data": None}
+        # async def run_datasource_flow():
+        #    try:
+        #        await process_datasource(body.datasourceId, agent_id)
+        #    except Exception as flow_exception:
+        #        handle_exception(flow_exception)
+
+        # asyncio.create_task(run_datasource_flow())
+        return {"success": True, "data": agent_datasource}
     except Exception as e:
         handle_exception(e)
 

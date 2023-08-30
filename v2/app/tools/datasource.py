@@ -4,9 +4,11 @@ from typing import Optional
 from decouple import config
 from langchain.tools import BaseTool
 from llama import Context, LLMEngine, Type
+from slugify import slugify
+from app.vectorstores.pinecone import PineconeVectorStore
 
 
-class DatasourceTool(BaseTool):
+class DatasourceFinetuneTool(BaseTool):
     name = "datasource"
     description = "useful for when you need to answer questions"
 
@@ -51,3 +53,36 @@ class DatasourceTool(BaseTool):
         input = Question(question=question)
         output = llm(input=input, output_type=Answer)
         return output.answer
+
+
+class DatasourceTool(BaseTool):
+    name = "datasource"
+    description = "useful for when you need to answer questions"
+
+    def _run(
+        self,
+        question: str,
+    ) -> str:
+        """Use the tool."""
+        pinecone = PineconeVectorStore()
+        result = pinecone.query_documents(
+            prompt=question,
+            datasource_id=self.metadata["datasource_id"],
+            query_type=self.metadata["query_type"],
+            top_k=3,
+        )
+        return result
+
+    async def _arun(
+        self,
+        question: str,
+    ) -> str:
+        """Use the tool asynchronously."""
+        pinecone = PineconeVectorStore()
+        result = pinecone.query_documents(
+            prompt=question,
+            datasource_id=self.metadata["datasource_id"],
+            query_type=self.metadata["query_type"],
+            top_k=3,
+        )
+        return result
