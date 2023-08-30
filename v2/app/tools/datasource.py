@@ -2,14 +2,8 @@
 from typing import Optional
 
 from decouple import config
-from langchain.callbacks.manager import (
-    AsyncCallbackManagerForToolRun,
-    CallbackManagerForToolRun,
-)
 from langchain.tools import BaseTool
 from llama import Context, LLMEngine, Type
-
-from app.models.tools import DatasourceInput
 
 
 class DatasourceTool(BaseTool):
