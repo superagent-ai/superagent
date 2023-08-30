@@ -1,6 +1,10 @@
 import asyncio
 
+from typing import AsyncIterable
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
+
+from langchain.callbacks import AsyncIteratorCallbackHandler
 
 from app.agents.base import AgentBase
 from app.datasource.flow import process_datasource, revalidate_datasource
@@ -132,10 +136,38 @@ async def invoke(
     agent_id: str, body: AgentInvokeRequest, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for invoking an agent"""
+
+    async def send_message(
+        agent: AgentBase, content: str, callback: AsyncIteratorCallbackHandler
+    ) -> AsyncIterable[str]:
+        task = asyncio.create_task(agent.acall(inputs={"input": content}))
+        try:
+            async for token in callback.aiter():
+                print(token)
+                yield token
+        except Exception as e:
+            print(f"Caught exception: {e}")
+        finally:
+            callback.done.set()
+
+        await task
+
     try:
         session_id = body.sessionId
         input = body.input
-        agent = await AgentBase(agent_id=agent_id, session_id=session_id).get_agent()
+        enable_streaming = body.enableStreaming
+        callback = AsyncIteratorCallbackHandler()
+        agent = await AgentBase(
+            agent_id=agent_id,
+            session_id=session_id,
+            enable_streaming=enable_streaming,
+            callback=callback,
+        ).get_agent()
+
+        if enable_streaming:
+            generator = send_message(agent, content=input, callback=callback)
+            return StreamingResponse(generator, media_type="text/event-stream")
+
         output = await agent.acall(inputs={"input": input})
         return {"success": True, "data": output}
     except Exception as e:

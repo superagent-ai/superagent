@@ -19,6 +19,7 @@ class AgentDatasource(BaseModel):
 class AgentInvoke(BaseModel):
     input: str
     sessionId: Optional[str]
+    enableStreaming: bool
 
 
 class Datasource(BaseModel):

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, List
 
 from decouple import config
 from langchain.agents import AgentType, initialize_agent
@@ -6,6 +6,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.memory.motorhead_memory import MotorheadMemory
 from langchain.prompts import MessagesPlaceholder
 from langchain.schema import SystemMessage
+from langchain.callbacks import AsyncIteratorCallbackHandler
 
 from app.datasource.flow import VALID_FINETUNE_TYPES
 from app.models.tools import DatasourceInput
@@ -18,9 +19,17 @@ DEFAULT_PROMPT = "You are a helpful AI Assistant"
 
 
 class AgentBase:
-    def __init__(self, agent_id: str, session_id: str = None):
+    def __init__(
+        self,
+        agent_id: str,
+        session_id: str = None,
+        enable_streaming: bool = False,
+        callback: AsyncIteratorCallbackHandler = None,
+    ):
         self.agent_id = agent_id
         self.session_id = session_id
+        self.enable_streaming = enable_streaming
+        self.callback = callback
 
     async def _get_tools(self, agent_datasources: List[AgentDatasource]) -> List:
         tools = []
@@ -40,6 +49,8 @@ class AgentBase:
                 model=LLM_MAPPING[agent_llm.llm.model],
                 openai_api_key=agent_llm.llm.apiKey,
                 temperature=0,
+                streaming=self.enable_streaming,
+                callbacks=[self.callback] if self.enable_streaming else [],
                 **(agent_llm.llm.options if agent_llm.llm.options else {}),
             )
 
