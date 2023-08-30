@@ -1759,28 +1759,29 @@ retrying = "*"
 
 [[package]]
 name = "llama-index"
-version = "0.6.38.post1"
+version = "0.8.13"
 description = "Interface between LLMs and your data"
 optional = false
 python-versions = "*"
 files = [
-    {file = "llama_index-0.6.38.post1-py3-none-any.whl", hash = "sha256:b224af5454ae9e23a56d1b91cf688bb9d849fc230599597c19fd54a2ee026658"},
-    {file = "llama_index-0.6.38.post1.tar.gz", hash = "sha256:e60b6439e4eb2f8a821a2a4131705a5ccaa2dced9da59fbb1c12ab8e41bc6259"},
+    {file = "llama_index-0.8.13-py3-none-any.whl", hash = "sha256:f79ee45e57470cba9d5ba3ce7784b349d0b5467fc0fa37e359699d0044759565"},
+    {file = "llama_index-0.8.13.tar.gz", hash = "sha256:01e3b4bf2ff163831f229bed4b2506a43547dbb8f5b883d98fd4a27a93d8e3ee"},
 ]
 
 [package.dependencies]
 beautifulsoup4 = "*"
 dataclasses-json = "*"
 fsspec = ">=2023.5.0"
-langchain = ">=0.0.218"
+langchain = ">=0.0.262"
+nest-asyncio = "*"
 numpy = "*"
 openai = ">=0.26.4"
 pandas = "*"
 sqlalchemy = ">=2.0.15"
 tenacity = ">=8.2.0,<9.0.0"
 tiktoken = "*"
-typing-extensions = "4.5.0"
-typing-inspect = "0.8.0"
+typing-extensions = ">=4.5.0"
+typing-inspect = ">=0.8.0"
 urllib3 = "<2"
 
 [[package]]
@@ -2196,6 +2197,17 @@ python-versions = ">=3.5"
 files = [
     {file = "mypy_extensions-1.0.0-py3-none-any.whl", hash = "sha256:4392f6c0eb8a5668a69e23d168ffa70f0be9ccfd32b5cc2d26a34ae5b844552d"},
     {file = "mypy_extensions-1.0.0.tar.gz", hash = "sha256:75dbf8955dc00442a438fc4d0666508a9a97b6bd41aa2f0ffe9d2f2725af0782"},
+]
+
+[[package]]
+name = "nest-asyncio"
+version = "1.5.7"
+description = "Patch asyncio to allow nested event loops"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "nest_asyncio-1.5.7-py3-none-any.whl", hash = "sha256:5301c82941b550b3123a1ea772ba9a1c80bad3a182be8c1a5ae6ad3be57a9657"},
+    {file = "nest_asyncio-1.5.7.tar.gz", hash = "sha256:6a80f7b98f24d9083ed24608977c09dd608d83f91cccc24c9d2cba6d10e01c10"},
 ]
 
 [[package]]
@@ -4772,4 +4784,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "d8ccee0bc08bc90723132b073066ce79a673c89020bbe7d6c4a6a6afa760b1a4"
+content-hash = "3c3840224d362f1b8e798f6f1c22ed35541f9de3459b69775565ec5e39e4dbaa"
