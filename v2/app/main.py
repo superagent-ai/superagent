@@ -5,8 +5,8 @@ import colorlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.utils.prisma import prisma
 from app.routers import router
+from app.utils.prisma import prisma
 
 # Create a color formatter
 formatter = colorlog.ColoredFormatter(

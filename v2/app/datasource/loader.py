@@ -1,19 +1,20 @@
-import requests
 import tempfile
-
-from urllib.parse import urlparse
+from tempfile import NamedTemporaryFile
 from typing import Any
+from urllib.parse import urlparse
+
+import requests
 from langchain.document_loaders import (
     GitLoader,
-    TextLoader,
     PyPDFLoader,
+    TextLoader,
     UnstructuredMarkdownLoader,
     WebBaseLoader,
     YoutubeLoader,
 )
 from llama_index import download_loader
+
 from prisma.models import Datasource
-from tempfile import NamedTemporaryFile
 
 
 class DataLoader:

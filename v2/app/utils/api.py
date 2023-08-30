@@ -1,9 +1,10 @@
 import logging
-import jwt
 
+import jwt
 from decouple import config
-from fastapi import HTTPException, status, Security
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import HTTPException, Security, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
 from app.utils.prisma import prisma
 
 logger = logging.getLogger(__name__)

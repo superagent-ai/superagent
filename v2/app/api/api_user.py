@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
-from app.utils.prisma import prisma
-from app.utils.api import handle_exception, generate_jwt, get_current_api_user
+
 from app.models.response import ApiUser as ApiUserResponse
+from app.utils.api import generate_jwt, get_current_api_user, handle_exception
+from app.utils.prisma import prisma
 
 router = APIRouter()
 

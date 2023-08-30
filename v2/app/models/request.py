@@ -1,5 +1,6 @@
+from typing import Dict, Optional
+
 from pydantic import BaseModel
-from typing import Optional, Dict
 
 
 class Agent(BaseModel):
@@ -17,6 +18,7 @@ class AgentDatasource(BaseModel):
 
 class AgentInvoke(BaseModel):
     input: str
+    sessionId: Optional[str]
 
 
 class Datasource(BaseModel):

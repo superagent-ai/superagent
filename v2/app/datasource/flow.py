@@ -1,10 +1,12 @@
-from prefect import task, flow
-from decouple import config
 from typing import List
+
+from decouple import config
+from llama import Context, LLMEngine, Type
+from prefect import flow, task
+
+from app.datasource.loader import DataLoader
 from app.utils.prisma import prisma
 from prisma.models import AgentDatasource
-from llama import LLMEngine, Type, Context
-from app.datasource.loader import DataLoader
 
 VALID_FINETUNE_TYPES = [
     "TXT",

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api import agents, llms, api_user, datasources
+from app.api import agents, api_user, datasources, llms
 
 router = APIRouter()
 api_prefix = "/api/v1"

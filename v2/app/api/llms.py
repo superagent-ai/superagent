@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
-from app.utils.prisma import prisma
-from app.utils.api import handle_exception, get_current_api_user
-from app.utils.prisma import prisma
-from app.utils.api import handle_exception
-from app.models.response import LLM as LLMResponse, LLMList as LLMListResponse
+
 from app.models.request import LLM as LLMRequest
+from app.models.response import LLM as LLMResponse
+from app.models.response import LLMList as LLMListResponse
+from app.utils.api import get_current_api_user, handle_exception
+from app.utils.prisma import prisma
 from prisma import Json
 
 router = APIRouter()

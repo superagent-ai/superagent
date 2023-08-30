@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Depends, BackgroundTasks
-from app.utils.prisma import prisma
-from app.utils.api import handle_exception, get_current_api_user
-from app.utils.prisma import prisma
-from app.utils.api import handle_exception
+from fastapi import APIRouter, BackgroundTasks, Depends
+
+from app.models.request import Datasource as DatasourceRequest
 from app.models.response import (
     Datasource as DatasourceResponse,
+)
+from app.models.response import (
     DatasourceList as DatasourceListResponse,
 )
-from app.models.request import Datasource as DatasourceRequest
+from app.utils.api import get_current_api_user, handle_exception
+from app.utils.prisma import prisma
 
 router = APIRouter()
 

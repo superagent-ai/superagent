@@ -1,21 +1,35 @@
 import asyncio
+
 from fastapi import APIRouter, Depends
-from app.utils.prisma import prisma
-from app.utils.api import handle_exception, get_current_api_user
-from app.datasource.flow import process_datasource, revalidate_datasource
+
 from app.agents.base import AgentBase
-from app.models.response import (
-    Agent as AgentResponse,
-    AgentList as AgentListResponse,
-    AgentInvoke as AgentInvokeResponse,
-    AgentDatasosurceList as AgentDatasosurceListResponse,
-)
+from app.datasource.flow import process_datasource, revalidate_datasource
 from app.models.request import (
     Agent as AgentRequest,
-    AgentLLM as AgentLLMRequest,
+)
+from app.models.request import (
     AgentDatasource as AgentDatasourceRequest,
+)
+from app.models.request import (
     AgentInvoke as AgentInvokeRequest,
 )
+from app.models.request import (
+    AgentLLM as AgentLLMRequest,
+)
+from app.models.response import (
+    Agent as AgentResponse,
+)
+from app.models.response import (
+    AgentDatasosurceList as AgentDatasosurceListResponse,
+)
+from app.models.response import (
+    AgentInvoke as AgentInvokeResponse,
+)
+from app.models.response import (
+    AgentList as AgentListResponse,
+)
+from app.utils.api import get_current_api_user, handle_exception
+from app.utils.prisma import prisma
 
 router = APIRouter()
 
@@ -119,8 +133,10 @@ async def invoke(
 ):
     """Endpoint for invoking an agent"""
     try:
-        agent = await AgentBase(agent_id=agent_id).get_agent()
-        output = await agent.acall(inputs=body.dict())
+        session_id = body.sessionId
+        input = body.input
+        agent = await AgentBase(agent_id=agent_id, session_id=session_id).get_agent()
+        output = await agent.acall(inputs={"input": input})
         return {"success": True, "data": output}
     except Exception as e:
         handle_exception(e)
