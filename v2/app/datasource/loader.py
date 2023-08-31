@@ -1,9 +1,8 @@
-import tempfile
 import json
+import tempfile
 from tempfile import NamedTemporaryFile
 from typing import Any
 from urllib.parse import urlparse
-from pyairtable import Api
 
 import requests
 from langchain.document_loaders import (
@@ -15,6 +14,7 @@ from langchain.document_loaders import (
     YoutubeLoader,
 )
 from llama_index import download_loader
+from pyairtable import Api
 
 from prisma.models import Datasource
 

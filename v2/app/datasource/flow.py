@@ -5,9 +5,9 @@ from llama import Context, LLMEngine, Type
 from prefect import flow, task
 
 from app.datasource.loader import DataLoader
+from app.datasource.types import VALID_UNSTRUCTURED_DATA_TYPES
 from app.utils.prisma import prisma
 from app.vectorstores.pinecone import PineconeVectorStore
-from app.datasource.types import VALID_UNSTRUCTURED_DATA_TYPES
 from prisma.models import AgentDatasource, Datasource
 
 
