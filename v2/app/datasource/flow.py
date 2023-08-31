@@ -7,16 +7,8 @@ from prefect import flow, task
 from app.datasource.loader import DataLoader
 from app.utils.prisma import prisma
 from app.vectorstores.pinecone import PineconeVectorStore
+from app.datasource.types import VALID_UNSTRUCTURED_DATA_TYPES
 from prisma.models import AgentDatasource, Datasource
-
-VALID_FINETUNE_TYPES = [
-    "TXT",
-    "PDF",
-    "MARKDOWN",
-    "GITHUB_REPOSITORY",
-    "WEBPAGE",
-    "NOTION",
-]
 
 
 class Document(Type):
@@ -35,7 +27,7 @@ async def handle_datasources(
     )
     llm.clear_data()
     for agent_datasource in agent_datasources:
-        if agent_datasource.datasource.type in VALID_FINETUNE_TYPES:
+        if agent_datasource.datasource.type in VALID_UNSTRUCTURED_DATA_TYPES:
             data = DataLoader(agent_datasource.datasource).load()
             documents = [
                 Document(text=document.page_content, metadata=document.metadata)

@@ -8,9 +8,12 @@ from langchain.prompts import MessagesPlaceholder
 from langchain.schema import SystemMessage
 from slugify import slugify
 
-from app.datasource.flow import VALID_FINETUNE_TYPES
+from app.datasource.types import (
+    VALID_UNSTRUCTURED_DATA_TYPES,
+    VALID_STRUCTURED_DATA_TYPES,
+)
 from app.models.tools import DatasourceInput
-from app.tools.datasource import DatasourceTool
+from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
 from app.utils.llm import LLM_MAPPING
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
@@ -35,17 +38,23 @@ class AgentBase:
     async def _get_tools(self, agent_datasources: List[AgentDatasource]) -> List:
         tools = []
         for agent_datasource in agent_datasources:
-            if agent_datasource.datasource.type in VALID_FINETUNE_TYPES:
-                tool = DatasourceTool(
-                    metadata={
-                        "datasource_id": agent_datasource.datasource.id,
-                        "query_type": "all",
-                    },
-                    args_schema=DatasourceInput,
-                    name=slugify(agent_datasource.datasource.name),
-                    description=agent_datasource.datasource.description,
-                )
-                tools.append(tool)
+            tool_type = (
+                DatasourceTool
+                if agent_datasource.datasource.type in VALID_UNSTRUCTURED_DATA_TYPES
+                else StructuredDatasourceTool
+            )
+            metadata = (
+                {"datasource_id": agent_datasource.datasource.id, "query_type": "all"}
+                if tool_type == DatasourceTool
+                else {"datasource": agent_datasource.datasource}
+            )
+            tool = tool_type(
+                metadata=metadata,
+                args_schema=DatasourceInput,
+                name=slugify(agent_datasource.datasource.name),
+                description=agent_datasource.datasource.description,
+            )
+            tools.append(tool)
         return tools
 
     async def _get_llm(self, agent_llm: AgentLLM) -> Any:
