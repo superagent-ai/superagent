@@ -55,6 +55,10 @@ enum DatasourceType {
   PDF
   CSV
   YOUTUBE
+  GITHUB_REPOSITORY
+  MARKDOWN
+  WEBPAGE
+  AIRTABLE
   FUNCTION
 }
 
@@ -91,6 +95,7 @@ model Datasource {
   apiUser     ApiUser           @relation(fields: [apiUserId], references: [id])
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
+  metadata    String?           @db.Text
   datasources AgentDatasource[]
 }
 

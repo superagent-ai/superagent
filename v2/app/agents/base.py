@@ -9,8 +9,8 @@ from langchain.schema import SystemMessage
 from slugify import slugify
 
 from app.datasource.types import (
-    VALID_UNSTRUCTURED_DATA_TYPES,
     VALID_STRUCTURED_DATA_TYPES,
+    VALID_UNSTRUCTURED_DATA_TYPES,
 )
 from app.models.tools import DatasourceInput
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
