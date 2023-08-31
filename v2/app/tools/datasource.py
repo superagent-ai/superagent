@@ -1,11 +1,17 @@
 # flake8: noqa
-from typing import Optional
+import pandas as pd
+import tempfile
+import os
 
 from decouple import config
 from langchain.tools import BaseTool
 from llama import Context, LLMEngine, Type
-from slugify import slugify
 from app.vectorstores.pinecone import PineconeVectorStore
+from prisma.models import Datasource
+
+from langchain.agents.agent_types import AgentType
+from langchain.agents import create_pandas_dataframe_agent
+from langchain.chat_models.openai import ChatOpenAI
 
 
 class DatasourceFinetuneTool(BaseTool):
@@ -86,3 +92,42 @@ class DatasourceTool(BaseTool):
             top_k=3,
         )
         return result
+
+
+class StructuredDatasourceTool(BaseTool):
+    name = "structured datasource"
+    description = "useful for when need answer questions"
+
+    def _run(
+        self,
+        question: str,
+    ) -> str:
+        """Use the tool."""
+        datasource: Datasource = self.metadata["datasource"]
+        if datasource.type == "CSV":
+            df = pd.read_csv(datasource.url)
+        agent = create_pandas_dataframe_agent(
+            ChatOpenAI(temperature=0, model="gpt-4"),
+            df,
+            verbose=True,
+            agent_type=AgentType.OPENAI_FUNCTIONS,
+        )
+        output = agent.run(question)
+        return output
+
+    async def _arun(
+        self,
+        question: str,
+    ) -> str:
+        """Use the tool asynchronously."""
+        datasource: Datasource = self.metadata["datasource"]
+        if datasource.type == "CSV":
+            df = pd.read_csv(datasource.url)
+        agent = create_pandas_dataframe_agent(
+            ChatOpenAI(temperature=0, model="gpt-4"),
+            df,
+            verbose=True,
+            agent_type=AgentType.OPENAI_FUNCTIONS,
+        )
+        output = await agent.arun(question)
+        return output

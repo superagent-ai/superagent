@@ -3,7 +3,6 @@ from typing import AsyncIterable
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
-from langchain.callbacks import get_openai_callback
 
 from app.agents.base import AgentBase
 from app.datasource.flow import process_datasource, revalidate_datasource
@@ -240,6 +239,8 @@ async def add_datasource(
             include={"datasource": True},
         )
 
+        # TODO:
+        # Enable this for finetuning models
         # async def run_datasource_flow():
         #    try:
         #        await process_datasource(body.datasourceId, agent_id)
@@ -288,13 +289,15 @@ async def remove_datasource(
             }
         )
 
-        async def run_datasource_revalidate_flow():
-            try:
-                await revalidate_datasource(agent_id)
-            except Exception as flow_exception:
-                handle_exception(flow_exception)
+        # TODO:
+        # Enable this for finetuning models
+        # async def run_datasource_revalidate_flow():
+        #    try:
+        #        await revalidate_datasource(agent_id)
+        #    except Exception as flow_exception:
+        #        handle_exception(flow_exception)
 
-        asyncio.create_task(run_datasource_revalidate_flow())
+        # asyncio.create_task(run_datasource_revalidate_flow())
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
