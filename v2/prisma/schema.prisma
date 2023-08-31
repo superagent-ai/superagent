@@ -9,24 +9,6 @@ datasource db {
   shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
-enum DocumentType {
-  TXT
-  PDF
-  CSV
-  YOUTUBE
-  OPENAPI
-  URL
-  MARKDOWN
-  FIRESTORE
-  PSYCHIC
-  GITHUB_REPOSITORY
-  WEBPAGE
-  STRIPE
-  AIRTABLE
-  SITEMAP
-  NOTION
-}
-
 enum ToolType {
   BROWSER
   SEARCH
@@ -59,6 +41,10 @@ enum DatasourceType {
   MARKDOWN
   WEBPAGE
   AIRTABLE
+  STRIPE
+  NOTION
+  SITEMAP
+  URL
   FUNCTION
 }
 
