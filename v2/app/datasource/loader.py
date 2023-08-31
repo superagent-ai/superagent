@@ -13,6 +13,7 @@ from langchain.document_loaders import (
     WebBaseLoader,
     YoutubeLoader,
 )
+from langchain.document_loaders.airbyte import AirbyteStripeLoader
 from llama_index import download_loader
 from pyairtable import Api
 
@@ -42,6 +43,8 @@ class DataLoader:
             return self.load_url()
         elif self.datasource.type == "AIRTABLE":
             return self.load_airtable()
+        elif self.datasource.type == "STRIPE":
+            return self.load_stripe()
         else:
             raise ValueError(f"Unsupported datasource type: {self.datasource.type}")
 
@@ -113,3 +116,26 @@ class DataLoader:
         api = Api(api_key)
         table = api.table(base_id, table_id)
         return table.all()
+
+    def load_stripe(self):
+        metadata = json.loads(self.datasource.metadata)
+        client_secret = metadata["clientSecret"]
+        account_id = metadata["accountId"]
+        start_date = metadata["startDate"]
+        stream_name = metadata["streamName"]
+        config = {
+            "client_secret": client_secret,
+            "account_id": account_id,
+            "start_date": start_date,
+        }
+
+        def handle_record(record: dict, _id: str):
+            return record.data
+
+        loader = AirbyteStripeLoader(
+            config=config,
+            record_handler=handle_record,
+            stream_name=stream_name,
+        )
+        data = loader.load()
+        return data
