@@ -7,6 +7,7 @@ from decouple import config
 from langchain.tools import BaseTool
 from llama import Context, LLMEngine, Type
 from app.vectorstores.pinecone import PineconeVectorStore
+from app.datasource.loader import DataLoader
 from prisma.models import Datasource
 
 from langchain.agents.agent_types import AgentType
@@ -106,6 +107,9 @@ class StructuredDatasourceTool(BaseTool):
         datasource: Datasource = self.metadata["datasource"]
         if datasource.type == "CSV":
             df = pd.read_csv(datasource.url)
+        else:
+            data = DataLoader(datasource=datasource).load()
+            df = pd.DataFrame(data)
         agent = create_pandas_dataframe_agent(
             ChatOpenAI(temperature=0, model="gpt-4"),
             df,
@@ -123,6 +127,9 @@ class StructuredDatasourceTool(BaseTool):
         datasource: Datasource = self.metadata["datasource"]
         if datasource.type == "CSV":
             df = pd.read_csv(datasource.url)
+        else:
+            data = DataLoader(datasource=datasource).load()
+            df = pd.DataFrame(data)
         agent = create_pandas_dataframe_agent(
             ChatOpenAI(temperature=0, model="gpt-4"),
             df,

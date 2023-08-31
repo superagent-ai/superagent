@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
 
@@ -27,6 +27,7 @@ class Datasource(BaseModel):
     description: str
     type: str
     url: Optional[str]
+    metadata: Optional[Dict[Any, Any]]
 
 
 class LLM(BaseModel):

@@ -1,7 +1,9 @@
 import tempfile
+import json
 from tempfile import NamedTemporaryFile
 from typing import Any
 from urllib.parse import urlparse
+from pyairtable import Api
 
 import requests
 from langchain.document_loaders import (
@@ -38,6 +40,8 @@ class DataLoader:
             return self.load_youtube()
         elif self.datasource.type == "URL":
             return self.load_url()
+        elif self.datasource.type == "AIRTABLE":
+            return self.load_airtable()
         else:
             raise ValueError(f"Unsupported datasource type: {self.datasource.type}")
 
@@ -77,15 +81,17 @@ class DataLoader:
             return loader.load_and_split()
 
     def load_webpage(self):
+        metadata = json.loads(self.datasource.metadata)
         RemoteDepthReader = download_loader("RemoteDepthReader")
-        depth = int(self.datasource.metadata.get("depth"))
+        depth = int(metadata.get("depth"))
         loader = RemoteDepthReader(depth=depth)
         return loader.load_langchain_documents(url=self.datasource.url)
 
     def load_notion(self):
+        metadata = json.loads(self.datasource.metadata)
         NotionPageReader = download_loader("NotionPageReader")
-        integration_token = self.datasource.metadata["integration_token"]
-        page_ids = self.datasource.metadata["page_ids"]
+        integration_token = metadata["integration_token"]
+        page_ids = metadata["page_ids"]
         loader = NotionPageReader(integration_token=integration_token)
         return loader.load_langchain_documents(page_ids=page_ids.split(","))
 
@@ -98,3 +104,12 @@ class DataLoader:
         url_list = self.datasource.url.split(",")
         loader = WebBaseLoader(url_list)
         return loader.load_and_split()
+
+    def load_airtable(self):
+        metadata = json.loads(self.datasource.metadata)
+        api_key = metadata["apiKey"]
+        base_id = metadata["baseId"]
+        table_id = metadata["tableId"]
+        api = Api(api_key)
+        table = api.table(base_id, table_id)
+        return table.all()

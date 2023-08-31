@@ -38,7 +38,7 @@ async def handle_datasources(
 
 @task
 async def vectorize(datasource: Datasource) -> None:
-    data = DataLoader(datasource).load()
+    data = DataLoader(datasource=datasource).load()
     newDocuments = [
         document.metadata.update({"datasource_id": datasource.id}) or document
         for document in data
@@ -60,7 +60,8 @@ async def process_datasource(datasource_id: str, agent_id: str):
 
 @flow(name="vectorize_datasource", description="Vectorize datasource", retries=0)
 async def vectorize_datasource(datasource: Datasource) -> None:
-    await vectorize(datasource=datasource)
+    if datasource.type in VALID_UNSTRUCTURED_DATA_TYPES:
+        await vectorize(datasource=datasource)
 
 
 @flow(name="revalidate_datasource", description="Revalidate datasources", retries=0)
