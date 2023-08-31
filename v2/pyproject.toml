@@ -33,6 +33,7 @@ lamini = "^0.0.21"
 pytest = "^7.4.0"
 prefect = "^2.11.4"
 llama-index = "^0.8.11.post3"
+pinecone-client = "^2.2.2"
 
 
 [build-system]

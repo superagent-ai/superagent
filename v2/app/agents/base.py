@@ -6,6 +6,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.memory.motorhead_memory import MotorheadMemory
 from langchain.prompts import MessagesPlaceholder
 from langchain.schema import SystemMessage
+from slugify import slugify
 
 from app.datasource.flow import VALID_FINETUNE_TYPES
 from app.models.tools import DatasourceInput
@@ -36,8 +37,13 @@ class AgentBase:
         for agent_datasource in agent_datasources:
             if agent_datasource.datasource.type in VALID_FINETUNE_TYPES:
                 tool = DatasourceTool(
-                    metadata={"agent_id": self.agent_id},
+                    metadata={
+                        "datasource_id": agent_datasource.datasource.id,
+                        "query_type": "all",
+                    },
                     args_schema=DatasourceInput,
+                    name=slugify(agent_datasource.datasource.name),
+                    description=agent_datasource.datasource.description,
                 )
                 tools.append(tool)
         return tools

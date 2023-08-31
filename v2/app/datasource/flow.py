@@ -6,7 +6,8 @@ from prefect import flow, task
 
 from app.datasource.loader import DataLoader
 from app.utils.prisma import prisma
-from prisma.models import AgentDatasource
+from app.vectorstores.pinecone import PineconeVectorStore
+from prisma.models import AgentDatasource, Datasource
 
 VALID_FINETUNE_TYPES = [
     "TXT",
@@ -43,6 +44,17 @@ async def handle_datasources(
             llm.save_data(documents)
 
 
+@task
+async def vectorize(datasource: Datasource) -> None:
+    data = DataLoader(datasource).load()
+    newDocuments = [
+        document.metadata.update({"datasource_id": datasource.id}) or document
+        for document in data
+    ]
+    pinecone = PineconeVectorStore()
+    pinecone.embed_documents(documents=newDocuments)
+
+
 @flow(name="process_datasource", description="Process new agent datasource", retries=0)
 async def process_datasource(datasource_id: str, agent_id: str):
     await prisma.agentdatasource.create(
@@ -52,6 +64,11 @@ async def process_datasource(datasource_id: str, agent_id: str):
         where={"agentId": agent_id}, include={"datasource": True}
     )
     await handle_datasources(agent_datasources=agent_datasources, agent_id=agent_id)
+
+
+@flow(name="vectorize_datasource", description="Vectorize datasource", retries=0)
+async def vectorize_datasource(datasource: Datasource) -> None:
+    await vectorize(datasource=datasource)
 
 
 @flow(name="revalidate_datasource", description="Revalidate datasources", retries=0)
