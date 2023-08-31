@@ -104,7 +104,6 @@ class StructuredDatasourceTool(BaseTool):
     ) -> str:
         """Use the tool."""
         datasource: Datasource = self.metadata["datasource"]
-
         if datasource.type == "CSV":
             df = pd.read_csv(datasource.url)
         agent = create_pandas_dataframe_agent(
@@ -122,7 +121,6 @@ class StructuredDatasourceTool(BaseTool):
     ) -> str:
         """Use the tool asynchronously."""
         datasource: Datasource = self.metadata["datasource"]
-
         if datasource.type == "CSV":
             df = pd.read_csv(datasource.url)
         agent = create_pandas_dataframe_agent(
