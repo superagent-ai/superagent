@@ -30,6 +30,17 @@ class Datasource(BaseModel):
     metadata: Optional[Dict[Any, Any]]
 
 
+class Tool(BaseModel):
+    name: str
+    description: str
+    type: str
+    metadata: Optional[Dict[Any, Any]]
+
+
+class AgentTool(BaseModel):
+    toolId: str
+
+
 class LLM(BaseModel):
     provider: str
     model: str

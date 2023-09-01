@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
 from app.agents.base import AgentBase
-from app.datasource.flow import process_datasource, revalidate_datasource
 from app.models.request import (
     Agent as AgentRequest,
 )
@@ -18,6 +17,9 @@ from app.models.request import (
 from app.models.request import (
     AgentLLM as AgentLLMRequest,
 )
+from app.models.request import (
+    AgentTool as AgentToolRequest,
+)
 from app.models.response import (
     Agent as AgentResponse,
 )
@@ -29,6 +31,9 @@ from app.models.response import (
 )
 from app.models.response import (
     AgentList as AgentListResponse,
+)
+from app.models.response import (
+    AgentToolList as AgentToolListResponse,
 )
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
@@ -202,6 +207,77 @@ async def remove_llm(
     try:
         await prisma.agentllm.delete(
             where={"agentId_llmId": {"agentId": agent_id, "llmId": llm_id}}
+        )
+        return {"success": True, "data": None}
+    except Exception as e:
+        handle_exception(e)
+
+
+# Agent Tool endpoints
+@router.post(
+    "/agents/{agent_id}/tools",
+    name="add_tool",
+    description="Add tool to agent",
+    response_model=AgentResponse,
+)
+async def add_datasource(
+    agent_id: str,
+    body: AgentToolRequest,
+    api_user=Depends(get_current_api_user),
+):
+    """Endpoint for adding a tool to an agent"""
+    try:
+        agent_tool = await prisma.agenttool.find_unique(
+            where={
+                "agentId_toolId": {
+                    "agentId": agent_id,
+                    "datasourceId": body.toolId,
+                }
+            }
+        )
+        if agent_tool:
+            raise Exception("Agent tool already exists")
+        agent_tool = await prisma.agenttool.create(
+            {"toolId": body.toolId, "agentId": agent_id},
+            include={"tool": True},
+        )
+        return {"success": True, "data": agent_tool}
+    except Exception as e:
+        handle_exception(e)
+
+
+@router.get(
+    "/agents/{agent_id}/tools",
+    name="list_tools",
+    description="List agent tools",
+    response_model=AgentToolListResponse,
+)
+async def list_tools(agent_id: str, api_user=Depends(get_current_api_user)):
+    """Endpoint for listing agent tools"""
+    try:
+        agent_tools = await prisma.agenttool.find_many(where={"agentId": agent_id})
+        return {"success": True, "data": agent_tools}
+    except Exception as e:
+        handle_exception(e)
+
+
+@router.delete(
+    "/agents/{agent_id}/tools/{tool_id}",
+    name="remove_tool",
+    description="Remove tool from agent",
+)
+async def remove_datasource(
+    agent_id: str, tool_id: str, api_user=Depends(get_current_api_user)
+):
+    """Endpoint for removing a tool from an agent"""
+    try:
+        await prisma.agenttool.delete(
+            where={
+                "agentId_toolId": {
+                    "agentId": agent_id,
+                    "toolId": tool_id,
+                }
+            }
         )
         return {"success": True, "data": None}
     except Exception as e:

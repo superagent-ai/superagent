@@ -9,18 +9,6 @@ datasource db {
   shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
-enum ToolType {
-  BROWSER
-  SEARCH
-  WOLFRAM_ALPHA
-  REPLICATE
-  ZAPIER_NLA
-  AGENT
-  OPENAPI
-  CHATGPT_PLUGIN
-  METAPHOR
-}
-
 enum LLMProvider {
   OPENAI
 }
@@ -30,6 +18,18 @@ enum LLMModel {
   GPT_3_5_TURBO_0613
   GPT_4_0613
   GPT_4_32K_0613
+}
+
+enum ToolType {
+  BROWSER
+  SEARCH
+  REPLICATE
+  WOLFRAM_ALPHA
+  ZAPIER_NLA
+  AGENT
+  OPENAPI
+  CHATGPT_PLUGIN
+  METAPHOR
 }
 
 enum DatasourceType {
@@ -56,6 +56,7 @@ model ApiUser {
   agents     Agent[]
   llms       LLM[]
   Datasource Datasource[]
+  Tool       Tool[]
 }
 
 model Agent {
@@ -69,6 +70,7 @@ model Agent {
   apiUserId   String
   apiUser     ApiUser           @relation(fields: [apiUserId], references: [id])
   datasources AgentDatasource[]
+  AgentTool   AgentTool[]
 }
 
 model Datasource {
@@ -83,6 +85,7 @@ model Datasource {
   updatedAt   DateTime          @updatedAt
   metadata    String?           @db.Text
   datasources AgentDatasource[]
+  AgentTool   AgentTool[]
 }
 
 model AgentDatasource {
@@ -94,6 +97,32 @@ model AgentDatasource {
   updatedAt    DateTime   @updatedAt
 
   @@id([agentId, datasourceId])
+}
+
+model Tool {
+  id          String      @id @default(uuid())
+  name        String
+  description String
+  type        ToolType
+  metadata    String      @db.Text
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  apiUserId   String
+  apiUser     ApiUser     @relation(fields: [apiUserId], references: [id])
+  AgentTool   AgentTool[]
+}
+
+model AgentTool {
+  agentId      String
+  toolId       String
+  agent        Agent       @relation(fields: [agentId], references: [id])
+  tool         Tool        @relation(fields: [toolId], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  Datasource   Datasource? @relation(fields: [datasourceId], references: [id])
+  datasourceId String?
+
+  @@id([agentId, toolId])
 }
 
 model LLM {
