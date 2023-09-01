@@ -30,6 +30,7 @@ enum ToolType {
   OPENAPI
   CHATGPT_PLUGIN
   METAPHOR
+  PUBMED
 }
 
 enum DatasourceType {

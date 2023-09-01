@@ -29,8 +29,8 @@ async def create(
 ):
     """Endpoint for creating an tool"""
     try:
-        if body.metadata:
-            body.metadata = json.dumps(body.metadata)
+        body.metadata = json.dumps(body.metadata) if body.metadata else ""
+        print(body)
         data = await prisma.tool.create({**body.dict(), "apiUserId": api_user.id})
         return {"success": True, "data": data}
     except Exception as e:

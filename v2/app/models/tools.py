@@ -11,3 +11,7 @@ class BingSearchInput(BaseModel):
 
 class MetaphorSearchInput(BaseModel):
     search_query: str
+
+
+class PubMedInput(BaseModel):
+    search_query: str
