@@ -295,6 +295,20 @@ async def run_agent(
                     result: dict = {"output": cached_result, "intermediate_steps": []}
                     logger.info(f"Cached hit: {cached_result}")
                     output = cached_result
+
+                else:
+                    result = agent_strategy.get_agent(session=session_id)(
+                        agent_base.process_payload(payload=input)
+                    )
+                    output = result.get("output") or result.get("result")
+                    logger.info(f"Cached missed: {output}")
+                    background_tasks.add_task(
+                        agent_base.cache_message,
+                        agent_id=agentId,
+                        session_id=session_id,
+                        query=query,
+                        ai_message=str(output),
+                    )
             else:
                 result = agent_strategy.get_agent(session=session_id)(
                     agent_base.process_payload(payload=input)
