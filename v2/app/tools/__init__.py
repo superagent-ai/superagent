@@ -5,7 +5,13 @@ from typing import Type, Dict, Any, Optional
 from app.tools.metaphor import MetaphorSearch
 from app.tools.bing_search import BingSearch
 from app.tools.pubmed import PubMed
-from app.models.tools import BingSearchInput, MetaphorSearchInput, PubMedInput
+from app.tools.zapier import ZapierNLA
+from app.models.tools import (
+    BingSearchInput,
+    MetaphorSearchInput,
+    PubMedInput,
+    ZapierInput,
+)
 
 TOOL_TYPE_MAPPING = {
     "BING_SEARCH": {
@@ -20,6 +26,7 @@ TOOL_TYPE_MAPPING = {
         "class": PubMed,
         "schema": PubMedInput,
     },
+    "ZAPIER_NLA": {"class": ZapierNLA, "schema": ZapierInput},
 }
 
 

@@ -15,3 +15,7 @@ class MetaphorSearchInput(BaseModel):
 
 class PubMedInput(BaseModel):
     search_query: str
+
+
+class ZapierInput(BaseModel):
+    input: str
