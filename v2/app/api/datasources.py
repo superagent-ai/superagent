@@ -78,7 +78,7 @@ async def list(api_user=Depends(get_current_api_user)):
 async def get(datasource_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for getting a specific datasource"""
     try:
-        data = await prisma.datasource.find_unique(
+        data = await prisma.datasource.find_first(
             where={"id": datasource_id, "apiUserId": api_user.id}
         )
         if data.metadata:
@@ -118,9 +118,7 @@ async def update(
 async def delete(datasource_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for deleting a specific datasource"""
     try:
-        await prisma.datasource.delete(
-            where={"id": datasource_id, "apiUserId": api_user.id}
-        )
-        return {"success": True}
+        await prisma.datasource.delete(where={"id": datasource_id})
+        return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)

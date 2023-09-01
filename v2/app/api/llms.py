@@ -57,7 +57,7 @@ async def list(api_user=Depends(get_current_api_user)):
 async def get(llm_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for getting a single LLM"""
     try:
-        data = await prisma.llm.find_unique(
+        data = await prisma.llm.find_first(
             where={"id": llm_id, "apiUserId": api_user.id}
         )
         return {"success": True, "data": data}

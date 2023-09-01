@@ -23,6 +23,16 @@ class AgentDatasosurceList(BaseModel):
     data: Optional[List[dict]]
 
 
+class AgentTool(BaseModel):
+    success: bool
+    data: Optional[dict]
+
+
+class AgentToolList(BaseModel):
+    success: bool
+    data: Optional[List[dict]]
+
+
 class AgentInvoke(BaseModel):
     success: bool
     data: dict
@@ -34,6 +44,16 @@ class Datasource(BaseModel):
 
 
 class DatasourceList(BaseModel):
+    success: bool
+    data: Optional[List[dict]]
+
+
+class Tool(BaseModel):
+    success: bool
+    data: Optional[dict]
+
+
+class ToolList(BaseModel):
     success: bool
     data: Optional[List[dict]]
 
