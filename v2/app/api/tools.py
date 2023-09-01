@@ -67,7 +67,7 @@ async def list(api_user=Depends(get_current_api_user)):
 async def get(tool_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for getting a specific tool"""
     try:
-        data = await prisma.tool.find_unique(
+        data = await prisma.tool.find_first(
             where={"id": tool_id, "apiUserId": api_user.id}
         )
         if data.metadata:
@@ -107,7 +107,7 @@ async def update(
 async def delete(tool_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for deleting a specific tool"""
     try:
-        await prisma.datasource.delete(where={"id": tool_id, "apiUserId": api_user.id})
-        return {"success": True}
+        await prisma.tool.delete(where={"id": tool_id})
+        return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)

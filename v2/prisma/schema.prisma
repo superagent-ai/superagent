@@ -22,7 +22,7 @@ enum LLMModel {
 
 enum ToolType {
   BROWSER
-  SEARCH
+  BING_SEARCH
   REPLICATE
   WOLFRAM_ALPHA
   ZAPIER_NLA

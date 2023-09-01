@@ -84,7 +84,7 @@ async def list(api_user=Depends(get_current_api_user)):
 async def get(agent_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for getting a single agent"""
     try:
-        data = await prisma.agent.find_unique(
+        data = await prisma.agent.find_first(
             where={"id": agent_id, "apiUserId": api_user.id}
         )
         return {"success": True, "data": data}
@@ -101,7 +101,7 @@ async def get(agent_id: str, api_user=Depends(get_current_api_user)):
 async def delete(agent_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for deleting an agent"""
     try:
-        await prisma.agent.delete(where={"id": agent_id, "apiUserId": api_user.id})
+        await prisma.agent.delete(where={"id": agent_id})
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
@@ -231,7 +231,7 @@ async def add_datasource(
             where={
                 "agentId_toolId": {
                     "agentId": agent_id,
-                    "datasourceId": body.toolId,
+                    "toolId": body.toolId,
                 }
             }
         )
