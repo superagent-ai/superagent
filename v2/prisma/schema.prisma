@@ -70,7 +70,7 @@ model Agent {
   apiUserId   String
   apiUser     ApiUser           @relation(fields: [apiUserId], references: [id])
   datasources AgentDatasource[]
-  AgentTool   AgentTool[]
+  tools       AgentTool[]
 }
 
 model Datasource {
@@ -85,7 +85,6 @@ model Datasource {
   updatedAt   DateTime          @updatedAt
   metadata    String?           @db.Text
   datasources AgentDatasource[]
-  AgentTool   AgentTool[]
 }
 
 model AgentDatasource {
@@ -109,18 +108,16 @@ model Tool {
   updatedAt   DateTime    @updatedAt
   apiUserId   String
   apiUser     ApiUser     @relation(fields: [apiUserId], references: [id])
-  AgentTool   AgentTool[]
+  tools       AgentTool[]
 }
 
 model AgentTool {
-  agentId      String
-  toolId       String
-  agent        Agent       @relation(fields: [agentId], references: [id])
-  tool         Tool        @relation(fields: [toolId], references: [id])
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  Datasource   Datasource? @relation(fields: [datasourceId], references: [id])
-  datasourceId String?
+  agentId   String
+  toolId    String
+  agent     Agent    @relation(fields: [agentId], references: [id])
+  tool      Tool     @relation(fields: [toolId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@id([agentId, toolId])
 }
