@@ -4,7 +4,7 @@ from langchain.tools import BaseTool
 from langchain.utilities import BingSearchAPIWrapper
 
 
-class BingSearchTool(BaseTool):
+class BingSearch(BaseTool):
     name = "bing search"
     description = "useful for searching the internet"
 

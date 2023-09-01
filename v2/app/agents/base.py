@@ -13,12 +13,12 @@ from slugify import slugify
 from app.datasource.types import (
     VALID_UNSTRUCTURED_DATA_TYPES,
 )
-from app.models.tools import DatasourceInput, BingSearchInput
+from app.models.tools import DatasourceInput
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
-from app.tools.bing_search import BingSearchTool
 from app.utils.llm import LLM_MAPPING
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
+from app.tools import create_tool, TOOL_TYPE_MAPPING
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
 
 DEFAULT_PROMPT = "You are a helpful AI Assistant"
@@ -60,12 +60,14 @@ class AgentBase:
             )
             tools.append(tool)
         for agent_tool in agent_tools:
-            if agent_tool.tool.type == "BING_SEARCH":
-                tool = BingSearchTool(
+            tool_info = TOOL_TYPE_MAPPING.get(agent_tool.tool.type)
+            if tool_info:
+                tool = create_tool(
+                    tool_class=tool_info["class"],
                     name=agent_tool.tool.name,
                     description=agent_tool.tool.description,
-                    args_schema=BingSearchInput,
-                    metadata=json.loads(agent_tool.tool.metadata),
+                    metadata=agent_tool.tool.metadata,
+                    args_schema=tool_info["schema"],
                 )
             tools.append(tool)
         return tools
