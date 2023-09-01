@@ -1,7 +1,5 @@
 # flake8: noqa
 import pandas as pd
-import tempfile
-import os
 
 from decouple import config
 from langchain.tools import BaseTool
@@ -13,7 +11,6 @@ from prisma.models import Datasource
 from langchain.agents.agent_types import AgentType
 from langchain.agents import create_pandas_dataframe_agent
 from langchain.chat_models.openai import ChatOpenAI
-from langchain.tools.json.tool import JsonSpec
 
 
 class DatasourceFinetuneTool(BaseTool):
