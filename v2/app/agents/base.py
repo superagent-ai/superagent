@@ -69,7 +69,6 @@ class AgentBase:
                     metadata=agent_tool.tool.metadata,
                     args_schema=tool_info["schema"],
                 )
-                print(tool)
             tools.append(tool)
         return tools
 
