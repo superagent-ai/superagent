@@ -27,3 +27,7 @@ class OpenapiInput(BaseModel):
 
 class ChatGPTInput(BaseModel):
     input: str
+
+
+class ReplicateInput(BaseModel):
+    prompt: str

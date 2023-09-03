@@ -8,6 +8,7 @@ from app.tools.pubmed import PubMed
 from app.tools.zapier import ZapierNLA
 from app.tools.openapi import Openapi
 from app.tools.chatgpt import get_chatpgt_tool
+from app.tools.replicate import Replicate
 from app.models.tools import (
     BingSearchInput,
     MetaphorSearchInput,
@@ -15,6 +16,7 @@ from app.models.tools import (
     ZapierInput,
     OpenapiInput,
     ChatGPTInput,
+    ReplicateInput,
 )
 
 TOOL_TYPE_MAPPING = {
@@ -33,6 +35,7 @@ TOOL_TYPE_MAPPING = {
     "ZAPIER_NLA": {"class": ZapierNLA, "schema": ZapierInput},
     "OPENAPI": {"class": Openapi, "schema": OpenapiInput},
     "CHATGPT_PLUGIN": {"class": get_chatpgt_tool, "schema": ChatGPTInput},
+    "REPLICATE": {"class": Replicate, "schema": ReplicateInput},
 }
 
 
