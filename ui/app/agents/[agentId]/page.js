@@ -12,12 +12,17 @@ export const metadata = {
 const getData = async (session, agentId) => {
   const api = new API(session);
 
-  return Promise.all([
+  const [apiTokens, agent] = await Promise.all([
     api.getApiTokens(),
     api.getAgentById(agentId),
+  ]);
+
+  const [documents, tools] = await Promise.all([
     api.getAgentDocuments(agentId),
     api.getAgentTools(agentId),
   ]);
+
+  return [apiTokens, agent, documents, tools];
 };
 
 export default async function AgentDetail({ params }) {
