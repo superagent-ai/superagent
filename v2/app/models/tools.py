@@ -1,5 +1,6 @@
-from pydantic import BaseModel
 from typing import Any
+
+from pydantic import BaseModel
 
 
 class DatasourceInput(BaseModel):
@@ -36,3 +37,7 @@ class ReplicateInput(BaseModel):
 
 class AgentInput(BaseModel):
     input: Any
+
+
+class WolframInput(BaseModel):
+    input: str
