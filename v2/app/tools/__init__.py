@@ -6,11 +6,13 @@ from app.tools.metaphor import MetaphorSearch
 from app.tools.bing_search import BingSearch
 from app.tools.pubmed import PubMed
 from app.tools.zapier import ZapierNLA
+from app.tools.openapi import Openapi
 from app.models.tools import (
     BingSearchInput,
     MetaphorSearchInput,
     PubMedInput,
     ZapierInput,
+    OpenapiInput,
 )
 
 TOOL_TYPE_MAPPING = {
@@ -27,6 +29,7 @@ TOOL_TYPE_MAPPING = {
         "schema": PubMedInput,
     },
     "ZAPIER_NLA": {"class": ZapierNLA, "schema": ZapierInput},
+    "OPENAPI": {"class": Openapi, "schema": OpenapiInput},
 }
 
 
