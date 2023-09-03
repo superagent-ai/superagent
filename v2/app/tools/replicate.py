@@ -1,7 +1,7 @@
 import asyncio
 
-from langchain.tools import BaseTool
 from langchain.llms.replicate import Replicate as ReplicateModel
+from langchain.tools import BaseTool
 
 
 class Replicate(BaseTool):

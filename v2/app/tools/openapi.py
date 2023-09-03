@@ -1,8 +1,8 @@
 import asyncio
 import json
 
-from langchain.tools import BaseTool
 from langchain.chains.openai_functions.openapi import get_openapi_chain
+from langchain.tools import BaseTool
 
 
 class Openapi(BaseTool):

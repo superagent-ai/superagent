@@ -1,10 +1,10 @@
 import asyncio
 
+from langchain.agents import AgentType, initialize_agent
+from langchain.agents.agent_toolkits import ZapierToolkit
+from langchain.chat_models.openai import ChatOpenAI
 from langchain.tools import BaseTool
 from langchain.utilities.zapier import ZapierNLAWrapper
-from langchain.agents.agent_toolkits import ZapierToolkit
-from langchain.agents import initialize_agent, AgentType
-from langchain.chat_models.openai import ChatOpenAI
 
 
 class ZapierNLA(BaseTool):
