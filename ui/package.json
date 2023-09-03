@@ -33,7 +33,7 @@
     "framer-motion": "^10.12.21",
     "ky": "^0.33.3",
     "localforage": "^1.10.0",
-    "next": "^13.4.8",
+    "next": "^13.4.19",
     "next-auth": "^4.22.1",
     "prettier": "^2.8.8",
     "react": "18.2.0",
