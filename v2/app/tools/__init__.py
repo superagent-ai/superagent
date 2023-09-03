@@ -9,6 +9,7 @@ from app.tools.zapier import ZapierNLA
 from app.tools.openapi import Openapi
 from app.tools.chatgpt import get_chatpgt_tool
 from app.tools.replicate import Replicate
+from app.tools.agent import Agent
 from app.models.tools import (
     BingSearchInput,
     MetaphorSearchInput,
@@ -17,9 +18,11 @@ from app.models.tools import (
     OpenapiInput,
     ChatGPTInput,
     ReplicateInput,
+    AgentInput,
 )
 
 TOOL_TYPE_MAPPING = {
+    "AGENT": {"class": Agent, "schema": AgentInput},
     "BING_SEARCH": {
         "class": BingSearch,
         "schema": BingSearchInput,

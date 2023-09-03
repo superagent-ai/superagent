@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from typing import Any
 
 
 class DatasourceInput(BaseModel):
@@ -31,3 +32,7 @@ class ChatGPTInput(BaseModel):
 
 class ReplicateInput(BaseModel):
     prompt: str
+
+
+class AgentInput(BaseModel):
+    input: Any
