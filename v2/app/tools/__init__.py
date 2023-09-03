@@ -10,6 +10,7 @@ from app.tools.openapi import Openapi
 from app.tools.chatgpt import get_chatpgt_tool
 from app.tools.replicate import Replicate
 from app.tools.agent import Agent
+from app.tools.wolfram_alpha import WolframAlpha
 from app.models.tools import (
     BingSearchInput,
     MetaphorSearchInput,
@@ -19,6 +20,7 @@ from app.models.tools import (
     ChatGPTInput,
     ReplicateInput,
     AgentInput,
+    WolframInput,
 )
 
 TOOL_TYPE_MAPPING = {
@@ -39,6 +41,7 @@ TOOL_TYPE_MAPPING = {
     "OPENAPI": {"class": Openapi, "schema": OpenapiInput},
     "CHATGPT_PLUGIN": {"class": get_chatpgt_tool, "schema": ChatGPTInput},
     "REPLICATE": {"class": Replicate, "schema": ReplicateInput},
+    "WOLFRAM_ALPHA": {"class": WolframAlpha, "schema": WolframInput},
 }
 
 
