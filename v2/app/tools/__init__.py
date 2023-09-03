@@ -7,12 +7,14 @@ from app.tools.bing_search import BingSearch
 from app.tools.pubmed import PubMed
 from app.tools.zapier import ZapierNLA
 from app.tools.openapi import Openapi
+from app.tools.chatgpt import get_chatpgt_tool
 from app.models.tools import (
     BingSearchInput,
     MetaphorSearchInput,
     PubMedInput,
     ZapierInput,
     OpenapiInput,
+    ChatGPTInput,
 )
 
 TOOL_TYPE_MAPPING = {
@@ -30,6 +32,7 @@ TOOL_TYPE_MAPPING = {
     },
     "ZAPIER_NLA": {"class": ZapierNLA, "schema": ZapierInput},
     "OPENAPI": {"class": Openapi, "schema": OpenapiInput},
+    "CHATGPT_PLUGIN": {"class": get_chatpgt_tool, "schema": ChatGPTInput},
 }
 
 
