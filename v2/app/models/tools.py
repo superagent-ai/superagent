@@ -19,3 +19,7 @@ class PubMedInput(BaseModel):
 
 class ZapierInput(BaseModel):
     input: str
+
+
+class OpenapiInput(BaseModel):
+    input: str
