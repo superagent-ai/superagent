@@ -23,3 +23,7 @@ class ZapierInput(BaseModel):
 
 class OpenapiInput(BaseModel):
     input: str
+
+
+class ChatGPTInput(BaseModel):
+    input: str

@@ -8,7 +8,6 @@ from langchain.chains.openai_functions.openapi import get_openapi_chain
 class Openapi(BaseTool):
     name = "API"
     description = "useful for querying an api"
-    verbose = True
 
     def _run(self, input: str) -> str:
         openapi_url = self.metadata["openApiUrl"]
