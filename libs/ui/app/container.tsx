@@ -7,9 +7,11 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <section className="flex h-screen items-center gap-6">
+    <section className="flex h-screen gap-6">
       <Sidebar />
-      {children}
+      <div className="flex-1 py-6">
+        {children}
+      </div>
     </section>
   )
 }
