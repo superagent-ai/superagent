@@ -71,3 +71,13 @@ class LLM(BaseModel):
 class LLMList(BaseModel):
     success: bool
     data: Optional[List[dict]]
+
+
+class Workflow(BaseModel):
+    success: bool
+    data: Optional[dict]
+
+
+class WorkflowList(BaseModel):
+    success: bool
+    data: Optional[List[dict]]
