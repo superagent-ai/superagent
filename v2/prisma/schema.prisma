@@ -50,28 +50,30 @@ enum DatasourceType {
 }
 
 model ApiUser {
-  id         String       @id @default(uuid())
-  token      String?
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  agents     Agent[]
-  llms       LLM[]
-  Datasource Datasource[]
-  Tool       Tool[]
+  id          String       @id @default(uuid())
+  token       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  agents      Agent[]
+  llms        LLM[]
+  datasources Datasource[]
+  tools       Tool[]
+  worflows    Workflow[]
 }
 
 model Agent {
-  id          String            @id @default(uuid())
-  name        String
-  isActive    Boolean           @default(false)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  llms        AgentLLM[]
-  prompt      String?
-  apiUserId   String
-  apiUser     ApiUser           @relation(fields: [apiUserId], references: [id])
-  datasources AgentDatasource[]
-  tools       AgentTool[]
+  id            String            @id @default(uuid())
+  name          String
+  isActive      Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  llms          AgentLLM[]
+  prompt        String?
+  apiUserId     String
+  apiUser       ApiUser           @relation(fields: [apiUserId], references: [id])
+  datasources   AgentDatasource[]
+  tools         AgentTool[]
+  workflowSteps WorkflowStep[]
 }
 
 model Datasource {
@@ -145,4 +147,28 @@ model AgentLLM {
   updatedAt DateTime @updatedAt
 
   @@id([agentId, llmId])
+}
+
+model Workflow {
+  id          String         @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  steps       WorkflowStep[]
+  apiUserId   String
+  apiUser     ApiUser        @relation(fields: [apiUserId], references: [id])
+}
+
+model WorkflowStep {
+  id         String   @id @default(uuid())
+  order      Int
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  input      String   @db.Text
+  output     String   @db.Text
+  agentId    String
+  agent      Agent    @relation(fields: [agentId], references: [id])
 }

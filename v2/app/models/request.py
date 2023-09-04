@@ -46,3 +46,20 @@ class LLM(BaseModel):
     model: str
     apiKey: str
     options: Optional[Dict]
+
+
+class Workflow(BaseModel):
+    name: str
+    description: str
+
+
+class WorkflowStep(BaseModel):
+    order: int
+    agentId: str
+    input: str
+    output: str
+
+
+class WorkflowInvoke(BaseModel):
+    input: str
+    enableStreaming: bool
