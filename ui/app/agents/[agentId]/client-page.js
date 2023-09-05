@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import NextLink from "next/link";
 import {
@@ -12,7 +12,6 @@ import {
   Icon,
   IconButton,
   Input,
-  Link,
   Stack,
   Spinner,
   Text,
@@ -22,6 +21,8 @@ import {
   Circle,
   useColorMode,
   useColorModeValue,
+  Container,
+  Center,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { TbPlayerPlay, TbPlus, TbRefresh, TbX } from "react-icons/tb";
@@ -32,7 +33,7 @@ import { githubDark, githubLight } from "@uiw/codemirror-theme-github";
 import { EditorView } from "@codemirror/view";
 import ReactMarkdown from "react-markdown";
 import { BeatLoader } from "react-spinners";
-import { useAsyncFn } from "react-use";
+import { useAsyncFn, useAsync } from "react-use";
 import { TOOL_ICONS } from "@/lib/constants";
 import API from "@/lib/api";
 import AgentNavbar from "./_components/nav";
@@ -227,17 +228,38 @@ function AgentTool({ id, tool, session }) {
   );
 }
 
-export default function AgentDetailClientPage({
-  id,
-  apiTokens,
-  agent,
-  documents,
-  tools,
-  session,
-}) {
+export default function AgentDetailClientPage({ id, session }) {
   const [prompt, setPrompt] = useState();
-  const api = new API(session);
+  const api = useMemo(() => new API(session), [session]);
   const toast = useToast();
+  const [agent, setAgent] = useState();
+  const [apiTokens, setApiTokens] = useState([]);
+  const [tools, setAgentTools] = useState([]);
+  const [documents, setAgentDocuments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUpdatingPrompt, setIsUpdatingPrompt] = useState();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      console.log("fetch");
+      setIsLoading(true);
+      const [agentData, tokensData, toolsData, documentsData] =
+        await Promise.all([
+          api.getAgentById(id),
+          api.getApiTokens(id),
+          api.getAgentTools(id),
+          api.getAgentDocuments(id),
+        ]);
+      setAgent(agentData);
+      setApiTokens(tokensData);
+      setAgentTools(toolsData);
+      setAgentDocuments(documentsData);
+      setIsLoading(false);
+    };
+
+    fetchData();
+  }, [id, api]);
+
   const { colorMode } = useColorMode();
   const router = useRouter();
   const {
@@ -262,19 +284,6 @@ export default function AgentDetailClientPage({
     handleSubmit,
     register,
   } = useForm();
-  const [{ loading: isUpdatingPrompt }, updatePrompt] = useAsyncFn(async () => {
-    await api.patchPrompt(agent.promptId, {
-      template: prompt,
-      input_variables: getPromptVariables(prompt) || [],
-    });
-
-    toast({
-      description: "Updated prompt",
-      position: "top",
-      colorScheme: "gray",
-    });
-    router.refresh();
-  }, [agent, toast, router, api]);
 
   const onSubmit = async ({ input }) => {
     setResponse();
@@ -312,22 +321,8 @@ export default function AgentDetailClientPage({
       colorScheme: "gray",
     });
     onToolModalClose();
-    router.refresh();
-  };
-
-  const onAddTag = async (tag) => {
-    await api.patchAgent(agent.id, {
-      tags: [...agent.tags, { ...tag }],
-    });
-
-    toast({
-      description: "Tag added",
-      position: "top",
-      colorScheme: "gray",
-    });
-
-    onTagModalClose();
-    router.refresh();
+    const toolsData = await api.getAgentTools(id);
+    setAgentTools(toolsData);
   };
 
   const onCreateDocument = async (values) => {
@@ -342,7 +337,41 @@ export default function AgentDetailClientPage({
       colorScheme: "gray",
     });
     onDocumentModalClose();
-    router.refresh();
+    const documentsData = await api.getAgentDocuments(id);
+    setAgentDocuments(documentsData);
+  };
+
+  const onAddTag = async (tag) => {
+    await api.patchAgent(agent.id, {
+      tags: [...agent.tags, { ...tag }],
+    });
+
+    toast({
+      description: "Tag added",
+      position: "top",
+      colorScheme: "gray",
+    });
+
+    onTagModalClose();
+    const agentData = await api.getAgentById(id);
+    setAgent(agentData);
+  };
+
+  const updatePrompt = async () => {
+    setIsUpdatingPrompt(true);
+    await api.patchPrompt(agent.promptId, {
+      template: prompt,
+      input_variables: getPromptVariables(prompt) || [],
+    });
+
+    toast({
+      description: "Updated prompt",
+      position: "top",
+      colorScheme: "gray",
+    });
+    const agentData = await api.getAgentById(id);
+    setAgent(agentData);
+    setIsUpdatingPrompt();
   };
 
   return (
@@ -352,196 +381,227 @@ export default function AgentDetailClientPage({
       minH="100%"
       //overflow="auto"
     >
-      <AgentNavbar
-        agent={agent}
-        apiToken={apiTokens?.[0]}
-        hasApiTokenWarning={!apiTokens}
-      />
-      <HStack
-        padding={6}
-        justifyContent="space-between"
-        as="form"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <Stack flex={1}>
-          <Text fontSize="md" fontWeight="bold" color="green.500">
-            Input
-          </Text>
-          <FormControl>
-            <Input
-              type="text"
-              variant="unstyled"
-              placeholder="Type your input hit and hit run..."
-              {...register("input", { required: true })}
-            />
-          </FormControl>
-        </Stack>
-        <Button
-          type="submit"
-          isDisabled={!apiTokens}
-          isLoading={isSubmitting}
-          loadingText="RUNNING..."
-          fontFamily="mono"
-          leftIcon={<Icon as={TbPlayerPlay} />}
-        >
-          RUN
-        </Button>
-      </HStack>
-      <Divider />
-      <HStack flex={1} alignItems="stretch" spacing={0}>
-        <Panel>
-          <PanelHeading title="Output" isLoading={isSubmitting} />
-          {!isSubmitting && response?.data && (
-            <Box
-              paddingX={6}
-              paddingY={4}
-              __css={{ code: { textWrap: "balance" } }}
-              fontSize="sm"
-            >
-              <ReactMarkdown>
-                {"```\n" + response?.data + "\n```"}
-              </ReactMarkdown>
-            </Box>
-          )}
-        </Panel>
-        <Panel>
-          <PanelHeading title="Logs" isLoading={isSubmitting} />
-          {!isSubmitting && response && (
-            <Stack fontSize="sm" flex={1}>
-              <CodeMirror
-                editable={false}
-                extensions={[
-                  json({
-                    base: jsonLanguage,
-                    codeLanguages: languages,
-                  }),
-                  EditorView.lineWrapping,
-                ]}
-                theme={useColorModeValue(githubLight, githubDark)}
-                value={JSON.stringify(response?.trace, null, 2)}
-              />
+      {isLoading ? (
+        <Center flex={1}>
+          <Spinner size="sm" />
+        </Center>
+      ) : (
+        <>
+          <AgentNavbar
+            agent={agent}
+            apiToken={apiTokens?.[0]}
+            hasApiTokenWarning={!apiTokens}
+          />
+          <HStack
+            padding={6}
+            justifyContent="space-between"
+            as="form"
+            onSubmit={handleSubmit(onSubmit)}
+          >
+            <Stack flex={1}>
+              <Text fontSize="md" fontWeight="bold" color="green.500">
+                Input
+              </Text>
+              <FormControl>
+                <Input
+                  type="text"
+                  variant="unstyled"
+                  placeholder="Type your input hit and hit run..."
+                  {...register("input", { required: true })}
+                />
+              </FormControl>
             </Stack>
-          )}
-        </Panel>
-        <Panel>
-          <PanelHeading title="Tools" onCreate={onToolModalOpen} />
-          <HStack paddingX={6} paddingY={6} flexWrap="wrap" gap={2} spacing={0}>
-            {tools.map(({ id, tool }) => (
-              <AgentTool key={id} id={id} tool={tool} session={session} />
-            ))}
+            <Button
+              type="submit"
+              isDisabled={!apiTokens}
+              isLoading={isSubmitting}
+              loadingText="RUNNING..."
+              fontFamily="mono"
+              leftIcon={<Icon as={TbPlayerPlay} />}
+            >
+              RUN
+            </Button>
           </HStack>
           <Divider />
-          <PanelHeading title="Datasources" onCreate={onDocumentModalOpen} />
-          <HStack paddingX={6} paddingY={6} flexWrap="wrap" gap={2} spacing={0}>
-            {documents.map(({ id, document }) => (
-              <AgentDocument
-                key={id}
-                id={id}
-                document={document}
-                session={session}
-              />
-            ))}
-          </HStack>
-          <Divider />
-          {agent?.promptId && (
-            <>
+          <HStack flex={1} alignItems="stretch" spacing={0}>
+            <Panel>
+              <PanelHeading title="Output" isLoading={isSubmitting} />
+              {!isSubmitting && response?.data && (
+                <Box
+                  paddingX={6}
+                  paddingY={4}
+                  __css={{ code: { textWrap: "balance" } }}
+                  fontSize="sm"
+                >
+                  <ReactMarkdown>
+                    {"```\n" + response?.data + "\n```"}
+                  </ReactMarkdown>
+                </Box>
+              )}
+            </Panel>
+            <Panel>
+              <PanelHeading title="Logs" isLoading={isSubmitting} />
+              {!isSubmitting && response && (
+                <Stack fontSize="sm" flex={1}>
+                  <CodeMirror
+                    editable={false}
+                    extensions={[
+                      json({
+                        base: jsonLanguage,
+                        codeLanguages: languages,
+                      }),
+                      EditorView.lineWrapping,
+                    ]}
+                    theme={useColorModeValue(githubLight, githubDark)}
+                    value={JSON.stringify(response?.trace, null, 2)}
+                  />
+                </Stack>
+              )}
+            </Panel>
+            <Panel>
+              <PanelHeading title="Tools" onCreate={onToolModalOpen} />
+              <HStack
+                paddingX={6}
+                paddingY={6}
+                flexWrap="wrap"
+                gap={2}
+                spacing={0}
+              >
+                {tools.map(({ id, tool }) => (
+                  <AgentTool key={id} id={id} tool={tool} session={session} />
+                ))}
+              </HStack>
+              <Divider />
               <PanelHeading
-                title="Prompt"
-                onUpdate={() => updatePrompt()}
-                isUpdating={isUpdatingPrompt}
+                title="Datasources"
+                onCreate={onDocumentModalOpen}
               />
+              <HStack
+                paddingX={6}
+                paddingY={6}
+                flexWrap="wrap"
+                gap={2}
+                spacing={0}
+              >
+                {documents.map(({ id, document }) => (
+                  <AgentDocument
+                    key={id}
+                    id={id}
+                    document={document}
+                    session={session}
+                  />
+                ))}
+              </HStack>
+              <Divider />
+              {agent?.promptId && (
+                <>
+                  <PanelHeading
+                    title="Prompt"
+                    onUpdate={() => updatePrompt()}
+                    isUpdating={isUpdatingPrompt}
+                  />
+                  <HStack paddingX={6} paddingY={6}>
+                    <HStack
+                      backgroundColor={
+                        colorMode === "dark"
+                          ? "whiteAlpha.100"
+                          : "blackAlpha.100"
+                      }
+                      borderRadius="md"
+                      borderWidth="0.5px"
+                      paddingY={2}
+                      paddingX={4}
+                      flex={1}
+                    >
+                      <Textarea
+                        variant="unstyled"
+                        size="sm"
+                        onChange={(event) => setPrompt(event.target.value)}
+                      >
+                        {prompt || agent.prompt.template}
+                      </Textarea>
+                    </HStack>
+                  </HStack>
+                  <Divider />
+                </>
+              )}
+              <PanelHeading title="API" />
               <HStack paddingX={6} paddingY={6}>
                 <HStack
                   backgroundColor={
                     colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100"
                   }
+                  justifyContent="space-between"
                   borderRadius="md"
                   borderWidth="0.5px"
                   paddingY={2}
                   paddingX={4}
-                  flex={1}
                 >
-                  <Textarea
-                    variant="unstyled"
-                    size="sm"
-                    onChange={(event) => setPrompt(event.target.value)}
-                  >
-                    {prompt || agent.prompt.template}
-                  </Textarea>
+                  <Text fontSize="sm">/agents/{id}/predict</Text>
                 </HStack>
               </HStack>
               <Divider />
-            </>
-          )}
-          <PanelHeading title="API" />
-          <HStack paddingX={6} paddingY={6}>
-            <HStack
-              backgroundColor={
-                colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100"
-              }
-              justifyContent="space-between"
-              borderRadius="md"
-              borderWidth="0.5px"
-              paddingY={2}
-              paddingX={4}
-            >
-              <Text fontSize="sm">/agents/{id}/predict</Text>
-            </HStack>
+              <PanelHeading title="Language model" />
+              <HStack paddingX={6} paddingY={6}>
+                <HStack
+                  key={id}
+                  backgroundColor={
+                    colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100"
+                  }
+                  justifyContent="space-between"
+                  borderRadius="md"
+                  borderWidth="0.5px"
+                  paddingY={2}
+                  paddingX={4}
+                >
+                  <Text fontSize="sm">{agent?.llm?.model}</Text>
+                </HStack>
+              </HStack>
+              <Divider />
+              <PanelHeading title="Tags" onCreate={onTagModalOpen} />
+              <HStack
+                paddingX={6}
+                paddingY={6}
+                flexWrap="wrap"
+                gap={2}
+                spacing={0}
+              >
+                {agent.tags?.map(({ id, name, color }) => (
+                  <AgentTag
+                    key={id}
+                    agent={agent}
+                    id={id}
+                    name={name}
+                    color={color}
+                    session={session}
+                  />
+                ))}
+              </HStack>
+            </Panel>
           </HStack>
-          <Divider />
-          <PanelHeading title="Language model" />
-          <HStack paddingX={6} paddingY={6}>
-            <HStack
-              key={id}
-              backgroundColor={
-                colorMode === "dark" ? "whiteAlpha.100" : "blackAlpha.100"
-              }
-              justifyContent="space-between"
-              borderRadius="md"
-              borderWidth="0.5px"
-              paddingY={2}
-              paddingX={4}
-            >
-              <Text fontSize="sm">{agent?.llm?.model}</Text>
-            </HStack>
-          </HStack>
-          <Divider />
-          <PanelHeading title="Tags" onCreate={onTagModalOpen} />
-          <HStack paddingX={6} paddingY={6} flexWrap="wrap" gap={2} spacing={0}>
-            {agent.tags?.map(({ id, name, color }) => (
-              <AgentTag
-                key={id}
-                agent={agent}
-                id={id}
-                name={name}
-                color={color}
-                session={session}
-              />
-            ))}
-          </HStack>
-        </Panel>
-      </HStack>
-      <ToolPickerModal
-        onSubmit={(values) => onCreateTool(values)}
-        onOpen={onToolModalOpen}
-        onClose={onToolModalClose}
-        isOpen={isToolModalOpen}
-        session={session}
-      />
-      <DocumentPickerModal
-        onSubmit={(values) => onCreateDocument(values)}
-        onOpen={onDocumentModalOpen}
-        onClose={onDocumentModalClose}
-        isOpen={isDocumentModalOpen}
-        session={session}
-      />
-      <TagPickerModal
-        onSubmit={(tag) => onAddTag(tag)}
-        onOpen={onTagModalOpen}
-        onClose={onTagModalClose}
-        isOpen={isTagModalOpen}
-        session={session}
-      />
+          <ToolPickerModal
+            onSubmit={(values) => onCreateTool(values)}
+            onOpen={onToolModalOpen}
+            onClose={onToolModalClose}
+            isOpen={isToolModalOpen}
+            session={session}
+          />
+          <DocumentPickerModal
+            onSubmit={(values) => onCreateDocument(values)}
+            onOpen={onDocumentModalOpen}
+            onClose={onDocumentModalClose}
+            isOpen={isDocumentModalOpen}
+            session={session}
+          />
+          <TagPickerModal
+            onSubmit={(tag) => onAddTag(tag)}
+            onOpen={onTagModalOpen}
+            onClose={onTagModalClose}
+            isOpen={isTagModalOpen}
+            session={session}
+          />
+        </>
+      )}
     </Stack>
   );
 }
