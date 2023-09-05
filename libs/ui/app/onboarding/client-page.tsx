@@ -6,6 +6,7 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 
+import { Api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -35,6 +36,7 @@ const formSchema = z.object({
 })
 
 export default function OnboardingClientPage() {
+  const api = new Api()
   const supabase = createClientComponentClient()
   const router = useRouter()
   const { toast } = useToast()
@@ -48,15 +50,17 @@ export default function OnboardingClientPage() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log("OK")
     const { first_name, last_name, company } = values
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    // TODO:
-    // fetch API key from superagent backend
+    const {
+      data: { token: api_key },
+    } = await api.createApiKey()
     const { error } = await supabase
       .from("profiles")
-      .update({ first_name, last_name, company, is_onboarded: true })
+      .update({ api_key, first_name, last_name, company, is_onboarded: true })
       .eq("user_id", user?.id)
 
     if (error) {
@@ -71,25 +75,25 @@ export default function OnboardingClientPage() {
       description: "Settings updated!",
     })
 
-    router.push("/agent")
+    router.push("/agents")
   }
 
   return (
     <div className="flex min-h-screen flex-col justify-center">
       <div className="container max-w-lg">
         <Form {...form}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Welcome!</CardTitle>
-              <CardDescription>
-                Tell us a bit more about yourself.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="w-full space-y-4"
-              >
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="w-full space-y-4"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Welcome!</CardTitle>
+                <CardDescription>
+                  Tell us a bit more about yourself.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="flex justify-between space-x-2">
                   <FormField
                     control={form.control}
@@ -140,14 +144,14 @@ export default function OnboardingClientPage() {
                     </FormItem>
                   )}
                 />
-              </form>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" size="sm" className="w-full">
-                {form.control._formState.isSubmitting ? <Spinner /> : "Save"}
-              </Button>
-            </CardFooter>
-          </Card>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" size="sm" className="w-full">
+                  {form.control._formState.isSubmitting ? <Spinner /> : "Save"}
+                </Button>
+              </CardFooter>
+            </Card>
+          </form>
         </Form>
       </div>
       <Toaster />
