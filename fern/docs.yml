@@ -14,6 +14,7 @@ navigation:
   - api: API Reference
 colors:
   accentPrimary: "#FDC537"
+  background: "#0F1117"
 logo:
   dark: ./assets/logo-dark.png
   height: 24
