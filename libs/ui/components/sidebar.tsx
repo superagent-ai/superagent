@@ -15,7 +15,7 @@ export default function Sidebar() {
     <div className="flex h-full w-16 flex-col items-center justify-between space-y-6 border-r py-4 align-top">
       <div className="flex flex-col items-center justify-center space-y-4 px-10">
         <Logo />
-        <div className="flex flex-col justify-center px-10">
+        <div className="flex flex-col justify-center space-y-2 px-10">
           {siteConfig.mainNav.map((navItem) => (
             <NextLink href={navItem.href} key={navItem.title}>
               <Button
@@ -28,7 +28,7 @@ export default function Sidebar() {
           ))}
         </div>
       </div>
-      <div className="flex flex-col justify-center px-10 align-bottom">
+      <div className="flex flex-col justify-center space-y-2 px-10 align-bottom">
         {siteConfig.footerNav.map((navItem) => (
           <NextLink href={navItem.href} key={navItem.title}>
             <Button

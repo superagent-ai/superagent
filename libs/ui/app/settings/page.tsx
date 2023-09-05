@@ -1,3 +1,5 @@
+import SettingsClientPage from "./client-page"
+
 export default function Settings() {
-  return <p>OK</p>
+  return <SettingsClientPage />
 }
