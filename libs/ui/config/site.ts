@@ -9,8 +9,8 @@ export const siteConfig = {
     "The agent framework for large language models",
   mainNav: [
     {
-      title: "Home",
-      href: "/",
+      title: "Agents",
+      href: "/agents",
       icon: RxRocket
     },
     {

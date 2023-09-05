@@ -1,14 +1,9 @@
-import {Loader2} from 'lucide-react';
+import { Spinner } from "@/components/ui/spinner"
 
-export const Icons = {
-  spinner: Loader2,
-};
-
-export default function Spinner() {
+export default function Loading() {
   return (
-    <div className="flex-1">
-      <Icons.spinner className="h-4 w-4 animate-spin" />
+    <div className="flex min-h-screen flex-1 items-center justify-center">
+      <Spinner />
     </div>
-    
   )
 }

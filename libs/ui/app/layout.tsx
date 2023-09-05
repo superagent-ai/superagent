@@ -5,7 +5,8 @@ import { siteConfig } from "@/config/site"
 import { fontSans } from "@/lib/fonts"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
-import Container from "./container";
+
+import Container from "./container"
 
 export const metadata: Metadata = {
   title: {
@@ -42,9 +43,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <div className="relative flex min-h-screen flex-col">
               <div className="flex-1">
-                <Container>
-                  {children}
-                </Container>
+                <Container>{children}</Container>
               </div>
             </div>
           </ThemeProvider>
