@@ -15,6 +15,14 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/agents', req.url))
   }
 
+  if (user) {
+    const {data: profile} = await supabase.from("profiles").select("*").eq("user_id", user.id).single()
+    
+    if (profile && !profile.is_onboarded) {
+      return NextResponse.redirect(new URL("/onboarding", req.url))
+    }
+  }
+
   // if user is not signed in and the current path is not / redirect the user to /
   if (!user && req.nextUrl.pathname !== '/') {
     return NextResponse.redirect(new URL('/', req.url))

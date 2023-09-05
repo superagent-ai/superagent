@@ -40,7 +40,6 @@ export default function IndexPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { email } = values
-
     const { error } = await supabase.auth.signInWithOtp({
       email,
     })
