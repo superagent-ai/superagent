@@ -1,12 +1,13 @@
 "use client"
 
-import { usePathname } from 'next/navigation'
 import NextLink from "next/link"
-import Logo from "./logo"
-import { Button } from "./ui/button"
-import {RxRocket} from "react-icons/rx"
+import { usePathname } from "next/navigation"
+import { RxRocket } from "react-icons/rx"
+
 import { siteConfig } from "@/config/site"
 
+import Logo from "./logo"
+import { Button } from "./ui/button"
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -17,8 +18,11 @@ export default function Sidebar() {
         <div className="flex flex-col justify-center px-10">
           {siteConfig.mainNav.map((navItem) => (
             <NextLink href={navItem.href} key={navItem.title}>
-              <Button variant={pathname === navItem.href ? "active" : "ghost"} size="icon">
-                <navItem.icon size={20}/>
+              <Button
+                variant={pathname === navItem.href ? "active" : "ghost"}
+                size="icon"
+              >
+                <navItem.icon size={20} />
               </Button>
             </NextLink>
           ))}
@@ -27,8 +31,11 @@ export default function Sidebar() {
       <div className="flex flex-col justify-center px-10 align-bottom">
         {siteConfig.footerNav.map((navItem) => (
           <NextLink href={navItem.href} key={navItem.title}>
-            <Button variant={pathname === navItem.href ? "active" : "ghost"} size="icon">
-              <navItem.icon size={20}/>
+            <Button
+              variant={pathname === navItem.href ? "active" : "ghost"}
+              size="icon"
+            >
+              <navItem.icon size={20} />
             </Button>
           </NextLink>
         ))}
