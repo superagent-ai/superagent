@@ -20,10 +20,13 @@ const ApiKeysClientPage: React.FC<ApiKeysPageProps> = ({ profile }) => {
 
   return (
     <div className="flex flex-col space-y-4">
-      <p className="text-sm">
-        Use the following API key to connect to Superagent via the REST API or
-        SDK
-      </p>
+      <div className="flex flex-col space-y-2">
+        <p className="text-sm font-bold">API keys</p>
+        <p className="text-muted-foreground text-sm">
+          Use the following API key to connect to Superagent via the REST API or
+          SDK
+        </p>
+      </div>
       <div className="flex w-full max-w-sm justify-between space-x-2">
         <Input type="password" value={profile.api_key} />
         <Button

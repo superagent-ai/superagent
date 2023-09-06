@@ -1,13 +1,17 @@
 "use client"
 
-import { useToast } from "@/components/ui/use-toast"
+import ThemeToggle from "@/components/theme-toggle"
 
 export default function AppearanceClientPage() {
-  const { toast } = useToast()
-
   return (
-    <div className="flex flex-col space-y-4">
-      <p>OK</p>
+    <div className="flex flex-col space-y-8">
+      <div className="flex flex-col space-y-2">
+        <p className="text-sm font-bold">Appearance</p>
+        <p className="text-muted-foreground text-sm">
+          Update the appearance of the Superagent dashboard
+        </p>
+      </div>
+      <ThemeToggle />
     </div>
   )
 }

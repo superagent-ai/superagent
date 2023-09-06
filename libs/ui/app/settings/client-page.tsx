@@ -76,6 +76,12 @@ const SettingsClientPage: React.FC<SettingsClientPageProps> = ({
 
   return (
     <div className="flex max-w-xl flex-col items-start justify-start space-y-8">
+      <div className="flex flex-col space-y-2">
+        <p className="text-sm font-bold">Personal</p>
+        <p className="text-muted-foreground text-sm">
+          Update your personal settings
+        </p>
+      </div>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
