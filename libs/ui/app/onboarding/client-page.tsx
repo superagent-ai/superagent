@@ -50,7 +50,6 @@ export default function OnboardingClientPage() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("OK")
     const { first_name, last_name, company } = values
     const {
       data: { user },

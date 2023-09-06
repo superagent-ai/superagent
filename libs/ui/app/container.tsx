@@ -16,7 +16,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   return (
     <section className="flex h-screen gap-6">
       {session && <Sidebar />}
-      <div className="flex-1 py-6">{children}</div>
+      <div className="flex-1 py-5 pr-8">{children}</div>
     </section>
   )
 }

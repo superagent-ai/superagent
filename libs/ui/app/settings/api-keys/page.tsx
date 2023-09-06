@@ -1,7 +1,7 @@
 import { cookies } from "next/headers"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
-import SettingsClientPage from "./client-page"
+import ApiKeysClientPage from "./client-page"
 
 export const dynamic = "force-dynamic"
 
@@ -16,5 +16,9 @@ export default async function Settings() {
     .eq("user_id", user?.id)
     .single()
 
-  return user ? <SettingsClientPage profile={profile} user={user} /> : null
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(profile.api_key)
+  }
+
+  return <ApiKeysClientPage profile={profile} />
 }

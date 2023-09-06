@@ -19,7 +19,7 @@ export default function Sidebar() {
           {siteConfig.mainNav.map((navItem) => (
             <NextLink href={navItem.href} key={navItem.title}>
               <Button
-                variant={pathname === navItem.href ? "active" : "ghost"}
+                variant={pathname.includes(navItem.href) ? "active" : "ghost"}
                 size="icon"
               >
                 <navItem.icon size={20} />
@@ -32,7 +32,7 @@ export default function Sidebar() {
         {siteConfig.footerNav.map((navItem) => (
           <NextLink href={navItem.href} key={navItem.title}>
             <Button
-              variant={pathname === navItem.href ? "active" : "ghost"}
+              variant={pathname.includes(navItem.href) ? "active" : "ghost"}
               size="icon"
             >
               <navItem.icon size={20} />
