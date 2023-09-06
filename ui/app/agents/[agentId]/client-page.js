@@ -243,13 +243,11 @@ export default function AgentDetailClientPage({ id, session }) {
     const fetchData = async () => {
       console.log("fetch");
       setIsLoading(true);
-      const [agentData, tokensData, toolsData, documentsData] =
-        await Promise.all([
-          api.getAgentById(id),
-          api.getApiTokens(id),
-          api.getAgentTools(id),
-          api.getAgentDocuments(id),
-        ]);
+      const agentData = await api.getAgentById(id);
+      const tokensData = await api.getApiTokens();
+      const toolsData = await api.getAgentTools(id);
+      const documentsData = await api.getAgentDocuments(id);
+
       setAgent(agentData);
       setApiTokens(tokensData);
       setAgentTools(toolsData);
