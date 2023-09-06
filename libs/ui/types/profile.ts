@@ -5,4 +5,6 @@ export interface Profile {
   is_onboarded: string
   last_name: string
   user_id: string
+  company?: string
+  id: string
 }
