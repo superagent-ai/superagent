@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class Agent(BaseModel):
     isActive: bool = True
     name: str
+    prompt: str
 
 
 class AgentLLM(BaseModel):
