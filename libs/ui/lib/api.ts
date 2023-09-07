@@ -10,7 +10,11 @@ export class Api {
       `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}${endpoint}`,
       {
         ...options,
-        headers: { ...options.headers, authorization: `Bearer ${this.apiKey}` },
+        headers: {
+          ...options.headers,
+          "Content-Type": "application/json",
+          authorization: `Bearer ${this.apiKey}`,
+        },
       }
     )
 
@@ -25,6 +29,13 @@ export class Api {
     return this.fetchFromApi("/api-users", { method: "POST" })
   }
 
+  async createLLM(payload: any) {
+    return this.fetchFromApi("/llms", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+  }
+
   async deleteAgentById(id: string) {
     return this.fetchFromApi(`/agents/${id}`, { method: "DELETE" })
   }
@@ -35,5 +46,9 @@ export class Api {
 
   async getAgentById(id: string) {
     return this.fetchFromApi(`/agents/${id}`)
+  }
+
+  async getLlms() {
+    return this.fetchFromApi(`/llms`)
   }
 }
