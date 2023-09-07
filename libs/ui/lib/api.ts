@@ -65,4 +65,11 @@ export class Api {
   async getLLMs() {
     return this.fetchFromApi(`/llms`)
   }
+
+  async patchLLM(id: string, payload: any) {
+    return this.fetchFromApi(`/llms/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    })
+  }
 }

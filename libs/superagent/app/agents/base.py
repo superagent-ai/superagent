@@ -7,11 +7,14 @@ from langchain.chat_models import ChatOpenAI
 from langchain.memory.motorhead_memory import MotorheadMemory
 from langchain.prompts import MessagesPlaceholder
 from langchain.schema import SystemMessage
+from langchain.chains import ConversationChain
+
 from slugify import slugify
 
 from app.datasource.types import (
     VALID_UNSTRUCTURED_DATA_TYPES,
 )
+from app.utils.llm import LLM_MAPPING
 from app.models.tools import DatasourceInput
 from app.tools import TOOL_TYPE_MAPPING, create_tool
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
@@ -73,7 +76,7 @@ class AgentBase:
     async def _get_llm(self, agent_llm: AgentLLM, model: str) -> Any:
         if agent_llm.llm.provider == "OPENAI":
             return ChatOpenAI(
-                model=model,
+                model=LLM_MAPPING[model],
                 openai_api_key=agent_llm.llm.apiKey,
                 temperature=0,
                 streaming=self.enable_streaming,
