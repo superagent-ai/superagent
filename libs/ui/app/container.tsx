@@ -14,9 +14,9 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   } = await supabase.auth.getSession()
 
   return (
-    <section className="flex h-screen gap-6">
+    <section className="flex h-screen">
       {session && <Sidebar />}
-      <div className="flex-1 py-5 pr-8">{children}</div>
+      <div className="flex-1">{children}</div>
     </section>
   )
 }

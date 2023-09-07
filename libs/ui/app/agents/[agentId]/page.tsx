@@ -3,12 +3,13 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { Api } from "@/lib/api"
 
-import { columns } from "./columns"
-import { DataTable } from "./data-table"
+import Chat from "./chat"
+import Header from "./header"
+import Settings from "./settings"
 
 export const dynamic = "force-dynamic"
-
-export default async function Agents() {
+export default async function AgentPage({ params }: { params: any }) {
+  const { agentId } = params
   const supabase = createRouteHandlerClient({ cookies })
   const {
     data: { user },
@@ -19,12 +20,15 @@ export default async function Agents() {
     .eq("user_id", user?.id)
     .single()
   const api = new Api(profile.api_key)
-  const { data: agents } = await api.getAgents()
+  const { data: agent } = await api.getAgentById(agentId)
 
   return (
-    <div className="flex flex-col space-y-4 px-4 py-6">
-      <p className="text-lg">Agents</p>
-      <DataTable columns={columns} data={agents} />
+    <div className="flex min-h-screen flex-col">
+      <Header agent={agent} profile={profile} />
+      <div className="flex flex-1">
+        <Chat agent={agent} />
+        <Settings />
+      </div>
     </div>
   )
 }
