@@ -68,12 +68,15 @@ export default function LLMClientPage({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await api.createLLM({ ...values, provider: "OPENAI" })
+      if (llms.length === 0) {
+        await api.createLLM({ ...values, provider: "OPENAI" })
+      } else {
+        await api.patchLLM(llms[0].id, { ...values, provider: "OPENAI" })
+      }
 
       toast({
         description: "LLM configuration saved",
       })
-
       router.refresh()
     } catch (error: any) {
       toast({
