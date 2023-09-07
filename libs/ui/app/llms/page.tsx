@@ -18,7 +18,7 @@ export default async function LLM() {
     .eq("user_id", user?.id)
     .single()
   const api = new Api(profile.api_key)
-  const { data: llms } = await api.getLlms()
+  const { data: llms } = await api.getLLMs()
 
   return (
     <div className="flex min-h-full flex-col space-y-4 px-4 py-6">

@@ -6,8 +6,9 @@ from pydantic import BaseModel
 class Agent(BaseModel):
     isActive: bool = True
     name: str
-    prompt: str
+    prompt: Optional[str]
     llmModel: str
+    description: str
 
 
 class AgentLLM(BaseModel):

@@ -36,6 +36,7 @@
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.46.1",
     "react-icons": "^4.10.1",
+    "react-use": "^17.4.0",
     "sharp": "^0.31.3",
     "tailwind-merge": "^1.13.2",
     "tailwindcss-animate": "^1.0.6",

@@ -26,11 +26,18 @@ export const columns: ColumnDef<Agent>[] = [
     ),
   },
   {
-    accessorKey: "id",
-    header: "ID",
+    accessorKey: "llmModel",
+    header: "Model",
+    cell: ({ row, column }) => (
+      <Badge variant="secondary">{row.getValue(column.id)}</Badge>
+    ),
   },
   {
     accessorKey: "prompt",
     header: "Prompt",
+  },
+  {
+    accessorKey: "id",
+    header: "ID",
   },
 ]
