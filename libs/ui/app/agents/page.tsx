@@ -24,7 +24,7 @@ export default async function Agents() {
   return (
     <div className="flex flex-col space-y-4 px-4 py-6">
       <p className="text-lg">Agents</p>
-      <DataTable columns={columns} data={agents} />
+      <DataTable columns={columns} data={agents} profile={profile} />
     </div>
   )
 }

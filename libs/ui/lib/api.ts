@@ -25,6 +25,20 @@ export class Api {
     return await response.json()
   }
 
+  async createAgent(payload: any) {
+    return this.fetchFromApi("/agents", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async createAgentLLM(agentId: string, llmId: string) {
+    return this.fetchFromApi(`/agents/${agentId}/llms`, {
+      method: "POST",
+      body: JSON.stringify({ llmId }),
+    })
+  }
+
   async createApiKey() {
     return this.fetchFromApi("/api-users", { method: "POST" })
   }
@@ -48,7 +62,7 @@ export class Api {
     return this.fetchFromApi(`/agents/${id}`)
   }
 
-  async getLlms() {
+  async getLLMs() {
     return this.fetchFromApi(`/llms`)
   }
 }

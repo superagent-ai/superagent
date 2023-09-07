@@ -64,6 +64,7 @@ model ApiUser {
 model Agent {
   id            String            @id @default(uuid())
   name          String
+  description   String            @default("Add a agent description...") @db.Text
   isActive      Boolean           @default(false)
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt

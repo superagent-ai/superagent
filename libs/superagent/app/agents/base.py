@@ -15,7 +15,6 @@ from app.datasource.types import (
 from app.models.tools import DatasourceInput
 from app.tools import TOOL_TYPE_MAPPING, create_tool
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
-from app.utils.llm import LLM_MAPPING
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool

@@ -23,11 +23,10 @@ export default function Header({
 
   const handleDelete = async () => {
     await api.deleteAgentById(agent.id)
-
     toast({
       description: `Agent with ID: ${agent.id} deleted!`,
     })
-
+    router.refresh()
     router.push("/agents")
   }
 
