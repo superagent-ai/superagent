@@ -5,10 +5,13 @@ export class Api {
     this.apiKey = apiKey
   }
 
-  async createApiKey() {
+  async fetchFromApi(endpoint: string, options: RequestInit = {}) {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/api-users`,
-      { method: "POST" }
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}${endpoint}`,
+      {
+        ...options,
+        headers: { ...options.headers, authorization: `Bearer ${this.apiKey}` },
+      }
     )
 
     if (!response.ok) {
@@ -18,16 +21,19 @@ export class Api {
     return await response.json()
   }
 
+  async createApiKey() {
+    return this.fetchFromApi("/api-users", { method: "POST" })
+  }
+
+  async deleteAgentById(id: string) {
+    return this.fetchFromApi(`/agents/${id}`, { method: "DELETE" })
+  }
+
   async getAgents() {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents`,
-      { headers: { authorization: `Bearer ${this.apiKey}` } }
-    )
+    return this.fetchFromApi("/agents")
+  }
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    return await response.json()
+  async getAgentById(id: string) {
+    return this.fetchFromApi(`/agents/${id}`)
   }
 }
