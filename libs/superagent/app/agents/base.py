@@ -71,10 +71,10 @@ class AgentBase:
             tools.append(tool)
         return tools
 
-    async def _get_llm(self, agent_llm: AgentLLM) -> Any:
+    async def _get_llm(self, agent_llm: AgentLLM, model: str) -> Any:
         if agent_llm.llm.provider == "OPENAI":
             return ChatOpenAI(
-                model=LLM_MAPPING[agent_llm.llm.model],
+                model=model,
                 openai_api_key=agent_llm.llm.apiKey,
                 temperature=0,
                 streaming=self.enable_streaming,
@@ -109,7 +109,7 @@ class AgentBase:
         tools = await self._get_tools(
             agent_datasources=config.datasources, agent_tools=config.tools
         )
-        llm = await self._get_llm(agent_llm=config.llms[0])
+        llm = await self._get_llm(agent_llm=config.llms[0], model=config.llmModel)
         prompt = await self._get_prompt(agent=config)
         memory = await self._get_memory()
         agent = initialize_agent(

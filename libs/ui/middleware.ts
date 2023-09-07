@@ -42,5 +42,6 @@ export const config = {
     "/apis/:path*",
     "/datasources/:path*",
     "/workflows/:path*",
+    "/llms/:path*",
   ],
 }

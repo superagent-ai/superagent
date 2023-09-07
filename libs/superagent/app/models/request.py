@@ -7,6 +7,7 @@ class Agent(BaseModel):
     isActive: bool = True
     name: str
     prompt: str
+    llmModel: str
 
 
 class AgentLLM(BaseModel):
@@ -44,7 +45,6 @@ class AgentTool(BaseModel):
 
 class LLM(BaseModel):
     provider: str
-    model: str
     apiKey: str
     options: Optional[Dict]
 
