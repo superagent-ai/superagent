@@ -128,7 +128,6 @@ export const siteConfig = {
     {
       value: "BING_SEARCH",
       title: "Bing Search",
-      inputs: ["bingSearchUrl", "bingSubscriptionKey"],
       metadata: [
         {
           key: "bingSearchUrl",
@@ -145,12 +144,91 @@ export const siteConfig = {
     {
       value: "METAPHOR",
       title: "Metaphor Search",
-      inputs: ["metaphorApiKey"],
       metadata: [
         {
           key: "metaphorApiKey",
           type: "input",
           label: "Metaphor API Key",
+        },
+      ],
+    },
+    {
+      value: "CHATGPT_PLUGIN",
+      title: "ChatGPT plugin",
+      metadata: [
+        {
+          key: "chatgptPluginURL",
+          type: "input",
+          label: "Plugin manifest url",
+        },
+      ],
+    },
+    {
+      value: "REPLICATE",
+      title: "Replicate",
+      metadata: [
+        {
+          key: "model",
+          type: "input",
+          label: "Model",
+        },
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Replicate API key",
+        },
+        {
+          key: "arguments",
+          type: "json",
+          label: "Other arguments",
+        },
+      ],
+    },
+    {
+      value: "PUBMED",
+      title: "PubMed",
+      metadata: [],
+    },
+    {
+      value: "OPENAPI",
+      title: "OpenAPI",
+      metadata: [
+        {
+          key: "openApiUrl",
+          type: "input",
+          label: "OpenAPI spec url",
+        },
+        {
+          key: "headers",
+          type: "json",
+          label: "Additional headers",
+        },
+      ],
+    },
+    {
+      value: "WOLFRAM_ALPHA",
+      title: "Wolfram Alpha",
+      metadata: [
+        {
+          key: "appId",
+          type: "input",
+          label: "Wolfram App ID",
+        },
+      ],
+    },
+    {
+      value: "ZAPIER_NLA",
+      title: "Zapier Natural Language",
+      metadata: [
+        {
+          key: "zapierNlaApiKey",
+          type: "input",
+          label: "Zapier NLA API key",
+        },
+        {
+          key: "openaiApiKey",
+          type: "input",
+          label: "Your OpenAI API key",
         },
       ],
     },
