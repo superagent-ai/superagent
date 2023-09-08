@@ -39,6 +39,13 @@ export class Api {
     })
   }
 
+  async createAgentTool(agentId: string, toolId: string) {
+    return this.fetchFromApi(`/agents/${agentId}/tools`, {
+      method: "POST",
+      body: JSON.stringify({ toolId }),
+    })
+  }
+
   async createApiKey() {
     return this.fetchFromApi("/api-users", { method: "POST" })
   }

@@ -1,8 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-
-import { Badge } from "@/components/ui/badge"
+import { RxCheckCircled, RxCircle } from "react-icons/rx"
 
 export type Agent = {
   id: string
@@ -19,18 +18,18 @@ export const columns: ColumnDef<Agent>[] = [
   {
     accessorKey: "isActive",
     header: "Status",
-    cell: ({ row, column }) => (
-      <Badge variant="secondary">
-        {row.getValue(column.id) ? "Active" : "Inactive"}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "llmModel",
-    header: "Model",
-    cell: ({ row, column }) => (
-      <Badge variant="secondary">{row.getValue(column.id)}</Badge>
-    ),
+    cell: ({ row, column }) =>
+      row.getValue(column.id) ? (
+        <div className="flex items-center">
+          <RxCheckCircled className="mr-1 h-3 w-3 text-amber-400" />
+          Enabled
+        </div>
+      ) : (
+        <div className="text-muted-foreground flex items-center">
+          <RxCircle className="mr-1 h-3 w-3" />
+          Disabled
+        </div>
+      ),
   },
   {
     accessorKey: "prompt",

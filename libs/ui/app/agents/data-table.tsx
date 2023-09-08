@@ -41,6 +41,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { MultiSelect } from "@/components/ui/multi-select"
 import {
   Select,
   SelectContent,
@@ -67,6 +68,11 @@ interface DataTableProps<TData, TValue> {
   profile: Profile
 }
 
+interface Tool {
+  id: string
+  name: string
+}
+
 const formSchema = z.object({
   name: z.string().nonempty({
     message: "Name is required",
@@ -78,6 +84,7 @@ const formSchema = z.object({
   llmModel: z.string().nonempty({
     message: "Model is required",
   }),
+  tools: z.array(z.string()),
 })
 
 export function DataTable<TData, TValue>({
@@ -108,17 +115,28 @@ export function DataTable<TData, TValue>({
       description: "",
       llmModel: "GPT_3_5_TURBO_16K_0613",
       isActive: true,
+      tools: [],
     },
   })
   const { value: llms = [] } = useAsync(async () => {
     const { data } = await api.getLLMs()
     return data
   }, [])
+  const { value: tools = [] } = useAsync(async () => {
+    const { data } = await api.getTools()
+    return data
+  }, [])
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      const { tools } = values
       const { data: agent } = await api.createAgent({ ...values })
       await api.createAgentLLM(agent.id, llms[0]?.id)
+
+      for (const toolId of tools) {
+        await api.createAgentTool(agent.id, toolId)
+      }
+
       toast({
         description: "New agent created!",
       })
@@ -241,6 +259,30 @@ export function DataTable<TData, TValue>({
                       </FormItem>
                     )}
                   />
+                  {tools.length > 0 && (
+                    <FormField
+                      control={form.control}
+                      name="tools"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>APIs</FormLabel>
+                          <FormControl>
+                            <MultiSelect
+                              placeholder="Select api..."
+                              data={tools.map((tool: Tool) => ({
+                                value: tool.id,
+                                label: tool.name,
+                              }))}
+                              onChange={(values: { value: string }[]) => {
+                                field.onChange(values.map(({ value }) => value))
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                 </div>
                 <DialogFooter>
                   <Button
@@ -285,20 +327,19 @@ export function DataTable<TData, TValue>({
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
+                  className="cursor-pointer"
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={() =>
+                    router.push(`/agents/${(row.original as any).id}`)
+                  }
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-3">
-                      <Link
-                        passHref
-                        href={`/agents/${(row.original as any).id}`}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </Link>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
