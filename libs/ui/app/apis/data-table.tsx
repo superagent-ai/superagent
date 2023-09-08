@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -13,14 +12,12 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import { useForm } from "react-hook-form"
-import { useAsync } from "react-use"
 import * as z from "zod"
 
 import { Profile } from "@/types/profile"
 import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
 import { cn } from "@/lib/utils"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Dialog,
@@ -34,7 +31,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -62,7 +58,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
+  columns: (profile: Profile) => ColumnDef<TData, TValue>[]
   data: TData[]
   profile: Profile
 }
@@ -74,10 +70,10 @@ const formSchema = z.object({
   description: z.string().nonempty({
     message: "Description is required",
   }),
-  isActive: z.boolean().default(true),
-  llmModel: z.string().nonempty({
-    message: "Model is required",
+  type: z.string().nonempty({
+    message: "Type is required",
   }),
+  metadata: z.any(),
 })
 
 export function DataTable<TData, TValue>({
@@ -93,7 +89,7 @@ export function DataTable<TData, TValue>({
   )
   const table = useReactTable({
     data,
-    columns,
+    columns: columns(profile),
     getCoreRowModel: getCoreRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
@@ -106,28 +102,22 @@ export function DataTable<TData, TValue>({
     defaultValues: {
       name: "",
       description: "",
-      llmModel: "GPT_3_5_TURBO_16K_0613",
-      isActive: true,
+      type: "BING_SEARCH",
+      metadata: null,
     },
   })
-  const { value: llms = [] } = useAsync(async () => {
-    const { data } = await api.getLLMs()
-    return data
-  }, [])
+  const type = form.watch("type")
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const { data: agent } = await api.createAgent({ ...values })
-      await api.createAgentLLM(agent.id, llms[0]?.id)
+      await api.createTool({ ...values })
       toast({
-        description: "New agent created!",
+        description: "Tool created successfully",
       })
       router.refresh()
-      router.push(`/agents/${agent.id}`)
     } catch (error: any) {
       toast({
         description: error?.message,
-        variant: "destructive",
       })
     }
   }
@@ -147,7 +137,7 @@ export function DataTable<TData, TValue>({
           <DialogTrigger
             className={cn(buttonVariants({ variant: "default", size: "sm" }))}
           >
-            <p>New Agent</p>
+            <p>New API</p>
           </DialogTrigger>
           <DialogContent>
             <Form {...form}>
@@ -156,26 +146,13 @@ export function DataTable<TData, TValue>({
                 className="w-full space-y-4"
               >
                 <DialogHeader>
-                  <DialogTitle>Create new agent</DialogTitle>
+                  <DialogTitle>Create new api connection</DialogTitle>
                   <DialogDescription>
-                    Attach datasources and APIs to you agent to make it more
-                    powerful.
+                    Connect your agents to thousands of third-party APIs and
+                    tools.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="flex flex-col space-y-2">
-                  {llms.length === 0 && (
-                    <Alert className="flex justify-between">
-                      <div className="flex flex-col">
-                        <AlertTitle>Heads up!</AlertTitle>
-                        <AlertDescription className="text-gray-500">
-                          You haven&apos;t configured a LLM.
-                        </AlertDescription>
-                      </div>
-                      <Link passHref href="/llms">
-                        <Button size="sm">Configure</Button>
-                      </Link>
-                    </Alert>
-                  )}
                   <FormField
                     control={form.control}
                     name="name"
@@ -183,7 +160,7 @@ export function DataTable<TData, TValue>({
                       <FormItem>
                         <FormLabel>Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="E.g My agent" {...field} />
+                          <Input placeholder="E.g My API" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -197,7 +174,7 @@ export function DataTable<TData, TValue>({
                         <FormLabel>Description</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="E.g this agent is an expert at..."
+                            placeholder="Useful for doing X..."
                             {...field}
                           />
                         </FormControl>
@@ -207,52 +184,59 @@ export function DataTable<TData, TValue>({
                   />
                   <FormField
                     control={form.control}
-                    name="llmModel"
+                    name="type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Model</FormLabel>
+                        <FormLabel>Type</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a model" />
+                              <SelectValue placeholder="Select tool type" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {siteConfig.llms
-                              .find((llm) => llm.id === "OPENAI")
-                              ?.options.map((option) => (
-                                <SelectItem
-                                  key={option.value}
-                                  value={option.value}
-                                >
-                                  {option.title}
-                                </SelectItem>
-                              ))}
+                            {siteConfig.toolTypes.map((toolType) => (
+                              <SelectItem
+                                key={toolType.value}
+                                value={toolType.value}
+                              >
+                                {toolType.title}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
-                        <FormDescription className="text-sm">
-                          Make sure you have access to these models in your
-                          OpenAI account
-                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                  {siteConfig.toolTypes
+                    .find((toolType) => toolType.value === type)
+                    ?.metadata.map((metadataField) => (
+                      <FormField
+                        key={metadataField.key}
+                        control={form.control}
+                        name={`metadata.${metadataField.key}`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{metadataField.label}</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    ))}
                 </div>
                 <DialogFooter>
-                  <Button
-                    disabled={llms.length === 0}
-                    type="submit"
-                    size="sm"
-                    className="w-full"
-                  >
+                  <Button type="submit" size="sm" className="w-full">
                     {form.control._formState.isSubmitting ? (
                       <Spinner />
                     ) : (
-                      "Create agent"
+                      "Create API"
                     )}
                   </Button>
                 </DialogFooter>
@@ -290,26 +274,18 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-3">
-                      <Link
-                        passHref
-                        href={`/agents/${(row.original as any).id}`}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </Link>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
+                <TableCell colSpan={5} className="h-24 text-center">
+                  No tools found.
                 </TableCell>
               </TableRow>
             )}
