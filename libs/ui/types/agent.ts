@@ -3,6 +3,8 @@ export interface Agent {
   description: string
   id: string
   isActive: boolean
-  llms: any
+  llms: Array<{ [key: string]: any }>
   llmModel: string
+  tools: Array<{ [key: string]: any }>
+  datasources: Array<{ [key: string]: any }>
 }

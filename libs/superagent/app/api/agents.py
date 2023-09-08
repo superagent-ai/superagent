@@ -85,7 +85,11 @@ async def get(agent_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for getting a single agent"""
     try:
         data = await prisma.agent.find_first(
-            where={"id": agent_id, "apiUserId": api_user.id}
+            where={"id": agent_id, "apiUserId": api_user.id},
+            include={
+                "tools": {"include": {"tool": True}},
+                "datasources": {"include": {"datasource": True}},
+            },
         )
         return {"success": True, "data": data}
     except Exception as e:
