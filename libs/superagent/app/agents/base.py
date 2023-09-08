@@ -1,4 +1,3 @@
-import json
 from typing import Any, List
 
 from decouple import config
@@ -65,7 +64,7 @@ class AgentBase:
             if tool_info:
                 tool = create_tool(
                     tool_class=tool_info["class"],
-                    name=agent_tool.tool.name,
+                    name=slugify(agent_tool.tool.name),
                     description=agent_tool.tool.description,
                     metadata=agent_tool.tool.metadata,
                     args_schema=tool_info["schema"],
