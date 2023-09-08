@@ -87,9 +87,13 @@ async def update(
 ):
     """Endpoint for updating a specific tool"""
     try:
+        body.metadata = json.dumps(body.metadata) if body.metadata else None
         data = await prisma.tool.update(
-            where={"id": tool_id, "apiUserId": api_user.id},
-            data=body.dict(),
+            where={"id": tool_id},
+            data={
+                **body.dict(),
+                "apiUserId": api_user.id,
+            },
         )
         if data.metadata:
             data.metadata = json.loads(data.metadata)

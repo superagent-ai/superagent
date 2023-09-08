@@ -124,4 +124,35 @@ export const siteConfig = {
       ],
     },
   ],
+  toolTypes: [
+    {
+      value: "BING_SEARCH",
+      title: "Bing Search",
+      inputs: ["bingSearchUrl", "bingSubscriptionKey"],
+      metadata: [
+        {
+          key: "bingSearchUrl",
+          type: "input",
+          label: "Bing Search URL",
+        },
+        {
+          key: "bingSubscriptionKey",
+          type: "input",
+          label: "Bing Subscription Key",
+        },
+      ],
+    },
+    {
+      value: "METAPHOR",
+      title: "Metaphor Search",
+      inputs: ["metaphorApiKey"],
+      metadata: [
+        {
+          key: "metaphorApiKey",
+          type: "input",
+          label: "Metaphor API Key",
+        },
+      ],
+    },
+  ],
 }
