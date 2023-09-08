@@ -232,5 +232,21 @@ export const siteConfig = {
         },
       ],
     },
+    {
+      value: "AGENT",
+      title: "Agent",
+      metadata: [
+        {
+          key: "agentId",
+          type: "input",
+          label: "Superagent Agent ID",
+        },
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Superagent API key",
+        },
+      ],
+    },
   ],
 }
