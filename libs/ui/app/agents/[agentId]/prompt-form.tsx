@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
+import { UseChatHelpers } from "ai/react"
 import { RxPaperPlane, RxPlus } from "react-icons/rx"
 import Textarea from "react-textarea-autosize"
 
