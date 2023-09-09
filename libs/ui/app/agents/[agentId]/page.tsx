@@ -23,10 +23,10 @@ export default async function AgentPage({ params }: { params: any }) {
   const { data: agent } = await api.getAgentById(agentId)
 
   return (
-    <div className="flex h-screen overflow-hidden flex-col">
+    <div className="flex h-screen flex-col overflow-hidden">
       <Header agent={agent} profile={profile} />
-      <div className="flex flex-grow overflow-auto">
-        <Chat agent={agent} />
+      <div className="flex grow overflow-auto">
+        <Chat agent={agent} profile={profile} />
         <Settings />
       </div>
     </div>
