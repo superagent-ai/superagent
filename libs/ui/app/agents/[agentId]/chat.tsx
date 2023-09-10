@@ -61,7 +61,7 @@ export function Message({
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
         {message.length === 0 && <PulsatingCursor />}
         <MemoizedReactMarkdown
-          className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words"
+          className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words text-sm"
           remarkPlugins={[remarkGfm, remarkMath]}
           components={{
             p({ children }) {
@@ -82,7 +82,10 @@ export function Message({
 
               if (inline) {
                 return (
-                  <code className="px-1 dark:bg-slate-800" {...props}>
+                  <code
+                    className="light:bg-slate-200 px-1 text-sm dark:bg-slate-800"
+                    {...props}
+                  >
                     {children}
                   </code>
                 )
@@ -190,10 +193,10 @@ export default function Chat({
         <div className="self-end">
           <Select>
             <SelectTrigger className="w-[90px]">
-              <SelectValue placeholder="View" />
+              <SelectValue placeholder="Chat" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="light">Messages</SelectItem>
+              <SelectItem value="light">Chat</SelectItem>
               <SelectItem value="light">Trace</SelectItem>
             </SelectContent>
           </Select>

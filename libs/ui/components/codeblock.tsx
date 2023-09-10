@@ -93,17 +93,17 @@ const CodeBlock: FC<Props> = memo(({ language, value }) => {
   }
 
   return (
-    <div className="codeblock relative w-full overflow-hidden rounded-lg bg-zinc-950">
-      <div className="flex w-full items-center justify-between bg-zinc-800 px-6 py-1 pr-4 text-zinc-100">
+    <div className="codeblock relative mb-8 w-full overflow-hidden rounded-lg bg-zinc-800 text-sm">
+      <div className="flex w-full items-center justify-between bg-zinc-900 px-6 py-1 pr-4 text-zinc-100">
         <span className="text-xs lowercase">{language}</span>
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center">
           <Button
             variant="ghost"
             className="hover:bg-zinc-800 focus-visible:ring-1 focus-visible:ring-slate-700 focus-visible:ring-offset-0"
             onClick={downloadAsFile}
             size="icon"
           >
-            <RxDownload />
+            <RxDownload size="18px" />
             <span className="sr-only">Download</span>
           </Button>
           <Button
@@ -112,7 +112,7 @@ const CodeBlock: FC<Props> = memo(({ language, value }) => {
             className="text-xs hover:bg-zinc-800 focus-visible:ring-1 focus-visible:ring-slate-700 focus-visible:ring-offset-0"
             onClick={onCopy}
           >
-            {isCopied ? <RxCheck /> : <RxCopy />}
+            {isCopied ? <RxCheck size="18px" /> : <RxCopy size="18px" />}
             <span className="sr-only">Copy code</span>
           </Button>
         </div>
@@ -130,7 +130,7 @@ const CodeBlock: FC<Props> = memo(({ language, value }) => {
         }}
         codeTagProps={{
           style: {
-            fontSize: "0.9rem",
+            fontSize: "0.8rem",
             fontFamily: "var(--font-mono)",
           },
         }}
