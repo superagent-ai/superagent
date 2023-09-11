@@ -87,7 +87,7 @@ class DataLoader:
         metadata = json.loads(self.datasource.metadata)
         RemoteDepthReader = download_loader("RemoteDepthReader")
         depth = int(metadata.get("depth"))
-        loader = RemoteDepthReader(depth=depth)
+        loader = RemoteDepthReader(depth=0)
         return loader.load_langchain_documents(url=self.datasource.url)
 
     def load_notion(self):

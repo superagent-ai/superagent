@@ -402,7 +402,7 @@ async def list_runs(agent_id: str, api_user=Depends(get_current_api_user)):
     try:
         output = langsmith_client.list_runs(
             project_id="5b5b88d3-af77-4a64-9607-51782ac7a62f",
-            filter="has(tags, '12657580-99d5-4c2a-82a6-d86ad6e39e8b')",
+            filter=f"has(tags, '{agent_id}')",
         )
         return {"success": True, "data": output}
     except Exception as e:

@@ -54,6 +54,7 @@ export type DataType = {
   name: string
   type: string
   description: string
+  url: string
 }
 
 export function DeleteButton({
@@ -120,6 +121,7 @@ export function EditTool({
     try {
       await api.patchDatasource(datasource.id, {
         type: datasource.type,
+        url: datasource.url,
         ...values,
       })
       toast({

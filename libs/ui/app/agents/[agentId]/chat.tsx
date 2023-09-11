@@ -75,13 +75,13 @@ export function Message({
         </AvatarFallback>
       </Avatar>
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1 mt-1">
-        {message.length === 0 && <PulsatingCursor />}
+        {message?.length === 0 && <PulsatingCursor />}
         <MemoizedReactMarkdown
           className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words text-sm"
           remarkPlugins={[remarkGfm, remarkMath]}
           components={{
             p({ children }) {
-              return <p className="mb-5 last:mb-0">{children}</p>
+              return <p className="last:mb-5">{children}</p>
             },
             a({ children, href }) {
               return (
@@ -94,6 +94,12 @@ export function Message({
                   {children}
                 </a>
               )
+            },
+            ol({ children }) {
+              return <ol className="list-decimal pl-[15px]">{children}</ol>
+            },
+            ul({ children }) {
+              return <ul className="list-disc pl-[15px]">{children}</ul>
             },
             code({ node, inline, className, children, ...props }) {
               if (children.length) {
@@ -289,7 +295,7 @@ export default function Chat({
                     <ScrollArea className="relative flex max-h-40 grow flex-col rounded-lg border p-3">
                       <Message
                         type="ai"
-                        message={run.outputs.output}
+                        message={run.outputs?.output}
                         profile={profile}
                       />
                     </ScrollArea>

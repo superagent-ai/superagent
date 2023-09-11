@@ -100,7 +100,7 @@ async def update(
     """Endpoint for updating a specific datasource"""
     try:
         data = await prisma.datasource.update(
-            where={"id": datasource_id, "apiUserId": api_user.id},
+            where={"id": datasource_id},
             data=body.dict(),
         )
         if data.metadata:
@@ -118,6 +118,7 @@ async def update(
 async def delete(datasource_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for deleting a specific datasource"""
     try:
+        await prisma.agentdatasource.delete_many(where={"datasourceId": datasource_id})
         await prisma.datasource.delete(where={"id": datasource_id})
         return {"success": True, "data": None}
     except Exception as e:
