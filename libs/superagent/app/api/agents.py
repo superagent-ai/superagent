@@ -35,11 +35,15 @@ from app.models.response import (
 from app.models.response import (
     AgentToolList as AgentToolListResponse,
 )
+from app.models.response import AgentRunList as AgentRunListResponse
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 
+from langsmith import Client
+
 router = APIRouter()
+langsmith_client = Client()
 
 
 # Agent endpoints
@@ -85,7 +89,12 @@ async def get(agent_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for getting a single agent"""
     try:
         data = await prisma.agent.find_first(
-            where={"id": agent_id, "apiUserId": api_user.id}
+            where={"id": agent_id, "apiUserId": api_user.id},
+            include={
+                "tools": {"include": {"tool": True}},
+                "datasources": {"include": {"datasource": True}},
+                "llms": {"include": {"llm": True}},
+            },
         )
         return {"success": True, "data": data}
     except Exception as e:
@@ -144,7 +153,9 @@ async def invoke(
     async def send_message(
         agent: AgentBase, content: str, callback: CustomAsyncIteratorCallbackHandler
     ) -> AsyncIterable[str]:
-        task = asyncio.create_task(agent.acall(inputs={"input": content}))
+        task = asyncio.create_task(
+            agent.acall(inputs={"input": content}, tags=[agent_id])
+        )
         try:
             async for token in callback.aiter():
                 yield f"data: {token}\n\n"
@@ -171,7 +182,7 @@ async def invoke(
             generator = send_message(agent, content=input, callback=callback)
             return StreamingResponse(generator, media_type="text/event-stream")
 
-        output = await agent.acall(inputs={"input": input})
+        output = await agent.acall(inputs={"input": input}, tags=[agent_id])
         return {"success": True, "data": output}
     except Exception as e:
         handle_exception(e)
@@ -266,7 +277,7 @@ async def list_tools(agent_id: str, api_user=Depends(get_current_api_user)):
     name="remove_tool",
     description="Remove tool from agent",
 )
-async def remove_datasource(
+async def remove_tool(
     agent_id: str, tool_id: str, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for removing a tool from an agent"""
@@ -375,5 +386,24 @@ async def remove_datasource(
 
         # asyncio.create_task(run_datasource_revalidate_flow())
         return {"success": True, "data": None}
+    except Exception as e:
+        handle_exception(e)
+
+
+# Agent runs
+@router.get(
+    "/agents/{agent_id}/runs",
+    name="list_runs",
+    description="List agent runs",
+    response_model=AgentRunListResponse,
+)
+async def list_runs(agent_id: str, api_user=Depends(get_current_api_user)):
+    """Endpoint for listing agent runs"""
+    try:
+        output = langsmith_client.list_runs(
+            project_id="5b5b88d3-af77-4a64-9607-51782ac7a62f",
+            filter="has(tags, '12657580-99d5-4c2a-82a6-d86ad6e39e8b')",
+        )
+        return {"success": True, "data": output}
     except Exception as e:
         handle_exception(e)

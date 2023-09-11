@@ -27,7 +27,6 @@ python-slugify = "^8.0.1"
 asyncio = "^3.4.3"
 colorlog = "^6.7.0"
 vulture = "^2.7"
-langchain = "^0.0.268"
 prisma = "^0.9.1"
 lamini = "^0.0.21"
 pytest = "^7.4.0"
@@ -35,6 +34,7 @@ prefect = "^2.11.4"
 llama-index = "^0.8.11.post3"
 pinecone-client = "^2.2.2"
 pyairtable = "^2.1.0.post1"
+langchain = "^0.0.285"
 
 
 [build-system]

@@ -13,16 +13,22 @@ interface Props {
   onChange?: (values: { value: string; label: string }[]) => void
   data: Data[]
   placeholder: string
+  selectedValues?: Data[]
 }
 
-export const MultiSelect = ({ onChange, data, placeholder }: Props) => {
+export const MultiSelect = ({
+  onChange,
+  data,
+  selectedValues,
+  placeholder,
+}: Props) => {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const [open, setOpen] = React.useState(false)
-  const [selected, setSelected] = React.useState<Data[]>([])
+  const [selected, setSelected] = React.useState<Data[]>(selectedValues || [])
   const [inputValue, setInputValue] = React.useState("")
 
-  const handleUnselect = React.useCallback((framework: Data) => {
-    setSelected((prev) => prev?.filter((s) => s.value !== framework.value))
+  const handleUnselect = React.useCallback((data: Data) => {
+    setSelected((prev) => prev?.filter((s) => s.value !== data.value))
   }, [])
 
   const handleKeyDown = React.useCallback(

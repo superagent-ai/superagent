@@ -1,5 +1,6 @@
 import { cookies } from "next/headers"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { promise } from "zod"
 
 import { Api } from "@/lib/api"
 
@@ -20,14 +21,17 @@ export default async function AgentPage({ params }: { params: any }) {
     .eq("user_id", user?.id)
     .single()
   const api = new Api(profile.api_key)
-  const { data: agent } = await api.getAgentById(agentId)
+  const [{ data: agent }, { data: tools }] = await Promise.all([
+    api.getAgentById(agentId),
+    api.getTools(),
+  ])
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex h-screen flex-col overflow-hidden">
       <Header agent={agent} profile={profile} />
-      <div className="flex flex-1">
-        <Chat agent={agent} />
-        <Settings />
+      <div className="flex grow overflow-auto">
+        <Chat agent={agent} profile={profile} />
+        <Settings agent={agent} tools={tools} profile={profile} />
       </div>
     </div>
   )
