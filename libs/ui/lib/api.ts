@@ -50,6 +50,20 @@ export class Api {
     return this.fetchFromApi("/api-users", { method: "POST" })
   }
 
+  async createDatasource(payload: any) {
+    return this.fetchFromApi("/datasources", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async createAgentDatasource(agentId: string, datasourceId: string) {
+    return this.fetchFromApi(`/agents/${agentId}/datasources`, {
+      method: "POST",
+      body: JSON.stringify({ datasourceId }),
+    })
+  }
+
   async createLLM(payload: any) {
     return this.fetchFromApi("/llms", {
       method: "POST",
@@ -74,6 +88,16 @@ export class Api {
     })
   }
 
+  async deleteAgentDatasource(id: string, datasourceId: string) {
+    return this.fetchFromApi(`/agents/${id}/datasources/${datasourceId}`, {
+      method: "DELETE",
+    })
+  }
+
+  async deleteDatasource(id: string) {
+    return this.fetchFromApi(`/datasources/${id}`, { method: "DELETE" })
+  }
+
   async deleteTool(id: string) {
     return this.fetchFromApi(`/tools/${id}`, { method: "DELETE" })
   }
@@ -90,6 +114,10 @@ export class Api {
     return this.fetchFromApi(`/agents/${id}/runs`)
   }
 
+  async getDatasources() {
+    return this.fetchFromApi(`/datasources`)
+  }
+
   async getLLMs() {
     return this.fetchFromApi(`/llms`)
   }
@@ -100,6 +128,13 @@ export class Api {
 
   async patchAgent(id: string, payload: any) {
     return this.fetchFromApi(`/agents/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async patchDatasource(id: string, payload: any) {
+    return this.fetchFromApi(`/datasources/${id}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
     })

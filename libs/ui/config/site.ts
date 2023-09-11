@@ -124,6 +124,25 @@ export const siteConfig = {
       ],
     },
   ],
+  datasourceTypes: [
+    {
+      value: "PDF",
+      title: "PDF",
+      type: "unstructured",
+    },
+    {
+      value: "TXT",
+      title: "TXT",
+    },
+    {
+      value: "CSV",
+      title: "CSV",
+    },
+    {
+      value: "MARKDOWN",
+      title: "Markdown",
+    },
+  ],
   toolTypes: [
     {
       value: "BING_SEARCH",

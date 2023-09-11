@@ -68,6 +68,11 @@ interface DataTableProps<TData, TValue> {
   profile: Profile
 }
 
+interface Datasource {
+  id: string
+  name: string
+}
+
 interface Tool {
   id: string
   name: string
@@ -85,6 +90,7 @@ const formSchema = z.object({
     message: "Model is required",
   }),
   tools: z.array(z.string()),
+  datasources: z.array(z.string()),
 })
 
 export function DataTable<TData, TValue>({
@@ -116,6 +122,7 @@ export function DataTable<TData, TValue>({
       llmModel: "GPT_3_5_TURBO_16K_0613",
       isActive: true,
       tools: [],
+      datasources: [],
     },
   })
   const { value: llms = [] } = useAsync(async () => {
@@ -126,15 +133,23 @@ export function DataTable<TData, TValue>({
     const { data } = await api.getTools()
     return data
   }, [])
+  const { value: datasources = [] } = useAsync(async () => {
+    const { data } = await api.getDatasources()
+    return data
+  }, [])
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const { tools } = values
+      const { tools, datasources } = values
       const { data: agent } = await api.createAgent({ ...values })
       await api.createAgentLLM(agent.id, llms[0]?.id)
 
       for (const toolId of tools) {
         await api.createAgentTool(agent.id, toolId)
+      }
+
+      for (const datasourceId of datasources) {
+        await api.createAgentDatasource(agent.id, datasourceId)
       }
 
       toast({
@@ -273,6 +288,33 @@ export function DataTable<TData, TValue>({
                                 value: tool.id,
                                 label: tool.name,
                               }))}
+                              onChange={(values: { value: string }[]) => {
+                                field.onChange(values.map(({ value }) => value))
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  {datasources.length > 0 && (
+                    <FormField
+                      control={form.control}
+                      name="datasources"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Datasources</FormLabel>
+                          <FormControl>
+                            <MultiSelect
+                              placeholder="Select datasource..."
+                              data={datasources.map(
+                                (datasource: Datasource) => ({
+                                  value: datasource.id,
+                                  label: datasource.name,
+                                })
+                              )}
                               onChange={(values: { value: string }[]) => {
                                 field.onChange(values.map(({ value }) => value))
                               }}
