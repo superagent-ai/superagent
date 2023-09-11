@@ -21,17 +21,24 @@ export default async function AgentPage({ params }: { params: any }) {
     .eq("user_id", user?.id)
     .single()
   const api = new Api(profile.api_key)
-  const [{ data: agent }, { data: tools }] = await Promise.all([
-    api.getAgentById(agentId),
-    api.getTools(),
-  ])
+  const [{ data: agent }, { data: tools }, { data: datasources }] =
+    await Promise.all([
+      api.getAgentById(agentId),
+      api.getTools(),
+      api.getDatasources(),
+    ])
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <Header agent={agent} profile={profile} />
       <div className="flex grow overflow-auto">
         <Chat agent={agent} profile={profile} />
-        <Settings agent={agent} tools={tools} profile={profile} />
+        <Settings
+          agent={agent}
+          tools={tools}
+          profile={profile}
+          datasources={datasources}
+        />
       </div>
     </div>
   )

@@ -49,7 +49,13 @@ const formSchema = z.object({
   }),
   prompt: z.string(),
   tools: z.array(z.string()),
+  datasources: z.array(z.string()),
 })
+
+interface Datasource {
+  id: string
+  name: string
+}
 
 interface Tool {
   id: string
@@ -60,9 +66,15 @@ interface SettingsProps {
   tools: Tool[]
   agent: Agent
   profile: Profile
+  datasources: Datasource[]
 }
 
-export default function Settings({ agent, tools, profile }: SettingsProps) {
+export default function Settings({
+  agent,
+  datasources,
+  tools,
+  profile,
+}: SettingsProps) {
   const api = new Api(profile.api_key)
   const router = useRouter()
   const { toast } = useToast()
@@ -76,16 +88,15 @@ export default function Settings({ agent, tools, profile }: SettingsProps) {
       isActive: true,
       prompt: agent.prompt,
       tools: [],
+      datasources: [],
     },
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const { tools } = values
-    console.log(tools)
+    const { tools, datasources } = values
 
     try {
       await api.patchAgent(agent.id, values)
-      // Create and remove tools based on agent.tools which is the original data
       const originalToolIds = agent.tools.map((tool: any) => tool.tool.id)
       const newToolIds = tools
 
@@ -102,6 +113,26 @@ export default function Settings({ agent, tools, profile }: SettingsProps) {
 
       for (const toolId of toolsToRemove) {
         await api.deleteAgentTool(agent.id, toolId)
+      }
+
+      const originalDatasourceIds = agent.datasources.map(
+        (datasource: any) => datasource.datasource.id
+      )
+      const newDatasourceIds = datasources
+
+      const datasourcesToCreate = newDatasourceIds.filter(
+        (id: string) => !originalDatasourceIds.includes(id)
+      )
+      const datasourcesToRemove = originalDatasourceIds.filter(
+        (id: string) => !newDatasourceIds.includes(id)
+      )
+
+      for (const datasourceId of datasourcesToCreate) {
+        await api.createAgentDatasource(agent.id, datasourceId)
+      }
+
+      for (const datasourceId of datasourcesToRemove) {
+        await api.deleteAgentDatasource(agent.id, datasourceId)
       }
 
       toast({
@@ -249,6 +280,34 @@ export default function Settings({ agent, tools, profile }: SettingsProps) {
                       value: tool.tool.id,
                       label: tool.tool.name,
                     }))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="datasources"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Datasources</FormLabel>
+                <FormControl>
+                  <MultiSelect
+                    placeholder="Select datasource..."
+                    data={datasources.map((datasource: Datasource) => ({
+                      value: datasource.id,
+                      label: datasource.name,
+                    }))}
+                    onChange={(values: { value: string }[]) => {
+                      field.onChange(values.map(({ value }) => value))
+                    }}
+                    selectedValues={agent.datasources.map(
+                      (datasource: any) => ({
+                        value: datasource.datasource.id,
+                        label: datasource.datasource.name,
+                      })
+                    )}
                   />
                 </FormControl>
                 <FormMessage />
