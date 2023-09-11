@@ -7,4 +7,5 @@ export interface Agent {
   llmModel: string
   tools: Array<{ [key: string]: any }>
   datasources: Array<{ [key: string]: any }>
+  prompt: string
 }

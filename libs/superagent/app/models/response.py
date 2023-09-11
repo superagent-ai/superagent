@@ -23,6 +23,11 @@ class AgentDatasosurceList(BaseModel):
     data: Optional[List[dict]]
 
 
+class AgentRunList(BaseModel):
+    success: bool
+    data: Optional[List[dict]]
+
+
 class AgentTool(BaseModel):
     success: bool
     data: Optional[dict]

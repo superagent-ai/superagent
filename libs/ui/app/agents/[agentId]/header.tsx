@@ -36,7 +36,7 @@ export default function Header({
         <p className="text-lg">{agent.name}</p>
         <div className="flex space-x-2">
           <Button size="sm" variant="secondary" onClick={() => handleDelete()}>
-            <TbTrashX />
+            <TbTrashX size="18px" />
           </Button>
           <Button size="sm">Share</Button>
         </div>

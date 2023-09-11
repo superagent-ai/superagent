@@ -2,13 +2,27 @@
 
 import * as React from "react"
 import { fetchEventSource } from "@microsoft/fetch-event-source"
+import dayjs from "dayjs"
+import relativeTime from "dayjs/plugin/relativeTime"
 import { motion } from "framer-motion"
+import { RxChatBubble, RxCode } from "react-icons/rx"
+import { useAsyncFn } from "react-use"
 import remarkGfm from "remark-gfm"
 import remarkMath from "remark-math"
 
 import { Agent } from "@/types/agent"
 import { Profile } from "@/types/profile"
+import { Api } from "@/lib/api"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Select,
@@ -21,6 +35,8 @@ import { CodeBlock } from "@/components/codeblock"
 import { MemoizedReactMarkdown } from "@/components/markdown"
 
 import PromptForm from "./prompt-form"
+
+dayjs.extend(relativeTime)
 
 function PulsatingCursor() {
   return (
@@ -58,7 +74,7 @@ export function Message({
             `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`}
         </AvatarFallback>
       </Avatar>
-      <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
+      <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1 mt-1">
         {message.length === 0 && <PulsatingCursor />}
         <MemoizedReactMarkdown
           className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words text-sm"
@@ -66,6 +82,18 @@ export function Message({
           components={{
             p({ children }) {
               return <p className="mb-5 last:mb-0">{children}</p>
+            },
+            a({ children, href }) {
+              return (
+                <a
+                  href={href}
+                  className="text-primary underline"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {children}
+                </a>
+              )
             },
             code({ node, inline, className, children, ...props }) {
               if (children.length) {
@@ -116,11 +144,21 @@ export default function Chat({
   agent: Agent
   profile: Profile
 }) {
+  const api = new Api(profile.api_key)
+  const [selectedView, setSelectedView] = React.useState<"chat" | "trace">(
+    "chat"
+  )
   const [messages, setMessages] = React.useState<
     { type: string; message: string }[]
   >([])
   const [timer, setTimer] = React.useState<number>(0)
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
+
+  const [{ loading: isLoadingRuns, value: runs = [] }, getAgentRuns] =
+    useAsyncFn(async () => {
+      const { data: runs } = await api.getAgentRuns(agent.id)
+      return runs
+    }, [agent])
 
   async function onSubmit(value: string) {
     let message = ""
@@ -180,6 +218,17 @@ export default function Chat({
     )
   }
 
+  const calculateRunDuration = (start_date: string, end_date: string) => {
+    const startDate = new Date(start_date?.replace(" ", "T"))
+    const endDate = new Date(end_date?.replace(" ", "T"))
+    const seconds = (endDate.getTime() - startDate.getTime()) / 1000
+    return seconds.toFixed(1)
+  }
+
+  React.useEffect(() => {
+    selectedView === "trace" && getAgentRuns()
+  }, [selectedView, getAgentRuns])
+
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden border-r">
       <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between p-4">
@@ -191,37 +240,107 @@ export default function Chat({
           {timer.toFixed(1)}s
         </p>
         <div className="self-end">
-          <Select>
+          <Select
+            value={selectedView}
+            onValueChange={(value) =>
+              setSelectedView(value as "chat" | "trace")
+            }
+          >
             <SelectTrigger className="w-[90px]">
               <SelectValue placeholder="Chat" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="light">Chat</SelectItem>
-              <SelectItem value="light">Trace</SelectItem>
+              <SelectItem value="chat">Chat</SelectItem>
+              <SelectItem value="trace">Trace</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
       <ScrollArea className="relative flex grow flex-col px-4">
         <div className="from-background absolute inset-x-0 top-0 z-20 h-20 bg-gradient-to-b from-0% to-transparent to-50%" />
-        <div className="mb-20 mt-10 flex flex-col space-y-5 py-5">
-          <div className="container mx-auto flex max-w-4xl flex-col space-y-5">
-            {messages.map(({ type, message }) => (
-              <Message type={type} message={message} profile={profile} />
-            ))}
+        {selectedView === "chat" ? (
+          <div className="mb-20 mt-10 flex flex-col space-y-5 py-5">
+            <div className="container mx-auto flex max-w-4xl flex-col space-y-5">
+              {messages.map(({ type, message }) => (
+                <Message type={type} message={message} profile={profile} />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="container mt-10 flex max-w-2xl flex-col space-y-4">
+            {runs
+              .filter((run: any) => run.child_run_ids)
+              .map((run: any) => (
+                <Card key={run.id}>
+                  <CardHeader>
+                    <div className="flex justify-between">
+                      {run.inputs.input}
+                      <div className="flex items-center space-x-4">
+                        <p className="text-primary font-mono text-sm">
+                          {calculateRunDuration(run.start_time, run.end_time)}s
+                        </p>
+                        <p className="text-muted-foreground text-sm">
+                          {dayjs(run.start_time).fromNow()}
+                        </p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ScrollArea className="relative flex max-h-40 grow flex-col rounded-lg border p-3">
+                      <Message
+                        type="ai"
+                        message={run.outputs.output}
+                        profile={profile}
+                      />
+                    </ScrollArea>
+                    <div className="mt-2 flex flex-col space-y-2">
+                      {run.child_run_ids.map((run_id: string) => {
+                        const activeRun = runs.find(
+                          (run: any) => run.id === run_id
+                        )
+
+                        return (
+                          <div
+                            key={activeRun.id}
+                            className="flex items-center space-x-4"
+                          >
+                            <div className="flex h-8 w-8 flex-col items-center justify-center rounded-lg border">
+                              {activeRun.run_type === "tool" ? (
+                                <RxCode />
+                              ) : (
+                                <RxChatBubble />
+                              )}
+                            </div>
+                            <Badge variant="outline">{activeRun.name}</Badge>
+                            <p className="text-muted-foreground font-mono text-sm">
+                              {calculateRunDuration(
+                                activeRun.start_time,
+                                activeRun.end_time
+                              )}
+                              s
+                            </p>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+          </div>
+        )}
+      </ScrollArea>
+      {selectedView === "chat" && (
+        <div className="from-background absolute inset-x-0 bottom-0 z-50 h-20 bg-gradient-to-t from-50% to-transparent to-100%">
+          <div className="mx-auto mb-6 max-w-2xl">
+            <PromptForm
+              onSubmit={async (value) => {
+                onSubmit(value)
+              }}
+              isLoading={false}
+            />
           </div>
         </div>
-      </ScrollArea>
-      <div className="from-background absolute inset-x-0 bottom-0 z-50 h-20 bg-gradient-to-t from-50% to-transparent to-100%">
-        <div className="mx-auto mb-6 max-w-2xl">
-          <PromptForm
-            onSubmit={async (value) => {
-              onSubmit(value)
-            }}
-            isLoading={false}
-          />
-        </div>
-      </div>
+      )}
     </div>
   )
 }

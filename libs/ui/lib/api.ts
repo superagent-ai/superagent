@@ -68,6 +68,12 @@ export class Api {
     return this.fetchFromApi(`/agents/${id}`, { method: "DELETE" })
   }
 
+  async deleteAgentTool(id: string, toolId: string) {
+    return this.fetchFromApi(`/agents/${id}/tools/${toolId}`, {
+      method: "DELETE",
+    })
+  }
+
   async deleteTool(id: string) {
     return this.fetchFromApi(`/tools/${id}`, { method: "DELETE" })
   }
@@ -80,12 +86,23 @@ export class Api {
     return this.fetchFromApi(`/agents/${id}`)
   }
 
+  async getAgentRuns(id: string) {
+    return this.fetchFromApi(`/agents/${id}/runs`)
+  }
+
   async getLLMs() {
     return this.fetchFromApi(`/llms`)
   }
 
   async getTools() {
     return this.fetchFromApi("/tools")
+  }
+
+  async patchAgent(id: string, payload: any) {
+    return this.fetchFromApi(`/agents/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    })
   }
 
   async patchLLM(id: string, payload: any) {
