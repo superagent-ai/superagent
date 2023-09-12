@@ -15,14 +15,7 @@ import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Select,
@@ -31,6 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Toaster } from "@/components/ui/toaster"
+import { useToast } from "@/components/ui/use-toast"
 import { CodeBlock } from "@/components/codeblock"
 import { MemoizedReactMarkdown } from "@/components/markdown"
 
@@ -74,7 +69,7 @@ export function Message({
             `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`}
         </AvatarFallback>
       </Avatar>
-      <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1 mt-1">
+      <div className="ml-4 mt-1 flex-1 space-y-2 overflow-hidden px-1">
         {message?.length === 0 && <PulsatingCursor />}
         <MemoizedReactMarkdown
           className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words text-sm"
@@ -158,7 +153,9 @@ export default function Chat({
     { type: string; message: string }[]
   >([])
   const [timer, setTimer] = React.useState<number>(0)
+  const [session, setSession] = React.useState<string | null>(null)
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
+  const { toast } = useToast()
 
   const [{ loading: isLoadingRuns, value: runs = [] }, getAgentRuns] =
     useAsyncFn(async () => {
@@ -195,6 +192,7 @@ export default function Chat({
         body: JSON.stringify({
           input: value,
           enableStreaming: true,
+          sessionId: session,
         }),
         openWhenHidden: true,
         async onclose() {
@@ -337,16 +335,24 @@ export default function Chat({
       </ScrollArea>
       {selectedView === "chat" && (
         <div className="from-background absolute inset-x-0 bottom-0 z-50 h-20 bg-gradient-to-t from-50% to-transparent to-100%">
-          <div className="mx-auto mb-6 max-w-2xl">
+          <div className="relative mx-auto mb-6 max-w-2xl">
             <PromptForm
               onSubmit={async (value) => {
                 onSubmit(value)
+              }}
+              onCreateSession={async (uuid) => {
+                setSession(uuid)
+                setMessages([])
+                toast({
+                  description: "New session created",
+                })
               }}
               isLoading={false}
             />
           </div>
         </div>
       )}
+      <Toaster />
     </div>
   )
 }
