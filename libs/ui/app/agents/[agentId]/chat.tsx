@@ -76,7 +76,7 @@ export function Message({
           remarkPlugins={[remarkGfm, remarkMath]}
           components={{
             p({ children }) {
-              return <p className="last:mb-5">{children}</p>
+              return <p className="mb-5">{children}</p>
             },
             a({ children, href }) {
               return (
@@ -91,10 +91,13 @@ export function Message({
               )
             },
             ol({ children }) {
-              return <ol className="list-decimal pl-[15px]">{children}</ol>
+              return <ol className="mb-5 list-decimal pl-[30px]">{children}</ol>
             },
             ul({ children }) {
-              return <ul className="list-disc pl-[15px]">{children}</ul>
+              return <ul className="mb-5 list-disc pl-[30px]">{children}</ul>
+            },
+            li({ children }) {
+              return <li className="pb-1">{children}</li>
             },
             code({ node, inline, className, children, ...props }) {
               if (children.length) {
@@ -271,19 +274,19 @@ export default function Chat({
             </div>
           </div>
         ) : (
-          <div className="container mt-10 flex max-w-2xl flex-col space-y-4">
+          <div className="container my-10 flex max-w-2xl flex-col space-y-4">
             {runs
               .filter((run: any) => run.child_run_ids)
               .map((run: any) => (
                 <Card key={run.id}>
                   <CardHeader>
-                    <div className="flex justify-between">
-                      {run.inputs.input}
+                    <div className="flex justify-between space-x-4">
+                      <p className="flex-1">{run.inputs.input}</p>
                       <div className="flex items-center space-x-4">
-                        <p className="text-primary font-mono text-sm">
-                          {calculateRunDuration(run.start_time, run.end_time)}s
+                        <p className="text-primary font-mono text-xs">
+                          {run.total_tokens} tokens
                         </p>
-                        <p className="text-muted-foreground text-sm">
+                        <p className="text-muted-foreground text-xs">
                           {dayjs(run.start_time).fromNow()}
                         </p>
                       </div>
@@ -316,12 +319,16 @@ export default function Chat({
                               )}
                             </div>
                             <Badge variant="outline">{activeRun.name}</Badge>
-                            <p className="text-muted-foreground font-mono text-sm">
+
+                            <p className="text-muted-foreground font-mono text-xs">
                               {calculateRunDuration(
                                 activeRun.start_time,
                                 activeRun.end_time
                               )}
                               s
+                            </p>
+                            <p className="text-muted-foreground font-mono text-xs">
+                              {activeRun.total_tokens} tokens
                             </p>
                           </div>
                         )
@@ -335,7 +342,7 @@ export default function Chat({
       </ScrollArea>
       {selectedView === "chat" && (
         <div className="from-background absolute inset-x-0 bottom-0 z-50 h-20 bg-gradient-to-t from-50% to-transparent to-100%">
-          <div className="relative mx-auto mb-6 max-w-2xl">
+          <div className="relative mx-auto mb-6 max-w-2xl px-8">
             <PromptForm
               onSubmit={async (value) => {
                 onSubmit(value)

@@ -45,6 +45,7 @@
     "next": "^13.4.8",
     "next-themes": "^0.2.1",
     "react": "^18.2.0",
+    "react-code-blocks": "^0.1.4",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.46.1",
     "react-icons": "^4.10.1",
