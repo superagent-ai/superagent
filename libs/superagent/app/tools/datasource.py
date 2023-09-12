@@ -16,6 +16,7 @@ from langchain.chat_models.openai import ChatOpenAI
 class DatasourceFinetuneTool(BaseTool):
     name = "datasource"
     description = "useful for when you need to answer questions"
+    return_direct = False
 
     def _run(
         self,

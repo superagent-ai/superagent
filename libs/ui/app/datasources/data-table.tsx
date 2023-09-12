@@ -84,6 +84,7 @@ export function DataTable<TData, TValue>({
   const [isDownloadingFile, setIsDownloadingFile] = React.useState(false)
   const [selectedFile, setSelectedFile] = React.useState<any | null>()
   const [selectedType, setSelectedType] = React.useState<string | null>()
+  const [isOpeningVault, setIsOpeningVault] = React.useState<boolean>(false)
   const table = useReactTable({
     data,
     columns: columns(profile),
@@ -215,12 +216,13 @@ export function DataTable<TData, TValue>({
                           variant="secondary"
                           size="sm"
                           onClick={async () => {
+                            setIsOpeningVault(true)
                             await openVault()
                             setSelectedType("files")
                             setOpen(false)
                           }}
                         >
-                          Add files
+                          {isOpeningVault ? <Spinner /> : "Add files"}
                         </Button>
                       </Alert>
                       <Alert className="flex items-center justify-between">

@@ -22,8 +22,8 @@ export const siteConfig = {
       icon: RxRocket,
     },
     {
-      title: "worflows",
-      href: "/worflows",
+      title: "workflows",
+      href: "/workflows",
       icon: GoWorkflow,
     },
     {
