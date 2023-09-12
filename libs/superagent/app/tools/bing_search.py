@@ -7,6 +7,7 @@ from langchain.utilities import BingSearchAPIWrapper
 class BingSearch(BaseTool):
     name = "bing search"
     description = "useful for searching the internet"
+    return_direct = False
 
     def _run(self, search_query: str) -> str:
         bing_search_url = self.metadata["bingSearchUrl"]
