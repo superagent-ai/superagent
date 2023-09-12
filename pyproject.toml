@@ -55,6 +55,7 @@ prisma = "^0.9.1"
 openapi-schema-pydantic = "^1.2.4"
 langchain = "^0.0.274"
 llama-index = "^0.8.13"
+langsmith = "^0.0.35"
 
 
 [build-system]

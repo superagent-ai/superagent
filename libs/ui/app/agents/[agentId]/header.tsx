@@ -9,7 +9,7 @@ import { TbTrashX } from "react-icons/tb"
 import { Agent } from "@/types/agent"
 import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
-import { cn } from "@/lib/utils"
+import { cn, encodeToIdentifier } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Dialog,
@@ -49,22 +49,6 @@ export default function Header({
     router.push("/agents")
   }
 
-  const createUUID = () => {
-    // Use a deterministic hashing function to ensure the same inputs always produce the same UUID
-    const crypto = require("crypto")
-    const combinedString = `${agent.id}-${profile.api_key}`
-    const hash = crypto.createHash("sha256")
-    hash.update(combinedString)
-    const uuid = hash.digest("hex")
-    return uuid
-  }
-
-  const decodeUUID = (uuid: string) => {
-    const decodedString = Buffer.from(uuid, "hex").toString("ascii")
-    const [agentId, apiKey] = decodedString.split("-")
-    return { agentId, apiKey }
-  }
-
   const embedCode = `<!-- This can be placed anywhere -->
 <div id="superagent-chat"></div>
 
@@ -73,7 +57,7 @@ closing </body> tag -->
 <script src="https://unpkg.com/superagent-chat-embed/dist/web.js"></script>
 <script>
 Superagent({
-  authorization: "${createUUID()}",
+  authorization: "${encodeToIdentifier(agent.id, profile.api_key)}",
   type: "inline"
 });
 </script>`
@@ -103,13 +87,21 @@ Superagent({
               <div className="flex flex-col space-y-2">
                 <p className="font-bold">Share</p>
                 <div className="flex justify-between space-x-2">
-                  <Input value={`${baseUrl}/share/${createUUID()}`} />
+                  <Input
+                    value={`${baseUrl}/share/${encodeToIdentifier(
+                      agent.id,
+                      profile.api_key
+                    )}`}
+                  />
                   <Button
                     variant="secondary"
                     className="flex space-x-2"
                     onClick={() => {
                       navigator.clipboard.writeText(
-                        `${baseUrl}/share/${createUUID()}`
+                        `${baseUrl}/share/${encodeToIdentifier(
+                          agent.id,
+                          profile.api_key
+                        )}`
                       )
                       toast({
                         description: "Link copied to clipboard!",
@@ -124,11 +116,11 @@ Superagent({
               <Separator />
               <div className="flex flex-col space-y-2">
                 <p className="font-bold">Embed</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   Copy the following code and place it before the closing body
                   tag. You can choose between inline or popup as options.
                 </p>
-                <div className="font-mono text-sm relative max-w-full">
+                <div className="relative max-w-full font-mono text-sm">
                   <CodeBlock
                     text={embedCode}
                     language="html"

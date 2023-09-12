@@ -35,6 +35,7 @@ llama-index = "^0.8.11.post3"
 pinecone-client = "^2.2.2"
 pyairtable = "^2.1.0.post1"
 langchain = "^0.0.285"
+langsmith = "^0.0.35"
 
 
 [build-system]
