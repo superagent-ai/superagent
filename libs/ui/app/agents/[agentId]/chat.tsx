@@ -15,14 +15,7 @@ import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Select,
@@ -31,6 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Toaster } from "@/components/ui/toaster"
+import { useToast } from "@/components/ui/use-toast"
 import { CodeBlock } from "@/components/codeblock"
 import { MemoizedReactMarkdown } from "@/components/markdown"
 
@@ -158,7 +153,9 @@ export default function Chat({
     { type: string; message: string }[]
   >([])
   const [timer, setTimer] = React.useState<number>(0)
+  const [session, setSession] = React.useState<string | null>(null)
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
+  const { toast } = useToast()
 
   const [{ loading: isLoadingRuns, value: runs = [] }, getAgentRuns] =
     useAsyncFn(async () => {
@@ -195,6 +192,7 @@ export default function Chat({
         body: JSON.stringify({
           input: value,
           enableStreaming: true,
+          sessionId: session,
         }),
         openWhenHidden: true,
         async onclose() {
@@ -342,11 +340,19 @@ export default function Chat({
               onSubmit={async (value) => {
                 onSubmit(value)
               }}
+              onCreateSession={async (uuid) => {
+                setSession(uuid)
+                setMessages([])
+                toast({
+                  description: "New session created",
+                })
+              }}
               isLoading={false}
             />
           </div>
         </div>
       )}
+      <Toaster />
     </div>
   )
 }

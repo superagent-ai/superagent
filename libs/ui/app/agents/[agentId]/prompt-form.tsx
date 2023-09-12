@@ -1,10 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
-import { UseChatHelpers } from "ai/react"
 import { RxPaperPlane, RxPlus } from "react-icons/rx"
 import Textarea from "react-textarea-autosize"
+import { v4 as uuid } from "uuid"
 
 import { useEnterSubmit } from "@/lib/hooks/use-enter-submit"
 import { cn } from "@/lib/utils"
@@ -13,13 +12,17 @@ import { Button, buttonVariants } from "@/components/ui/button"
 export interface PromptProps {
   onSubmit: (value: string) => Promise<void>
   isLoading: boolean
+  onCreateSession: (value: string) => Promise<void>
 }
 
-export default function PromptFrom({ onSubmit, isLoading }: PromptProps) {
+export default function PromptFrom({
+  onSubmit,
+  isLoading,
+  onCreateSession,
+}: PromptProps) {
   const [input, setInput] = React.useState<string>()
   const { formRef, onKeyDown } = useEnterSubmit()
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const router = useRouter()
 
   React.useEffect(() => {
     if (inputRef.current) {
@@ -41,10 +44,8 @@ export default function PromptFrom({ onSubmit, isLoading }: PromptProps) {
     >
       <div className="bg-background relative flex max-h-60 w-full grow flex-col overflow-hidden px-8 sm:rounded-md sm:border sm:px-12">
         <button
-          onClick={(e) => {
-            e.preventDefault()
-            router.refresh()
-            router.push("/")
+          onClick={() => {
+            onCreateSession(uuid())
           }}
           className={cn(
             buttonVariants({ size: "sm", variant: "outline" }),
