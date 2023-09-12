@@ -5,6 +5,7 @@ from langchain.utilities import MetaphorSearchAPIWrapper
 class MetaphorSearch(BaseTool):
     name = "metaphor search"
     description = "useful for researching a certain topic"
+    return_direct = False
 
     def _run(self, search_query: str) -> str:
         search = MetaphorSearchAPIWrapper(

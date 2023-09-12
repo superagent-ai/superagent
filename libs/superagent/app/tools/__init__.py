@@ -50,10 +50,12 @@ def create_tool(
     description: str,
     args_schema: Any,
     metadata: Optional[Dict[str, Any]],
+    return_direct: Optional[bool],
 ) -> Any:
     return tool_class(
         name=name,
         description=description,
         args_schema=args_schema,
         metadata=json.loads(metadata) if metadata else None,
+        return_direct=return_direct,
     )
