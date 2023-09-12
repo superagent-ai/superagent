@@ -74,7 +74,7 @@ export function Message({
             `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`}
         </AvatarFallback>
       </Avatar>
-      <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1 mt-1">
+      <div className="ml-4 mt-1 flex-1 space-y-2 overflow-hidden px-1">
         {message?.length === 0 && <PulsatingCursor />}
         <MemoizedReactMarkdown
           className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words text-sm"
@@ -337,7 +337,7 @@ export default function Chat({
       </ScrollArea>
       {selectedView === "chat" && (
         <div className="from-background absolute inset-x-0 bottom-0 z-50 h-20 bg-gradient-to-t from-50% to-transparent to-100%">
-          <div className="mx-auto mb-6 max-w-2xl">
+          <div className="relative mx-auto mb-6 max-w-2xl">
             <PromptForm
               onSubmit={async (value) => {
                 onSubmit(value)
