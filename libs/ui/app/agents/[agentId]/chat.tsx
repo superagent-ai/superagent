@@ -76,7 +76,7 @@ export function Message({
           remarkPlugins={[remarkGfm, remarkMath]}
           components={{
             p({ children }) {
-              return <p className="last:mb-5">{children}</p>
+              return <p className="mb-5">{children}</p>
             },
             a({ children, href }) {
               return (
@@ -91,10 +91,13 @@ export function Message({
               )
             },
             ol({ children }) {
-              return <ol className="list-decimal pl-[15px]">{children}</ol>
+              return <ol className="list-decimal py-2 pl-[30px]">{children}</ol>
             },
             ul({ children }) {
-              return <ul className="list-disc pl-[15px]">{children}</ul>
+              return <ul className="list-disc py-2 pl-[30px]">{children}</ul>
+            },
+            li({ children }) {
+              return <li className="pt-2">{children}</li>
             },
             code({ node, inline, className, children, ...props }) {
               if (children.length) {
@@ -277,8 +280,8 @@ export default function Chat({
               .map((run: any) => (
                 <Card key={run.id}>
                   <CardHeader>
-                    <div className="flex justify-between">
-                      {run.inputs.input}
+                    <div className="flex justify-between space-x-4">
+                      <p className="flex-1">{run.inputs.input}</p>
                       <div className="flex items-center space-x-4">
                         <p className="text-primary font-mono text-sm">
                           {calculateRunDuration(run.start_time, run.end_time)}s
@@ -335,7 +338,7 @@ export default function Chat({
       </ScrollArea>
       {selectedView === "chat" && (
         <div className="from-background absolute inset-x-0 bottom-0 z-50 h-20 bg-gradient-to-t from-50% to-transparent to-100%">
-          <div className="relative mx-auto mb-6 max-w-2xl">
+          <div className="relative mx-auto mb-6 max-w-2xl px-8">
             <PromptForm
               onSubmit={async (value) => {
                 onSubmit(value)

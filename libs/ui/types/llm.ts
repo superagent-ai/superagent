@@ -3,4 +3,5 @@ export interface LLM {
   model: string
   apiKey: string
   options: any
+  provider: string
 }

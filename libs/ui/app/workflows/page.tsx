@@ -11,7 +11,7 @@ export default async function Workflows() {
         <p className="text-lg">Workflows</p>
         <Badge>Coming soon</Badge>
       </div>
-      <div className="flex flex-col flex-1 items-center justify-center">
+      <div className="flex flex-1 flex-col items-center justify-center">
         <Image
           src="/workflow.png"
           alt="Superagent Agent Worflows"
