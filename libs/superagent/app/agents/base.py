@@ -68,6 +68,7 @@ class AgentBase:
                     description=agent_tool.tool.description,
                     metadata=agent_tool.tool.metadata,
                     args_schema=tool_info["schema"],
+                    return_direct=agent_tool.tool.returnDirect,
                 )
             tools.append(tool)
         return tools

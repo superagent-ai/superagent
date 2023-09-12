@@ -12,6 +12,7 @@ class ZapierNLA(BaseTool):
     description = (
         "useful for performing actions such sending emails, scheduling meetings etc."
     )
+    return_direct = False
 
     def _run(self, input: str) -> str:
         zapier_nla_api_key = self.metadata["zapierNlaApiKey"]

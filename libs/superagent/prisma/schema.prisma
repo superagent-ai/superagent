@@ -104,16 +104,17 @@ model AgentDatasource {
 }
 
 model Tool {
-  id          String      @id @default(uuid())
-  name        String
-  description String
-  type        ToolType
-  metadata    String      @db.Text
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  apiUserId   String
-  apiUser     ApiUser     @relation(fields: [apiUserId], references: [id])
-  tools       AgentTool[]
+  id           String      @id @default(uuid())
+  name         String
+  description  String
+  type         ToolType
+  returnDirect Boolean     @default(false)
+  metadata     String      @db.Text
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  apiUserId    String
+  apiUser      ApiUser     @relation(fields: [apiUserId], references: [id])
+  tools        AgentTool[]
 }
 
 model AgentTool {

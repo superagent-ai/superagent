@@ -7,6 +7,7 @@ from langchain.utilities.wolfram_alpha import WolframAlphaAPIWrapper
 class WolframAlpha(BaseTool):
     name = "Wolfram Alpha"
     description = "useful for calculation and computation"
+    return_direct = False
 
     def _run(self, input: str) -> str:
         app_id = self.metadata["appId"]

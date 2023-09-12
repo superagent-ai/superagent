@@ -7,6 +7,7 @@ from langchain.tools import BaseTool
 class Replicate(BaseTool):
     name = "Replicate"
     description = "useful for querying a Replicate model."
+    return_direct = False
 
     def _run(self, prompt: str) -> str:
         model = self.metadata["model"]
