@@ -74,7 +74,7 @@ export default function OnboardingClientPage() {
       description: "Settings updated!",
     })
 
-    router.push("/agents")
+    window.location.href = "/llms"
   }
 
   return (
