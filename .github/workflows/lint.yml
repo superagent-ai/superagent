@@ -36,7 +36,3 @@ jobs:
         run: |
           cd libs/superagent
           make lint
-      - name: Check /libs/superagent
-        run: |
-          cd libs/superagent
-          make lint
