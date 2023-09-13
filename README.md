@@ -62,7 +62,7 @@ If you plan to distribute the code, keep the source code public.
 Both the API and UI require a database in order to work. We recommend settings this up on Supabase. 
 
 <details>
-<summary>Superagent API</summary>
+<summary>**Superagent API**</summary>
 
 1. Navigate to `/libs/superagent`
 
@@ -95,7 +95,7 @@ Both the API and UI require a database in order to work. We recommend settings t
 </details>
 
 <details>
-<summary>Superagent UI</summary>
+<summary>**Superagent UI**</summary>
 
 1. Navigate to `/libs/ui`
 
@@ -117,9 +117,10 @@ Both the API and UI require a database in order to work. We recommend settings t
 </details>
 
 <details>
-<summary>Superagent legacy</summary>
+<summary>**Superagent legacy**</summary>
 
-Please refet the [README](https://github.com/homanp/superagent/blob/v2/libs/legacy/README.md) in `/libs/legacy` for further instructions.
+
+Please refer to the [README](https://github.com/homanp/superagent/blob/v2/libs/legacy/README.md) in `/libs/legacy` for further instructions.
 
 </details>
 
