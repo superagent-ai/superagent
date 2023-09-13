@@ -119,7 +119,7 @@ Both the API and UI require a database in order to work. We recommend settings t
 <details>
 <summary>Superagent legacy</summary>
     
-    Please refer to the [README](https://github.com/homanp/superagent/blob/v2/libs/legacy/README.md) in `/libs/legacy` for further instructions.
+Please refer to the [README](https://github.com/homanp/superagent/blob/v2/libs/legacy/README.md) in `/libs/legacy` for further instructions.
 
 </details>
 
