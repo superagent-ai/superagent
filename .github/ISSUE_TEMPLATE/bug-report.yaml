@@ -9,33 +9,14 @@ body:
         Please **make sure you are on the latest version.**
         If you encountered the issue after you installed, updated, or reloaded, **please try restarting before reporting the bug**.
 
-  - type: checkboxes
-    id: no-duplicate-issues
-    attributes:
-      label: "Please check that this issue hasn't been reported before."
-      description: "The **Label filters** may help make your search more focussed."
-      options:
-        - label: "I searched previous [Bug Reports](https://github.com/homanp/superagent/labels/bug) didn't find any similar reports."
-          required: true
-
   - type: textarea
     id: expected
     attributes:
-      label: Expected Behavior
-      description: Tell us what **should** happen.
+      label: Description
+      description: Describe the issue
     validations:
       required: true
-
-  - type: textarea
-    id: what-happened
-    attributes:
-      label: Current behaviour
-      description: |
-        Tell us what happens instead of the expected behavior.
-        Adding of screenshots really helps.
-    validations:
-      required: true
-
+  
   - type: textarea
     id: reproduce
     attributes:
@@ -52,14 +33,6 @@ body:
         4. Observe the error.
     validations:
       required: true
-      
-  - type: textarea
-    id: possible-solution
-    attributes:
-      label: Possible solution
-      description: |
-        Not obligatory, but please suggest a fix or reason for the bug, if you have an idea.  
-      
 
   - type: checkboxes
     id: operating-systems

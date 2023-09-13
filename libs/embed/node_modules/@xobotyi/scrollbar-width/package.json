@@ -1,0 +1,105 @@
+{
+  "name": "@xobotyi/scrollbar-width",
+  "version": "1.9.5",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "A tool to get browser's scrollbars width.",
+  "keywords": [
+    "scrollbar",
+    "width",
+    "native",
+    "browser",
+    "detect",
+    "scrollbar-width"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xobotyi/scrollbar-width.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xobotyi/scrollbar-width/issues"
+  },
+  "homepage": "https://github.com/xobotyi/scrollbar-width",
+  "author": {
+    "name": "Anton Zinovyev",
+    "url": "https://github.com/xobotyi",
+    "email": "xog3@yandex.ru"
+  },
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "esnext": "dist/index.esnext.js",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "devDependencies": {
+    "@semantic-release/changelog": "^5.0.0",
+    "@semantic-release/git": "^9.0.0",
+    "@semantic-release/npm": "^7.0.3",
+    "@types/jasmine": "^3.5.1",
+    "@xobotyi/eslint-config": "^1.0.6",
+    "@xobotyi/preset-typescript": "^1.0.0",
+    "codacy-coverage": "^3.4.0",
+    "eslint": "^6.8.0",
+    "husky": "^4.2.1",
+    "jasmine": "^3.5.0",
+    "karma": "^4.4.1",
+    "karma-chrome-launcher": "^3.1.0",
+    "karma-firefox-launcher": "^1.3.0",
+    "karma-jasmine": "^3.1.0",
+    "karma-typescript": "^5.0.0",
+    "lint-staged": "^10.0.2",
+    "prettier": "^2.0.2",
+    "rimraf": "^3.0.0",
+    "rollup": "^2.0.2",
+    "rollup-plugin-terser": "^5.2.0",
+    "rollup-plugin-typescript2": "^0.26.0",
+    "semantic-release": "^17.0.3",
+    "typescript": "^3.7.5"
+  },
+  "scripts": {
+    "lint": "eslint ./{src,tests}/**/*.ts ./*.{ts,js}",
+    "lint:fix": "yarn lint --fix",
+    "lint:types": "tsc --noEmit",
+    "test": "karma start",
+    "build": "rimraf dist && rollup --config",
+    "semantic-release": "semantic-release"
+  },
+  "lint-staged": {
+    "./{src,tests}/**/*.ts": [
+      "yarn lint:fix"
+    ],
+    "./*.{ts,js}": [
+      "yarn lint:fix"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint:types && lint-staged",
+      "pre-push": "yarn lint:fix && rimraf dist && yarn build && yarn test"
+    }
+  },
+  "release": {
+    "branches": [
+      "master",
+      {
+        "name": "next",
+        "prerelease": "rc"
+      }
+    ],
+    "verifyConditions": [
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      "@semantic-release/git",
+      "@semantic-release/github"
+    ],
+    "prepare": [
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      "@semantic-release/git"
+    ]
+  }
+}

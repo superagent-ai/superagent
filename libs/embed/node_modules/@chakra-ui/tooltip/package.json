@@ -1,0 +1,79 @@
+{
+  "name": "@chakra-ui/tooltip",
+  "version": "2.3.0",
+  "description": "A React Component for rendering dynamically positioned Tooltips",
+  "sideEffects": false,
+  "keywords": [
+    "react",
+    "tooltip",
+    "component",
+    "popper",
+    "chakra ui",
+    "toggletip",
+    "react popper"
+  ],
+  "author": "Segun Adebayo <sage@adebayosegun.com>",
+  "homepage": "https://github.com/chakra-ui/chakra-ui#readme",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chakra-ui/chakra-ui.git",
+    "directory": "packages/components/tooltip"
+  },
+  "bugs": {
+    "url": "https://github.com/chakra-ui/chakra-ui/issues"
+  },
+  "dependencies": {
+    "@chakra-ui/popper": "3.1.0",
+    "@chakra-ui/react-use-merge-refs": "2.1.0",
+    "@chakra-ui/react-use-disclosure": "2.1.0",
+    "@chakra-ui/react-use-event-listener": "2.1.0",
+    "@chakra-ui/react-types": "2.0.7",
+    "@chakra-ui/portal": "2.1.0",
+    "@chakra-ui/dom-utils": "2.1.0",
+    "@chakra-ui/shared-utils": "2.0.5"
+  },
+  "devDependencies": {
+    "framer-motion": "^10.12.16",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "clean-package": "2.2.0",
+    "@chakra-ui/button": "2.1.0",
+    "@chakra-ui/object-utils": "2.1.0",
+    "@chakra-ui/hooks": "2.2.0",
+    "@chakra-ui/system": "2.6.0",
+    "@chakra-ui/modal": "2.3.0"
+  },
+  "peerDependencies": {
+    "@chakra-ui/system": ">=2.0.0",
+    "framer-motion": ">=4.0.0",
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "clean-package": "../../../clean-package.config.json",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsup src --dts",
+    "dev": "pnpm build:fast -- --watch",
+    "clean": "rimraf dist .turbo",
+    "typecheck": "tsc --noEmit",
+    "build:fast": "tsup src",
+    "typedocs": "tsx ../../../scripts/generate-type-docs.ts"
+  }
+}

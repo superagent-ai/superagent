@@ -1,0 +1,57 @@
+{
+  "name": "fast-loops",
+  "version": "1.1.3",
+  "description": "Small, performant & immutable iteration utilities for Arrays and Objects",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "jsnext:main": "es/index.js",
+  "sideEffects": false,
+  "files": [
+    "lib/**",
+    "es/**"
+  ],
+  "keywords": [
+    "fast loops",
+    "utility",
+    "minimal",
+    "small"
+  ],
+  "repository": "https://github.com/robinweser/fast-loops.git",
+  "author": "robinweser <contact@weser.io>",
+  "license": "MIT",
+  "scripts": {
+    "build": "yarn run clean && yarn build:lib && yarn build:es",
+    "build:lib": "cross-env BABEL_ENV=commonjs babel modules --out-dir lib --ignore __tests__",
+    "build:es": "babel modules --out-dir es --ignore __tests__",
+    "clean": "rimraf es lib coverage",
+    "check": "yarn lint && yarn test:coverage",
+    "format": "prettier --write \"modules/**/*.js\"",
+    "lint": "eslint modules/**/*.js",
+    "release": "git pull --rebase && yarn run check && yarn build && npm publish",
+    "test": "cross-env BABEL_ENV=commonjs jest",
+    "test:coverage": "cross-env BABEL_ENV=commonjs jest --coverage",
+    "watch": "yarn test -- --watch"
+  },
+  "jest": {
+    "rootDir": "modules"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.0",
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.2.0",
+    "babel-core": "7.0.0-bridge.0",
+    "babel-eslint": "^7.1.1",
+    "babel-jest": "^23.6.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
+    "cross-env": "^5.2.0",
+    "eslint": "^3.14.1",
+    "eslint-config-airbnb": "^14.0.0",
+    "eslint-plugin-flowtype": "^2.30.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^3.0.2",
+    "eslint-plugin-react": "^6.9.0",
+    "jest": "^23.6.0",
+    "prettier": "^1.7.4",
+    "rimraf": "^2.6.1"
+  }
+}

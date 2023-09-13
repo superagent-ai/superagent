@@ -1,7 +1,0 @@
-spec:
-  name: superagent
-  services:
-    - name: web
-      git:
-        branch: main
-        repo_clone_url: https://github.com/homanp/superagent.git

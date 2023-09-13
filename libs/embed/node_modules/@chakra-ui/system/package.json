@@ -1,0 +1,74 @@
+{
+  "name": "@chakra-ui/system",
+  "version": "2.6.0",
+  "description": "Chakra UI system primitives",
+  "keywords": [
+    "system",
+    "styled-component",
+    "emotion",
+    "ui-component",
+    "ui",
+    "chakra",
+    "style-props",
+    "design-system"
+  ],
+  "sideEffects": false,
+  "author": "Segun Adebayo <sage@adebayosegun.com>",
+  "homepage": "https://github.com/chakra-ui/chakra-ui#readme",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chakra-ui/chakra-ui.git",
+    "directory": "packages/components/system"
+  },
+  "bugs": {
+    "url": "https://github.com/chakra-ui/chakra-ui/issues"
+  },
+  "dependencies": {
+    "react-fast-compare": "3.2.1",
+    "@chakra-ui/color-mode": "2.2.0",
+    "@chakra-ui/object-utils": "2.1.0",
+    "@chakra-ui/react-utils": "2.0.12",
+    "@chakra-ui/theme-utils": "2.0.19",
+    "@chakra-ui/styled-system": "2.9.1",
+    "@chakra-ui/utils": "2.0.15"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11.0.0",
+    "@emotion/styled": "^11.0.0",
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "framer-motion": "^10.12.16",
+    "react": "^18.0.0",
+    "clean-package": "2.2.0",
+    "@chakra-ui/theme": "3.2.0"
+  },
+  "clean-package": "../../../clean-package.config.json",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsup src --dts",
+    "dev": "pnpm build:fast -- --watch",
+    "clean": "rimraf dist .turbo",
+    "typecheck": "tsc --noEmit",
+    "build:fast": "tsup src"
+  }
+}

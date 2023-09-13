@@ -1,0 +1,88 @@
+{
+  "name": "@chakra-ui/menu",
+  "version": "2.2.0",
+  "description": "A React component to render accessible menus",
+  "keywords": [
+    "menu",
+    "menu button",
+    "aria menu",
+    "accessible",
+    "wai aria",
+    "react",
+    "component",
+    "chakra ui"
+  ],
+  "sideEffects": false,
+  "author": "Segun Adebayo <sage@adebayosegun.com>",
+  "homepage": "https://github.com/chakra-ui/chakra-ui#readme",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chakra-ui/chakra-ui.git",
+    "directory": "packages/components/menu"
+  },
+  "bugs": {
+    "url": "https://github.com/chakra-ui/chakra-ui/issues"
+  },
+  "dependencies": {
+    "@chakra-ui/clickable": "2.1.0",
+    "@chakra-ui/descendant": "3.1.0",
+    "@chakra-ui/popper": "3.1.0",
+    "@chakra-ui/lazy-utils": "2.0.5",
+    "@chakra-ui/transition": "2.1.0",
+    "@chakra-ui/react-context": "2.1.0",
+    "@chakra-ui/react-children-utils": "2.0.6",
+    "@chakra-ui/react-use-animation-state": "2.1.0",
+    "@chakra-ui/react-use-disclosure": "2.1.0",
+    "@chakra-ui/react-use-focus-effect": "2.1.0",
+    "@chakra-ui/react-use-merge-refs": "2.1.0",
+    "@chakra-ui/react-use-controllable-state": "2.1.0",
+    "@chakra-ui/react-use-outside-click": "2.2.0",
+    "@chakra-ui/react-use-update-effect": "2.1.0",
+    "@chakra-ui/shared-utils": "2.0.5"
+  },
+  "devDependencies": {
+    "react-icons": "^4.2.0",
+    "framer-motion": "^10.12.16",
+    "react": "^18.0.0",
+    "clean-package": "2.2.0",
+    "@chakra-ui/system": "2.6.0",
+    "@chakra-ui/image": "2.1.0",
+    "@chakra-ui/modal": "2.3.0",
+    "@chakra-ui/provider": "2.4.0",
+    "@chakra-ui/portal": "2.1.0",
+    "@chakra-ui/theme": "3.2.0",
+    "@chakra-ui/button": "2.1.0"
+  },
+  "peerDependencies": {
+    "@chakra-ui/system": ">=2.0.0",
+    "framer-motion": ">=4.0.0",
+    "react": ">=18"
+  },
+  "clean-package": "../../../clean-package.config.json",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsup src --dts",
+    "dev": "pnpm build:fast -- --watch",
+    "clean": "rimraf dist .turbo",
+    "typecheck": "tsc --noEmit",
+    "build:fast": "tsup src",
+    "typedocs": "tsx ../../../scripts/generate-type-docs.ts"
+  }
+}

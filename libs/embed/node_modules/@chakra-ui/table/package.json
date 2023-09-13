@@ -1,0 +1,77 @@
+{
+  "name": "@chakra-ui/table",
+  "version": "2.1.0",
+  "description": "Table component for React and Chakra UI",
+  "keywords": [
+    "react",
+    "react component",
+    "table",
+    "accessible table",
+    "a11y table",
+    "react a11y table",
+    "react accessible table",
+    "react table",
+    "chakra ui",
+    "chakra",
+    "react table component",
+    "a11y",
+    "react aria table",
+    "aria",
+    "aria table"
+  ],
+  "sideEffects": false,
+  "author": "Tim Kolberger <tim@kolberger.eu>",
+  "homepage": "https://github.com/chakra-ui/chakra-ui#readme",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chakra-ui/chakra-ui.git",
+    "directory": "packages/components/table"
+  },
+  "bugs": {
+    "url": "https://github.com/chakra-ui/chakra-ui/issues"
+  },
+  "dependencies": {
+    "@chakra-ui/react-context": "2.1.0",
+    "@chakra-ui/shared-utils": "2.0.5"
+  },
+  "devDependencies": {
+    "@tanstack/react-table": "^8.5.10",
+    "react": "^18.0.0",
+    "clean-package": "2.2.0",
+    "@chakra-ui/button": "2.1.0",
+    "@chakra-ui/icons": "2.1.0",
+    "@chakra-ui/system": "2.6.0",
+    "@chakra-ui/test-utils": "2.0.43"
+  },
+  "peerDependencies": {
+    "@chakra-ui/system": ">=2.0.0",
+    "react": ">=18"
+  },
+  "clean-package": "../../../clean-package.config.json",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsup src --dts",
+    "dev": "pnpm build:fast -- --watch",
+    "clean": "rimraf dist .turbo",
+    "typecheck": "tsc --noEmit",
+    "build:fast": "tsup src",
+    "typedocs": "tsx ../../../scripts/generate-type-docs.ts"
+  }
+}

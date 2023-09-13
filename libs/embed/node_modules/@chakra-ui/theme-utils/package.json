@@ -1,0 +1,65 @@
+{
+  "name": "@chakra-ui/theme-utils",
+  "version": "2.0.19",
+  "description": "",
+  "keywords": [
+    "theme",
+    "utilities",
+    "chakra"
+  ],
+  "author": "Segun Adebayo <sage@adebayosegun.com>",
+  "homepage": "https://github.com/chakra-ui/chakra-ui#readme",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chakra-ui/chakra-ui.git",
+    "directory": "packages/utilities/theme-utils"
+  },
+  "bugs": {
+    "url": "https://github.com/chakra-ui/chakra-ui/issues"
+  },
+  "devDependencies": {
+    "@types/lodash.mergewith": "4.6.7",
+    "clean-package": "2.2.0"
+  },
+  "dependencies": {
+    "lodash.mergewith": "4.6.2",
+    "@chakra-ui/styled-system": "2.9.1",
+    "@chakra-ui/theme": "3.2.0",
+    "@chakra-ui/shared-utils": "2.0.5"
+  },
+  "clean-package": "../../../clean-package.config.json",
+  "tsup": {
+    "clean": true,
+    "target": "es2019",
+    "format": [
+      "cjs",
+      "esm"
+    ]
+  },
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsup src --dts",
+    "dev": "pnpm build -- --watch",
+    "clean": "rimraf dist .turbo",
+    "typecheck": "tsc --noEmit",
+    "build:fast": "tsup src"
+  }
+}

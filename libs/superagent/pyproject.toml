@@ -1,0 +1,68 @@
+[tool.poetry]
+name = "superagent"
+version = "0.0.54"
+description = ""
+authors = ["Ismail Pelaseyed"]
+readme = "../../README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = {extras = ["all"], version = "^0.95.1"}
+uvicorn = {extras = ["standard"], version = "^0.22.0"}
+gunicorn = "^20.1.0"
+openai = "^0.27.6"
+requests = "2.29.0"
+python-decouple = "^3.8"
+pydantic = "^1.10.7"
+sse-starlette = "^1.5.0"
+bcrypt = "^4.0.1"
+pyjwt = "^2.7.0"
+ruff = "^0.0.265"
+black = "^23.3.0"
+uuid = "^1.30"
+flake8 = "^6.0.0"
+tiktoken = "^0.4.0"
+python-slugify = "^8.0.1"
+asyncio = "^3.4.3"
+colorlog = "^6.7.0"
+vulture = "^2.7"
+prisma = "^0.9.1"
+lamini = "^0.0.21"
+pytest = "^7.4.0"
+prefect = "^2.11.4"
+llama-index = "^0.8.11.post3"
+pinecone-client = "^2.2.2"
+pyairtable = "^2.1.0.post1"
+langchain = "^0.0.285"
+langsmith = "^0.0.35"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.vulture]
+exclude = [
+    "*settings.py",
+    "*/docs/*.py",
+    "*/test_*.py",
+    "*/.venv/*.py",
+    "app/lib/callbacks.py" # Ignoring this file
+    ]
+ignore_decorators = ["@app.route", "@require_*"]
+ignore_names = ["visit_*", "do_*"]
+make_whitelist = true
+min_confidence = 100
+paths = ["."]
+sort_by_size = true
+verbose = false
+
+[tool.ruff]
+exclude = [
+    "*settings.py",
+    "*/docs/*.py",
+    "*/test_*.py",
+    "*/.venv/*.py",
+    "whitelist.py"
+    ]

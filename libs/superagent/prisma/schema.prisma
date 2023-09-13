@@ -1,0 +1,177 @@
+generator client {
+  provider  = "prisma-client-py"
+  interface = "asyncio"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_MIGRATION_URL")
+  shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
+}
+
+enum LLMProvider {
+  OPENAI
+}
+
+enum LLMModel {
+  GPT_3_5_TURBO_16K_0613
+  GPT_3_5_TURBO_0613
+  GPT_4_0613
+  GPT_4_32K_0613
+}
+
+enum ToolType {
+  BROWSER
+  BING_SEARCH
+  REPLICATE
+  WOLFRAM_ALPHA
+  ZAPIER_NLA
+  AGENT
+  OPENAPI
+  CHATGPT_PLUGIN
+  METAPHOR
+  PUBMED
+}
+
+enum DatasourceType {
+  TXT
+  PDF
+  CSV
+  YOUTUBE
+  GITHUB_REPOSITORY
+  MARKDOWN
+  WEBPAGE
+  AIRTABLE
+  STRIPE
+  NOTION
+  SITEMAP
+  URL
+  FUNCTION
+}
+
+model ApiUser {
+  id          String       @id @default(uuid())
+  token       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  agents      Agent[]
+  llms        LLM[]
+  datasources Datasource[]
+  tools       Tool[]
+  worflows    Workflow[]
+}
+
+model Agent {
+  id            String            @id @default(uuid())
+  name          String
+  avatar        String?
+  description   String            @default("Add a agent description...") @db.Text
+  isActive      Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  llms          AgentLLM[]
+  llmModel      LLMModel          @default(GPT_3_5_TURBO_16K_0613)
+  prompt        String?
+  apiUserId     String
+  apiUser       ApiUser           @relation(fields: [apiUserId], references: [id])
+  datasources   AgentDatasource[]
+  tools         AgentTool[]
+  workflowSteps WorkflowStep[]
+}
+
+model Datasource {
+  id          String            @id @default(uuid())
+  name        String
+  description String?
+  url         String?
+  type        DatasourceType
+  apiUserId   String
+  apiUser     ApiUser           @relation(fields: [apiUserId], references: [id])
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  metadata    String?           @db.Text
+  datasources AgentDatasource[]
+}
+
+model AgentDatasource {
+  agentId      String
+  datasourceId String
+  agent        Agent      @relation(fields: [agentId], references: [id])
+  datasource   Datasource @relation(fields: [datasourceId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@id([agentId, datasourceId])
+}
+
+model Tool {
+  id           String      @id @default(uuid())
+  name         String
+  description  String
+  type         ToolType
+  returnDirect Boolean     @default(false)
+  metadata     String      @db.Text
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  apiUserId    String
+  apiUser      ApiUser     @relation(fields: [apiUserId], references: [id])
+  tools        AgentTool[]
+}
+
+model AgentTool {
+  agentId   String
+  toolId    String
+  agent     Agent    @relation(fields: [agentId], references: [id])
+  tool      Tool     @relation(fields: [toolId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([agentId, toolId])
+}
+
+model LLM {
+  id        String      @id @default(uuid())
+  provider  LLMProvider @default(OPENAI)
+  apiKey    String
+  options   Json?
+  agents    AgentLLM[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  apiUserId String
+  apiUser   ApiUser     @relation(fields: [apiUserId], references: [id])
+}
+
+model AgentLLM {
+  agentId   String
+  llmId     String
+  agent     Agent    @relation(fields: [agentId], references: [id])
+  llm       LLM      @relation(fields: [llmId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([agentId, llmId])
+}
+
+model Workflow {
+  id          String         @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  steps       WorkflowStep[]
+  apiUserId   String
+  apiUser     ApiUser        @relation(fields: [apiUserId], references: [id])
+}
+
+model WorkflowStep {
+  id         String   @id @default(uuid())
+  order      Int
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  input      String   @db.Text
+  output     String   @db.Text
+  agentId    String
+  agent      Agent    @relation(fields: [agentId], references: [id])
+}

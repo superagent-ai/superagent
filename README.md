@@ -2,8 +2,7 @@
 
 # Superagent 🥷
 
-**Build, deploy, and manage LLM-powered agents**
-[Superagent.sh](https://Superagent.sh)
+**The agent framework for large language models**
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/Superagent" />
@@ -15,135 +14,132 @@
 <img alt="Discord" src="https://img.shields.io/discord/1110910277110743103?label=Discord&logo=discord&logoColor=white&style=plastic&color=d7b023)](https://discord.gg/e8j7mgjDUK" />
 </p>
 
-<br />
-
-<img alt="Superagent UI" src="./ui/public/superagent.png" />
-
 </div>
 
-## 🧐 What is this?
+## 🧐 Superagent
+Superagent is an open source agent framework that enables any developer to integrate production ready AI Agents in their applications in a matter of minutes.
 
-Superagent is a powerful tool that simplifies the configuration and deployment of LLM (Large Language Model) Agents to production. It provides a range of features and functionalities to make it easier for developers to build, manage and deploy AI agents to production including features such as built in memory and document retrieval via vector dbs, powerful tools, webhooks, cron jobs etc.
+## 🎥 Demo
 
-## 🥷 Superagent Cloud
+https://github.com/homanp/superagent/assets/2464556/d02a05d0-64e6-48a2-a102-fb1312105fa5
 
-If you are looking for a plug-n-play way getting started be sure to checkout [Superagent.sh](https://Superagent.sh).
+## ✨ Use cases
 
-## 🔎 Documentation
+Superagent allows you to build any AI application/micro service you want, including:
 
-Checkout the [full documentation here](https://docs.Superagent.sh/).
+- Question/Answering over Documents (LLM Finetuns/Vectorstores)
+- Chatbots
+- Co-pilots & AI assistants
+- Content generation
+- Data aggregation
+- Workflow automation
 
-## 🚧 Roadmap
 
-You can follow the [roadmap here](https://github.com/users/homanp/projects/4)
+## 👀 Features
 
-## 🎥 Tutorials
+- Memory
+- Streaming
+- Custom finetuning 🆕
+- Python/Typescript SDKs
+- REST API
+- API connectivity
+- Vectorization
+- Support for proprietory and OSS LLMs
+- API concurrency
 
-We post tutorials regularly on our [Youtube channel](https://www.youtube.com/channel/UCBeXnF8gh2EwAmOIwpmfjmA). Make sure to check them out! 
 
-## 🛠️ Getting Started
+## 📋 Documentation
+For full documentation, visit [docs.superagent.sh](https://docs.superagent.sh)
 
-To get started with Superagent, follow these steps:
+To see how to contribute, visit [Contribution guidelines](https://github.com/homanp/Superagent/blob/main/.github/CONTRIBUTING.md)
 
-1. Clone the Superagent repository into a public GitHub repository or fork it from [https://github.com/homanp/Superagent/fork](https://github.com/homanp/Superagent/fork). If you plan to distribute the code, keep the source code public.
+## 🛠️ Getting started
 
-   ```sh
-   git clone https://github.com/homanp/Superagent.git
-   ```
+Clone the Superagent repository into a public GitHub repository or fork it from [https://github.com/homanp/superagent/fork](https://github.com/homanp/superagent/fork). 
 
-2. To run the script, simply execute it using:
+If you plan to distribute the code, keep the source code public.
 
-   ```sh
-   bash setup.sh
-   ```
+Both the API and UI require a database in order to work. We recommend settings this up on Supabase. 
 
-3. See the setup instructions for the UI in the `ui` folder.
+<details>
+<summary>Superagent API</summary>
 
-## 📦 Run locally with docker and docker compose
+1. Navigate to `/libs/superagent`
 
-In the `.docker` folder there are multiple docker-compose files.
+2. Rename the `env.example` to `.env`  and make sure you have all mandatory values set:
 
-The main `docker-compose.yml` file will start up the API and a Postgres DB in docker. You can optionally also run the UI in docker too.
+3. Create a virtual environment
 
-The other docker compose files can be used individually, or in combination to start up just the bits you need.
+    ```sh
+    virtualenv venv
+    source venv/bin/activate
+    ```
 
-> follow the guide in [.docker/README.md](.docker/README.md) file to get started
+4. Install dependencies
 
-## 🌎 Environment variables
+    ```sh
+    poetry install
+    ```
 
-To run this project, you will need to add the following environment variables to your .env file
+5. Run database migrations
 
-**Mandatory variables**
+    ```sh
+    poetry run prisma migrate dev
+    ```
 
-`DATABASE_URL` - A database connection string (with pooling)
+6. Start the server
 
-`DATABASE_MIGRATION_URL` - A database connection (without pooling), used when creating/applying migrations.
+    ```sh
+    uvicorn app.main:app --reload
+    ```
+</details>
 
-`OPENAI_API_KEY` - An OpenAI API key
+<details>
+<summary>Superagent UI</summary>
 
-`JWT_SECRET` - A secret key/string
+1. Navigate to `/libs/ui`
 
-`VECTORSTORE` - Change this if you plan on supporting other vector databases.
+2. Rename the `env.example` to `.env`  and make sure you have all mandatory values set
 
-`PINECONE_ENVIRONMENT` - Pinecone environment (found in the pinecone dashboard)
+3. Install the dependencies
 
-`PINECONE_API_KEY` - Pinecone API key (found in the pinecone dashboard)
+    ```sh
+    npm install
+    ```
 
-`PINECONE_INDEX` - The name of the Pinecone index you would like to use
+4. Run the development server
 
-`SUPERAGENT_TRACING` - If you want to enable agent tracing
+    ```sh
+    npm run dev
 
-**Optional variables**
+    ```
 
-`PSYCHIC_API_KEY` - [Psychic.dev](https://psychic.dev) API key
+</details>
 
-`BING_SUBSCRIPTION_KEY` - Bing Search subscription key (found in the Azure dashboard)
+<details>
+<summary>Superagent legacy</summary>
 
-`BING_SEARCH_URL` - Bing Search url (found in the Azure dashboard)
+Please refet the [README](https://github.com/homanp/superagent/blob/v2/libs/legacy/README.md) in `/libs/legacy` for further instructions.
 
-`WOLFRAM_ALPHA_APPID` - Wolfram Alpha App ID (found in your Wolfram Alpha dashboard)
+</details>
 
-`REPLICATE_API_TOKEN` - Replicate API token (found in uour [replicate](https://replicate.com/) dashboard)
-
-**If you plan on using other Language Models**
-
-`ANTHROPIC_API_KEY`
-
-`COHERE_API_KEY`
-
-`HUGGINGFACEHUB_API_TOKEN`
-
-`AZURE_API_KEY`
-
-`AZURE_API_TYPE`
-
-`AZURE_API_BASE`
-
-`AZURE_API_VERSION`
-
-## 💡 Examples
-
-- Running Superagent with [NextJS](https://github.com/homanp/nextjs-Superagent)
-
-## 👨🏽‍💻 SDKs
-
-- [Javascript](https://github.com/homanp/superagent-js)
-- [Python](https://github.com/homanp/superagent-py)
-- [Swift](https://github.com/simonweniger/superagent-swift) (community)
 
 ## 🫶 Contributions
 
-Superagent is an open-source project, and contributions are welcome. If you would like to contribute, you can create new features, fix bugs, or improve the infrastructure. Please refer to the [CONTRIBUTING.md](https://github.com/homanp/Superagent/blob/main/.github/CONTRIBUTING.md) file in the repository for more information on how to contribute.
+Superagent is an open-source project, and contributions are welcome. If you would like to contribute, you can create new features, fix bugs, or improve the infrastructure. Please refer to the [CONTRIBUTING.md](https://github.com/homanp/Superagent/blob/main/.github/CONTRIBUTING.md) file in the repository for more information on how to contribute
 
-We appreciate your contributions and aim to make it easy for anyone to create and run LLM Agents in production using Superagent.
 
-## ⭐ Partners
+## ⭐ Acknowledgements
 
-A big thanks to all partners that support the development of **Superagent**!
+We want to give a big shout out to following open source projects, without which Superagent wouldn't be possible.
 
-**🌿 [Fern](https://buildwithfern.com/)**:
-Fern helps create SDKs and client libraries from OpenAPI specs. Superagent uses Fern for all of the client libraries and SDKs we provide. A big shout out for the support!
-
-## 🙏 Support
-
-We appreciate all the support you can give us, either with contributions, feedback, bug reports or feature requests. Drop a star and share Superagent to the world!
+- [FastAPI](https://github.com/tiangolo/fastapi)
+- [Prefect](https://github.com/PrefectHQ/prefect)
+- [Supabase](https://github.com/supabase/supabase)
+- [next.js](https://github.com/vercel/next.js)
+- [Vercel](https://github.com/vercel)
+- [Fern](https://github.com/fern-api/fern)
+- [Langchain](https://github.com/langchain-ai/langchain)
+- [LlamaIndex](https://github.com/jerryjliu/llama_index)
+- [Prisma](https://github.com/prisma/prisma)
+- [Motorhead](https://github.com/getmetal/motorhead)

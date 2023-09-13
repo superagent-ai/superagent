@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/index.ts"],"sourcesContent":["import { useEffect, useLayoutEffect } from \"react\"\n\nexport const useSafeLayoutEffect = Boolean(globalThis?.document)\n  ? useLayoutEffect\n  : useEffect\n"],"mappings":";;;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA,mBAA2C;AAEpC,IAAM,sBAAsB,QAAQ,yCAAY,QAAQ,IAC3D,+BACA;","names":[]}

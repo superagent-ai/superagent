@@ -1,0 +1,81 @@
+{
+  "name": "set-harmonic-interval",
+  "version": "1.0.1",
+  "description": "",
+  "author": {
+    "name": "streamich",
+    "url": "https://github.com/streamich"
+  },
+  "homepage": "https://github.com/streamich/set-harmonic-interval",
+  "repository": "streamich/set-harmonic-interval",
+  "license": "Unlicense",
+  "engines": {
+    "node": ">=6.9"
+  },
+  "main": "lib/index.js",
+  "module": "lib/index.esm.js",
+  "esnext": "lib/index.next.esm.js",
+  "types": "lib/index.d.ts",
+  "typings": "lib/index.d.ts",
+  "files": [
+    "lib/"
+  ],
+  "scripts": {
+    "prettier": "prettier --ignore-path .gitignore --write \"src/**/*.{ts,tsx,js,jsx}\"",
+    "prettier:diff": "prettier -l \"src/**/*.{ts,tsx,js,jsx}\"",
+    "tslint": "tslint 'src/**/*.{js,jsx,ts,tsx}' -t verbose",
+    "clean": "rimraf lib",
+    "build": "rimraf ./dist && rollup --config",
+    "test": "jest --no-cache --config='jest.config.js'",
+    "release": "semantic-release",
+    "demo1": "yarn build && node demo1.js",
+    "demo2": "yarn build && node demo2.js"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "pretty-quick --staged && yarn tslint",
+      "pre-push": "yarn prettier:diff"
+    }
+  },
+  "keywords": [],
+  "dependencies": {},
+  "devDependencies": {
+    "@commitlint/cli": "^8.1.0",
+    "@commitlint/config-conventional": "^8.1.0",
+    "@semantic-release/changelog": "^3.0.4",
+    "@semantic-release/git": "^7.0.16",
+    "@semantic-release/npm": "^5.1.15",
+    "@types/jest": "^24.0.18",
+    "husky": "^3.0.4",
+    "jest": "^24.9.0",
+    "prettier": "^1.18.2",
+    "pretty-quick": "^1.11.1",
+    "rimraf": "^3.0.0",
+    "rollup": "^1.20.3",
+    "rollup-plugin-typescript2": "^0.24.0",
+    "semantic-release": "^15.13.24",
+    "ts-jest": "^24.0.2",
+    "ts-node": "^8.3.0",
+    "tslint": "^5.19.0",
+    "tslint-config-common": "^1.6.0",
+    "typescript": "^3.5.3"
+  },
+  "release": {
+    "verifyConditions": [
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      "@semantic-release/git"
+    ],
+    "prepare": [
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      "@semantic-release/git"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "git-cz"
+    }
+  }
+}
