@@ -1,0 +1,39 @@
+{
+    "name": "@types/serve-static",
+    "version": "1.15.2",
+    "description": "TypeScript definitions for serve-static",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/serve-static",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Uros Smolnik",
+            "url": "https://github.com/urossmolnik",
+            "githubUsername": "urossmolnik"
+        },
+        {
+            "name": "Linus Unnebäck",
+            "url": "https://github.com/LinusU",
+            "githubUsername": "LinusU"
+        },
+        {
+            "name": "Devansh Jethmalani",
+            "url": "https://github.com/devanshj",
+            "githubUsername": "devanshj"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/serve-static"
+    },
+    "scripts": {},
+    "dependencies": {
+        "@types/http-errors": "*",
+        "@types/mime": "*",
+        "@types/node": "*"
+    },
+    "typesPublisherContentHash": "04c8d134e220f95c43a0ee00fbb63d05e47a2b0b13cf85b8ffe10147604d0e2b",
+    "typeScriptVersion": "4.3"
+}

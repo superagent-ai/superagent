@@ -1,0 +1,75 @@
+{
+  "name": "@chakra-ui/editable",
+  "version": "3.1.0",
+  "description": "React component used to build inline-editable components",
+  "keywords": [
+    "chakra ui",
+    "react",
+    "inline",
+    "editable",
+    "inline editable",
+    "ui",
+    "editable text",
+    "text field",
+    "component"
+  ],
+  "sideEffects": false,
+  "author": "Segun Adebayo <sage@adebayosegun.com>",
+  "homepage": "https://github.com/chakra-ui/chakra-ui#readme",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chakra-ui/chakra-ui.git",
+    "directory": "packages/components/editable"
+  },
+  "bugs": {
+    "url": "https://github.com/chakra-ui/chakra-ui/issues"
+  },
+  "dependencies": {
+    "@chakra-ui/react-use-safe-layout-effect": "2.1.0",
+    "@chakra-ui/react-use-update-effect": "2.1.0",
+    "@chakra-ui/react-use-merge-refs": "2.1.0",
+    "@chakra-ui/react-use-controllable-state": "2.1.0",
+    "@chakra-ui/react-use-focus-on-pointer-down": "2.1.0",
+    "@chakra-ui/react-use-callback-ref": "2.1.0",
+    "@chakra-ui/react-context": "2.1.0",
+    "@chakra-ui/react-types": "2.0.7",
+    "@chakra-ui/shared-utils": "2.0.5"
+  },
+  "devDependencies": {
+    "react": "^18.0.0",
+    "clean-package": "2.2.0",
+    "@chakra-ui/system": "2.6.0",
+    "@chakra-ui/layout": "2.3.0"
+  },
+  "peerDependencies": {
+    "@chakra-ui/system": ">=2.0.0",
+    "react": ">=18"
+  },
+  "clean-package": "../../../clean-package.config.json",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsup src --dts",
+    "dev": "pnpm build:fast -- --watch",
+    "clean": "rimraf dist .turbo",
+    "typecheck": "tsc --noEmit",
+    "build:fast": "tsup src",
+    "typedocs": "tsx ../../../scripts/generate-type-docs.ts"
+  }
+}

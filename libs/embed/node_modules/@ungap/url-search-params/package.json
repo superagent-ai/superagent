@@ -1,0 +1,42 @@
+{
+  "name": "@ungap/url-search-params",
+  "version": "0.2.2",
+  "description": "The URLSearchParams polyfill.",
+  "main": "./cjs/index.js",
+  "module": "./esm/index.js",
+  "unpkg": "min.js",
+  "scripts": {
+    "build": "npm run cjs && npm run esm && npm run min && npm run test && npm run size",
+    "cjs": "cat index.js | sed 's/var self = this || {};/var self = {};/' > cjs/index.js && echo 'module.exports = self.URLSearchParams;' >> cjs/index.js",
+    "esm": "cat index.js | sed 's/var self = this || {};/var self = {};/' > esm/index.js && echo 'export default self.URLSearchParams;' >> esm/index.js",
+    "min": "uglifyjs index.js --support-ie8 --comments=/^!/ -c -m -o min.js",
+    "size": "cat index.js | wc -c && cat min.js | wc -c && gzip -c9 min.js | wc -c && cat min.js | brotli | wc -c",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "test": "nyc node test/index.js"
+  },
+  "keywords": [
+    "URLSearchParams",
+    "polyfill",
+    "ungap"
+  ],
+  "author": "Andrea Giammarchi",
+  "license": "ISC",
+  "devDependencies": {
+    "coveralls": "^3.1.0",
+    "nyc": "^15.1.0",
+    "uglify-js": "^3.9.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ungap/url-search-params.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ungap/url-search-params/issues"
+  },
+  "homepage": "https://github.com/ungap/url-search-params#readme",
+  "type": "module",
+  "exports": {
+    "import": "./esm/index.js",
+    "default": "./cjs/index.js"
+  }
+}

@@ -38,8 +38,8 @@ export const columns: ColumnDef<Agent>[] = [
       ),
   },
   {
-    accessorKey: "prompt",
-    header: "Prompt",
+    accessorKey: "description",
+    header: "Description",
   },
   {
     accessorKey: "id",

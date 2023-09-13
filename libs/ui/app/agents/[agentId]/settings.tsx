@@ -50,7 +50,7 @@ const formSchema = z.object({
   prompt: z.string(),
   tools: z.array(z.string()),
   datasources: z.array(z.string()),
-  avatar: z.string(),
+  avatar: z.string().nullable(),
 })
 
 interface Datasource {
@@ -90,6 +90,7 @@ export default function Settings({
       prompt: agent.prompt,
       tools: [],
       datasources: [],
+      avatar: agent.avatar,
     },
   })
   const avatar = form.watch("avatar")

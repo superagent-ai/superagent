@@ -1,0 +1,33 @@
+{
+  "name": "fast-shallow-equal",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/streamich/fast-shallow-equal.git"
+  },
+  "scripts": {
+    "test": "jest",
+    "semantic-release": "semantic-release"
+  },
+  "devDependencies": {
+    "jest": "22.3.0",
+    "jest-tap-reporter": "1.9.0",
+    "semantic-release": "15.14.0"
+  },
+  "jest": {
+    "testRegex": ".*/__tests__/.*\\.(test|spec)\\.(jsx?|tsx?)$",
+    "reporters": [
+      "jest-tap-reporter"
+    ],
+    "testURL": "http://localhost"
+  },
+  "keywords": [
+    "equal",
+    "fast",
+    "shallow",
+    "fast-shallow-equal",
+    "comparator",
+    "pure",
+    "should-update"
+  ]
+}

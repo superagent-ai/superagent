@@ -1,0 +1,91 @@
+{
+  "name": "react-universal-interface",
+  "version": "0.6.2",
+  "description": "Universal Children Definition for React Components",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "typings": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/streamich/react-universal-interface.git"
+  },
+  "scripts": {
+    "build": "npm run clean && tsc",
+    "clean": "rimraf lib",
+    "test": "npm run test:server && npm run test:client",
+    "test:server": "mocha -r ts-node/register src/**/*.test-server.ts*",
+    "test:client": "jest",
+    "semantic-release": "semantic-release"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "tslib": "*"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/jest": "^24.0.11",
+    "@types/node": "^11.13.0",
+    "@types/react": "^16.8.13",
+    "@types/react-dom": "^16.8.3",
+    "chai": "^4.2.0",
+    "enzyme": "^3.9.0",
+    "enzyme-adapter-react-16": "^1.12.1",
+    "enzyme-to-json": "^3.3.5",
+    "jest": "^24.7.1",
+    "jest-environment-jsdom": "^24.7.1",
+    "jest-environment-jsdom-global": "^1.2.0",
+    "jest-tap-reporter": "^1.9.0",
+    "mocha": "^6.1.1",
+    "mol-conventional-changelog": "^1.4.0",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-test-renderer": "^16.8.6",
+    "rimraf": "^2.6.3",
+    "semantic-release": "^15.13.3",
+    "ts-jest": "^24.0.2",
+    "ts-node": "^8.0.3",
+    "tslib": "^2.0.0",
+    "typescript": "^3.4.2"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/mol-conventional-changelog"
+    }
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "transformIgnorePatterns": [],
+    "testRegex": ".*/__tests__/.*\\.(test|spec)\\.(jsx?|tsx?)$",
+    "setupFiles": [
+      "./src/__tests__/setup.js"
+    ],
+    "reporters": [
+      "jest-tap-reporter"
+    ],
+    "testEnvironment": "jest-environment-jsdom-global",
+    "testURL": "http://localhost"
+  },
+  "keywords": [
+    "react",
+    "universal",
+    "interface",
+    "children",
+    "definition",
+    "ucd",
+    "universal-children",
+    "facc",
+    "render",
+    "prop",
+    "function",
+    "child",
+    "component"
+  ]
+}

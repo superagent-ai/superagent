@@ -1,0 +1,12 @@
+export declare type VisibilityCache = Map<Element | undefined, boolean>;
+export declare const isVisibleCached: (visibilityCache: VisibilityCache, node: Element | undefined) => boolean;
+export declare const isAutoFocusAllowedCached: (cache: VisibilityCache, node: Element | undefined) => boolean;
+export declare const getDataset: (node: Element) => HTMLElement['dataset'] | undefined;
+export declare const isHTMLButtonElement: (node: Element) => node is HTMLInputElement;
+export declare const isHTMLInputElement: (node: Element) => node is HTMLInputElement;
+export declare const isRadioElement: (node: Element) => node is HTMLInputElement;
+export declare const notHiddenInput: (node: Element) => boolean;
+export declare const isAutoFocusAllowed: (node: Element) => boolean;
+export declare const isGuard: (node: Element | undefined) => boolean;
+export declare const isNotAGuard: (node: Element | undefined) => boolean;
+export declare const isDefined: <T>(x: T | null | undefined) => x is T;

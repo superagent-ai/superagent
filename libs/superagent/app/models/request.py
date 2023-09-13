@@ -9,7 +9,7 @@ class Agent(BaseModel):
     prompt: Optional[str]
     llmModel: str
     description: str
-    avatar: str
+    avatar: Optional[str]
 
 
 class AgentLLM(BaseModel):

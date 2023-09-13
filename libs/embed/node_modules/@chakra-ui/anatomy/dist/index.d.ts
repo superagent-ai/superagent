@@ -1,0 +1,2 @@
+export { anatomy } from './anatomy.js';
+export { accordionAnatomy, alertAnatomy, avatarAnatomy, breadcrumbAnatomy, buttonAnatomy, cardAnatomy, checkboxAnatomy, circularProgressAnatomy, drawerAnatomy, editableAnatomy, formAnatomy, formErrorAnatomy, inputAnatomy, listAnatomy, menuAnatomy, modalAnatomy, numberInputAnatomy, pinInputAnatomy, popoverAnatomy, progressAnatomy, radioAnatomy, selectAnatomy, sliderAnatomy, statAnatomy, switchAnatomy, tableAnatomy, tabsAnatomy, tagAnatomy } from './components.js';

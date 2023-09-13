@@ -1,0 +1,76 @@
+{
+  "name": "@chakra-ui/styled-system",
+  "version": "2.9.1",
+  "description": "Style function for css-in-js building component libraries",
+  "keywords": [
+    "theme",
+    "theming",
+    "style",
+    "system",
+    "styled",
+    "css-in-js",
+    "component",
+    "functions",
+    "parser",
+    "chakra ui"
+  ],
+  "author": "Segun Adebayo <sage@adebayosegun.com>",
+  "homepage": "https://github.com/chakra-ui/chakra-ui#readme",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chakra-ui/chakra-ui.git",
+    "directory": "packages/components/styled-system"
+  },
+  "bugs": {
+    "url": "https://github.com/chakra-ui/chakra-ui/issues"
+  },
+  "dependencies": {
+    "csstype": "^3.0.11",
+    "lodash.mergewith": "4.6.2",
+    "@chakra-ui/shared-utils": "2.0.5"
+  },
+  "devDependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@types/lodash.mergewith": "4.6.7",
+    "clean-package": "2.2.0",
+    "@chakra-ui/breakpoint-utils": "2.0.8",
+    "@chakra-ui/merge-utils": "2.0.7",
+    "@chakra-ui/object-utils": "2.1.0"
+  },
+  "sideEffects": false,
+  "clean-package": "../../../clean-package.config.json",
+  "tsup": {
+    "clean": true,
+    "target": "es2019",
+    "format": [
+      "cjs",
+      "esm"
+    ]
+  },
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsup --entry src/index.ts --entry src/theming.types.ts --entry src/shared.types.ts --dts",
+    "dev": "pnpm build:fast -- --watch",
+    "clean": "rimraf dist .turbo",
+    "typecheck": "tsc --noEmit",
+    "build:fast": "tsup src"
+  }
+}
