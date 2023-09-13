@@ -14,25 +14,12 @@
 <img alt="Discord" src="https://img.shields.io/discord/1110910277110743103?label=Discord&logo=discord&logoColor=white&style=plastic&color=d7b023)](https://discord.gg/e8j7mgjDUK" />
 </p>
 
-<br />
-<br />
-
-[![Discord](https://img.shields.io/discord/837692625737613362.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/mhmJUTjW4b)
-[![Twitter Follow](https://img.shields.io/twitter/follow/pelaseyed?style=social)](https://twitter.com/pelaseyed)
-
-<br/>
-<br/>
-
-[Superagent.sh](https://Superagent.sh)
-
-<br/>
-
 <img alt="Superagent UI" src=".//superagent.png" />
 
 </div>
 
 ## Superagent
-Superagent is an open source agent framework that enables any developer to integrate production ready AI Agents to their applications in a matter of minutes.
+Superagent is an open source agent framework that enables any developer to integrate production ready AI Agents in their applications in a matter of minutes.
 
 
 ## Documentation
@@ -42,20 +29,22 @@ To see how to contribute, visit [Contribution guidelines](https://github.com/hom
 
 ## Getting started
 
+Clone the Superagent repository into a public GitHub repository or fork it from [https://github.com/homanp/superagent/fork](https://github.com/homanp/superagent/fork). If you plan to distribute the code, keep the source code public.
+
+    ```sh
+    git clone https://github.com/homanp/superagent.git
+    ```
+
+Both the API and UI require a database in order to work. We recommend settings this up on Supabase. 
+
 <details>
 <summary>Superagent API</summary>
+
 Follow below steps to run the Superagent API. 
 
 **Prerequisites**
-Make sure you have setup a database, we recommend running PostgreSQL on Supabase.
 
-1. Clone the Superagent repository into a public GitHub repository or fork it from [https://github.com/homanp/superagent/fork](https://github.com/homanp/superagent/fork). If you plan to distribute the code, keep the source code public.
-
-   ```sh
-   git clone https://github.com/homanp/superagent.git
-   ```
-
-2. Rename the `env.example` to `.env`  and make sure you have all mandatory values set:
+1. Rename the `env.example` to `.env`  and make sure you have all mandatory values set:
 
 3. Create a virtual environment
 
@@ -86,7 +75,20 @@ Make sure you have setup a database, we recommend running PostgreSQL on Supabase
 <details>
 <summary>Superagent UI</summary>
 
-<!-- The content under the dropdown goes here -->
+1. Rename the `env.example` to `.env`  and make sure you have all mandatory values set
+
+2. Install the dependencies
+
+    ```sh
+    npm install
+    ```
+
+3. Run the development server
+
+    ```sh
+    npm run dev
+
+    ```
 
 </details>
 
