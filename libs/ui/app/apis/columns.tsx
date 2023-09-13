@@ -121,7 +121,11 @@ export function EditTool({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await api.patchTool(tool.id, { type: tool.type, ...values })
+      await api.patchTool(tool.id, {
+        type: tool.type,
+        returnDirect: true,
+        ...values,
+      })
       toast({
         description: "Tool updated successfully",
       })
