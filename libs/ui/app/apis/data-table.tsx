@@ -74,6 +74,7 @@ const formSchema = z.object({
     message: "Type is required",
   }),
   metadata: z.any(),
+  returnDirect: z.boolean(),
 })
 
 export function DataTable<TData, TValue>({
@@ -104,6 +105,7 @@ export function DataTable<TData, TValue>({
       description: "",
       type: "BING_SEARCH",
       metadata: null,
+      returnDirect: true,
     },
   })
   const type = form.watch("type")
