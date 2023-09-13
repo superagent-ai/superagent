@@ -3,6 +3,7 @@ from typing import AsyncIterable
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
+from langsmith import Client
 
 from app.agents.base import AgentBase
 from app.models.request import (
@@ -32,15 +33,13 @@ from app.models.response import (
 from app.models.response import (
     AgentList as AgentListResponse,
 )
+from app.models.response import AgentRunList as AgentRunListResponse
 from app.models.response import (
     AgentToolList as AgentToolListResponse,
 )
-from app.models.response import AgentRunList as AgentRunListResponse
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
-
-from langsmith import Client
 
 router = APIRouter()
 langsmith_client = Client()
@@ -231,10 +230,10 @@ async def remove_llm(
     description="Add tool to agent",
     response_model=AgentResponse,
 )
-async def add_datasource(
+async def add_tool(
     agent_id: str,
     body: AgentToolRequest,
-    api_user=Depends(get_current_api_user),
+    _api_user=Depends(get_current_api_user),
 ):
     """Endpoint for adding a tool to an agent"""
     try:

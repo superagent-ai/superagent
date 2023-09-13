@@ -73,6 +73,7 @@ class DataLoader:
         parsed_url = urlparse(self.datasource.url)
         path_parts = parsed_url.path.split("/")  # type: ignore
         repo_name = path_parts[2]
+        metadata = json.loads(self.datasource.metadata)
 
         with tempfile.TemporaryDirectory() as temp_dir:
             repo_path = f"{temp_dir}/{repo_name}/"  # type: ignore
@@ -84,9 +85,7 @@ class DataLoader:
             return loader.load_and_split()
 
     def load_webpage(self):
-        metadata = json.loads(self.datasource.metadata)
         RemoteDepthReader = download_loader("RemoteDepthReader")
-        depth = int(metadata.get("depth"))
         loader = RemoteDepthReader(depth=0)
         return loader.load_langchain_documents(url=self.datasource.url)
 

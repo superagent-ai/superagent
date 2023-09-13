@@ -6,17 +6,15 @@ from langchain.chat_models import ChatOpenAI
 from langchain.memory.motorhead_memory import MotorheadMemory
 from langchain.prompts import MessagesPlaceholder
 from langchain.schema import SystemMessage
-from langchain.chains import ConversationChain
-
 from slugify import slugify
 
 from app.datasource.types import (
     VALID_UNSTRUCTURED_DATA_TYPES,
 )
-from app.utils.llm import LLM_MAPPING
 from app.models.tools import DatasourceInput
 from app.tools import TOOL_TYPE_MAPPING, create_tool
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
+from app.utils.llm import LLM_MAPPING
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool

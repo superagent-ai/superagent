@@ -1,7 +1,6 @@
-import asyncio
 import json
 
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, Depends
 
 from app.models.request import Tool as ToolRequest
 from app.models.response import (
@@ -12,7 +11,6 @@ from app.models.response import (
 )
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
-from prisma.models import Tool
 
 router = APIRouter()
 

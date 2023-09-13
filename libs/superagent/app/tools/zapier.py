@@ -1,5 +1,3 @@
-import asyncio
-
 from langchain.agents import AgentType, initialize_agent
 from langchain.agents.agent_toolkits import ZapierToolkit
 from langchain.chat_models.openai import ChatOpenAI

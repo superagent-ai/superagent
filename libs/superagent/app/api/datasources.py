@@ -1,7 +1,7 @@
 import asyncio
 import json
 
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, Depends
 
 from app.datasource.flow import vectorize_datasource
 from app.models.request import Datasource as DatasourceRequest

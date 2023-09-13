@@ -4,7 +4,6 @@ import asyncio
 from typing import Any, AsyncIterator, Dict, List, Literal, Union, cast
 
 from langchain.callbacks.base import AsyncCallbackHandler
-from langchain.schema import AgentAction, AgentFinish
 from langchain.schema.messages import BaseMessage
 from langchain.schema.output import LLMResult
 
