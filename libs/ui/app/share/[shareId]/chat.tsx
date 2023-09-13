@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import * as React from "react"
@@ -47,11 +48,21 @@ function PulsatingCursor() {
   )
 }
 
-export function Message({ type, message }: { type: string; message: string }) {
+export function Message({
+  type,
+  message,
+  agent,
+}: {
+  type: string
+  message: string
+  agent: Agent
+}) {
   return (
     <div className="min-w-4xl flex max-w-4xl space-x-4">
       <Avatar className="h-8 w-8">
-        <AvatarImage src={type === "ai" ? "/logo.png" : undefined} />
+        <AvatarImage
+          src={type === "ai" ? agent.avatar || "/logo.png" : undefined}
+        />
         <AvatarFallback>
           <RxChatBubble />
         </AvatarFallback>
@@ -197,6 +208,13 @@ export default function Chat({
           <div className="mb-20 mt-10 flex flex-col items-center justify-center space-y-5 py-5">
             <Card>
               <CardHeader>
+                <img
+                  className="mb-5 rounded-lg"
+                  src={agent.avatar || "/logo.png"}
+                  width={60}
+                  height={60}
+                  alt={agent.name}
+                />
                 <CardTitle className="text-md">{agent.name}</CardTitle>
                 <CardDescription>{agent.description}</CardDescription>
               </CardHeader>
@@ -226,7 +244,12 @@ export default function Chat({
         <div className="mb-20 mt-10 flex flex-col space-y-5 py-5">
           <div className="container mx-auto flex max-w-4xl flex-col space-y-5">
             {messages.map(({ type, message }, index) => (
-              <Message key={index} type={type} message={message} />
+              <Message
+                key={index}
+                type={type}
+                message={message}
+                agent={agent}
+              />
             ))}
           </div>
         </div>

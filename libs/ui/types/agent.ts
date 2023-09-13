@@ -8,4 +8,5 @@ export interface Agent {
   tools: Array<{ [key: string]: any }>
   datasources: Array<{ [key: string]: any }>
   prompt: string
+  avatar: string
 }

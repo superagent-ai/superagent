@@ -1,13 +1,12 @@
 "use client"
 
+import * as React from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 
 import { Agent } from "@/types/agent"
-import { LLM } from "@/types/llm"
 import { Profile } from "@/types/profile"
 import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
@@ -15,7 +14,6 @@ import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -35,6 +33,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 
+import Avatar from "./avatar"
+
 const formSchema = z.object({
   name: z.string().nonempty({
     message: "Name is required",
@@ -50,6 +50,7 @@ const formSchema = z.object({
   prompt: z.string(),
   tools: z.array(z.string()),
   datasources: z.array(z.string()),
+  avatar: z.string(),
 })
 
 interface Datasource {
@@ -91,49 +92,48 @@ export default function Settings({
       datasources: [],
     },
   })
-
+  const avatar = form.watch("avatar")
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { tools, datasources } = values
 
+    const updateResources = async (
+      originalIds: string[],
+      newIds: string[],
+      createResource: (id: string) => Promise<void>,
+      deleteResource: (id: string) => Promise<void>
+    ) => {
+      const resourcesToCreate = newIds.filter((id) => !originalIds.includes(id))
+      const resourcesToRemove = originalIds.filter((id) => !newIds.includes(id))
+
+      for (const resourceId of resourcesToCreate) {
+        await createResource(resourceId)
+      }
+
+      for (const resourceId of resourcesToRemove) {
+        await deleteResource(resourceId)
+      }
+    }
+
     try {
       await api.patchAgent(agent.id, values)
+
       const originalToolIds = agent.tools.map((tool: any) => tool.tool.id)
-      const newToolIds = tools
-
-      const toolsToCreate = newToolIds.filter(
-        (id: string) => !originalToolIds.includes(id)
+      await updateResources(
+        originalToolIds,
+        tools,
+        (toolId) => api.createAgentTool(agent.id, toolId),
+        (toolId) => api.deleteAgentTool(agent.id, toolId)
       )
-      const toolsToRemove = originalToolIds.filter(
-        (id: string) => !newToolIds.includes(id)
-      )
-
-      for (const toolId of toolsToCreate) {
-        await api.createAgentTool(agent.id, toolId)
-      }
-
-      for (const toolId of toolsToRemove) {
-        await api.deleteAgentTool(agent.id, toolId)
-      }
 
       const originalDatasourceIds = agent.datasources.map(
         (datasource: any) => datasource.datasource.id
       )
-      const newDatasourceIds = datasources
-
-      const datasourcesToCreate = newDatasourceIds.filter(
-        (id: string) => !originalDatasourceIds.includes(id)
+      await updateResources(
+        originalDatasourceIds,
+        datasources,
+        (datasourceId) => api.createAgentDatasource(agent.id, datasourceId),
+        (datasourceId) => api.deleteAgentDatasource(agent.id, datasourceId)
       )
-      const datasourcesToRemove = originalDatasourceIds.filter(
-        (id: string) => !newDatasourceIds.includes(id)
-      )
-
-      for (const datasourceId of datasourcesToCreate) {
-        await api.createAgentDatasource(agent.id, datasourceId)
-      }
-
-      for (const datasourceId of datasourcesToRemove) {
-        await api.deleteAgentDatasource(agent.id, datasourceId)
-      }
 
       toast({
         description: "Agent updated",
@@ -147,6 +147,13 @@ export default function Settings({
     }
   }
 
+  const handleUpload = React.useCallback(
+    async (url: any) => {
+      form.setValue("avatar", url)
+    },
+    [form]
+  )
+
   return (
     <div className="relative flex max-w-md flex-1 flex-col p-4">
       <Form {...form}>
@@ -154,6 +161,11 @@ export default function Settings({
           onSubmit={form.handleSubmit(onSubmit)}
           className="w-full space-y-4"
         >
+          <Avatar
+            accept=".jpg, .jpeg, .png"
+            onSelect={handleUpload}
+            imageUrl={avatar || agent.avatar || "/logo.png"}
+          />
           <FormField
             control={form.control}
             name="name"

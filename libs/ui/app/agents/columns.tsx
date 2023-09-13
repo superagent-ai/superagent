@@ -3,6 +3,8 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { RxCheckCircled, RxCircle } from "react-icons/rx"
 
+import { Badge } from "@/components/ui/badge"
+
 export type Agent = {
   id: string
   name: string
@@ -20,15 +22,19 @@ export const columns: ColumnDef<Agent>[] = [
     header: "Status",
     cell: ({ row, column }) =>
       row.getValue(column.id) ? (
-        <div className="flex items-center">
-          <RxCheckCircled className="mr-1 h-3 w-3 text-amber-400" />
-          Enabled
-        </div>
+        <Badge variant="secondary">
+          <div className="flex items-center">
+            <RxCheckCircled className="mr-1 h-3 w-3 text-amber-400" />
+            Deployed
+          </div>
+        </Badge>
       ) : (
-        <div className="text-muted-foreground flex items-center">
-          <RxCircle className="mr-1 h-3 w-3" />
-          Disabled
-        </div>
+        <Badge variant="secondary">
+          <div className="text-muted-foreground flex items-center">
+            <RxCircle className="mr-1 h-3 w-3" />
+            Paused
+          </div>
+        </Badge>
       ),
   },
   {
