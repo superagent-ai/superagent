@@ -1,18 +1,11 @@
-import { cookies } from "next/headers"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
-
 import Sidebar from "@/components/sidebar"
 
 interface RootLayoutProps {
   children: React.ReactNode
+  session: any
 }
 
-export default async function RootLayout({ children }: RootLayoutProps) {
-  const supabase = createRouteHandlerClient({ cookies })
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
+export default function RootLayout({ children, session }: RootLayoutProps) {
   return (
     <section className="flex h-screen">
       {session && <Sidebar />}
