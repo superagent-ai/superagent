@@ -29,22 +29,18 @@ To see how to contribute, visit [Contribution guidelines](https://github.com/hom
 
 ## Getting started
 
-Clone the Superagent repository into a public GitHub repository or fork it from [https://github.com/homanp/superagent/fork](https://github.com/homanp/superagent/fork). If you plan to distribute the code, keep the source code public.
+Clone the Superagent repository into a public GitHub repository or fork it from [https://github.com/homanp/superagent/fork](https://github.com/homanp/superagent/fork). 
 
-    ```sh
-    git clone https://github.com/homanp/superagent.git
-    ```
+If you plan to distribute the code, keep the source code public.
 
 Both the API and UI require a database in order to work. We recommend settings this up on Supabase. 
 
 <details>
 <summary>Superagent API</summary>
 
-Follow below steps to run the Superagent API. 
+1. Navigate to `/libs/superagent`
 
-**Prerequisites**
-
-1. Rename the `env.example` to `.env`  and make sure you have all mandatory values set:
+2. Rename the `env.example` to `.env`  and make sure you have all mandatory values set:
 
 3. Create a virtual environment
 
@@ -75,15 +71,17 @@ Follow below steps to run the Superagent API.
 <details>
 <summary>Superagent UI</summary>
 
-1. Rename the `env.example` to `.env`  and make sure you have all mandatory values set
+1. Navigate to `/libs/ui`
 
-2. Install the dependencies
+2. Rename the `env.example` to `.env`  and make sure you have all mandatory values set
+
+3. Install the dependencies
 
     ```sh
     npm install
     ```
 
-3. Run the development server
+4. Run the development server
 
     ```sh
     npm run dev
@@ -95,7 +93,7 @@ Follow below steps to run the Superagent API.
 <details>
 <summary>Superagent legacy</summary>
 
-<!-- The content under the dropdown goes here -->
+Please refet the [README](https://github.com/homanp/superagent/blob/v2/libs/legacy/README.md) in `/libs/legacy` for further instructions.
 
 </details>
 
