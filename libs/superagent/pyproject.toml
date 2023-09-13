@@ -3,7 +3,7 @@ name = "superagent"
 version = "0.0.54"
 description = ""
 authors = ["Ismail Pelaseyed"]
-readme = "README.md"
+readme = "../../README.md"
 packages = [{include = "app"}]
 
 [tool.poetry.dependencies]
