@@ -35,6 +35,19 @@ Superagent allows you to build any AI application/micro service you want, includ
 - Workflow automation
 
 
+## 👀 Features
+
+- Memory
+- Streaming
+- Custom finetuning 🆕
+- Python/Typescript SDKs
+- REST API
+- API connectivity
+- Vectorization
+- Support for proprietory and OSS LLMs
+- API concurrency
+
+
 ## 📋 Documentation
 For full documentation, visit [docs.superagent.sh](https://docs.superagent.sh)
 
