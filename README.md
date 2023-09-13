@@ -21,7 +21,7 @@ Superagent is an open source agent framework that enables any developer to integ
 
 ## 🎥 Demo
 
-https://github.com/homanp/superagent/blob/v2/demo.mp4
+https://github.com/homanp/superagent/assets/2464556/06fb9a83-f7fc-4dac-9172-3d352c378fdd
 
 ## ✨ Use cases
 
