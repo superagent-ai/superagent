@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider          = "postgresql"
-  url               = env("DATABASE_URL")
+  url               = env("DATABASE_MIGRATION_URL")
   shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
@@ -64,6 +64,7 @@ model ApiUser {
 model Agent {
   id            String            @id @default(uuid())
   name          String
+  avatar        String?
   description   String            @default("Add a agent description...") @db.Text
   isActive      Boolean           @default(false)
   createdAt     DateTime          @default(now())
