@@ -18,11 +18,26 @@
 
 </div>
 
-## Superagent
+## 🥷 Superagent
 Superagent is an open source agent framework that enables any developer to integrate production ready AI Agents in their applications in a matter of minutes.
 
+## 🎥 Demo
 
-## Documentation
+https://github.com/homanp/superagent/demo.mp4
+
+## ✨ Use cases
+
+Superagent allows you to build any AI application/micro service you want, including:
+
+- Question/Answering over Documents (LLM Finetuns/Vectorstores)
+- Chatbots
+- Co-pilots & AI assistants
+- Content generation
+- Data aggregation
+- Workflow automation
+
+
+## 📋 Documentation
 For full documentation, visit [docs.superagent.sh](https://docs.superagent.sh)
 
 To see how to contribute, visit [Contribution guidelines](https://github.com/homanp/Superagent/blob/main/.github/CONTRIBUTING.md)
@@ -98,9 +113,13 @@ Please refet the [README](https://github.com/homanp/superagent/blob/v2/libs/lega
 </details>
 
 
-## Use cases
+## 🫶 Contributions
 
-## Acknowledgements
+Superagent is an open-source project, and contributions are welcome. If you would like to contribute, you can create new features, fix bugs, or improve the infrastructure. Please refer to the [CONTRIBUTING.md](https://github.com/homanp/Superagent/blob/main/.github/CONTRIBUTING.md) file in the repository for more information on how to contribute
+
+
+## ⭐ Acknowledgements
+
 We want to give a big shout out to following open source projects, without which Superagent wouldn't be possible.
 
 - [FastAPI](https://github.com/tiangolo/fastapi)
