@@ -58,7 +58,7 @@ export function Message({
   agent: Agent
 }) {
   return (
-    <div className="min-w-4xl flex max-w-4xl space-x-4">
+    <div className="min-w-4xl flex max-w-4xl space-x-4 border-b pb-2">
       <Avatar className="h-8 w-8">
         <AvatarImage
           src={type === "ai" ? agent.avatar || "/logo.png" : undefined}

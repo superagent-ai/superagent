@@ -142,4 +142,5 @@ We want to give a big shout out to following open source projects, without which
 - [Langchain](https://github.com/langchain-ai/langchain)
 - [LlamaIndex](https://github.com/jerryjliu/llama_index)
 - [Prisma](https://github.com/prisma/prisma)
+- [Resend](https://github.com/resendlabs)
 - [Motorhead](https://github.com/getmetal/motorhead)
