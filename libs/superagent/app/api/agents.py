@@ -154,8 +154,6 @@ async def invoke(
     async def send_message(
         agent: AgentBase, content: str, callback: CustomAsyncIteratorCallbackHandler
     ) -> AsyncIterable[str]:
-        yield "data:\n\n"
-
         try:
             task = asyncio.ensure_future(
                 agent.acall(inputs={"input": content}, tags=[agent_id])
