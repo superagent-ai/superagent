@@ -87,7 +87,12 @@ Both the API and UI require a database in order to work. We recommend settings t
     for each row execute procedure public.handle_new_user();
     ```
 
-3. Setup Supabase storage (currently only supports public buckets)
+3. Create a Supabase storage
+
+4. Set storate permissions:
+   Set the following policy for `storage.objects`
+   <img width="2672" alt="Screenshot 2023-09-14 at 23 27 35" src="https://github.com/homanp/superagent/assets/2464556/8d6bde18-528e-4e0a-9840-aabe39ce5e68">
+
     
 </details>
 
