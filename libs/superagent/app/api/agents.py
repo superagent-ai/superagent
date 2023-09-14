@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import AsyncIterable
 
 from fastapi import APIRouter, Depends
@@ -43,6 +44,7 @@ from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 
 router = APIRouter()
 langsmith_client = Client()
+logging.basicConfig(level=logging.INFO)
 
 
 # Agent endpoints
@@ -160,17 +162,17 @@ async def invoke(
             )
 
             async for token in callback.aiter():
-                print(f"Sending token: {token}")
+                logging.info(f"Sending token: {token}")
                 yield f"data: {token}\n\n"
 
             await task
         except Exception as e:
-            print(f"Error in send_message: {e}")
+            logging.error(f"Error in send_message: {e}")
         finally:
             callback.done.set()
 
     try:
-        print("Invoking agent...")
+        logging.info("Invoking agent...")
         session_id = body.sessionId
         input = body.input
         enable_streaming = body.enableStreaming
@@ -184,16 +186,16 @@ async def invoke(
         ).get_agent()
 
         if enable_streaming:
-            print("Streaming enabled. Preparing streaming response...")
+            logging.info("Streaming enabled. Preparing streaming response...")
             generator = send_message(agent, content=input, callback=callback)
             return StreamingResponse(generator, media_type="text/event-stream")
 
-        print("Streaming not enabled. Invoking agent synchronously...")
+        logging.info("Streaming not enabled. Invoking agent synchronously...")
         output = await agent.acall(inputs={"input": input}, tags=[agent_id])
         return {"success": True, "data": output}
 
     except Exception as e:
-        print(f"Error in invoke: {e}")
+        logging.error(f"Error in invoke: {e}")
         handle_exception(e)
 
 
