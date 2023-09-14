@@ -1,4 +1,4 @@
-import asyncio
+from fastapi.concurrency import run_in_threadpool
 
 from langchain.tools import BaseTool, PubmedQueryRun
 
@@ -15,6 +15,5 @@ class PubMed(BaseTool):
 
     async def _arun(self, search_query: str) -> str:
         pubmed = PubmedQueryRun(args_schema=self.args_schema)
-        loop = asyncio.get_event_loop()
-        output = await loop.run_in_executor(None, pubmed.run, search_query)
+        output = await run_in_threadpool(pubmed.run, search_query)
         return output
