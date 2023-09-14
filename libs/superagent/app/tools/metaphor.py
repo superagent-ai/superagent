@@ -19,4 +19,4 @@ class MetaphorSearch(BaseTool):
             metaphor_api_key=self.metadata["metaphorApiKey"]
         )
         output = await search.results_async(search_query, 10, use_autoprompt=True)
-        return output
+        return str(output)
