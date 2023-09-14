@@ -62,11 +62,41 @@ If you plan to distribute the code, keep the source code public.
 Both the API and UI require a database in order to work. We recommend settings this up on Supabase. 
 
 <details>
+<summary>Setting up Supabase</summary>
+
+1. Create a [Supabase](https://supabase.com) account and project
+
+2. Run the following query to setup authentication:
+    ```sh
+    -- inserts a row into public.profiles
+    create function public.handle_new_user()
+    returns trigger
+    language plpgsql
+    security definer set search_path = public
+    as $$
+    begin
+    insert into public.profiles (user_id)
+    values (new.id);
+    return new;
+    end;
+    $$;
+
+    -- trigger the function every time a user is created
+    create trigger on_auth_user_created
+    after insert on auth.users
+    for each row execute procedure public.handle_new_user();
+    ```
+
+3. Setup Supabase storage (currently only supports public buckets)
+    
+</details>
+
+<details>
 <summary>Superagent API</summary>
 
 1. Navigate to `/libs/superagent`
 
-2. Rename the `env.example` to `.env`  and make sure you have all mandatory values set:
+2. Rename the `env.example` to `.env`  and make sure you have all mandatory values set
 
 3. Create a virtual environment
 
@@ -101,10 +131,15 @@ Both the API and UI require a database in order to work. We recommend settings t
 
 2. Rename the `env.example` to `.env`  and make sure you have all mandatory values set
 
-3. Install the dependencies
+3. Install the dependencies:
 
     ```sh
     npm install
+    ```
+4. Run migrations:
+    ```sh
+    supabase migrate up (local)
+    supabase db push (cloud)
     ```
 
 4. Run the development server
