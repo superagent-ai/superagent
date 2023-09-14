@@ -1,5 +1,3 @@
-from fastapi.concurrency import run_in_threadpool
-
 from langchain.tools import BaseTool, PubmedQueryRun
 
 
@@ -15,5 +13,5 @@ class PubMed(BaseTool):
 
     async def _arun(self, search_query: str) -> str:
         pubmed = PubmedQueryRun(args_schema=self.args_schema)
-        output = await run_in_threadpool(pubmed.run, search_query)
+        output = pubmed.run(search_query)
         return output
