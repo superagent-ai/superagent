@@ -105,7 +105,7 @@ export function DataTable<TData, TValue>({
       description: "",
       type: "BING_SEARCH",
       metadata: null,
-      returnDirect: true,
+      returnDirect: false,
     },
   })
   const type = form.watch("type")
