@@ -55,6 +55,7 @@ class AgentBase:
                 args_schema=DatasourceInput,
                 name=slugify(agent_datasource.datasource.name),
                 description=agent_datasource.datasource.description,
+                return_direct=False,
             )
             tools.append(tool)
         for agent_tool in agent_tools:

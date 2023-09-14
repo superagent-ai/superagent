@@ -38,6 +38,7 @@ langsmith = "^0.0.35"
 backoff = "^2.2.1"
 xmltodict = "^0.13.0"
 langchain = "^0.0.288"
+pypdf = "^3.16.0"
 
 
 [build-system]
