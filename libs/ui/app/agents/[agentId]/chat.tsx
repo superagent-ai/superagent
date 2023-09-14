@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 import { CodeBlock } from "@/components/codeblock"
@@ -61,7 +62,7 @@ export function Message({
   profile: Profile
 }) {
   return (
-    <div className="min-w-4xl flex max-w-4xl space-x-4">
+    <div className="min-w-4xl flex max-w-4xl space-x-4 border-b pb-2">
       <Avatar className="h-8 w-8">
         <AvatarImage src={type === "ai" ? "/logo.png" : undefined} />
         <AvatarFallback>
