@@ -1,9 +1,6 @@
-from typing import Optional
+import asyncio
+
 from langchain.tools import BaseTool, PubmedQueryRun
-from langchain.callbacks.manager import (
-    AsyncCallbackManagerForToolRun,
-    CallbackManagerForToolRun,
-)
 
 
 class PubMed(BaseTool):
@@ -11,20 +8,13 @@ class PubMed(BaseTool):
     description = "useful for answering question about medical publications"
     return_direct = False
 
-    def _run(
-        self,
-        search_query: str,
-        _run_manager: Optional[CallbackManagerForToolRun] = None,
-    ) -> str:
+    def _run(self, search_query: str) -> str:
         pubmed = PubmedQueryRun(args_schema=self.args_schema)
         output = pubmed.run(search_query)
         return output
 
-    async def _arun(
-        self,
-        search_query: str,
-        _run_manager: Optional[AsyncCallbackManagerForToolRun] = None,
-    ) -> str:
+    async def _arun(self, search_query: str) -> str:
         pubmed = PubmedQueryRun(args_schema=self.args_schema)
-        output = pubmed.run(search_query)
+        loop = asyncio.get_event_loop()
+        output = await loop.run_in_executor(None, pubmed.run, search_query)
         return output

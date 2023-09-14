@@ -157,7 +157,7 @@ async def invoke(
         yield "data:\n\n"
 
         try:
-            task = asyncio.create_task(
+            task = asyncio.ensure_future(
                 agent.acall(inputs={"input": content}, tags=[agent_id])
             )
 
