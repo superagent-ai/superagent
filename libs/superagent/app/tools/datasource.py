@@ -64,6 +64,7 @@ class DatasourceFinetuneTool(BaseTool):
 class DatasourceTool(BaseTool):
     name = "datasource"
     description = "useful for when you need to answer questions"
+    return_direct = False
 
     def _run(
         self,
@@ -97,6 +98,7 @@ class DatasourceTool(BaseTool):
 class StructuredDatasourceTool(BaseTool):
     name = "structured datasource"
     description = "useful for when need answer questions"
+    return_direct = False
 
     def _run(
         self,
@@ -110,7 +112,9 @@ class StructuredDatasourceTool(BaseTool):
             data = DataLoader(datasource=datasource).load()
             df = pd.DataFrame(data)
         agent = create_pandas_dataframe_agent(
-            ChatOpenAI(temperature=0, model="gpt-4"),
+            ChatOpenAI(
+                temperature=0, model="gpt-4", openai_api_key=config("OPENAI_API_KEY")
+            ),
             df,
             verbose=True,
             agent_type=AgentType.OPENAI_FUNCTIONS,
@@ -130,7 +134,9 @@ class StructuredDatasourceTool(BaseTool):
             data = DataLoader(datasource=datasource).load()
             df = pd.DataFrame(data)
         agent = create_pandas_dataframe_agent(
-            ChatOpenAI(temperature=0, model="gpt-4"),
+            ChatOpenAI(
+                temperature=0, model="gpt-4", openai_api_key=config("OPENAI_API_KEY")
+            ),
             df,
             verbose=True,
             agent_type=AgentType.OPENAI_FUNCTIONS,
