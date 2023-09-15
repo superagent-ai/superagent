@@ -64,10 +64,11 @@ Both the API and UI require a database in order to work. We recommend settings t
 <details>
 <summary>Setting up Supabase</summary>
 
-1. Create a [Supabase](https://supabase.com) account and project. 
+Create a [Supabase](https://supabase.com) account and project. 
 We have seperated the ui and api into two sepearate Supabase projects which is recommended due the fact that the api runs on `prisma`.
 
-2. Run the following query to setup authentication:
+### Supabase setup for Superagent UI project
+1. Run the following query to setup authentication:
     ```sh
     -- inserts a row into public.profiles
     create function public.handle_new_user()
@@ -88,9 +89,9 @@ We have seperated the ui and api into two sepearate Supabase projects which is r
     for each row execute procedure public.handle_new_user();
     ```
 
-3. Create a Supabase storage
+2. Create a Supabase storage
 
-4. Set storate permissions:
+3. Set storate permissions:
    Set the following policy for `storage.objects`
    <img width="2672" alt="Screenshot 2023-09-14 at 23 27 35" src="https://github.com/homanp/superagent/assets/2464556/8d6bde18-528e-4e0a-9840-aabe39ce5e68">
 
