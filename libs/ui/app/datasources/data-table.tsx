@@ -136,6 +136,22 @@ export function DataTable<TData, TValue>({
         setIsLoadingFilePicker(false)
       },
       onSelect: async (file: any) => {
+        const supportedMimeTypes = [
+          "application/pdf",
+          "text/plain",
+          "text/markdown",
+          "text/csv",
+        ]
+
+        if (!supportedMimeTypes.includes(file.mime_type)) {
+          toast({
+            description: `File type ${file.mime_type} is not supported. Please select a .pdf, .txt, .md, or .csv file.`,
+            variant: "destructive",
+          })
+
+          return
+        }
+
         setOpen(true)
         setSelectedFile(file)
         setIsDownloadingFile(true)
