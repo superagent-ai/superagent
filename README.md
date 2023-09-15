@@ -2,7 +2,7 @@
 
 # Superagent 🥷
 
-**The agent framework for large language models**
+###**The agent framework for large language models**###
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/Superagent" />
