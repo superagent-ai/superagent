@@ -105,6 +105,25 @@ We have seperated the ui and api into two sepearate Supabase projects which is r
 </details>
 
 <details>
+<summary>Setting up Github OAuth in UI</summary>
+
+1. Create a new Github OAuth app in your [Github account](https://github.com/settings/developers)
+
+2. Copy the `CLIENT_ID` and `CLIENT_SECRET` and paste them into the `.env` variabels in the Superagent UI project.
+
+3. Set the following callback URL
+    ```sh
+    <YOUR_SUPABASE_URL>/auth/v1/callback
+    ```
+4. Navigate to your Supabase project you have created for Superagent UI and paste the `CLIENT_ID` and `CLIENT_SECRET`
+
+<img width="2672" alt="Screenshot 2023-09-15 at 09 08 52" src="https://github.com/homanp/superagent/assets/2464556/abd1e2fb-df90-413a-b674-766343683f6c">
+
+**NOTE**: You can enable any provider using the steps above.
+    
+</details>
+
+<details>
 <summary>Superagent API</summary>
 
 1. Navigate to `/libs/superagent`
