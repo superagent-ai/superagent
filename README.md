@@ -16,12 +16,16 @@
 
 </div>
 
-## 🧐 Superagent
+## ⚡ Superagent
 Superagent is an open source agent framework that enables any developer to integrate production ready AI Agents in their applications in a matter of minutes.
 
 ## 🎥 Demo
 
 https://github.com/homanp/superagent/assets/2464556/d02a05d0-64e6-48a2-a102-fb1312105fa5
+
+## 🧐 Tutorials
+
+We post tutorials regularly on our [Youtube channel](https://www.youtube.com/channel/UCBeXnF8gh2EwAmOIwpmfjmA). Make sure to check them out! 
 
 ## ✨ Use cases
 
