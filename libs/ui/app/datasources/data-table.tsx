@@ -136,7 +136,24 @@ export function DataTable<TData, TValue>({
         setIsLoadingFilePicker(false)
       },
       onSelect: async (file: any) => {
+        const supportedMimeTypes = [
+          "application/pdf",
+          "text/plain",
+          "text/markdown",
+          "text/csv",
+        ]
+
+        if (!supportedMimeTypes.includes(file.mime_type)) {
+          toast({
+            description: `File type ${file.mime_type} is not supported. Please select a .pdf, .txt, .md, or .csv file.`,
+            variant: "destructive",
+          })
+          form.reset()
+          return
+        }
+
         setOpen(true)
+        setIsOpeningVault(false)
         setSelectedFile(file)
         setIsDownloadingFile(true)
         const response = await fetch("/datasources/apideck/download", {
@@ -187,6 +204,10 @@ export function DataTable<TData, TValue>({
           onOpenChange={(value) => {
             setOpen(value)
             setSelectedType(null)
+            setIsOpeningVault(false)
+            if (!value) {
+              form.reset()
+            }
           }}
         >
           <DialogContent>
