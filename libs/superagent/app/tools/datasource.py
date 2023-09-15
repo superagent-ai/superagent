@@ -1,6 +1,8 @@
 # flake8: noqa
+import requests
 import pandas as pd
 
+from io import StringIO
 from decouple import config
 from langchain.tools import BaseTool
 from llama import Context, LLMEngine, Type
@@ -64,6 +66,7 @@ class DatasourceFinetuneTool(BaseTool):
 class DatasourceTool(BaseTool):
     name = "datasource"
     description = "useful for when you need to answer questions"
+    return_direct = False
 
     def _run(
         self,
@@ -97,6 +100,7 @@ class DatasourceTool(BaseTool):
 class StructuredDatasourceTool(BaseTool):
     name = "structured datasource"
     description = "useful for when need answer questions"
+    return_direct = False
 
     def _run(
         self,
@@ -105,12 +109,17 @@ class StructuredDatasourceTool(BaseTool):
         """Use the tool."""
         datasource: Datasource = self.metadata["datasource"]
         if datasource.type == "CSV":
-            df = pd.read_csv(datasource.url)
+            url = datasource.url
+            response = requests.get(url)
+            file_content = StringIO(response.text)
+            df = pd.read_csv(file_content)
         else:
             data = DataLoader(datasource=datasource).load()
             df = pd.DataFrame(data)
         agent = create_pandas_dataframe_agent(
-            ChatOpenAI(temperature=0, model="gpt-4"),
+            ChatOpenAI(
+                temperature=0, model="gpt-4", openai_api_key=config("OPENAI_API_KEY")
+            ),
             df,
             verbose=True,
             agent_type=AgentType.OPENAI_FUNCTIONS,
@@ -125,12 +134,17 @@ class StructuredDatasourceTool(BaseTool):
         """Use the tool asynchronously."""
         datasource: Datasource = self.metadata["datasource"]
         if datasource.type == "CSV":
-            df = pd.read_csv(datasource.url)
+            url = datasource.url
+            response = requests.get(url)
+            file_content = StringIO(response.text)
+            df = pd.read_csv(file_content)
         else:
             data = DataLoader(datasource=datasource).load()
             df = pd.DataFrame(data)
         agent = create_pandas_dataframe_agent(
-            ChatOpenAI(temperature=0, model="gpt-4"),
+            ChatOpenAI(
+                temperature=0, model="gpt-4", openai_api_key=config("OPENAI_API_KEY")
+            ),
             df,
             verbose=True,
             agent_type=AgentType.OPENAI_FUNCTIONS,
