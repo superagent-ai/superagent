@@ -1,5 +1,5 @@
 # flake8: noqa
-import logging
+import requests
 import pandas as pd
 
 from decouple import config
@@ -12,9 +12,6 @@ from prisma.models import Datasource
 from langchain.agents.agent_types import AgentType
 from langchain.agents import create_pandas_dataframe_agent
 from langchain.chat_models.openai import ChatOpenAI
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class DatasourceFinetuneTool(BaseTool):
@@ -132,15 +129,14 @@ class StructuredDatasourceTool(BaseTool):
     ) -> str:
         """Use the tool asynchronously."""
         datasource: Datasource = self.metadata["datasource"]
-        logging.info(f"Loading datasource {datasource}")
         if datasource.type == "CSV":
-            logging.info(f"Loading CSV {datasource.url}")
-            df = pd.read_csv(datasource.url)
-            logging.info(f"CSV loaded")
+            url = datasource.url
+            response = requests.get(url)
+            file_content = pd.compat.StringIO(response.text)
+            df = pd.read_csv(file_content)
         else:
             data = DataLoader(datasource=datasource).load()
             df = pd.DataFrame(data)
-
         agent = create_pandas_dataframe_agent(
             ChatOpenAI(
                 temperature=0, model="gpt-4", openai_api_key=config("OPENAI_API_KEY")
@@ -149,6 +145,5 @@ class StructuredDatasourceTool(BaseTool):
             verbose=True,
             agent_type=AgentType.OPENAI_FUNCTIONS,
         )
-        logging.info("Agent created")
         output = await agent.arun(question)
         return output
