@@ -113,6 +113,8 @@ export function DataTable<TData, TValue>({
       })
       router.refresh()
       setOpen(false)
+      setIsLoadingFilePicker(false)
+      setSelectedType(null)
       form.reset()
     } catch (error: any) {
       toast({
@@ -173,6 +175,16 @@ export function DataTable<TData, TValue>({
       },
     })
   }
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      router.refresh()
+    }, 10000)
+
+    return () => {
+      clearInterval(interval)
+    }
+  }, [router])
 
   return (
     <div>

@@ -55,6 +55,7 @@ export type DataType = {
   type: string
   description: string
   url: string
+  status: string
 }
 
 export function DeleteButton({
@@ -208,6 +209,19 @@ export const columns = (profile: Profile): ColumnDef<DataType>[] => [
   {
     accessorKey: "id",
     header: "ID",
+  },
+  {
+    accessorKey: "status",
+    header: "STATUS",
+    cell: ({ row, column }) =>
+      row.getValue(column.id) === "DONE" ? (
+        <Badge variant="secondary">Ready</Badge>
+      ) : (
+        <div className="flex items-center space-x-2">
+          <Spinner />
+          <p className="text-muted-foreground text-sm">processing...</p>
+        </div>
+      ),
   },
   {
     id: "actions",

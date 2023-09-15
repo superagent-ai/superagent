@@ -62,6 +62,7 @@ async def process_datasource(datasource_id: str, agent_id: str):
 async def vectorize_datasource(datasource: Datasource) -> None:
     if datasource.type in VALID_UNSTRUCTURED_DATA_TYPES:
         await vectorize(datasource=datasource)
+    await prisma.datasource.update(where={"id": datasource.id}, data={"status": "DONE"})
 
 
 @flow(name="revalidate_datasource", description="Revalidate datasources", retries=0)

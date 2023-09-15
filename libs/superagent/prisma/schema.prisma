@@ -49,6 +49,11 @@ enum DatasourceType {
   FUNCTION
 }
 
+enum DatasourceStatus {
+  IN_PROGRESS
+  DONE
+}
+
 model ApiUser {
   id          String       @id @default(uuid())
   token       String?
@@ -90,6 +95,7 @@ model Datasource {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   metadata    String?           @db.Text
+  status      DatasourceStatus  @default(IN_PROGRESS)
   datasources AgentDatasource[]
 }
 
