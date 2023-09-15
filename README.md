@@ -64,7 +64,8 @@ Both the API and UI require a database in order to work. We recommend settings t
 <details>
 <summary>Setting up Supabase</summary>
 
-1. Create a [Supabase](https://supabase.com) account and project
+1. Create a [Supabase](https://supabase.com) account and project. 
+We have seperated the ui and api into two sepearate Supabase projects which is recommended due the fact that the api runs on `prisma`.
 
 2. Run the following query to setup authentication:
     ```sh
