@@ -1,23 +1,11 @@
-A high-level overview of the SuperAgent platform.
+# Superagent Cloud Platform
 
-### User
+The Superagent Cloud Platform is a state-of-the-art infrastructure specifically designed to run agents in a fast and performant way. 
+It leverages cutting-edge techniques such as Server-Sent Events (SSE), concurrency, and workflow orchestration to ensure optimal performance and efficiency.
 
-A SuperAgent `User` that has access to `Agents`, `Documents` and `API tokens`.
+At its core, the platform utilizes some of the best and most reliable frameworks in the industry. 
+FastAPI, a modern, fast (high-performance), web framework for building APIs is used for its speed and ease of use. 
+Prefect, a new workflow management system, is used for orchestrating the workflows and managing tasks. 
+Lastly, Vercel, a cloud platform for static sites and Serverless Functions, is used for deployment of the Superagent UI.
 
-### API token
-
-An API token used for invoking `Agent` requests using the 
-[Prompt Agent](/api-reference/agent/prompt-agent) endpoint.
-
-### Agent
-
-A Large Language Model which has access to a suite of tools. 
-Depending on the user input, the agent can then decide which, if any, of these tools to call.
-
-### Prompt
-
-A text template that is used to ingest context and alter an `Agents` behaviour.
-
-### Document
-
-A piece of information that can be attached to an `Agent` for question answering.
+With this combination of advanced techniques and robust frameworks, the Superagent Cloud Platform provides a reliable and efficient environment for running and managing agents.

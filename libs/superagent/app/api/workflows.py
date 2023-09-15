@@ -178,7 +178,7 @@ async def list_steps(workflow_id: str, api_user=Depends(get_current_api_user)):
     description="Delete a specific workflow step",
 )
 async def delete_step(
-    _workflow_id: str, step_id: str, api_user=Depends(get_current_api_user)
+    workflow_id: str, step_id: str, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for deleting a specific workflow step"""
     try:

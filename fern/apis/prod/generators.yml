@@ -1,0 +1,27 @@
+groups:
+  publish:
+    generators:
+      - name: fernapi/fern-python-sdk
+        version: 0.4.4
+        output:
+          location: pypi
+          package-name: superagent-py
+          token: ${PYPI_TOKEN}
+        github:
+          repository: homanp/superagent-py
+        config:
+          client_class_name: Superagent
+      - name: fernapi/fern-typescript-node-sdk
+        version: 0.7.1
+        output:
+          location: npm
+          package-name: superagentai-js
+          token: ${NPM_TOKEN}
+        github:
+          repository: homanp/superagent-js
+        config:
+          namespaceExport: SuperAgent
+  prod-docs:
+    docs:
+      domain: superagent.docs.buildwithfern.com
+    generators: []
