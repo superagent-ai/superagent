@@ -109,7 +109,10 @@ class StructuredDatasourceTool(BaseTool):
         """Use the tool."""
         datasource: Datasource = self.metadata["datasource"]
         if datasource.type == "CSV":
-            df = pd.read_csv(datasource.url)
+            url = datasource.url
+            response = requests.get(url)
+            file_content = StringIO(response.text)
+            df = pd.read_csv(file_content)
         else:
             data = DataLoader(datasource=datasource).load()
             df = pd.DataFrame(data)
