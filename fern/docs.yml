@@ -19,6 +19,13 @@ logo:
   dark: ./assets/logo-dark.png
   height: 24
   href: https://www.superagent.sh/
+versions: 
+  - display-name: legacy
+    path: ./versions/legacy.yml
+    slug: v0.0.X
+  - display-name: v0.0.99
+    path: ./versions/prod.yml
+    slug: v0.0.99
 favicon: ./assets/favicon.png
 title: Superagent | Docs
 navbar-links:

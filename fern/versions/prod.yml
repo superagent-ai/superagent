@@ -1,0 +1,11 @@
+navigation:
+  - section: Overview
+    contents:
+      - page: Introduction
+        path: ../mdx/intro.mdx
+      - page: Platform
+        path: ../mdx/platform.mdx
+      - page: Concepts
+        path: ../mdx/concepts.mdx
+  - api-name: prod
+    api: Superagent API
