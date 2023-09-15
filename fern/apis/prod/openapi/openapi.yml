@@ -1,36 +1,36 @@
 openapi: 3.0.2
 info:
   title: Superagent
-  description: Build, manage and deploy LLM-powered Agents
-  version: 0.0.59
+  description: The agent framework for large language models
+  version: 0.0.99
 paths:
   /api/v1/agents:
     get:
       tags:
         - Agent
-      summary: List All Agents
+      summary: List
       description: List all agents
-      operationId: List_all_agents_api_v1_agents_get
+      operationId: list_api_v1_agents_get
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentListOutput'
+                $ref: '#/components/schemas/AgentList'
       security:
-        - JWTBearer: []
+        - HTTPBearer: []
     post:
       tags:
         - Agent
-      summary: Create Agent
+      summary: Create
       description: Create a new agent
-      operationId: Create_agent_api_v1_agents_post
+      operationId: create_api_v1_agents_post
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/app__lib__models__agent__Agent'
+              $ref: '#/components/schemas/app__models__request__Agent'
         required: true
       responses:
         '200':
@@ -38,7 +38,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentOutput'
+                $ref: '#/components/schemas/app__models__response__Agent'
         '422':
           description: Validation Error
           content:
@@ -46,36 +46,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
-        - JWTBearer: []
-  /api/v1/agents/library:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}:
     get:
       tags:
         - Agent
-      summary: List Library Agents
-      description: List all library agents
-      operationId: List_library_agents_api_v1_agents_library_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentListOutput'
-      security:
-        - JWTBearer: []
-  /api/v1/agents/{agentId}:
-    get:
-      tags:
-        - Agent
-      summary: Get Agent
-      description: Get a specific agent
-      operationId: Get_agent_api_v1_agents__agentId__get
+      summary: Get
+      description: Get a single agent
+      operationId: get_api_v1_agents__agent_id__get
       parameters:
         - required: true
           schema:
-            title: Agentid
+            title: Agent Id
             type: string
-          name: agentId
+          name: agent_id
           in: path
       responses:
         '200':
@@ -83,7 +67,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentOutput'
+                $ref: '#/components/schemas/app__models__response__Agent'
         '422':
           description: Validation Error
           content:
@@ -91,531 +75,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
-        - JWTBearer: []
+        - HTTPBearer: []
     delete:
       tags:
         - Agent
-      summary: Delete Agent
-      description: Delete a specific agent
-      operationId: Delete_agent_api_v1_agents__agentId__delete
+      summary: Delete
+      description: Delete an agent
+      operationId: delete_api_v1_agents__agent_id__delete
       parameters:
         - required: true
           schema:
-            title: Agentid
+            title: Agent Id
             type: string
-          name: agentId
+          name: agent_id
           in: path
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-    patch:
-      tags:
-        - Agent
-      summary: Patch Agent
-      description: Patch a specific agent
-      operationId: Patch_agent_api_v1_agents__agentId__patch
-      parameters:
-        - required: true
-          schema:
-            title: Agentid
-            type: string
-          name: agentId
-          in: path
-      requestBody:
-        content:
-          application/json:
-            schema:
-              title: Body
-              type: object
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-  /api/v1/agents/{agentId}/predict:
-    post:
-      tags:
-        - Agent
-      summary: Prompt Agent
-      description: Invoke a specific agent
-      operationId: Prompt_agent_api_v1_agents__agentId__predict_post
-      parameters:
-        - required: true
-          schema:
-            title: Agentid
-            type: string
-          name: agentId
-          in: path
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PredictAgent'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PredictAgentOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - APIKeyHeader: []
-        - APIKeyHeader: []
-  /api/v1/agent-documents:
-    get:
-      tags:
-        - Agent documents
-      summary: List Agent Documents
-      description: List all agent documents
-      operationId: List_agent_documents_api_v1_agent_documents_get
-      parameters:
-        - required: false
-          schema:
-            title: Expand
-            type: boolean
-            default: false
-          name: expand
-          in: query
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentDocumentListOuput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-    post:
-      tags:
-        - Agent documents
-      summary: Create Agent Document
-      description: Create a agent document
-      operationId: Create_agent_document_api_v1_agent_documents_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/app__lib__models__agent_document__AgentDocument'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentDocumentOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-  /api/v1/agent-documents/{agentDocumentId}:
-    get:
-      tags:
-        - Agent documents
-      summary: Get Agent Document
-      description: Get a specific agent document
-      operationId: Get_agent_document_api_v1_agent_documents__agentDocumentId__get
-      parameters:
-        - required: true
-          schema:
-            title: Agentdocumentid
-            type: string
-          name: agentDocumentId
-          in: path
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentDocumentOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-    delete:
-      tags:
-        - Agent documents
-      summary: Delete Agent Document
-      description: Delete a specific agent document
-      operationId: Delete_agent_document_api_v1_agent_documents__agentDocumentId__delete
-      parameters:
-        - required: true
-          schema:
-            title: Agentdocumentid
-            type: string
-          name: agentDocumentId
-          in: path
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentDocumentOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-  /api/v1/tags:
-    get:
-      tags:
-        - Tags
-      summary: List Tags
-      description: List all tags
-      operationId: List_tags_api_v1_tags_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TagListOutput'
-      security:
-        - JWTBearer: []
-    post:
-      tags:
-        - Tags
-      summary: Create A Tag
-      description: Create a new tag
-      operationId: Create_a_tag_api_v1_tags_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/app__lib__models__tag__Tag'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TagOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-  /api/v1/tags/{tagId}:
-    get:
-      tags:
-        - Tags
-      summary: Get Tag
-      description: Get a specific tag
-      operationId: Get_tag_api_v1_tags__tagId__get
-      parameters:
-        - required: true
-          schema:
-            title: Tagid
-            type: string
-          name: tagId
-          in: path
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TagOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-    delete:
-      tags:
-        - Tags
-      summary: Delete Tag
-      description: Delete a specific tag
-      operationId: Delete_tag_api_v1_tags__tagId__delete
-      parameters:
-        - required: true
-          schema:
-            title: Tagid
-            type: string
-          name: tagId
-          in: path
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TagOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-    patch:
-      tags:
-        - Tags
-      summary: Patch Tag
-      description: Patch a specific tag
-      operationId: Patch_tag_api_v1_tags__tagId__patch
-      parameters:
-        - required: true
-          schema:
-            title: Tagid
-            type: string
-          name: tagId
-          in: path
-      requestBody:
-        content:
-          application/json:
-            schema:
-              title: Body
-              type: object
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TagOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-  /api/v1/agent-tools:
-    get:
-      tags:
-        - Agent tools
-      summary: List Agent Tools
-      description: List all agent tools
-      operationId: List_agent_tools_api_v1_agent_tools_get
-      parameters:
-        - required: false
-          schema:
-            title: Expand
-            type: boolean
-            default: false
-          name: expand
-          in: query
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentToolListOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-    post:
-      tags:
-        - Agent tools
-      summary: Create Agent Tool
-      description: Create a agent tool
-      operationId: Create_agent_tool_api_v1_agent_tools_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/app__lib__models__agent_tool__AgentTool'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentToolOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-  /api/v1/agent-tools/{agentToolId}:
-    get:
-      tags:
-        - Agent tools
-      summary: Get Agent Tool
-      description: Get a specific agent tool
-      operationId: Get_agent_tool_api_v1_agent_tools__agentToolId__get
-      parameters:
-        - required: true
-          schema:
-            title: Agenttoolid
-            type: string
-          name: agentToolId
-          in: path
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentToolOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-    delete:
-      tags:
-        - Agent tools
-      summary: Delete Agent Tool
-      description: Delete a specific agent tool
-      operationId: Delete_agent_tool_api_v1_agent_tools__agentToolId__delete
-      parameters:
-        - required: true
-          schema:
-            title: Agenttoolid
-            type: string
-          name: agentToolId
-          in: path
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentToolOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-  /api/v1/auth/sign-in:
-    post:
-      tags:
-        - Auth
-      summary: Sign In
-      operationId: sign_in_api_v1_auth_sign_in_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignIn'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SignInOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/auth/sign-up:
-    post:
-      tags:
-        - Auth
-      summary: Sign Up
-      operationId: sign_up_api_v1_auth_sign_up_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SignUp'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SignInOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/auth/oauth/callback:
-    post:
-      tags:
-        - Auth
-      summary: Oauth Handler
-      operationId: oauth_handler_api_v1_auth_oauth_callback_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OAuth'
-        required: true
       responses:
         '200':
           description: Successful Response
@@ -628,266 +101,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/users/me:
-    get:
-      tags:
-        - User
-      summary: Read User Me
-      operationId: read_user_me_api_v1_users_me_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserOutput'
       security:
-        - JWTBearer: []
-  /api/v1/users/{userId}:
-    get:
-      tags:
-        - User
-      summary: Read User
-      operationId: read_user_api_v1_users__userId__get
-      parameters:
-        - required: true
-          schema:
-            title: Userid
-            type: string
-          name: userId
-          in: path
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/api-tokens:
-    get:
-      tags:
-        - Api token
-      summary: List Api Tokens
-      description: List all API tokens
-      operationId: List_API_tokens_api_v1_api_tokens_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiTokenListOutput'
-      security:
-        - JWTBearer: []
-    post:
-      tags:
-        - Api token
-      summary: Create Api Token
-      description: Create a new API token
-      operationId: Create_API_token_api_v1_api_tokens_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/app__lib__models__api_token__ApiToken'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiTokenOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-  /api/v1/api-tokens/{tokenId}:
-    get:
-      tags:
-        - Api token
-      summary: Get Api Token
-      description: Get a specific API token
-      operationId: Get_API_token_api_v1_api_tokens__tokenId__get
-      parameters:
-        - required: true
-          schema:
-            title: Tokenid
-            type: string
-          name: tokenId
-          in: path
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiTokenOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-    delete:
-      tags:
-        - Api token
-      summary: Delete Api Token
-      description: Delete a specific API token
-      operationId: Delete_API_token_api_v1_api_tokens__tokenId__delete
-      parameters:
-        - required: true
-          schema:
-            title: Tokenid
-            type: string
-          name: tokenId
-          in: path
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiTokenOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-  /api/v1/documents:
-    get:
-      tags:
-        - Documents
-      summary: List Documents
-      description: List all documents
-      operationId: List_documents_api_v1_documents_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DocumentListOutput'
-      security:
-        - JWTBearer: []
-    post:
-      tags:
-        - Documents
-      summary: Create Document
-      description: Create a new document
-      operationId: Create_document_api_v1_documents_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/app__lib__models__document__Document'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DocumentOuput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-  /api/v1/documents/{documentId}:
-    get:
-      tags:
-        - Documents
-      summary: Get Document
-      description: Get a specific document
-      operationId: Get_document_api_v1_documents__documentId__get
-      parameters:
-        - required: true
-          schema:
-            title: Documentid
-            type: string
-          name: documentId
-          in: path
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DocumentOuput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-    delete:
-      tags:
-        - Documents
-      summary: Delete Document
-      description: Delete a specific document
-      operationId: Delete_document_api_v1_documents__documentId__delete
-      parameters:
-        - required: true
-          schema:
-            title: Documentid
-            type: string
-          name: documentId
-          in: path
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DocumentOuput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
+        - HTTPBearer: []
     patch:
       tags:
-        - Documents
-      summary: Patch Document
-      description: Patch a specific document
-      operationId: Patch_document_api_v1_documents__documentId__patch
+        - Agent
+      summary: Update
+      description: Patch an agent
+      operationId: update_api_v1_agents__agent_id__patch
       parameters:
         - required: true
           schema:
-            title: Documentid
+            title: Agent Id
             type: string
-          name: documentId
+          name: agent_id
           in: path
       requestBody:
         content:
           application/json:
             schema:
-              title: Body
-              type: object
+              $ref: '#/components/schemas/app__models__request__Agent'
         required: true
       responses:
         '200':
@@ -895,7 +128,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DocumentOuput'
+                $ref: '#/components/schemas/app__models__response__Agent'
         '422':
           description: Validation Error
           content:
@@ -903,34 +136,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
-        - JWTBearer: []
-  /api/v1/prompts:
-    get:
-      tags:
-        - Prompts
-      summary: List Prompts
-      description: List all prompts
-      operationId: List_prompts_api_v1_prompts_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PromptListOutput'
-      security:
-        - JWTBearer: []
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/invoke:
     post:
       tags:
-        - Prompts
-      summary: Create A Prompt
-      description: Create a new prompt
-      operationId: Create_a_prompt_api_v1_prompts_post
+        - Agent
+      summary: Invoke
+      description: Invoke an agent
+      operationId: invoke_api_v1_agents__agent_id__invoke_post
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/app__lib__models__prompt__Prompt'
+              $ref: '#/components/schemas/app__models__request__AgentInvoke'
         required: true
       responses:
         '200':
@@ -938,7 +163,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PromptOutput'
+                $ref: '#/components/schemas/app__models__response__AgentInvoke'
         '422':
           description: Validation Error
           content:
@@ -946,28 +171,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
-        - JWTBearer: []
-  /api/v1/prompts/{promptId}:
-    get:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/llms:
+    post:
       tags:
-        - Prompts
-      summary: Get Prompt
-      description: Get a specific prompt
-      operationId: Get_prompt_api_v1_prompts__promptId__get
+        - Agent
+      summary: Add Llm
+      description: Add LLM to agent
+      operationId: add_llm_api_v1_agents__agent_id__llms_post
       parameters:
         - required: true
           schema:
-            title: Promptid
+            title: Agent Id
             type: string
-          name: promptId
+          name: agent_id
           in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentLLM'
+        required: true
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PromptOutput'
+                $ref: '#/components/schemas/app__models__response__Agent'
         '422':
           description: Validation Error
           content:
@@ -975,27 +206,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
-        - JWTBearer: []
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/llms/{llm_id}:
     delete:
       tags:
-        - Prompts
-      summary: Delete Prompt
-      description: Delete a specific prompt
-      operationId: Delete_prompt_api_v1_prompts__promptId__delete
+        - Agent
+      summary: Remove Llm
+      description: Remove LLM from agent
+      operationId: remove_llm_api_v1_agents__agent_id__llms__llm_id__delete
       parameters:
         - required: true
           schema:
-            title: Promptid
+            title: Agent Id
             type: string
-          name: promptId
+          name: agent_id
+          in: path
+        - required: true
+          schema:
+            title: Llm Id
+            type: string
+          name: llm_id
           in: path
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/PromptOutput'
+              schema: {}
         '422':
           description: Validation Error
           content:
@@ -1003,26 +240,54 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
-        - JWTBearer: []
-    patch:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/tools:
+    get:
       tags:
-        - Prompts
-      summary: Patch Prompt
-      description: Patch a specific prompt
-      operationId: Patch_prompt_api_v1_prompts__promptId__patch
+        - Agent
+      summary: List Tools
+      description: List agent tools
+      operationId: list_tools_api_v1_agents__agent_id__tools_get
       parameters:
         - required: true
           schema:
-            title: Promptid
+            title: Agent Id
             type: string
-          name: promptId
+          name: agent_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentToolList'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - Agent
+      summary: Add Tool
+      description: Add tool to agent
+      operationId: add_tool_api_v1_agents__agent_id__tools_post
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
           in: path
       requestBody:
         content:
           application/json:
             schema:
-              title: Body
-              type: object
+              $ref: '#/components/schemas/AgentTool'
         required: true
       responses:
         '200':
@@ -1030,7 +295,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PromptOutput'
+                $ref: '#/components/schemas/app__models__response__Agent'
         '422':
           description: Validation Error
           content:
@@ -1038,34 +303,477 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
-        - JWTBearer: []
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/tools/{tool_id}:
+    delete:
+      tags:
+        - Agent
+      summary: Remove Tool
+      description: Remove tool from agent
+      operationId: remove_tool_api_v1_agents__agent_id__tools__tool_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+        - required: true
+          schema:
+            title: Tool Id
+            type: string
+          name: tool_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/datasources:
+    get:
+      tags:
+        - Agent
+      summary: List Datasources
+      description: List agent datasources
+      operationId: list_datasources_api_v1_agents__agent_id__datasources_get
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentDatasosurceList'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - Agent
+      summary: Add Datasource
+      description: Add datasource to agent
+      operationId: add_datasource_api_v1_agents__agent_id__datasources_post
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentDatasource'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Agent'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/datasources/{datasource_id}:
+    delete:
+      tags:
+        - Agent
+      summary: Remove Datasource
+      description: Remove datasource from agent
+      operationId: remove_datasource_api_v1_agents__agent_id__datasources__datasource_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+        - required: true
+          schema:
+            title: Datasource Id
+            type: string
+          name: datasource_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/runs:
+    get:
+      tags:
+        - Agent
+      summary: List Runs
+      description: List agent runs
+      operationId: list_runs_api_v1_agents__agent_id__runs_get
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentRunList'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/llms:
+    get:
+      tags:
+        - LLM
+      summary: List
+      description: List all LLMs
+      operationId: list_api_v1_llms_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LLMList'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - LLM
+      summary: Create
+      description: Create a new LLM
+      operationId: create_api_v1_llms_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__LLM'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__LLM'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/llms/{llm_id}:
+    get:
+      tags:
+        - LLM
+      summary: Get
+      description: Get a single LLM
+      operationId: get_api_v1_llms__llm_id__get
+      parameters:
+        - required: true
+          schema:
+            title: Llm Id
+            type: string
+          name: llm_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__LLM'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    patch:
+      tags:
+        - LLM
+      summary: Update
+      description: Patch an LLM
+      operationId: update_api_v1_llms__llm_id__patch
+      parameters:
+        - required: true
+          schema:
+            title: Llm Id
+            type: string
+          name: llm_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__LLM'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__LLM'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/api-users:
+    post:
+      tags:
+        - Api user
+      summary: Create
+      description: Create a new API user
+      operationId: create_api_v1_api_users_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiUser'
+  /api/v1/api-users/me:
+    get:
+      tags:
+        - Api user
+      summary: Get
+      description: Get a single api user
+      operationId: get_api_v1_api_users_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiUser'
+      security:
+        - HTTPBearer: []
+    delete:
+      tags:
+        - Api user
+      summary: Delete
+      description: Delete an api user
+      operationId: delete_api_v1_api_users_me_delete
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - HTTPBearer: []
+  /api/v1/datasources:
+    get:
+      tags:
+        - Datasource
+      summary: List
+      description: List all datasources
+      operationId: list_api_v1_datasources_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasourceList'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - Datasource
+      summary: Create
+      description: Create a new datasource
+      operationId: create_api_v1_datasources_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__Datasource'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Datasource'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/datasources/{datasource_id}:
+    get:
+      tags:
+        - Datasource
+      summary: Get
+      description: Get a specific datasource
+      operationId: get_api_v1_datasources__datasource_id__get
+      parameters:
+        - required: true
+          schema:
+            title: Datasource Id
+            type: string
+          name: datasource_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Datasource'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    delete:
+      tags:
+        - Datasource
+      summary: Delete
+      description: Delete a specific datasource
+      operationId: delete_api_v1_datasources__datasource_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Datasource Id
+            type: string
+          name: datasource_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    patch:
+      tags:
+        - Datasource
+      summary: Update
+      description: Update a specific datasource
+      operationId: update_api_v1_datasources__datasource_id__patch
+      parameters:
+        - required: true
+          schema:
+            title: Datasource Id
+            type: string
+          name: datasource_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__Datasource'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Datasource'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
   /api/v1/tools:
     get:
       tags:
-        - Tools
-      summary: List Tools
+        - Tool
+      summary: List
       description: List all tools
-      operationId: List_tools_api_v1_tools_get
+      operationId: list_api_v1_tools_get
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ToolListOutput'
+                $ref: '#/components/schemas/ToolList'
       security:
-        - JWTBearer: []
+        - HTTPBearer: []
     post:
       tags:
-        - Tools
-      summary: Create A Tool
+        - Tool
+      summary: Create
       description: Create a new tool
-      operationId: Create_a_tool_api_v1_tools_post
+      operationId: create_api_v1_tools_post
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/app__lib__models__tool__Tool'
+              $ref: '#/components/schemas/app__models__request__Tool'
         required: true
       responses:
         '200':
@@ -1073,7 +781,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ToolOutput'
+                $ref: '#/components/schemas/app__models__response__Tool'
         '422':
           description: Validation Error
           content:
@@ -1081,20 +789,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
-        - JWTBearer: []
-  /api/v1/tools/{toolId}:
+        - HTTPBearer: []
+  /api/v1/tools/{tool_id}:
     get:
       tags:
-        - Tools
-      summary: Get Tool
+        - Tool
+      summary: Get
       description: Get a specific tool
-      operationId: Get_tool_api_v1_tools__toolId__get
+      operationId: get_api_v1_tools__tool_id__get
       parameters:
         - required: true
           schema:
-            title: Toolid
+            title: Tool Id
             type: string
-          name: toolId
+          name: tool_id
           in: path
       responses:
         '200':
@@ -1102,7 +810,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ToolOutput'
+                $ref: '#/components/schemas/app__models__response__Tool'
         '422':
           description: Validation Error
           content:
@@ -1110,92 +818,338 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
-        - JWTBearer: []
+        - HTTPBearer: []
     delete:
       tags:
-        - Tools
-      summary: Delete Tool
+        - Tool
+      summary: Delete
       description: Delete a specific tool
-      operationId: Delete_tool_api_v1_tools__toolId__delete
+      operationId: delete_api_v1_tools__tool_id__delete
       parameters:
         - required: true
           schema:
-            title: Toolid
+            title: Tool Id
             type: string
-          name: toolId
+          name: tool_id
           in: path
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ToolOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-    patch:
-      tags:
-        - Tools
-      summary: Patch Tool
-      description: Patch a specific tool
-      operationId: Patch_tool_api_v1_tools__toolId__patch
-      parameters:
-        - required: true
-          schema:
-            title: Toolid
-            type: string
-          name: toolId
-          in: path
-      requestBody:
-        content:
-          application/json:
-            schema:
-              title: Body
-              type: object
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ToolOutput'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - JWTBearer: []
-  /api/v1/traces:
-    get:
-      tags:
-        - Traces
-      summary: List Agent Traces
-      description: List all agent traces
-      operationId: List_agent_traces_api_v1_traces_get
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
       security:
-        - JWTBearer: []
+        - HTTPBearer: []
+    patch:
+      tags:
+        - Tool
+      summary: Update
+      description: Update a specific tool
+      operationId: update_api_v1_tools__tool_id__patch
+      parameters:
+        - required: true
+          schema:
+            title: Tool Id
+            type: string
+          name: tool_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__Tool'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Tool'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/workflows:
+    get:
+      tags:
+        - Workflow
+      summary: List
+      description: List all workflows
+      operationId: list_api_v1_workflows_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowList'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - Workflow
+      summary: Create
+      description: Create a new workflow
+      operationId: create_api_v1_workflows_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__Workflow'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Workflow'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/workflows/{workflow_id}:
+    get:
+      tags:
+        - Workflow
+      summary: Get
+      description: Get a single workflow
+      operationId: get_api_v1_workflows__workflow_id__get
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Workflow'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    delete:
+      tags:
+        - Workflow
+      summary: Delete
+      description: Delete a specific workflow
+      operationId: delete_api_v1_workflows__workflow_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    patch:
+      tags:
+        - Workflow
+      summary: Update
+      description: Patch a workflow
+      operationId: update_api_v1_workflows__workflow_id__patch
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__Workflow'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Workflow'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/workflows/{workflow_id}/invoke:
+    post:
+      tags:
+        - Workflow
+      summary: Invoke
+      description: Invoke a specific workflow
+      operationId: invoke_api_v1_workflows__workflow_id__invoke_post
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowInvoke'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/workflows/{workflow_id}/steps:
+    get:
+      tags:
+        - Workflow
+      summary: List Steps
+      description: List all steps of a workflow
+      operationId: list_steps_api_v1_workflows__workflow_id__steps_get
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowList'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - Workflow
+      summary: Add Step
+      description: Create a new workflow step
+      operationId: add_step_api_v1_workflows__workflow_id__steps_post
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowStep'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Workflow'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/workflows/{workflow_id}/steps/{step_id}:
+    delete:
+      tags:
+        - Workflow
+      summary: Delete Step
+      description: Delete a specific workflow step
+      operationId: delete_step_api_v1_workflows__workflow_id__steps__step_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+        - required: true
+          schema:
+            title: Step Id
+            type: string
+          name: step_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
 components:
   schemas:
-    AgentDocumentListOuput:
-      title: AgentDocumentListOuput
+    AgentDatasosurceList:
+      title: AgentDatasosurceList
       required:
         - success
-        - data
       type: object
       properties:
         success:
@@ -1205,23 +1159,29 @@ components:
           title: Data
           type: array
           items:
-            $ref: '#/components/schemas/app__lib__models__response__AgentDocument'
-    AgentDocumentOutput:
-      title: AgentDocumentOutput
+            type: object
+    AgentDatasource:
+      title: AgentDatasource
       required:
-        - success
+        - datasourceId
       type: object
       properties:
-        success:
-          title: Success
-          type: boolean
-        data:
-          $ref: '#/components/schemas/app__lib__models__response__AgentDocument'
-    AgentListOutput:
-      title: AgentListOutput
+        datasourceId:
+          title: Datasourceid
+          type: string
+    AgentLLM:
+      title: AgentLLM
+      required:
+        - llmId
+      type: object
+      properties:
+        llmId:
+          title: Llmid
+          type: string
+    AgentList:
+      title: AgentList
       required:
         - success
-        - data
       type: object
       properties:
         success:
@@ -1231,23 +1191,11 @@ components:
           title: Data
           type: array
           items:
-            $ref: '#/components/schemas/app__lib__models__response__Agent'
-    AgentOutput:
-      title: AgentOutput
+            type: object
+    AgentRunList:
+      title: AgentRunList
       required:
         - success
-      type: object
-      properties:
-        success:
-          title: Success
-          type: boolean
-        data:
-          $ref: '#/components/schemas/app__lib__models__response__Agent'
-    AgentToolListOutput:
-      title: AgentToolListOutput
-      required:
-        - success
-        - data
       type: object
       properties:
         success:
@@ -1257,31 +1205,20 @@ components:
           title: Data
           type: array
           items:
-            $ref: '#/components/schemas/app__lib__models__response__AgentTool'
-    AgentToolOutput:
-      title: AgentToolOutput
+            type: object
+    AgentTool:
+      title: AgentTool
       required:
-        - success
+        - toolId
       type: object
       properties:
-        success:
-          title: Success
-          type: boolean
-        data:
-          $ref: '#/components/schemas/app__lib__models__response__AgentTool'
-    AgentType:
-      title: AgentType
-      enum:
-        - REACT
-        - PLANSOLVE
-        - OPENAI
-      type: string
-      description: An enumeration.
-    ApiTokenListOutput:
-      title: ApiTokenListOutput
+        toolId:
+          title: Toolid
+          type: string
+    AgentToolList:
+      title: AgentToolList
       required:
         - success
-        - data
       type: object
       properties:
         success:
@@ -1291,9 +1228,9 @@ components:
           title: Data
           type: array
           items:
-            $ref: '#/components/schemas/app__lib__models__response__ApiToken'
-    ApiTokenOutput:
-      title: ApiTokenOutput
+            type: object
+    ApiUser:
+      title: ApiUser
       required:
         - success
       type: object
@@ -1302,12 +1239,12 @@ components:
           title: Success
           type: boolean
         data:
-          $ref: '#/components/schemas/app__lib__models__response__ApiToken'
-    DocumentListOutput:
-      title: DocumentListOutput
+          title: Data
+          type: object
+    DatasourceList:
+      title: DatasourceList
       required:
         - success
-        - data
       type: object
       properties:
         success:
@@ -1317,38 +1254,7 @@ components:
           title: Data
           type: array
           items:
-            $ref: '#/components/schemas/app__lib__models__response__Document'
-    DocumentOuput:
-      title: DocumentOuput
-      required:
-        - success
-      type: object
-      properties:
-        success:
-          title: Success
-          type: boolean
-        data:
-          $ref: '#/components/schemas/app__lib__models__response__Document'
-    DocumentType:
-      title: DocumentType
-      enum:
-        - TXT
-        - PDF
-        - CSV
-        - YOUTUBE
-        - OPENAPI
-        - URL
-        - MARKDOWN
-        - FIRESTORE
-        - PSYCHIC
-        - GITHUB_REPOSITORY
-        - WEBPAGE
-        - STRIPE
-        - AIRTABLE
-        - SITEMAP
-        - NOTION
-      type: string
-      description: An enumeration.
+            type: object
     HTTPValidationError:
       title: HTTPValidationError
       type: object
@@ -1358,66 +1264,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ValidationError'
-    OAuth:
-      title: OAuth
-      required:
-        - email
-        - name
-      type: object
-      properties:
-        email:
-          title: Email
-          type: string
-        name:
-          title: Name
-          type: string
-        access_token:
-          title: Access Token
-          type: string
-        provider:
-          title: Provider
-          type: string
-    PredictAgent:
-      title: PredictAgent
-      required:
-        - input
-      type: object
-      properties:
-        input:
-          title: Input
-          type: object
-        has_streaming:
-          title: Has Streaming
-          type: boolean
-          default: false
-        session:
-          title: Session
-          type: string
-        cache_ttl:
-          title: Cache Ttl
-          type: integer
-    PredictAgentOutput:
-      title: PredictAgentOutput
+    LLMList:
+      title: LLMList
       required:
         - success
-        - data
-        - trace
-      type: object
-      properties:
-        success:
-          title: Success
-          type: boolean
-        data:
-          title: Data
-          type: string
-        trace:
-          title: Trace
-          type: object
-    PromptListOutput:
-      title: PromptListOutput
-      required:
-        - success
-        - data
       type: object
       properties:
         success:
@@ -1427,68 +1277,11 @@ components:
           title: Data
           type: array
           items:
-            $ref: '#/components/schemas/app__lib__models__response__Prompt'
-    PromptOutput:
-      title: PromptOutput
+            type: object
+    ToolList:
+      title: ToolList
       required:
         - success
-      type: object
-      properties:
-        success:
-          title: Success
-          type: boolean
-        data:
-          $ref: '#/components/schemas/app__lib__models__response__Prompt'
-    SignIn:
-      title: SignIn
-      required:
-        - email
-        - password
-      type: object
-      properties:
-        email:
-          title: Email
-          type: string
-        password:
-          title: Password
-          type: string
-    SignInOutput:
-      title: SignInOutput
-      required:
-        - success
-        - data
-      type: object
-      properties:
-        success:
-          title: Success
-          type: boolean
-        data:
-          title: Data
-          type: object
-    SignUp:
-      title: SignUp
-      required:
-        - email
-        - password
-      type: object
-      properties:
-        email:
-          title: Email
-          type: string
-        password:
-          title: Password
-          type: string
-        name:
-          title: Name
-          type: string
-        metadata:
-          title: Metadata
-          type: object
-    TagListOutput:
-      title: TagListOutput
-      required:
-        - success
-        - data
       type: object
       properties:
         success:
@@ -1498,106 +1291,7 @@ components:
           title: Data
           type: array
           items:
-            $ref: '#/components/schemas/app__lib__models__response__Tag'
-    TagOutput:
-      title: TagOutput
-      required:
-        - success
-      type: object
-      properties:
-        success:
-          title: Success
-          type: boolean
-        data:
-          $ref: '#/components/schemas/app__lib__models__response__Tag'
-    ToolListOutput:
-      title: ToolListOutput
-      required:
-        - success
-        - data
-      type: object
-      properties:
-        success:
-          title: Success
-          type: boolean
-        data:
-          title: Data
-          type: array
-          items:
-            $ref: '#/components/schemas/app__lib__models__response__Tool'
-    ToolOutput:
-      title: ToolOutput
-      required:
-        - success
-      type: object
-      properties:
-        success:
-          title: Success
-          type: boolean
-        data:
-          $ref: '#/components/schemas/app__lib__models__response__Tool'
-    ToolType:
-      title: ToolType
-      enum:
-        - BROWSER
-        - SEARCH
-        - WOLFRAM_ALPHA
-        - REPLICATE
-        - ZAPIER_NLA
-        - AGENT
-        - OPENAPI
-        - CHATGPT_PLUGIN
-        - METAPHOR
-      type: string
-      description: An enumeration.
-    User:
-      title: User
-      required:
-        - id
-        - email
-      type: object
-      properties:
-        id:
-          title: Id
-          type: string
-        email:
-          title: Email
-          type: string
-        password:
-          title: Password
-          type: string
-        name:
-          title: Name
-          type: string
-        createdAt:
-          title: Createdat
-          type: string
-          format: date-time
-        updatedAt:
-          title: Updatedat
-          type: string
-          format: date-time
-        deletedAt:
-          title: Deletedat
-          type: string
-          format: date-time
-        provider:
-          title: Provider
-          type: string
-        accessToken:
-          title: Accesstoken
-          type: string
-    UserOutput:
-      title: UserOutput
-      required:
-        - success
-      type: object
-      properties:
-        success:
-          title: Success
-          type: boolean
-        data:
-          $ref: '#/components/schemas/User'
+            type: object
     ValidationError:
       title: ValidationError
       required:
@@ -1619,473 +1313,246 @@ components:
         type:
           title: Error Type
           type: string
-    app__lib__models__agent__Agent:
-      title: Agent
+    WorkflowInvoke:
+      title: WorkflowInvoke
       required:
-        - name
-        - type
+        - input
+        - enableStreaming
       type: object
       properties:
-        name:
-          title: Name
+        input:
+          title: Input
           type: string
-        type:
-          title: Type
-          type: string
-        description:
-          title: Description
-          type: string
-        avatarUrl:
-          title: Avatarurl
-          type: string
-        llm:
-          title: Llm
-          type: object
-        hasMemory:
-          title: Hasmemory
+        enableStreaming:
+          title: Enablestreaming
           type: boolean
-          default: false
-        promptId:
-          title: Promptid
-          type: string
-    app__lib__models__agent_document__AgentDocument:
-      title: AgentDocument
+    WorkflowList:
+      title: WorkflowList
       required:
-        - agentId
-        - documentId
+        - success
       type: object
       properties:
-        agentId:
-          title: Agentid
-          type: string
-        documentId:
-          title: Documentid
-          type: string
-    app__lib__models__agent_tool__AgentTool:
-      title: AgentTool
-      required:
-        - agentId
-        - toolId
-      type: object
-      properties:
-        agentId:
-          title: Agentid
-          type: string
-        toolId:
-          title: Toolid
-          type: string
-    app__lib__models__api_token__ApiToken:
-      title: ApiToken
-      required:
-        - description
-      type: object
-      properties:
-        description:
-          title: Description
-          type: string
-    app__lib__models__document__Document:
-      title: Document
-      required:
-        - type
-        - name
-      type: object
-      properties:
-        type:
-          title: Type
-          type: string
-        url:
-          title: Url
-          type: string
-        description:
-          title: Description
-          type: string
-        content:
-          title: Content
-          type: string
-        name:
-          title: Name
-          type: string
-        authorization:
-          title: Authorization
-          type: object
-        metadata:
-          title: Metadata
-          type: object
-        from_page:
-          title: From Page
-          type: integer
-          default: 1
-        to_page:
-          title: To Page
-          type: integer
-        splitter:
-          title: Splitter
-          type: object
-    app__lib__models__prompt__Prompt:
-      title: Prompt
-      required:
-        - name
-        - input_variables
-        - template
-      type: object
-      properties:
-        name:
-          title: Name
-          type: string
-        input_variables:
-          title: Input Variables
-          type: array
-          items: {}
-        template:
-          title: Template
-          type: string
-    app__lib__models__response__Agent:
-      title: Agent
-      required:
-        - id
-        - userId
-        - name
-        - type
-        - llm
-        - hasMemory
-        - isPublic
-        - isListed
-      type: object
-      properties:
-        id:
-          title: Id
-          type: string
-        description:
-          title: Description
-          type: string
-        avatarUrl:
-          title: Avatarurl
-          type: string
-        shareableToken:
-          title: Shareabletoken
-          type: string
-        userId:
-          title: Userid
-          type: string
-        documentId:
-          title: Documentid
-          type: string
-        toolId:
-          title: Toolid
-          type: string
-        tags:
-          title: Tags
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
           type: array
           items:
             type: object
-        promptId:
-          title: Promptid
+    WorkflowStep:
+      title: WorkflowStep
+      required:
+        - order
+        - agentId
+        - input
+        - output
+      type: object
+      properties:
+        order:
+          title: Order
+          type: integer
+        agentId:
+          title: Agentid
+          type: string
+        input:
+          title: Input
+          type: string
+        output:
+          title: Output
+          type: string
+    app__models__request__Agent:
+      title: Agent
+      required:
+        - name
+        - llmModel
+        - description
+      type: object
+      properties:
+        isActive:
+          title: Isactive
+          type: boolean
+          default: true
+        name:
+          title: Name
           type: string
         prompt:
           title: Prompt
-          type: object
-        name:
-          title: Name
           type: string
-        type:
-          $ref: '#/components/schemas/AgentType'
-        llm:
-          title: Llm
-          type: object
-        hasMemory:
-          title: Hasmemory
-          type: boolean
-        isPublic:
-          title: Ispublic
-          type: boolean
-        isListed:
-          title: Islisted
-          type: boolean
-        createdAt:
-          title: Createdat
+        llmModel:
+          title: Llmmodel
           type: string
-          format: date-time
-        updatedAt:
-          title: Updatedat
+        description:
+          title: Description
           type: string
-          format: date-time
-    app__lib__models__response__AgentDocument:
-      title: AgentDocument
+        avatar:
+          title: Avatar
+          type: string
+    app__models__request__AgentInvoke:
+      title: AgentInvoke
       required:
-        - id
-        - agentId
+        - input
+        - enableStreaming
       type: object
       properties:
-        id:
-          title: Id
+        input:
+          title: Input
           type: string
-        documentId:
-          title: Documentid
+        sessionId:
+          title: Sessionid
           type: string
-        document:
-          $ref: '#/components/schemas/app__lib__models__response__Document'
-        agentId:
-          title: Agentid
-          type: string
-        createdAt:
-          title: Createdat
-          type: string
-          format: date-time
-        updatedAt:
-          title: Updatedat
-          type: string
-          format: date-time
-        deletedAt:
-          title: Deletedat
-          type: string
-          format: date-time
-    app__lib__models__response__AgentTool:
-      title: AgentTool
+        enableStreaming:
+          title: Enablestreaming
+          type: boolean
+    app__models__request__Datasource:
+      title: Datasource
       required:
-        - id
-        - agentId
-      type: object
-      properties:
-        id:
-          title: Id
-          type: string
-        toolId:
-          title: Toolid
-          type: string
-        tool:
-          $ref: '#/components/schemas/app__lib__models__response__Tool'
-        agentId:
-          title: Agentid
-          type: string
-        createdAt:
-          title: Createdat
-          type: string
-          format: date-time
-        updatedAt:
-          title: Updatedat
-          type: string
-          format: date-time
-        deletedAt:
-          title: Deletedat
-          type: string
-          format: date-time
-    app__lib__models__response__ApiToken:
-      title: ApiToken
-      required:
-        - id
-        - userId
+        - name
         - description
-        - token
-      type: object
-      properties:
-        id:
-          title: Id
-          type: string
-        userId:
-          title: Userid
-          type: string
-        description:
-          title: Description
-          type: string
-        token:
-          title: Token
-          type: string
-    app__lib__models__response__Document:
-      title: Document
-      required:
-        - id
-        - userId
         - type
-        - name
       type: object
       properties:
-        id:
-          title: Id
-          type: string
-        description:
-          title: Description
-          type: string
-        userId:
-          title: Userid
-          type: string
-        type:
-          $ref: '#/components/schemas/DocumentType'
-        url:
-          title: Url
-          type: string
-        content:
-          title: Content
-          type: string
-        contentHash:
-          title: Contenthash
-          type: string
-        name:
-          title: Name
-          type: string
-        splitter:
-          title: Splitter
-          type: object
-        createdAt:
-          title: Createdat
-          type: string
-          format: date-time
-        updatedAt:
-          title: Updatedat
-          type: string
-          format: date-time
-        index:
-          title: Index
-          type: object
-        authorization:
-          title: Authorization
-          type: object
-        metadata:
-          title: Metadata
-          type: object
-    app__lib__models__response__Prompt:
-      title: Prompt
-      required:
-        - id
-        - name
-        - template
-        - input_variables
-        - userId
-      type: object
-      properties:
-        id:
-          title: Id
-          type: string
-        name:
-          title: Name
-          type: string
-        template:
-          title: Template
-          type: string
-        input_variables:
-          title: Input Variables
-          type: array
-          items: {}
-        userId:
-          title: Userid
-          type: string
-        createdAt:
-          title: Createdat
-          type: string
-          format: date-time
-        updatedAt:
-          title: Updatedat
-          type: string
-          format: date-time
-        deletedAt:
-          title: Deletedat
-          type: string
-          format: date-time
-    app__lib__models__response__Tag:
-      title: Tag
-      required:
-        - id
-        - name
-        - userId
-      type: object
-      properties:
-        id:
-          title: Id
-          type: string
-        name:
-          title: Name
-          type: string
-        color:
-          title: Color
-          type: string
-        userId:
-          title: Userid
-          type: string
-        createdAt:
-          title: Createdat
-          type: string
-          format: date-time
-        updatedAt:
-          title: Updatedat
-          type: string
-          format: date-time
-    app__lib__models__response__Tool:
-      title: Tool
-      required:
-        - id
-        - name
-        - userId
-        - returnDirect
-      type: object
-      properties:
-        id:
-          title: Id
-          type: string
         name:
           title: Name
           type: string
         description:
           title: Description
-          type: string
-        type:
-          $ref: '#/components/schemas/ToolType'
-        metadata:
-          title: Metadata
-          type: object
-        userId:
-          title: Userid
-          type: string
-        returnDirect:
-          title: Returndirect
-          type: boolean
-        createdAt:
-          title: Createdat
-          type: string
-          format: date-time
-        updatedAt:
-          title: Updatedat
-          type: string
-          format: date-time
-    app__lib__models__tag__Tag:
-      title: Tag
-      required:
-        - name
-        - color
-      type: object
-      properties:
-        name:
-          title: Name
-          type: string
-        color:
-          title: Color
-          type: string
-    app__lib__models__tool__Tool:
-      title: Tool
-      required:
-        - name
-        - type
-        - description
-      type: object
-      properties:
-        name:
-          title: Name
           type: string
         type:
           title: Type
           type: string
-        description:
-          title: Description
+        url:
+          title: Url
           type: string
-        returnDirect:
-          title: Returndirect
-          type: boolean
-          default: false
-        authorization:
-          title: Authorization
-          type: object
         metadata:
           title: Metadata
           type: object
+    app__models__request__LLM:
+      title: LLM
+      required:
+        - provider
+        - apiKey
+      type: object
+      properties:
+        provider:
+          title: Provider
+          type: string
+        apiKey:
+          title: Apikey
+          type: string
+        options:
+          title: Options
+          type: object
+    app__models__request__Tool:
+      title: Tool
+      required:
+        - name
+        - description
+        - type
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        type:
+          title: Type
+          type: string
+        metadata:
+          title: Metadata
+          type: object
+        returnDirect:
+          title: Returndirect
+          type: boolean
+    app__models__request__Workflow:
+      title: Workflow
+      required:
+        - name
+        - description
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+    app__models__response__Agent:
+      title: Agent
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: object
+    app__models__response__AgentInvoke:
+      title: AgentInvoke
+      required:
+        - success
+        - data
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: object
+    app__models__response__Datasource:
+      title: Datasource
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: object
+    app__models__response__LLM:
+      title: LLM
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: object
+    app__models__response__Tool:
+      title: Tool
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: object
+    app__models__response__Workflow:
+      title: Workflow
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: object
   securitySchemes:
-    JWTBearer:
+    HTTPBearer:
       type: http
       scheme: bearer
