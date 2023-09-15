@@ -1,6 +1,7 @@
 from typing import Any, List
 
 from decouple import config
+from langchain import LLMChain, PromptTemplate
 from langchain.agents import AgentType, initialize_agent
 from langchain.chat_models import ChatOpenAI
 from langchain.memory.motorhead_memory import MotorheadMemory
@@ -19,7 +20,10 @@ from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
 
-DEFAULT_PROMPT = "You are a helpful AI Assistant"
+DEFAULT_PROMPT = (
+    "You are a helpful AI Assistant, anwer the users questions to "
+    "the best of your ability."
+)
 
 
 class AgentBase:
@@ -113,18 +117,33 @@ class AgentBase:
         llm = await self._get_llm(agent_llm=config.llms[0], model=config.llmModel)
         prompt = await self._get_prompt(agent=config)
         memory = await self._get_memory()
-        agent = initialize_agent(
-            tools,
-            llm,
-            agent=AgentType.OPENAI_FUNCTIONS,
-            agent_kwargs={
-                "system_message": prompt,
-                "extra_prompt_messages": [
-                    MessagesPlaceholder(variable_name="chat_history")
-                ],
-            },
-            memory=memory,
-            return_intermediate_steps=True,
-            verbose=True,
-        )
+        if len(tools) > 0:
+            agent = initialize_agent(
+                tools,
+                llm,
+                agent=AgentType.OPENAI_FUNCTIONS,
+                agent_kwargs={
+                    "system_message": prompt,
+                    "extra_prompt_messages": [
+                        MessagesPlaceholder(variable_name="chat_history")
+                    ],
+                },
+                memory=memory,
+                return_intermediate_steps=True,
+                verbose=True,
+            )
+            return agent
+        else:
+            prompt = (
+                f"{config.prompt or DEFAULT_PROMPT} \n %s"
+                % "Question: {input} \n History: \n {chat_history}"
+            )
+            agent = LLMChain(
+                llm=llm,
+                memory=memory,
+                output_key="output",
+                verbose=True,
+                return_final_only=True,
+                prompt=PromptTemplate.from_template(prompt),
+            )
         return agent
