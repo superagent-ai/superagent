@@ -1,0 +1,13 @@
+# Authentication
+
+Superagent uses API keys to authenticate requests. You can manage API keys using the `api-users` endpoint.
+
+As API keys carry many privileges such as creating and destroying agents, it is important to keep them private and secure. Do not hardcode or share API keys (particularly in your source version control system), and they should only be used in your backend.
+
+Authentication is handled via HTTP headers, specifically the `Authorizaton` header. 
+
+```bash
+curl -X POST 'https://api.beta.superagent.sh/api/v1<ENDPOINT>' \
+  --header 'Authorization: Bearer <YOUR_API_KEY>'
+```
+

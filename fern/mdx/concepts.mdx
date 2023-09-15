@@ -5,43 +5,71 @@ It contains practical examples as well as links to papers or sources.
 
 An agent is a program or system that is designed to perform a
 specific task or set of tasks. In the context of Supergent, an agent is
-a Large Language Model that has access to a suite of tools and can
-decide which tool to use based on user input.
+a Large Language Model that has access to a suite of datasources and tools and can
+decide which datasources/tools to use based on user input.
 
-There are two main types of agents: action agents and plan-and-execute agents.
-Action agents decide on an action to take and take that action one step at a
-time, while plan-and-execute agents first decide on a plan of actions to
-take and then execute those actions one at a time.
+Every Agent is equipped with a feature refferd to as `memory`. This is a crucial component
+that allows the Agent to retain and recall information from its interactions.
+Memory can be thought of as the agent's short-term memory, storing recent inputs and outputs
+for reference during its current task. This enables the agent to maintain context and provide
+relevant responses or actions based on the information it has processed.
 
-An agent can be invoked with `memory` as well as a `document` which
-gives the Agent the possibility to remember previous messages and
-do Question/Answering.
+### Datasources
 
-**References**:
+Superagent allows users to do question answering over datasources
+by attaching a `Datasource` to an `Agent`. Datasources can be both structured (CSV, JSON etc.) or unstructured (PDF, TXT, MD) and depending on the data type Superagent handles these differently. 
+In the case of unstructured data (like PDF, TXT, MD), Superagent employs two different strategies. 
+The data is split and chunked into manageable pieces. These chunks are then ingested into a vectorstore, such as Pinecone, for efficient retrieval and usage. 
+Alternatively, the chunked data can also be used for fine-tuning the language models specific to each Agent. 
+This process enhances the Agent's ability to understand and respond to user queries more accurately and contextually.
 
-- [ReAct](https://arxiv.org/pdf/2210.03629.pdf)
-- [Plan-and-solve](https://arxiv.org/abs/2305.04091)
+### Tools (third-party services or APIs)
 
-### Documents
+Superagent provides the capability to create and attach various tools to an `Agent`. These tools can range from ChatGPT Plugins to external APIs. 
+The purpose of these tools is to enhance the functionality and versatility of the Agent. 
+For instance, a ChatGPT Plugin could be used to improve the conversational abilities of the Agent, 
+while an external API could provide the Agent with access to a specific dataset or service. 
+The process of attaching a tool to an Agent is straightforward and flexible, allowing users to customize their Agents to best suit their needs.
 
-Superagent allows users to do question answering over documents
-by attaching a `Document` to an `Agent`. Documents are files, such as
-PDF, TXT, images, Markdown etc. that can be ingested by passing a
-publicly available `URL` to the Superagent [API](/api-reference/authentication).
+Below is an overview of all avaialble tools and their corresponding metadata:
 
-Superagent splits these documents into smaller chunks and stores
-them in a vector database for use downstream.
+| Tool                          | Metadata                              |
+| ----------------------------- | --------------------------------------|
+| `BING_SEARCH`                 | `bingSearchUrl`, `bingSubscriptionKey`|
+| `REPLICATE`                   | `model`, `apiKey`, `arguments`        |
+| `WOLFRAM_ALPHA`               | `appId`                               |
+| `ZAPIER_NLA`                  | `zapierNlaApiKey`, `openaiApiKey`     |
+| `AGENT`                       | `agentId`, `apiKey`                   |
+| `OPENAPI`                     | `openApiUrl`, `headers`               |
+| `CHATGPT_PLUGIN`              | `chatgptPluginURL`                    |
+| `METAPHOR`                    | `metaphorApiKey`                      |
+| `PUBMED`                      | N/A                                   |
 
-This approach has some downsides when working with tabular data.
-We are looking into how to best approach this problem.
+### Workflows
 
-### Prompts
+Workflows in Superagent consist of a sequence of Agents that run in a specific order. 
+Each Agent in the workflow has access to its own specific datasources and tools, allowing it to perform its designated task.
+The output from one Agent is passed on to the next in the sequence, creating a chain of information processing and action. 
+This allows for complex tasks to be broken down into manageable parts, each handled by a specialized Agent. 
+The flexibility of workflows enables the creation of sophisticated systems capable of handling a wide range of tasks.
 
-Superagent allows users to configure their `Agents` using prompts.
+### LLMs
 
-A prompt is piece of text that gives context to the LLM. It can contain
-instructions on how the Agent should act, input variables
-used for injecting data into the prompt.
+Language models are the core computational models that power the functionality of an Agent, the nuclear power plant of an Agent, . 
+They are trained on vast amounts of text data and learn to predict the likelihood of a sentence or to generate a piece of text that follows a given input. 
+In the context of Superagent, language models are used to understand and generate human-like text based on the user's input and the context provided by the Agent's memory, datasources, and tools. 
+These models are the driving force behind the Agent's ability to engage in meaningful and contextually relevant interactions with the user.
 
-Common examples of input_variables are `human_input`, `question`
-and `chat_history` for in context memory.
+### Tracing
+
+Superagent employs a powerful tool called [LangSmith](smith.langchain.com/) for tracing and debugging Agent runs. 
+LangSmith is a state-of-the-art tracing system that provides detailed insights into the execution of an Agent. 
+It records the sequence of operations performed by the Agent, including the interaction with datasources and tools, and the decisions made based on user input. 
+This allows developers to track the flow of data and the decision-making process of the Agent, making it easier to identify and fix issues.
+
+LangSmith also provides debugging capabilities. It allows developers to pause the execution of an Agent at any point and inspect the current state of the Agent. 
+This includes the Agent's memory, the data it has retrieved from datasources, and the output from any tools it has used. 
+By providing a detailed view of the Agent's state at any point in its execution, LangSmith makes it easier to understand the behavior of the Agent and to identify any problems or inefficiencies.
+
+In addition to tracing and debugging, LangSmith also provides performance profiling capabilities. 
+It can measure the time taken by each operation, helping to identify bottlenecks and optimize the performance of the Agent. 

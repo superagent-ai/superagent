@@ -2,9 +2,12 @@ navigation:
   - section: Overview
     contents:
       - page: Introduction
-        path: ./mdx/intro.mdx
-      - page: Platform
-        path: ./mdx/platform.mdx
+        path: ../mdx/intro.mdx
+      - page: Authentication
+        path: ../mdx/authentication.mdx
       - page: Concepts
-        path: ./mdx/concepts.mdx
-  - api: API Reference
+        path: ../mdx/concepts.mdx
+      - page: Platform
+        path: ../mdx/platform.mdx
+  - api-name: legacy
+    api: Superagent API
