@@ -2,6 +2,7 @@
 import requests
 import pandas as pd
 
+from io import StringIO
 from decouple import config
 from langchain.tools import BaseTool
 from llama import Context, LLMEngine, Type
@@ -132,7 +133,7 @@ class StructuredDatasourceTool(BaseTool):
         if datasource.type == "CSV":
             url = datasource.url
             response = requests.get(url)
-            file_content = pd.compat.StringIO(response.text)
+            file_content = StringIO(response.text)
             df = pd.read_csv(file_content)
         else:
             data = DataLoader(datasource=datasource).load()
