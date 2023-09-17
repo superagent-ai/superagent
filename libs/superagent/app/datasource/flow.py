@@ -58,7 +58,11 @@ async def process_datasource(datasource_id: str, agent_id: str):
     await handle_datasources(agent_datasources=agent_datasources, agent_id=agent_id)
 
 
-@flow(name="vectorize_datasource", description="Vectorize datasource", retries=0)
+@flow(
+    name="vectorize_datasource",
+    description="Vectorize datasource",
+    retries=0,
+)
 async def vectorize_datasource(datasource: Datasource) -> None:
     if datasource.type in VALID_UNSTRUCTURED_DATA_TYPES:
         await vectorize(datasource=datasource)
