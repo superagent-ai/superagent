@@ -197,7 +197,7 @@ Please refer to the [README](https://github.com/homanp/superagent/blob/v2/libs/l
 
 </details>
 
-## SKDs
+## 🔗 SDKs
 
 If you are planing on integrating Superagent into your stack, you can use one of the following SDKs:
 
