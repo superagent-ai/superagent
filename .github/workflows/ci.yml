@@ -17,7 +17,7 @@ jobs:
 
   fern-generate:
     needs: fern-check
-    #if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -34,8 +34,7 @@ jobs:
           FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        #run: fern generate --group publish --log-level debug --version ${{ github.ref_name }} --api prod
-        run: fern generate --group publish --log-level debug --version v0.1.0 --api prod
+        run: fern generate --group publish --log-level debug --version ${{ github.ref_name }} --api prod
       
       - name: Update Docs
         env:
