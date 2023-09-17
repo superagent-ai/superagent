@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from pydantic import BaseModel
+from prisma.models import Agent as AgentModel
 
 
 class ApiUser(BaseModel):
@@ -10,7 +11,7 @@ class ApiUser(BaseModel):
 
 class Agent(BaseModel):
     success: bool
-    data: Optional[dict]
+    data: Optional[AgentModel]
 
 
 class AgentDatasource(BaseModel):
@@ -65,7 +66,7 @@ class ToolList(BaseModel):
 
 class AgentList(BaseModel):
     success: bool
-    data: Optional[List[dict]]
+    data: Optional[List[AgentModel]]
 
 
 class LLM(BaseModel):
