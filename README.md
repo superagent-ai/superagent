@@ -197,6 +197,14 @@ Please refer to the [README](https://github.com/homanp/superagent/blob/v2/libs/l
 
 </details>
 
+## SKDs
+
+If you are planing on integrating Superagent into your stack, you can use one of the following SDKs:
+
+- [Python](https://github.com/homanp/superagent-py)
+- [Typescript/Javascript](https://github.com/homanp/superagent-js)
+- [Swift](https://github.com/simonweniger/superagent-swift) (community)
+
 
 ## 🫶 Contributions
 
