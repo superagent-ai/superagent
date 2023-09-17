@@ -2028,6 +2028,3 @@ components:
     HTTPBearer:
       type: http
       scheme: bearer
-    bearerAuth:
-      type: http
-      scheme: bearer
