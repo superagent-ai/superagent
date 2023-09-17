@@ -218,8 +218,9 @@ export const columns = (profile: Profile): ColumnDef<DataType>[] => [
         <Badge variant="secondary">Ready</Badge>
       ) : (
         <div className="flex items-center space-x-2">
-          <Spinner />
-          <p className="text-muted-foreground text-sm">processing...</p>
+          <Badge variant="outline" className="text-primary">
+            In progress
+          </Badge>
         </div>
       ),
   },

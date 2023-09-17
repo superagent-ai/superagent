@@ -60,10 +60,6 @@ async def list(api_user=Depends(get_current_api_user)):
         data = await prisma.datasource.find_many(
             where={"apiUserId": api_user.id}, order={"createdAt": "desc"}
         )
-        for obj in data:
-            if obj.metadata:
-                obj.metadata = json.loads(obj.metadata)
-
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -81,8 +77,6 @@ async def get(datasource_id: str, api_user=Depends(get_current_api_user)):
         data = await prisma.datasource.find_first(
             where={"id": datasource_id, "apiUserId": api_user.id}
         )
-        if data.metadata:
-            data.metadata = json.loads(data.metadata)
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -103,8 +97,6 @@ async def update(
             where={"id": datasource_id},
             data=body.dict(),
         )
-        if data.metadata:
-            data.metadata = json.loads(data.metadata)
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)

@@ -176,16 +176,6 @@ export function DataTable<TData, TValue>({
     })
   }
 
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      router.refresh()
-    }, 10000)
-
-    return () => {
-      clearInterval(interval)
-    }
-  }, [router])
-
   return (
     <div>
       <div className="flex items-center space-x-4 py-4">
@@ -278,6 +268,24 @@ export function DataTable<TData, TValue>({
                       </Alert>
                       <Alert className="flex items-center justify-between">
                         <div className="flex flex-col">
+                          <AlertTitle>Gihub</AlertTitle>
+                          <AlertDescription className="text-muted-foreground">
+                            Import a repository.
+                          </AlertDescription>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedType("github")
+                            form.setValue("type", "GITHUB_REPOSITORY")
+                          }}
+                        >
+                          Add repo
+                        </Button>
+                      </Alert>
+                      <Alert className="flex items-center justify-between">
+                        <div className="flex flex-col">
                           <AlertTitle>Apps</AlertTitle>
                           <AlertDescription className="text-muted-foreground">
                             Connect third-party applications.
@@ -338,6 +346,39 @@ export function DataTable<TData, TValue>({
                         </FormItem>
                       )}
                     />
+                  )}
+                  {selectedType === "github" && (
+                    <>
+                      <FormField
+                        control={form.control}
+                        name="url"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>URLs</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="E.g https://github.com/homanp/superagent"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="metadata.branch"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Branch</FormLabel>
+                            <FormControl>
+                              <Input placeholder="E.g main" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
                   )}
                   {selectedType === "files" && (
                     <div>
