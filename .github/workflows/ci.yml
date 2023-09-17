@@ -29,12 +29,13 @@ jobs:
       - name: Download Fern
         run: npm install -g fern-api
 
-      #- name: Generate SDKs
-      #  env:
-      #    FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
-      #    PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-      #    NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      #  run: fern generate --group publish --log-level debug --version ${{ github.ref_name }} --api prod
+      - name: Generate SDKs
+        env:
+          FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        #run: fern generate --group publish --log-level debug --version ${{ github.ref_name }} --api prod
+        run: fern generate --group publish --log-level debug --version v0.1.0 --api prod
       
       - name: Update Docs
         env:
