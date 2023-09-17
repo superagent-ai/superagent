@@ -1,12 +1,21 @@
 from typing import List, Optional
 
 from pydantic import BaseModel
-from prisma.models import Agent as AgentModel
+from prisma.models import (
+    Agent as AgentModel,
+    ApiUser as ApiUserModel,
+    AgentDatasource as AgentDatasourceModel,
+    AgentTool as AgentToolModel,
+    Datasource as DatasourceModel,
+    Tool as ToolModel,
+    LLM as LLMModel,
+    Workflow as WorkflowModel,
+)
 
 
 class ApiUser(BaseModel):
     success: bool
-    data: Optional[dict]
+    data: Optional[ApiUserModel]
 
 
 class Agent(BaseModel):
@@ -16,12 +25,12 @@ class Agent(BaseModel):
 
 class AgentDatasource(BaseModel):
     success: bool
-    data: Optional[dict]
+    data: Optional[AgentDatasourceModel]
 
 
 class AgentDatasosurceList(BaseModel):
     success: bool
-    data: Optional[List[dict]]
+    data: Optional[List[AgentDatasourceModel]]
 
 
 class AgentRunList(BaseModel):
@@ -31,12 +40,12 @@ class AgentRunList(BaseModel):
 
 class AgentTool(BaseModel):
     success: bool
-    data: Optional[dict]
+    data: Optional[AgentToolModel]
 
 
 class AgentToolList(BaseModel):
     success: bool
-    data: Optional[List[dict]]
+    data: Optional[List[AgentToolModel]]
 
 
 class AgentInvoke(BaseModel):
@@ -46,22 +55,22 @@ class AgentInvoke(BaseModel):
 
 class Datasource(BaseModel):
     success: bool
-    data: Optional[dict]
+    data: Optional[DatasourceModel]
 
 
 class DatasourceList(BaseModel):
     success: bool
-    data: Optional[List[dict]]
+    data: Optional[List[DatasourceModel]]
 
 
 class Tool(BaseModel):
     success: bool
-    data: Optional[dict]
+    data: Optional[ToolModel]
 
 
 class ToolList(BaseModel):
     success: bool
-    data: Optional[List[dict]]
+    data: Optional[List[ToolModel]]
 
 
 class AgentList(BaseModel):
@@ -71,19 +80,19 @@ class AgentList(BaseModel):
 
 class LLM(BaseModel):
     success: bool
-    data: Optional[dict]
+    data: Optional[LLMModel]
 
 
 class LLMList(BaseModel):
     success: bool
-    data: Optional[List[dict]]
+    data: Optional[List[LLMModel]]
 
 
 class Workflow(BaseModel):
     success: bool
-    data: Optional[dict]
+    data: Optional[WorkflowModel]
 
 
 class WorkflowList(BaseModel):
     success: bool
-    data: Optional[List[dict]]
+    data: Optional[List[WorkflowModel]]
