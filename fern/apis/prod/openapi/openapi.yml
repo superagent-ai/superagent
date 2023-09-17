@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The agent framework for large language models
-  version: 0.0.99
+  version: 0.1.0
 paths:
   /api/v1/agents:
     get:
@@ -190,7 +190,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentLLM'
+              $ref: '#/components/schemas/app__models__request__AgentLLM'
         required: true
       responses:
         '200':
@@ -287,7 +287,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentTool'
+              $ref: '#/components/schemas/app__models__request__AgentTool'
         required: true
       responses:
         '200':
@@ -384,7 +384,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AgentDatasource'
+              $ref: '#/components/schemas/app__models__request__AgentDatasource'
         required: true
       responses:
         '200':
@@ -583,7 +583,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiUser'
+                $ref: '#/components/schemas/app__models__response__ApiUser'
   /api/v1/api-users/me:
     get:
       tags:
@@ -597,7 +597,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiUser'
+                $ref: '#/components/schemas/app__models__response__ApiUser'
       security:
         - HTTPBearer: []
     delete:
@@ -1093,7 +1093,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WorkflowStep'
+              $ref: '#/components/schemas/app__models__request__WorkflowStep'
         required: true
       responses:
         '200':
@@ -1159,25 +1159,7 @@ components:
           title: Data
           type: array
           items:
-            type: object
-    AgentDatasource:
-      title: AgentDatasource
-      required:
-        - datasourceId
-      type: object
-      properties:
-        datasourceId:
-          title: Datasourceid
-          type: string
-    AgentLLM:
-      title: AgentLLM
-      required:
-        - llmId
-      type: object
-      properties:
-        llmId:
-          title: Llmid
-          type: string
+            $ref: '#/components/schemas/prisma__models__AgentDatasource'
     AgentList:
       title: AgentList
       required:
@@ -1191,7 +1173,7 @@ components:
           title: Data
           type: array
           items:
-            type: object
+            $ref: '#/components/schemas/prisma__models__Agent'
     AgentRunList:
       title: AgentRunList
       required:
@@ -1206,15 +1188,6 @@ components:
           type: array
           items:
             type: object
-    AgentTool:
-      title: AgentTool
-      required:
-        - toolId
-      type: object
-      properties:
-        toolId:
-          title: Toolid
-          type: string
     AgentToolList:
       title: AgentToolList
       required:
@@ -1228,19 +1201,7 @@ components:
           title: Data
           type: array
           items:
-            type: object
-    ApiUser:
-      title: ApiUser
-      required:
-        - success
-      type: object
-      properties:
-        success:
-          title: Success
-          type: boolean
-        data:
-          title: Data
-          type: object
+            $ref: '#/components/schemas/prisma__models__AgentTool'
     DatasourceList:
       title: DatasourceList
       required:
@@ -1254,7 +1215,32 @@ components:
           title: Data
           type: array
           items:
-            type: object
+            $ref: '#/components/schemas/prisma__models__Datasource'
+    DatasourceStatus:
+      title: DatasourceStatus
+      enum:
+        - IN_PROGRESS
+        - DONE
+      type: string
+      description: An enumeration.
+    DatasourceType:
+      title: DatasourceType
+      enum:
+        - TXT
+        - PDF
+        - CSV
+        - YOUTUBE
+        - GITHUB_REPOSITORY
+        - MARKDOWN
+        - WEBPAGE
+        - AIRTABLE
+        - STRIPE
+        - NOTION
+        - SITEMAP
+        - URL
+        - FUNCTION
+      type: string
+      description: An enumeration.
     HTTPValidationError:
       title: HTTPValidationError
       type: object
@@ -1277,7 +1263,22 @@ components:
           title: Data
           type: array
           items:
-            type: object
+            $ref: '#/components/schemas/prisma__models__LLM'
+    LLMModel:
+      title: LLMModel
+      enum:
+        - GPT_3_5_TURBO_16K_0613
+        - GPT_3_5_TURBO_0613
+        - GPT_4_0613
+        - GPT_4_32K_0613
+      type: string
+      description: An enumeration.
+    LLMProvider:
+      title: LLMProvider
+      enum:
+        - OPENAI
+      type: string
+      description: An enumeration.
     ToolList:
       title: ToolList
       required:
@@ -1291,7 +1292,22 @@ components:
           title: Data
           type: array
           items:
-            type: object
+            $ref: '#/components/schemas/prisma__models__Tool'
+    ToolType:
+      title: ToolType
+      enum:
+        - BROWSER
+        - BING_SEARCH
+        - REPLICATE
+        - WOLFRAM_ALPHA
+        - ZAPIER_NLA
+        - AGENT
+        - OPENAPI
+        - CHATGPT_PLUGIN
+        - METAPHOR
+        - PUBMED
+      type: string
+      description: An enumeration.
     ValidationError:
       title: ValidationError
       required:
@@ -1339,28 +1355,7 @@ components:
           title: Data
           type: array
           items:
-            type: object
-    WorkflowStep:
-      title: WorkflowStep
-      required:
-        - order
-        - agentId
-        - input
-        - output
-      type: object
-      properties:
-        order:
-          title: Order
-          type: integer
-        agentId:
-          title: Agentid
-          type: string
-        input:
-          title: Input
-          type: string
-        output:
-          title: Output
-          type: string
+            $ref: '#/components/schemas/prisma__models__Workflow'
     app__models__request__Agent:
       title: Agent
       required:
@@ -1388,6 +1383,15 @@ components:
         avatar:
           title: Avatar
           type: string
+    app__models__request__AgentDatasource:
+      title: AgentDatasource
+      required:
+        - datasourceId
+      type: object
+      properties:
+        datasourceId:
+          title: Datasourceid
+          type: string
     app__models__request__AgentInvoke:
       title: AgentInvoke
       required:
@@ -1404,6 +1408,24 @@ components:
         enableStreaming:
           title: Enablestreaming
           type: boolean
+    app__models__request__AgentLLM:
+      title: AgentLLM
+      required:
+        - llmId
+      type: object
+      properties:
+        llmId:
+          title: Llmid
+          type: string
+    app__models__request__AgentTool:
+      title: AgentTool
+      required:
+        - toolId
+      type: object
+      properties:
+        toolId:
+          title: Toolid
+          type: string
     app__models__request__Datasource:
       title: Datasource
       required:
@@ -1479,6 +1501,27 @@ components:
         description:
           title: Description
           type: string
+    app__models__request__WorkflowStep:
+      title: WorkflowStep
+      required:
+        - order
+        - agentId
+        - input
+        - output
+      type: object
+      properties:
+        order:
+          title: Order
+          type: integer
+        agentId:
+          title: Agentid
+          type: string
+        input:
+          title: Input
+          type: string
+        output:
+          title: Output
+          type: string
     app__models__response__Agent:
       title: Agent
       required:
@@ -1489,8 +1532,7 @@ components:
           title: Success
           type: boolean
         data:
-          title: Data
-          type: object
+          $ref: '#/components/schemas/prisma__models__Agent'
     app__models__response__AgentInvoke:
       title: AgentInvoke
       required:
@@ -1504,6 +1546,17 @@ components:
         data:
           title: Data
           type: object
+    app__models__response__ApiUser:
+      title: ApiUser
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
     app__models__response__Datasource:
       title: Datasource
       required:
@@ -1514,8 +1567,7 @@ components:
           title: Success
           type: boolean
         data:
-          title: Data
-          type: object
+          $ref: '#/components/schemas/prisma__models__Datasource'
     app__models__response__LLM:
       title: LLM
       required:
@@ -1526,8 +1578,7 @@ components:
           title: Success
           type: boolean
         data:
-          title: Data
-          type: object
+          $ref: '#/components/schemas/prisma__models__LLM'
     app__models__response__Tool:
       title: Tool
       required:
@@ -1538,8 +1589,7 @@ components:
           title: Success
           type: boolean
         data:
-          title: Data
-          type: object
+          $ref: '#/components/schemas/prisma__models__Tool'
     app__models__response__Workflow:
       title: Workflow
       required:
@@ -1550,9 +1600,434 @@ components:
           title: Success
           type: boolean
         data:
-          title: Data
-          type: object
+          $ref: '#/components/schemas/prisma__models__Workflow'
+    prisma__models__Agent:
+      title: Agent
+      required:
+        - id
+        - name
+        - description
+        - isActive
+        - createdAt
+        - updatedAt
+        - llmModel
+        - apiUserId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        avatar:
+          title: Avatar
+          type: string
+        description:
+          title: Description
+          type: string
+        isActive:
+          title: Isactive
+          type: boolean
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        llms:
+          title: Llms
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__AgentLLM'
+        llmModel:
+          $ref: '#/components/schemas/LLMModel'
+        prompt:
+          title: Prompt
+          type: string
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+        datasources:
+          title: Datasources
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__AgentDatasource'
+        tools:
+          title: Tools
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__AgentTool'
+        workflowSteps:
+          title: Workflowsteps
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__WorkflowStep'
+      description: Represents a Agent record
+    prisma__models__AgentDatasource:
+      title: AgentDatasource
+      required:
+        - agentId
+        - datasourceId
+        - createdAt
+        - updatedAt
+      type: object
+      properties:
+        agentId:
+          title: Agentid
+          type: string
+        datasourceId:
+          title: Datasourceid
+          type: string
+        agent:
+          $ref: '#/components/schemas/prisma__models__Agent'
+        datasource:
+          $ref: '#/components/schemas/prisma__models__Datasource'
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+      description: Represents a AgentDatasource record
+    prisma__models__AgentLLM:
+      title: AgentLLM
+      required:
+        - agentId
+        - llmId
+        - createdAt
+        - updatedAt
+      type: object
+      properties:
+        agentId:
+          title: Agentid
+          type: string
+        llmId:
+          title: Llmid
+          type: string
+        agent:
+          $ref: '#/components/schemas/prisma__models__Agent'
+        llm:
+          $ref: '#/components/schemas/prisma__models__LLM'
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+      description: Represents a AgentLLM record
+    prisma__models__AgentTool:
+      title: AgentTool
+      required:
+        - agentId
+        - toolId
+        - createdAt
+        - updatedAt
+      type: object
+      properties:
+        agentId:
+          title: Agentid
+          type: string
+        toolId:
+          title: Toolid
+          type: string
+        agent:
+          $ref: '#/components/schemas/prisma__models__Agent'
+        tool:
+          $ref: '#/components/schemas/prisma__models__Tool'
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+      description: Represents a AgentTool record
+    prisma__models__ApiUser:
+      title: ApiUser
+      required:
+        - id
+        - createdAt
+        - updatedAt
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        token:
+          title: Token
+          type: string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        agents:
+          title: Agents
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__Agent'
+        llms:
+          title: Llms
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__LLM'
+        datasources:
+          title: Datasources
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__Datasource'
+        tools:
+          title: Tools
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__Tool'
+        worflows:
+          title: Worflows
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__Workflow'
+      description: Represents a ApiUser record
+    prisma__models__Datasource:
+      title: Datasource
+      required:
+        - id
+        - name
+        - type
+        - apiUserId
+        - createdAt
+        - updatedAt
+        - status
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        url:
+          title: Url
+          type: string
+        type:
+          $ref: '#/components/schemas/DatasourceType'
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        metadata:
+          title: Metadata
+          type: string
+        status:
+          $ref: '#/components/schemas/DatasourceStatus'
+        datasources:
+          title: Datasources
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__AgentDatasource'
+      description: Represents a Datasource record
+    prisma__models__LLM:
+      title: LLM
+      required:
+        - id
+        - provider
+        - apiKey
+        - createdAt
+        - updatedAt
+        - apiUserId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        provider:
+          $ref: '#/components/schemas/LLMProvider'
+        apiKey:
+          title: Apikey
+          type: string
+        options:
+          title: Options
+          type: string
+          format: json-string
+        agents:
+          title: Agents
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__AgentLLM'
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+      description: Represents a LLM record
+    prisma__models__Tool:
+      title: Tool
+      required:
+        - id
+        - name
+        - description
+        - type
+        - returnDirect
+        - metadata
+        - createdAt
+        - updatedAt
+        - apiUserId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        type:
+          $ref: '#/components/schemas/ToolType'
+        returnDirect:
+          title: Returndirect
+          type: boolean
+        metadata:
+          title: Metadata
+          type: string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+        tools:
+          title: Tools
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__AgentTool'
+      description: Represents a Tool record
+    prisma__models__Workflow:
+      title: Workflow
+      required:
+        - id
+        - name
+        - createdAt
+        - updatedAt
+        - apiUserId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        steps:
+          title: Steps
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__WorkflowStep'
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+      description: Represents a Workflow record
+    prisma__models__WorkflowStep:
+      title: WorkflowStep
+      required:
+        - id
+        - order
+        - workflowId
+        - createdAt
+        - updatedAt
+        - input
+        - output
+        - agentId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        order:
+          title: Order
+          type: integer
+        workflowId:
+          title: Workflowid
+          type: string
+        workflow:
+          $ref: '#/components/schemas/prisma__models__Workflow'
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        input:
+          title: Input
+          type: string
+        output:
+          title: Output
+          type: string
+        agentId:
+          title: Agentid
+          type: string
+        agent:
+          $ref: '#/components/schemas/prisma__models__Agent'
+      description: Represents a WorkflowStep record
   securitySchemes:
     HTTPBearer:
+      type: http
+      scheme: bearer
+    bearerAuth:
       type: http
       scheme: bearer
