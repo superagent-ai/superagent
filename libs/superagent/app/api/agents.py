@@ -57,7 +57,14 @@ logging.basicConfig(level=logging.INFO)
 async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     """Endpoint for creating an agent"""
     try:
-        data = await prisma.agent.create({**body.dict(), "apiUserId": api_user.id})
+        data = await prisma.agent.create(
+            {**body.dict(), "apiUserId": api_user.id},
+            include={
+                "tools": {"include": {"tool": True}},
+                "datasources": {"include": {"datasource": True}},
+                "llms": {"include": {"llm": True}},
+            },
+        )
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
