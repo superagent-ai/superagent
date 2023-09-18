@@ -117,6 +117,7 @@ export function DataTable<TData, TValue>({
       toast({
         description: "Tool created successfully",
       })
+      setOpen(false)
       router.refresh()
     } catch (error: any) {
       toast({
