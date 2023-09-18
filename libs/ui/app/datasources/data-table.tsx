@@ -168,14 +168,10 @@ export function DataTable<TData, TValue>({
           }),
         })
         const { publicUrl } = await response.json()
+        const fileType = file.mime_type.split("/").pop().toUpperCase()
 
         form.setValue("url", publicUrl)
-        form.setValue(
-          "type",
-          file.mime_type.split("/").pop().toUpperCase() === "PLAIN"
-            ? "TXT"
-            : file.mime_type.split("/").pop().toUpperCase()
-        )
+        form.setValue("type", fileType === "PLAIN" ? "TXT" : fileType)
         setIsDownloadingFile(false)
       },
     })
