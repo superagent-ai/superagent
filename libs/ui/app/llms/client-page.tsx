@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -12,7 +13,6 @@ import { LLM } from "@/types/llm"
 import { Profile } from "@/types/profile"
 import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
-import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Card,
@@ -59,6 +59,7 @@ export default function LLMClientPage({
   const api = new Api(profile.api_key)
   const router = useRouter()
   const { toast } = useToast()
+  const [open, setOpen] = React.useState(false)
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -73,10 +74,10 @@ export default function LLMClientPage({
       } else {
         await api.patchLLM(llms[0].id, { ...values, provider: "OPENAI" })
       }
-
       toast({
         description: "LLM configuration saved",
       })
+      setOpen(false)
       router.refresh()
     } catch (error: any) {
       toast({
@@ -125,58 +126,72 @@ export default function LLMClientPage({
                     Coming soon
                   </Button>
                 ) : (
-                  <Dialog>
-                    <DialogTrigger
-                      className={cn(
-                        buttonVariants({ variant: "default", size: "sm" })
-                      )}
+                  <>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={() => setOpen(true)}
                     >
                       Configure
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Configure {llm.name}</DialogTitle>
-                        <DialogDescription>
-                          Enter your OpenAI api key below. You can find your key
-                          by logging into your OpenAI account.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <Form {...form}>
-                        <form
-                          onSubmit={form.handleSubmit(onSubmit)}
-                          className="w-full space-y-4"
-                        >
-                          <div className="flex flex-col space-y-2">
-                            <FormField
-                              control={form.control}
-                              name="apiKey"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>API key</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="Enter your api key"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                          <DialogFooter>
-                            <Button type="submit" size="sm" className="w-full">
-                              {form.control._formState.isSubmitting ? (
-                                <Spinner />
-                              ) : (
-                                "Save settings"
-                              )}
-                            </Button>
-                          </DialogFooter>
-                        </form>
-                      </Form>
-                    </DialogContent>
-                  </Dialog>
+                    </Button>
+                    <Dialog
+                      open={open}
+                      onOpenChange={(value) => {
+                        setOpen(value)
+                        if (!value) {
+                          form.reset()
+                        }
+                      }}
+                    >
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Configure {llm.name}</DialogTitle>
+                          <DialogDescription>
+                            Enter your OpenAI api key below. You can find your
+                            key by logging into your OpenAI account.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <Form {...form}>
+                          <form
+                            onSubmit={form.handleSubmit(onSubmit)}
+                            className="w-full space-y-4"
+                          >
+                            <div className="flex flex-col space-y-2">
+                              <FormField
+                                control={form.control}
+                                name="apiKey"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>API key</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Enter your api key"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <DialogFooter>
+                              <Button
+                                type="submit"
+                                size="sm"
+                                className="w-full"
+                              >
+                                {form.control._formState.isSubmitting ? (
+                                  <Spinner />
+                                ) : (
+                                  "Save settings"
+                                )}
+                              </Button>
+                            </DialogFooter>
+                          </form>
+                        </Form>
+                      </DialogContent>
+                    </Dialog>
+                  </>
                 )}
               </div>
             </CardContent>
