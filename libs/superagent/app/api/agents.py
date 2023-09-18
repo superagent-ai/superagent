@@ -268,7 +268,7 @@ async def add_tool(
             {"toolId": body.toolId, "agentId": agent_id},
             include={"tool": True},
         )
-        return {"success": True, "data": agent_tool}
+        return {"success": True}
     except Exception as e:
         handle_exception(e)
 
@@ -351,7 +351,7 @@ async def add_datasource(
         #        handle_exception(flow_exception)
 
         # asyncio.create_task(run_datasource_flow())
-        return {"success": True, "data": agent_datasource}
+        return {"success": True}
     except Exception as e:
         handle_exception(e)
 
