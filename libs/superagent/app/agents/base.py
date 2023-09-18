@@ -135,9 +135,10 @@ class AgentBase:
             return agent
         else:
             prompt = (
-                f"{config.prompt or DEFAULT_PROMPT} \n %s"
+                f"{config.prompt.replace('{', '{{').replace('}', '}}') or DEFAULT_PROMPT} \n %s"
                 % "Question: {input} \n History: \n {chat_history}"
             )
+            print(prompt)
             agent = LLMChain(
                 llm=llm,
                 memory=memory,
