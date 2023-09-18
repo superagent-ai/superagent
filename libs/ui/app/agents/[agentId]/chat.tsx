@@ -281,9 +281,9 @@ export default function Chat({
               .map((run: any) => (
                 <Card key={run.id}>
                   <CardHeader>
-                    <div className="flex justify-between space-x-4">
+                    <div className="flex items-start justify-between space-x-4">
                       <p className="flex-1">{run.inputs.input}</p>
-                      <div className="flex items-center space-x-4">
+                      <div className="mt-1 flex items-center space-x-4">
                         <p className="text-primary font-mono text-xs">
                           {run.total_tokens} tokens
                         </p>
