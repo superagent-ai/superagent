@@ -291,8 +291,8 @@ export function DataTable<TData, TValue>({
                             Connect third-party applications.
                           </AlertDescription>
                         </div>
-                        <Button variant="secondary" size="sm">
-                          Connect
+                        <Button variant="outline" size="sm">
+                          Coming soon
                         </Button>
                       </Alert>
                     </div>
