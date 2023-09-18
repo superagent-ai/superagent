@@ -103,7 +103,7 @@ model Datasource {
 model AgentDatasource {
   agentId      String
   datasourceId String
-  agent        Agent      @relation(fields: [agentId], references: [id])
+  agent        Agent      @relation(fields: [agentId], references: [id], onDelete: Cascade)
   datasource   Datasource @relation(fields: [datasourceId], references: [id])
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
@@ -128,7 +128,7 @@ model Tool {
 model AgentTool {
   agentId   String
   toolId    String
-  agent     Agent    @relation(fields: [agentId], references: [id])
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
   tool      Tool     @relation(fields: [toolId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -151,7 +151,7 @@ model LLM {
 model AgentLLM {
   agentId   String
   llmId     String
-  agent     Agent    @relation(fields: [agentId], references: [id])
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
   llm       LLM      @relation(fields: [llmId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
