@@ -93,32 +93,50 @@ export default function OnboardingClientPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex justify-between space-x-2">
+                <div className="flex flex-col space-y-4">
+                  <div className="flex justify-between space-x-2">
+                    <FormField
+                      control={form.control}
+                      name="first_name"
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel>First name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter your first name"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="last_name"
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel>Last name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter your last name"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <FormField
                     control={form.control}
-                    name="first_name"
+                    name="company"
                     render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel>First name</FormLabel>
+                      <FormItem>
+                        <FormLabel>Company name</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter your first name"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="last_name"
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel>Last name</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter your last name"
+                            placeholder="Enter your company name"
                             {...field}
                           />
                         </FormControl>
@@ -127,22 +145,6 @@ export default function OnboardingClientPage() {
                     )}
                   />
                 </div>
-                <FormField
-                  control={form.control}
-                  name="company"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Company name</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter your company name"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </CardContent>
               <CardFooter>
                 <Button type="submit" size="sm" className="w-full">
