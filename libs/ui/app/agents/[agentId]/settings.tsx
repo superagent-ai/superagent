@@ -84,7 +84,7 @@ export default function Settings({
     defaultValues: {
       name: agent.name,
       description: agent.description,
-      llms: agent.llms?.[0].llm.provider,
+      llms: agent.llms?.[0]?.llm.provider,
       llmModel: agent.llmModel,
       isActive: true,
       prompt: agent.prompt,
@@ -213,65 +213,79 @@ export default function Settings({
               </FormItem>
             )}
           />
+
           <div className="flex flex-col space-y-2">
             <FormLabel>Model</FormLabel>
-            <div className="flex justify-between space-x-2">
-              <FormField
-                control={form.control}
-                name="llms"
-                render={({ field }) => (
-                  <FormItem className="flex-1">
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a provider" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem
-                          key={agent.llms[0].llm.provider}
-                          value={agent.llms[0].llm.provider}
-                        >
-                          {agent.llms[0].llm.provider}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="llmModel"
-                render={({ field }) => (
-                  <FormItem className="flex-1">
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a model" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {siteConfig.llms
-                          .find((llm) => llm.id === "OPENAI")
-                          ?.options.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.title}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            {agent.llms.length > 0 ? (
+              <div className="flex justify-between space-x-2">
+                <FormField
+                  control={form.control}
+                  name="llms"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a provider" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem
+                            key={agent.llms[0]?.llm.provider}
+                            value={agent.llms[0]?.llm.provider}
+                          >
+                            {agent.llms[0]?.llm.provider}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="llmModel"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a model" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {siteConfig.llms
+                            .find((llm) => llm.id === "OPENAI")
+                            ?.options.map((option) => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
+                                {option.title}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col space-y-4 rounded-lg border border-red-500 p-4">
+                <p className="text-sm">Heads up!</p>
+                <p className="text-muted-foreground text-sm">
+                  You need to add an LLM to this agent for it work. This can be
+                  done through the SDK or API.
+                </p>
+              </div>
+            )}
           </div>
           <FormField
             control={form.control}
