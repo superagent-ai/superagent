@@ -14,6 +14,7 @@ from langchain.document_loaders import (
     YoutubeLoader,
 )
 from langchain.document_loaders.airbyte import AirbyteStripeLoader
+from langchain.docstore.document import Document
 from llama_index import download_loader
 from pyairtable import Api
 
@@ -29,6 +30,8 @@ class DataLoader:
             return self.load_txt()
         elif self.datasource.type == "PDF":
             return self.load_pdf()
+        elif self.datasource.type == "PPTX":
+            return self.load_pptx()
         elif self.datasource.type == "Markdown":
             return self.load_markdown()
         elif self.datasource.type == "GITHUB_REPOSITORY":
@@ -59,6 +62,22 @@ class DataLoader:
     def load_pdf(self):
         loader = PyPDFLoader(file_path=self.datasource.url)
         return loader.load_and_split()
+
+    def load_pptx(self):
+        from pptx import Presentation
+
+        file_response = requests.get(self.datasource.url).content
+        with NamedTemporaryFile(suffix=".pptx", delete=True) as temp_file:
+            temp_file.write(file_response)
+            temp_file.flush()
+            presentation = Presentation(temp_file.name)
+            result = ""
+            for i, slide in enumerate(presentation.slides):
+                result += f"\n\nSlide #{i}: \n"
+                for shape in slide.shapes:
+                    if hasattr(shape, "text"):
+                        result += f"{shape.text}\n"
+            return [Document(page_content=result)]
 
     def load_markdown(self):
         file_response = requests.get(self.datasource.url).text
