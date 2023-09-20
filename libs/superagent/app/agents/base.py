@@ -142,7 +142,7 @@ class AgentBase:
             prompt_base = prompt_base or DEFAULT_PROMPT
             prompt_question = "Question: {input}"
             prompt_history = "History: \n {chat_history}"
-            prompt = f"{prompt_base} \n %s \n %s" % (prompt_question, prompt_history)
+            prompt = f"{prompt_base} \n {prompt_question} \n {prompt_history}"
             agent = LLMChain(
                 llm=llm,
                 memory=memory,
