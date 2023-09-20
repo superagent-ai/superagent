@@ -38,6 +38,7 @@ enum DatasourceType {
   PDF
   CSV
   PPTX
+  DOCX
   YOUTUBE
   GITHUB_REPOSITORY
   MARKDOWN
