@@ -4,6 +4,7 @@ import pandas as pd
 
 from io import StringIO
 from decouple import config
+from tempfile import NamedTemporaryFile
 from langchain.tools import BaseTool
 from llama import Context, LLMEngine, Type
 from app.vectorstores.pinecone import PineconeVectorStore
@@ -113,6 +114,13 @@ class StructuredDatasourceTool(BaseTool):
             response = requests.get(url)
             file_content = StringIO(response.text)
             df = pd.read_csv(file_content)
+        elif datasource.type == "XLSX":
+            url = datasource.url
+            response = requests.get(url)
+            with NamedTemporaryFile(suffix=".xlsx", delete=True) as temp_file:
+                temp_file.write(response.content)
+                temp_file.flush()
+                df = pd.read_excel(temp_file.name, engine="openpyxl")
         else:
             data = DataLoader(datasource=datasource).load()
             df = pd.DataFrame(data)
@@ -138,6 +146,13 @@ class StructuredDatasourceTool(BaseTool):
             response = requests.get(url)
             file_content = StringIO(response.text)
             df = pd.read_csv(file_content)
+        elif datasource.type == "XLSX":
+            url = datasource.url
+            response = requests.get(url)
+            with NamedTemporaryFile(suffix=".xlsx", delete=True) as temp_file:
+                temp_file.write(response.content)
+                temp_file.flush()
+                df = pd.read_excel(temp_file.name, engine="openpyxl")
         else:
             data = DataLoader(datasource=datasource).load()
             df = pd.DataFrame(data)
