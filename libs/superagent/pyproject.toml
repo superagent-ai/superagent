@@ -43,6 +43,7 @@ tabulate = "^0.9.0"
 gitpython = "^3.1.36"
 python-pptx = "^0.6.22"
 openpyxl = "^3.1.2"
+unstructured = "^0.10.16"
 
 
 [build-system]
