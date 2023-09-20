@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider          = "postgresql"
-  url               = env("DATABASE_URL")
+  url               = env("DATABASE_MIGRATION_URL")
   shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
@@ -40,6 +40,7 @@ enum DatasourceType {
   PPTX
   XLSX
   DOCX
+  GOOGLE_DOC
   YOUTUBE
   GITHUB_REPOSITORY
   MARKDOWN

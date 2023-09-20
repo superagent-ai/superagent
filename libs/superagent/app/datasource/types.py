@@ -3,6 +3,7 @@ VALID_UNSTRUCTURED_DATA_TYPES = [
     "PDF",
     "DOCX",
     "PPTX",
+    "GOOGLE_DOC",
     "MARKDOWN",
     "GITHUB_REPOSITORY",
     "WEBPAGE",
