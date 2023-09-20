@@ -61,7 +61,7 @@ export function Message({
     <div className="min-w-4xl flex max-w-4xl space-x-4 border-b pb-2">
       <Avatar className="h-8 w-8">
         <AvatarImage
-          src={type === "ai" ? agent.avatar || "/logo.png" : undefined}
+          src={type === "ai" ? agent?.avatar || "/logo.png" : undefined}
         />
         <AvatarFallback>
           <RxChatBubble />
@@ -166,7 +166,7 @@ export default function Chat({
     ])
 
     await fetchEventSource(
-      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agent.id}/invoke`,
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agent?.id}/invoke`,
       {
         method: "POST",
         headers: {
@@ -205,40 +205,45 @@ export default function Chat({
       <ScrollArea className="relative flex grow flex-col px-4">
         <div className="from-background absolute inset-x-0 top-0 z-20 h-20 bg-gradient-to-b from-0% to-transparent to-50%" />
         {messages.length === 0 && (
-          <div className="mb-20 mt-10 flex flex-col items-center justify-center space-y-5 py-5">
-            <Card>
-              <CardHeader>
-                <img
-                  className="mb-5 rounded-lg"
-                  src={agent.avatar || "/logo.png"}
-                  width={60}
-                  height={60}
-                  alt={agent.name}
-                />
-                <CardTitle className="text-md">{agent.name}</CardTitle>
-                <CardDescription>{agent.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex space-x-2">
-                  {agent.tools.map((tool) => (
-                    <Badge variant="outline" key={tool.id}>
-                      {tool.tool.name}
-                    </Badge>
-                  ))}
-                  {agent.datasources.map((datasource) => (
-                    <Badge variant="outline" key={datasource.id}>
-                      {datasource.datasource.name}
-                    </Badge>
-                  ))}
-                </div>
-                <p className="text-muted-foreground mt-6 text-xs">
-                  Powered by{" "}
-                  <a href="https://www.superagent.sh" className="text-primary">
-                    Superagent.sh
-                  </a>
-                </p>
-              </CardContent>
-            </Card>
+          <div className="mb-20 mt-10 flex flex-col space-y-5 py-5">
+            <div className="container mx-auto flex max-w-lg flex-col space-y-5">
+              <Card>
+                <CardHeader>
+                  <img
+                    className="mb-5 rounded-lg"
+                    src={agent?.avatar || "/logo.png"}
+                    width={60}
+                    height={60}
+                    alt={agent?.name}
+                  />
+                  <CardTitle className="text-md">{agent?.name}</CardTitle>
+                  <CardDescription>{agent?.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex space-x-2">
+                    {agent?.tools.map((tool) => (
+                      <Badge variant="outline" key={tool.id}>
+                        {tool.tool.name}
+                      </Badge>
+                    ))}
+                    {agent?.datasources.map((datasource) => (
+                      <Badge variant="outline" key={datasource.id}>
+                        {datasource.datasource.name}
+                      </Badge>
+                    ))}
+                  </div>
+                  <p className="text-muted-foreground mt-6 text-xs">
+                    Powered by{" "}
+                    <a
+                      href="https://www.superagent.sh"
+                      className="text-primary"
+                    >
+                      Superagent.sh
+                    </a>
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
         <div className="mb-20 mt-10 flex flex-col space-y-5 py-5">
