@@ -167,7 +167,6 @@ async def invoke(
             )
 
             async for token in callback.aiter():
-                logging.info(f"Sending token: {token}")
                 yield f"data: {token}\n\n"
 
             await task

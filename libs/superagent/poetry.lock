@@ -812,20 +812,6 @@ websocket-client = ">=0.32.0"
 ssh = ["paramiko (>=2.4.3)"]
 
 [[package]]
-name = "docx"
-version = "0.2.4"
-description = "The docx module creates, reads and writes Microsoft Office Word 2007 docx files"
-optional = false
-python-versions = "*"
-files = [
-    {file = "docx-0.2.4.tar.gz", hash = "sha256:9d7595eac6e86cda0b7136a2995318d039c1f3eaa368a3300805abbbe5dc8877"},
-]
-
-[package.dependencies]
-lxml = "*"
-Pillow = ">=2.0"
-
-[[package]]
 name = "email-validator"
 version = "2.0.0.post2"
 description = "A robust email address syntax and deliverability validation library."
@@ -2883,6 +2869,19 @@ files = [
 ]
 
 [[package]]
+name = "python-docx"
+version = "0.8.11"
+description = "Create and update Microsoft Word .docx files."
+optional = false
+python-versions = "*"
+files = [
+    {file = "python-docx-0.8.11.tar.gz", hash = "sha256:1105d233a0956dd8dd1e710d20b159e2d72ac3c301041b95f4d4ceb3e0ebebc4"},
+]
+
+[package.dependencies]
+lxml = ">=2.3.2"
+
+[[package]]
 name = "python-dotenv"
 version = "1.0.0"
 description = "Read key-value pairs from a .env file and set them as environment variables"
@@ -4500,4 +4499,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "65021653b272aeaa375717218f7d8cbccdd3b87ac8e09449e4925b1f4d146531"
+content-hash = "b4dee0aeb0338774b0b5fa8894804d321637786a823489c81ab573faa9c8f9fc"
