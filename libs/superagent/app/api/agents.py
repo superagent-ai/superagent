@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from typing import AsyncIterable
+from decouple import config
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
@@ -416,7 +417,7 @@ async def list_runs(agent_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for listing agent runs"""
     try:
         output = langsmith_client.list_runs(
-            project_id="5b5b88d3-af77-4a64-9607-51782ac7a62f",
+            project_id=config("LANGSMITH_PROJECT_ID"),
             filter=f"has(tags, '{agent_id}')",
         )
         return {"success": True, "data": output}
