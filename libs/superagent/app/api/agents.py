@@ -176,32 +176,27 @@ async def invoke(
         finally:
             callback.done.set()
 
-    try:
-        logging.info("Invoking agent...")
-        session_id = body.sessionId
-        input = body.input
-        enable_streaming = body.enableStreaming
+    logging.info("Invoking agent...")
+    session_id = body.sessionId
+    input = body.input
+    enable_streaming = body.enableStreaming
 
-        callback = CustomAsyncIteratorCallbackHandler()
-        agent = await AgentBase(
-            agent_id=agent_id,
-            session_id=session_id,
-            enable_streaming=enable_streaming,
-            callback=callback,
-        ).get_agent()
+    callback = CustomAsyncIteratorCallbackHandler()
+    agent = await AgentBase(
+        agent_id=agent_id,
+        session_id=session_id,
+        enable_streaming=enable_streaming,
+        callback=callback,
+    ).get_agent()
 
-        if enable_streaming:
-            logging.info("Streaming enabled. Preparing streaming response...")
-            generator = send_message(agent, content=input, callback=callback)
-            return StreamingResponse(generator, media_type="text/event-stream")
+    if enable_streaming:
+        logging.info("Streaming enabled. Preparing streaming response...")
+        generator = send_message(agent, content=input, callback=callback)
+        return StreamingResponse(generator, media_type="text/event-stream")
 
-        logging.info("Streaming not enabled. Invoking agent synchronously...")
-        output = await agent.acall(inputs={"input": input}, tags=[agent_id])
-        return {"success": True, "data": output}
-
-    except Exception as e:
-        logging.error(f"Error in invoke: {e}")
-        handle_exception(e)
+    logging.info("Streaming not enabled. Invoking agent synchronously...")
+    output = await agent.acall(inputs={"input": input}, tags=[agent_id])
+    return {"success": True, "data": output}
 
 
 # Agent LLM endpoints
