@@ -12,6 +12,7 @@ from langchain.document_loaders import (
     UnstructuredMarkdownLoader,
     WebBaseLoader,
     YoutubeLoader,
+    UnstructuredWordDocumentLoader,
 )
 from langchain.document_loaders.airbyte import AirbyteStripeLoader
 from langchain.docstore.document import Document
@@ -32,6 +33,8 @@ class DataLoader:
             return self.load_pdf()
         elif self.datasource.type == "PPTX":
             return self.load_pptx()
+        elif self.datasource.type == "DOCX":
+            return self.load_docx()
         elif self.datasource.type == "Markdown":
             return self.load_markdown()
         elif self.datasource.type == "GITHUB_REPOSITORY":
@@ -78,6 +81,15 @@ class DataLoader:
                     if hasattr(shape, "text"):
                         result += f"{shape.text}\n"
             return [Document(page_content=result)]
+
+    def load_docx(self):
+        file_response = requests.get(self.datasource.url).content
+        with NamedTemporaryFile(suffix=".docx", delete=True) as temp_file:
+            temp_file.write(file_response)
+            temp_file.flush()
+            loader = UnstructuredWordDocumentLoader(file_path=temp_file.name)
+            print(loader.load_and_split())
+            return loader.load_and_split()
 
     def load_markdown(self):
         file_response = requests.get(self.datasource.url).text
