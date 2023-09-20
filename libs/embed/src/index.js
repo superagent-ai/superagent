@@ -1,7 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { useAsync } from 'react-use';
-import {SuperAgentClient} from 'superagentai-js';
 import { ChakraProvider, Box, useDisclosure, Avatar, IconButton, Icon } from '@chakra-ui/react';
 import {TbX} from "react-icons/tb"
 
@@ -53,31 +51,21 @@ const styles = {
 function SuperagentWidget({ authorization, type }) {
   const {isOpen, onClose, onOpen} = useDisclosure();
 
-  if (!type || !agentId || !apiKey) {
+  if (!type || !authorization) {
     throw new Error(
-      "Missing one of the following parameters: agentId, apiKey or type"
+      "Missing one of the following parameters: authorization or type"
     );
   } 
-
-  const superagentClient = new SuperAgentClient({
-    environment: ENVIRONMENT,
-    token: apiKey
-  });
-  const {loading: isLoading, value: agent} = useAsync(async () => {
-    return superagentClient.agent.getAgent(agentId);
-  }, [agentId]);
 
   if (type === "inline") {
     return (
       <div style={styles.container}>
-        {agent && (
-          <iframe
-            style={styles.iframe} 
-            width="100%"
-            height="100%"
-            src={`https://beta.superagent.sh/share/${authorization}`} 
-          />
-        )}
+        <iframe
+          style={styles.iframe} 
+          width="100%"
+          height="100%"
+          src={`https://beta.superagent.sh/share/${authorization}`} 
+        />
       </div>
     );
   }
@@ -85,7 +73,7 @@ function SuperagentWidget({ authorization, type }) {
   if (type === "popup") {
     return (
       <ChakraProvider>
-        {agent && !isOpen && (
+        {!isOpen && (
           <Avatar
             zIndex={99999999}
             boxShadow="md"
@@ -100,7 +88,7 @@ function SuperagentWidget({ authorization, type }) {
             onClick={isOpen ? onClose : onOpen}
           />
         )}
-        {agent && isOpen && (
+        {isOpen && (
           <IconButton
             zIndex={99999999}
             boxShadow="md"
@@ -117,22 +105,21 @@ function SuperagentWidget({ authorization, type }) {
             onClick={isOpen ? onClose : onOpen}
           />
         )}
-        {agent && (
-          <Box 
-            {...styles.modalContainer} 
-            display={!isOpen && "none"} 
-            zIndex={99999999}
-            minWidth={["100%", "450px"]}
-            right={["0", "20px", "20px"]}
-          >
-            <iframe
-              style={styles.iframe} 
-              width="100%"
-              height="100%"
-              src={`https://beta.superagent.sh/share/${authorization}`} 
-            />
-          </Box>
-        )}
+        <Box 
+          {...styles.modalContainer} 
+          display={!isOpen && "none"} 
+          zIndex={99999999}
+          minWidth={["100%", "450px"]}
+          right={["0", "20px", "20px"]}
+        >
+          <iframe
+            style={styles.iframe} 
+            width="100%"
+            height="100%"
+            src={`https://beta.superagent.sh/share/${authorization}`} 
+          />
+        </Box>
+  
       </ChakraProvider>
     )
   }

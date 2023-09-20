@@ -54,7 +54,7 @@ export default function Header({
 
 <!-- This should be placed before the 
 closing </body> tag -->
-<script src="https://unpkg.com/superagent-chat-embed/dist/web.js"></script>
+<script src="https://unpkg.com/superagent-chat-embed-v01/dist/web.js"></script>
 <script>
 Superagent({
   authorization: "${encodeToIdentifier(agent.id, profile.api_key)}",
