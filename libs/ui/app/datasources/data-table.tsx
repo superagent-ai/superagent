@@ -178,7 +178,6 @@ export function DataTable<TData, TValue>({
         setIsOpeningVault(false)
         setSelectedFile(file)
         setIsDownloadingFile(true)
-
         const response = await fetch("/datasources/apideck/download", {
           method: "POST",
           body: JSON.stringify({
