@@ -131,6 +131,8 @@ export function DataTable<TData, TValue>({
         "PPTX",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
         "DOCX",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+        "XLSX",
       "text/markdown": "MARKDOWN",
       "text/csv": "CSV",
     }
@@ -160,6 +162,7 @@ export function DataTable<TData, TValue>({
           "text/csv",
           "application/vnd.openxmlformats-officedocument.presentationml.presentation",
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ]
 
         if (!supportedMimeTypes.includes(file.mime_type)) {

@@ -4,6 +4,7 @@ import pandas as pd
 
 from io import StringIO
 from decouple import config
+from tempfile import NamedTemporaryFile
 from langchain.tools import BaseTool
 from llama import Context, LLMEngine, Type
 from app.vectorstores.pinecone import PineconeVectorStore
@@ -102,6 +103,20 @@ class StructuredDatasourceTool(BaseTool):
     description = "useful for when need answer questions"
     return_direct = False
 
+    def _load_xlsx_data(self, url):
+        response = requests.get(url)
+        with NamedTemporaryFile(suffix=".xlsx", delete=True) as temp_file:
+            temp_file.write(response.content)
+            temp_file.flush()
+            df = pd.read_excel(temp_file.name, engine="openpyxl")
+        return df
+
+    def _load_csv_data(self, url):
+        response = requests.get(url)
+        file_content = StringIO(response.text)
+        df = pd.read_csv(file_content)
+        return df
+
     def _run(
         self,
         question: str,
@@ -109,10 +124,9 @@ class StructuredDatasourceTool(BaseTool):
         """Use the tool."""
         datasource: Datasource = self.metadata["datasource"]
         if datasource.type == "CSV":
-            url = datasource.url
-            response = requests.get(url)
-            file_content = StringIO(response.text)
-            df = pd.read_csv(file_content)
+            df = self._load_csv_data(datasource.url)
+        elif datasource.type == "XLSX":
+            df = self._load_xlsx_data(datasource.url)
         else:
             data = DataLoader(datasource=datasource).load()
             df = pd.DataFrame(data)
@@ -134,10 +148,9 @@ class StructuredDatasourceTool(BaseTool):
         """Use the tool asynchronously."""
         datasource: Datasource = self.metadata["datasource"]
         if datasource.type == "CSV":
-            url = datasource.url
-            response = requests.get(url)
-            file_content = StringIO(response.text)
-            df = pd.read_csv(file_content)
+            df = self._load_csv_data(datasource.url)
+        elif datasource.type == "XLSX":
+            df = self._load_xlsx_data(datasource.url)
         else:
             data = DataLoader(datasource=datasource).load()
             df = pd.DataFrame(data)
