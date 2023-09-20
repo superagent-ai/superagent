@@ -123,6 +123,19 @@ export function DataTable<TData, TValue>({
     }
   }
 
+  function mapMimeTypeToFileType(mimeType: string): string {
+    const typeMapping: { [key: string]: string } = {
+      "text/plain": "TXT",
+      "application/pdf": "PDF",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+        "PPTX",
+      "text/markdown": "MARKDOWN",
+      "text/csv": "CSV",
+    }
+
+    return typeMapping[mimeType] || "UNKNOWN"
+  }
+
   const openVault = async () => {
     // Open Vault with a valid session token
     const response = await fetch("/datasources/apideck/", {
@@ -143,11 +156,12 @@ export function DataTable<TData, TValue>({
           "text/plain",
           "text/markdown",
           "text/csv",
+          "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         ]
 
         if (!supportedMimeTypes.includes(file.mime_type)) {
           toast({
-            description: `File type ${file.mime_type} is not supported. Please select a .pdf, .txt, .md, or .csv file.`,
+            description: `File type ${file.mime_type} is not supported.`,
             variant: "destructive",
           })
           form.reset()
@@ -168,10 +182,11 @@ export function DataTable<TData, TValue>({
           }),
         })
         const { publicUrl } = await response.json()
-        const fileType = file.mime_type.split("/").pop().toUpperCase()
+        const fileType = mapMimeTypeToFileType(file.mime_type)
 
         form.setValue("url", publicUrl)
-        form.setValue("type", fileType === "PLAIN" ? "TXT" : fileType)
+        form.setValue("type", fileType)
+
         setIsDownloadingFile(false)
       },
     })
@@ -192,8 +207,6 @@ export function DataTable<TData, TValue>({
           size="sm"
           onClick={() => {
             setOpen(true)
-            //setIsLoadingFilePicker(true)
-            //openVault()
           }}
         >
           {form.control._formState.isSubmitting || isDownloadingFile ? (
