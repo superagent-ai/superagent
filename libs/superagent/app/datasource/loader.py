@@ -88,7 +88,6 @@ class DataLoader:
             temp_file.write(file_response)
             temp_file.flush()
             loader = UnstructuredWordDocumentLoader(file_path=temp_file.name)
-            print(loader.load_and_split())
             return loader.load_and_split()
 
     def load_markdown(self):
