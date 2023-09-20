@@ -2,7 +2,7 @@
 
 # Superagent 🥷
 
-### The agent framework for large language models
+### The open framework for for building AI Assistants
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/Superagent" />
@@ -18,7 +18,7 @@
 
 -----
 
-Superagent is an open source agent framework that enables any developer to integrate production ready AI Agents into any application in a matter of minutes.
+Superagent is an open source agent framework that enables any developer to integrate production ready AI Assistants into any application in a matter of minutes.
 
 -----
 
