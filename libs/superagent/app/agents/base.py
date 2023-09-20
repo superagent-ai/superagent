@@ -134,7 +134,11 @@ class AgentBase:
             )
             return agent
         else:
-            prompt_base = f"{config.prompt.replace('{', '{{').replace('}', '}}')}"
+            prompt_base = (
+                f"{config.prompt.replace('{', '{{').replace('}', '}}')}"
+                if config.prompt
+                else None
+            )
             prompt_base = prompt_base or DEFAULT_PROMPT
             prompt_question = "Question: {input}"
             prompt_history = "History: \n {chat_history}"
