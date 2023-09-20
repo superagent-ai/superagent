@@ -40,6 +40,7 @@ enum DatasourceType {
   PPTX
   XLSX
   DOCX
+  GOOGLE_DOC
   YOUTUBE
   GITHUB_REPOSITORY
   MARKDOWN

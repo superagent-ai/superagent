@@ -35,6 +35,8 @@ class DataLoader:
             return self.load_pptx()
         elif self.datasource.type == "DOCX":
             return self.load_docx()
+        elif self.datasource.type == "GOOGLE_DOC":
+            return self.load_google_doc()
         elif self.datasource.type == "Markdown":
             return self.load_markdown()
         elif self.datasource.type == "GITHUB_REPOSITORY":
@@ -65,6 +67,9 @@ class DataLoader:
     def load_pdf(self):
         loader = PyPDFLoader(file_path=self.datasource.url)
         return loader.load_and_split()
+
+    def load_google_doc(self):
+        pass
 
     def load_pptx(self):
         from pptx import Presentation
