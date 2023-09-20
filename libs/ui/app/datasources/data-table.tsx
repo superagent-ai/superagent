@@ -133,7 +133,6 @@ export function DataTable<TData, TValue>({
         "DOCX",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
         "XLSX",
-      "application/vnd.google-apps.document": "GOOGLE_DOC",
       "text/markdown": "MARKDOWN",
       "text/csv": "CSV",
     }
@@ -164,7 +163,6 @@ export function DataTable<TData, TValue>({
           "application/vnd.openxmlformats-officedocument.presentationml.presentation",
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "application/vnd.google-apps.document",
         ]
 
         if (!supportedMimeTypes.includes(file.mime_type)) {
@@ -180,6 +178,7 @@ export function DataTable<TData, TValue>({
         setIsOpeningVault(false)
         setSelectedFile(file)
         setIsDownloadingFile(true)
+
         const response = await fetch("/datasources/apideck/download", {
           method: "POST",
           body: JSON.stringify({
