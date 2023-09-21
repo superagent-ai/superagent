@@ -210,7 +210,7 @@ export const siteConfig = {
     },
     {
       value: "CODE_EXECUTOR",
-      title: "Code interpreter",
+      title: "Code interpreter (alpha)",
       metadata: [],
     },
     {
