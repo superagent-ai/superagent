@@ -60,7 +60,17 @@ For full documentation, visit [docs.superagent.sh](https://docs.superagent.sh)
 
 To see how to contribute, visit [Contribution guidelines](https://github.com/homanp/Superagent/blob/main/.github/CONTRIBUTING.md)
 
-## 🛠️ Getting started
+## ☁️ Run on Replit
+1. Create a Replit REPL by importing the Superagent Github Repository. [Link](https://docs.replit.com/hosting/deployments/deploying-a-github-repository)
+
+2. Set the REPL language to `Python`
+
+3. Add all necessary `.env` variables as Replit `Secrets`. 
+
+4. Run the project
+
+
+## 🛠️ Run locally
 
 Clone the Superagent repository into a public GitHub repository or fork it from [https://github.com/homanp/superagent/fork](https://github.com/homanp/superagent/fork). 
 
