@@ -1,0 +1,11 @@
+run = "cd ./libs/superagent && ./replit.sh"
+modules = ["python-3.10:v18-20230807-322e88b", "nodejs-18:v3-20230608-f4cd419"]
+
+hidden = [".pythonlibs"]
+
+[nix]
+channel = "stable-23_05"
+
+[deployment]
+run = ["sh", "-c", "cd ./libs/superagent && ./replit.sh"]
+deploymentTarget = "cloudrun"
