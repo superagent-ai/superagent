@@ -1,8 +1,8 @@
 import asyncio
 import logging
 from typing import AsyncIterable
-from decouple import config
 
+from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from langsmith import Client

@@ -5,17 +5,17 @@ from typing import Any
 from urllib.parse import urlparse
 
 import requests
+from langchain.docstore.document import Document
 from langchain.document_loaders import (
     GitLoader,
     PyPDFLoader,
     TextLoader,
     UnstructuredMarkdownLoader,
+    UnstructuredWordDocumentLoader,
     WebBaseLoader,
     YoutubeLoader,
-    UnstructuredWordDocumentLoader,
 )
 from langchain.document_loaders.airbyte import AirbyteStripeLoader
-from langchain.docstore.document import Document
 from llama_index import download_loader
 from pyairtable import Api
 
