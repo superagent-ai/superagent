@@ -209,6 +209,11 @@ export const siteConfig = {
       metadata: [],
     },
     {
+      value: "CODE_EXECUTOR",
+      title: "Code interpreter (alpha)",
+      metadata: [],
+    },
+    {
       value: "OPENAPI",
       title: "OpenAPI",
       metadata: [
