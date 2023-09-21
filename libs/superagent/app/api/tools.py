@@ -97,6 +97,7 @@ async def update(
 async def delete(tool_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for deleting a specific tool"""
     try:
+        await prisma.agenttool.delete_many(where={"toolId": tool_id})
         await prisma.tool.delete(where={"id": tool_id})
         return {"success": True, "data": None}
     except Exception as e:
