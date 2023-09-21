@@ -65,9 +65,12 @@ To see how to contribute, visit [Contribution guidelines](https://github.com/hom
 
 2. Set the REPL language to `Python`
 
-3. Add all necessary `.env` variables as Replit `Secrets`. 
+3. Add all necessary `.env` variables as Replit `Secrets`. Also add the following additional secret:
+    ```sh
+    TZ = Etc/UTC
+    ```
 
-4. Run the project
+4. Deploy the REPL using Replit `Autoscale`
 
 
 ## 🛠️ Run locally
