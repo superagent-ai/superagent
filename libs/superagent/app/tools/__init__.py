@@ -5,6 +5,7 @@ from app.models.tools import (
     AgentInput,
     BingSearchInput,
     ChatGPTInput,
+    CodeExecutorInput,
     MetaphorSearchInput,
     OpenapiInput,
     PubMedInput,
@@ -21,6 +22,7 @@ from app.tools.pubmed import PubMed
 from app.tools.replicate import Replicate
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
+from app.tools.code_executor import CodeExecutor
 
 TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
@@ -41,6 +43,7 @@ TOOL_TYPE_MAPPING = {
     "CHATGPT_PLUGIN": {"class": get_chatpgt_tool, "schema": ChatGPTInput},
     "REPLICATE": {"class": Replicate, "schema": ReplicateInput},
     "WOLFRAM_ALPHA": {"class": WolframAlpha, "schema": WolframInput},
+    "CODE_EXECUTOR": {"class": CodeExecutor, "schema": CodeExecutorInput},
 }
 
 
