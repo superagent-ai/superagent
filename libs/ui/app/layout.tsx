@@ -31,8 +31,6 @@ interface RootLayoutProps {
   children: React.ReactNode
 }
 
-export const dynamic = "force-dynamic"
-
 export default async function RootLayout({ children }: RootLayoutProps) {
   const supabase = createRouteHandlerClient({ cookies })
   const {
