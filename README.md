@@ -63,7 +63,9 @@ To see how to contribute, visit [Contribution guidelines](https://github.com/hom
 ## ☁️ Run on Replit
 1. Create a Replit REPL by importing the Superagent Github Repository. [Link](https://docs.replit.com/hosting/deployments/deploying-a-github-repository)
 
-2. Replace the contents of the `.replit` file in your REPL with the following
+2. Set the REPL language to `Python`
+
+3. Replace the contents of the `.replit` file in your REPL with the following
     ```sh
     run = "cd ./libs/superagent && ./replit.sh"
     modules = ["python-3.10:v18-20230807-322e88b", "nodejs-18:v3-20230608-f4cd419"]
@@ -77,9 +79,11 @@ To see how to contribute, visit [Contribution guidelines](https://github.com/hom
     run = ["sh", "-c", "cd ./libs/superagent && ./replit.sh"]
     deploymentTarget = "cloudrun"
     ```
-
-3. Set the REPL language to `Python`
-
+4. Run the following command in the Replit console:
+    ```sh
+    chmod 777 /libs/superagent/replit.sh
+    ```
+    
 4. Add all necessary `.env` variables as Replit `Secrets`. Also add the following additional secret:
     ```sh
     TZ = Etc/UTC
