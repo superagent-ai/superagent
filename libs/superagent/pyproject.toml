@@ -45,6 +45,7 @@ python-docx = "^0.8.11"
 langsmith = "^0.0.39"
 langchain = "^0.0.297"
 requests = "^2.31.0"
+wolframalpha = "^5.0.0"
 
 
 [build-system]
