@@ -123,7 +123,7 @@ export function EditTool({
     try {
       await api.patchTool(tool.id, {
         type: tool.type,
-        returnDirect: true,
+        returnDirect: false,
         ...values,
       })
       toast({

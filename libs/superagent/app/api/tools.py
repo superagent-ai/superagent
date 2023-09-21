@@ -78,18 +78,15 @@ async def update(
     tool_id: str, body: ToolRequest, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for updating a specific tool"""
-    try:
-        body.metadata = json.dumps(body.metadata) if body.metadata else None
-        data = await prisma.tool.update(
-            where={"id": tool_id},
-            data={
-                **body.dict(),
-                "apiUserId": api_user.id,
-            },
-        )
-        return {"success": True, "data": data}
-    except Exception as e:
-        handle_exception(e)
+    body.metadata = json.dumps(body.metadata) if body.metadata else ""
+    data = await prisma.tool.update(
+        where={"id": tool_id},
+        data={
+            **body.dict(),
+            "apiUserId": api_user.id,
+        },
+    )
+    return {"success": True, "data": data}
 
 
 @router.delete(
