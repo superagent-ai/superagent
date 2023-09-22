@@ -49,6 +49,13 @@ export default function Header({
     router.push("/agents")
   }
 
+  const handleCopyIdToClipboard = () => {
+    navigator.clipboard.writeText(agent.id)
+    toast({
+      description: "Copied ID to clipboard",
+    })
+  }
+
   const embedCode = `<!-- This can be placed anywhere -->
 <div id="superagent-chat"></div>
 
@@ -73,12 +80,7 @@ Superagent({
           <Button
             size="sm"
             variant="secondary"
-            onClick={() => {
-              navigator.clipboard.writeText(agent.id)
-              toast({
-                description: "Copied ID to clipboard",
-              })
-            }}
+            onClick={() => handleCopyIdToClipboard()}
           >
             <TbLink fontSize="18px" />
           </Button>
