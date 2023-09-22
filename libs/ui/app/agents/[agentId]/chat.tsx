@@ -24,7 +24,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 import { CodeBlock } from "@/components/codeblock"
@@ -76,6 +83,28 @@ export function Message({
           className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words text-sm"
           remarkPlugins={[remarkGfm, remarkMath]}
           components={{
+            table({ children }) {
+              return (
+                <div className="mb-2 rounded-md border">
+                  <Table>{children}</Table>
+                </div>
+              )
+            },
+            thead({ children }) {
+              return <TableHeader>{children}</TableHeader>
+            },
+            tbody({ children }) {
+              return <TableBody>{children}</TableBody>
+            },
+            tr({ children }) {
+              return <TableRow>{children}</TableRow>
+            },
+            th({ children }) {
+              return <TableHead className="py-2">{children}</TableHead>
+            },
+            td({ children }) {
+              return <TableCell className="py-2">{children}</TableCell>
+            },
             p({ children }) {
               return <p className="mb-5">{children}</p>
             },
