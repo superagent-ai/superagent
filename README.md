@@ -2,7 +2,7 @@
 
 # Superagent 🥷
 
-### The agent framework for large language models
+### The open framework for for building AI Assistants
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/Superagent" />
@@ -18,7 +18,7 @@
 
 -----
 
-Superagent is an open source agent framework that enables any developer to integrate production ready AI Agents into any application in a matter of minutes.
+Superagent is an open source agent framework that enables any developer to integrate production ready AI Assistants into any application in a matter of minutes.
 
 -----
 
@@ -60,7 +60,39 @@ For full documentation, visit [docs.superagent.sh](https://docs.superagent.sh)
 
 To see how to contribute, visit [Contribution guidelines](https://github.com/homanp/Superagent/blob/main/.github/CONTRIBUTING.md)
 
-## 🛠️ Getting started
+## ☁️ Run on Replit
+1. Create a Replit REPL by importing the Superagent Github Repository. [Link](https://docs.replit.com/hosting/deployments/deploying-a-github-repository)
+
+2. Set the REPL language to `Python`
+
+3. Replace the contents of the `.replit` file in your REPL with the following
+    ```sh
+    run = "cd ./libs/superagent && ./replit.sh"
+    modules = ["python-3.10:v18-20230807-322e88b", "nodejs-18:v3-20230608-f4cd419"]
+    
+    hidden = [".pythonlibs"]
+    
+    [nix]
+    channel = "stable-23_05"
+    
+    [deployment]
+    run = ["sh", "-c", "cd ./libs/superagent && ./replit.sh"]
+    deploymentTarget = "cloudrun"
+    ```
+4. Run the following command in the Replit console:
+    ```sh
+    chmod 777 /libs/superagent/replit.sh
+    ```
+    
+4. Add all necessary `.env` variables as Replit `Secrets`. Also add the following additional secret:
+    ```sh
+    TZ = Etc/UTC
+    ```
+
+5. Deploy the REPL using Replit `Autoscale`
+
+
+## 🛠️ Run locally
 
 Clone the Superagent repository into a public GitHub repository or fork it from [https://github.com/homanp/superagent/fork](https://github.com/homanp/superagent/fork). 
 

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { Separator } from "@radix-ui/react-separator"
 import { CodeBlock, dracula } from "react-code-blocks"
 import { RxCopy } from "react-icons/rx"
-import { TbTrashX } from "react-icons/tb"
+import { TbLink, TbTrashX } from "react-icons/tb"
 
 import { Agent } from "@/types/agent"
 import { Profile } from "@/types/profile"
@@ -49,12 +49,19 @@ export default function Header({
     router.push("/agents")
   }
 
+  const handleCopyIdToClipboard = () => {
+    navigator.clipboard.writeText(agent.id)
+    toast({
+      description: "Copied ID to clipboard",
+    })
+  }
+
   const embedCode = `<!-- This can be placed anywhere -->
 <div id="superagent-chat"></div>
 
 <!-- This should be placed before the 
 closing </body> tag -->
-<script src="https://unpkg.com/superagent-chat-embed/dist/web.js"></script>
+<script src="https://unpkg.com/superagent-chat-embed-v01/dist/web.js"></script>
 <script>
 Superagent({
   authorization: "${encodeToIdentifier(agent.id, profile.api_key)}",
@@ -69,6 +76,13 @@ Superagent({
         <div className="flex space-x-2">
           <Button size="sm" variant="secondary" onClick={() => handleDelete()}>
             <TbTrashX size="18px" />
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => handleCopyIdToClipboard()}
+          >
+            <TbLink fontSize="18px" />
           </Button>
           <Dialog>
             <DialogTrigger

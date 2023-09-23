@@ -56,6 +56,7 @@ export type DataType = {
   name: string
   type: string
   description: string
+  metadata: any
 }
 
 export function DeleteButton({
@@ -115,7 +116,7 @@ export function EditTool({
     defaultValues: {
       name: tool.name,
       description: tool.description,
-      metadata: "",
+      metadata: tool.metadata != "" && JSON.parse(tool.metadata),
     },
   })
 
@@ -123,7 +124,7 @@ export function EditTool({
     try {
       await api.patchTool(tool.id, {
         type: tool.type,
-        returnDirect: true,
+        returnDirect: false,
         ...values,
       })
       toast({

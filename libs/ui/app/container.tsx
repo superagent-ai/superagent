@@ -8,7 +8,7 @@ interface RootLayoutProps {
 export default function RootLayout({ children, session }: RootLayoutProps) {
   return (
     <section className="flex h-screen">
-      {session && <Sidebar />}
+      <Sidebar />
       <div className="flex-1 overflow-hidden">{children}</div>
     </section>
   )

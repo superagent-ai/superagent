@@ -41,3 +41,7 @@ class AgentInput(BaseModel):
 
 class WolframInput(BaseModel):
     input: str
+
+
+class CodeExecutorInput(BaseModel):
+    python_code: str

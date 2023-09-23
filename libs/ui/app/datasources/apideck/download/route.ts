@@ -16,7 +16,6 @@ export async function POST(request: NextRequest) {
   const data = await apideck.fileStorage.filesDownload({
     id: fileId,
   })
-
   const path = `public/${randomUUID()}`
   const { error } = await supabase.storage
     .from("superagent")

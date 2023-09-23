@@ -5,7 +5,7 @@ import {SuperAgentClient} from 'superagentai-js';
 import { ChakraProvider, Box, useDisclosure, Avatar, IconButton, Icon } from '@chakra-ui/react';
 import {TbX} from "react-icons/tb"
 
-const ENVIRONMENT = "https://beta.api.superagent.sh"
+const ENVIRONMENT = "https://api.beta.superagent.sh"
 
 const styles = {
   container: {
@@ -50,15 +50,23 @@ const styles = {
   }
 }
 
+function decodeFromIdentifier(identifier) {
+  const buffer = atob(identifier, "base64")
+  const combined = buffer.toString("utf8")
+  const [agentId, apiKey] = combined.split("|")
+  return { agentId, apiKey }
+}
+
 function SuperagentWidget({ authorization, type }) {
   const {isOpen, onClose, onOpen} = useDisclosure();
 
-  if (!type || !agentId || !apiKey) {
+  if (!type || !authorization) {
     throw new Error(
       "Missing one of the following parameters: agentId, apiKey or type"
     );
   } 
 
+  const {agentId, apiKey} = decodeFromIdentifier(authorization)
   const superagentClient = new SuperAgentClient({
     environment: ENVIRONMENT,
     token: apiKey

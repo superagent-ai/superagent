@@ -1,4 +1,4 @@
-These are the core concepts that Superagent uses to create LLM Agents.
+These are the core concepts that Superagent uses to create AI Assistants.
 It contains practical examples as well as links to papers or sources.
 
 ### Agents
@@ -6,9 +6,9 @@ It contains practical examples as well as links to papers or sources.
 An agent is a program or system that is designed to perform a
 specific task or set of tasks. In the context of Supergent, an agent is
 a Large Language Model that has access to a suite of datasources and tools and can
-decide which datasources/tools to use based on user input.
+decide which datasources/tools to use based on user input. One or many agents can power an AI Assistant.
 
-Every Agent is equipped with a feature refferd to as `memory`. This is a crucial component
+Every Agent is equipped with a feature referred to as `memory`. This is a crucial component
 that allows the Agent to retain and recall information from its interactions.
 Memory can be thought of as the agent's short-term memory, storing recent inputs and outputs
 for reference during its current task. This enables the agent to maintain context and provide
@@ -22,6 +22,25 @@ In the case of unstructured data (like PDF, TXT, MD), Superagent employs two dif
 The data is split and chunked into manageable pieces. These chunks are then ingested into a vectorstore, such as Pinecone, for efficient retrieval and usage. 
 Alternatively, the chunked data can also be used for fine-tuning the language models specific to each Agent. 
 This process enhances the Agent's ability to understand and respond to user queries more accurately and contextually.
+
+Below is an overview of all available data sources:
+
+| Datasource                       
+| -------------------------- | 
+| `PDF`                      | 
+| `TXT`                      | 
+| `CSV`                      | 
+| `MARKDOWN`                 | 
+| `PPTX`                     | 
+| `DOCX`                     | 
+| `XLSX`                     | 
+| `YOUTUBE`                  | 
+| `WEBPAGE`                  |
+| `AIRTABLE`                 | 
+| `SITEMAP`                  | 
+| `URL`                      | 
+| `GITHUB_REPOSITORY`        | 
+
 
 ### Tools (third-party services or APIs)
 
@@ -44,6 +63,7 @@ Below is an overview of all avaialble tools and their corresponding metadata:
 | `CHATGPT_PLUGIN`              | `chatgptPluginURL`                    |
 | `METAPHOR`                    | `metaphorApiKey`                      |
 | `PUBMED`                      | N/A                                   |
+| `CODE_EXECUTOR`               | N/A
 
 ### Workflows
 
@@ -55,7 +75,7 @@ The flexibility of workflows enables the creation of sophisticated systems capab
 
 ### LLMs
 
-Language models are the core computational models that power the functionality of an Agent, the nuclear power plant of an Agent, . 
+Language models are the core computational models that power the functionality of an Agent, the nuclear power plant of an Agent. 
 They are trained on vast amounts of text data and learn to predict the likelihood of a sentence or to generate a piece of text that follows a given input. 
 In the context of Superagent, language models are used to understand and generate human-like text based on the user's input and the context provided by the Agent's memory, datasources, and tools. 
 These models are the driving force behind the Agent's ability to engage in meaningful and contextually relevant interactions with the user.

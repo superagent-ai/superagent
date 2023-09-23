@@ -2,6 +2,7 @@ import asyncio
 import logging
 from typing import AsyncIterable
 
+from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from langsmith import Client
@@ -57,7 +58,14 @@ logging.basicConfig(level=logging.INFO)
 async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     """Endpoint for creating an agent"""
     try:
-        data = await prisma.agent.create({**body.dict(), "apiUserId": api_user.id})
+        data = await prisma.agent.create(
+            {**body.dict(), "apiUserId": api_user.id},
+            include={
+                "tools": {"include": {"tool": True}},
+                "datasources": {"include": {"datasource": True}},
+                "llms": {"include": {"llm": True}},
+            },
+        )
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -160,7 +168,6 @@ async def invoke(
             )
 
             async for token in callback.aiter():
-                logging.info(f"Sending token: {token}")
                 yield f"data: {token}\n\n"
 
             await task
@@ -169,32 +176,26 @@ async def invoke(
         finally:
             callback.done.set()
 
-    try:
-        logging.info("Invoking agent...")
-        session_id = body.sessionId
-        input = body.input
-        enable_streaming = body.enableStreaming
+    logging.info("Invoking agent...")
+    session_id = body.sessionId
+    input = body.input
+    enable_streaming = body.enableStreaming
+    callback = CustomAsyncIteratorCallbackHandler()
+    agent = await AgentBase(
+        agent_id=agent_id,
+        session_id=session_id,
+        enable_streaming=enable_streaming,
+        callback=callback,
+    ).get_agent()
 
-        callback = CustomAsyncIteratorCallbackHandler()
-        agent = await AgentBase(
-            agent_id=agent_id,
-            session_id=session_id,
-            enable_streaming=enable_streaming,
-            callback=callback,
-        ).get_agent()
+    if enable_streaming:
+        logging.info("Streaming enabled. Preparing streaming response...")
+        generator = send_message(agent, content=input, callback=callback)
+        return StreamingResponse(generator, media_type="text/event-stream")
 
-        if enable_streaming:
-            logging.info("Streaming enabled. Preparing streaming response...")
-            generator = send_message(agent, content=input, callback=callback)
-            return StreamingResponse(generator, media_type="text/event-stream")
-
-        logging.info("Streaming not enabled. Invoking agent synchronously...")
-        output = await agent.acall(inputs={"input": input}, tags=[agent_id])
-        return {"success": True, "data": output}
-
-    except Exception as e:
-        logging.error(f"Error in invoke: {e}")
-        handle_exception(e)
+    logging.info("Streaming not enabled. Invoking agent synchronously...")
+    output = await agent.acall(inputs={"input": input}, tags=[agent_id])
+    return {"success": True, "data": output}
 
 
 # Agent LLM endpoints
@@ -261,7 +262,7 @@ async def add_tool(
             {"toolId": body.toolId, "agentId": agent_id},
             include={"tool": True},
         )
-        return {"success": True, "data": agent_tool}
+        return {"success": True}
     except Exception as e:
         handle_exception(e)
 
@@ -344,7 +345,7 @@ async def add_datasource(
         #        handle_exception(flow_exception)
 
         # asyncio.create_task(run_datasource_flow())
-        return {"success": True, "data": agent_datasource}
+        return {"success": True}
     except Exception as e:
         handle_exception(e)
 
@@ -410,7 +411,7 @@ async def list_runs(agent_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for listing agent runs"""
     try:
         output = langsmith_client.list_runs(
-            project_id="5b5b88d3-af77-4a64-9607-51782ac7a62f",
+            project_id=config("LANGSMITH_PROJECT_ID"),
             filter=f"has(tags, '{agent_id}')",
         )
         return {"success": True, "data": output}

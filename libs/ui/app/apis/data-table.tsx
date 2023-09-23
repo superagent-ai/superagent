@@ -85,6 +85,7 @@ export function DataTable<TData, TValue>({
   const router = useRouter()
   const { toast } = useToast()
   const api = new Api(profile.api_key)
+  const [open, setOpen] = React.useState(false)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
@@ -116,6 +117,7 @@ export function DataTable<TData, TValue>({
       toast({
         description: "Tool created successfully",
       })
+      setOpen(false)
       router.refresh()
     } catch (error: any) {
       toast({
@@ -135,12 +137,23 @@ export function DataTable<TData, TValue>({
           }
           className="max-w-md"
         />
-        <Dialog>
-          <DialogTrigger
-            className={cn(buttonVariants({ variant: "default", size: "sm" }))}
-          >
-            <p>New API</p>
-          </DialogTrigger>
+        <Button
+          size="sm"
+          onClick={() => {
+            setOpen(true)
+          }}
+        >
+          {form.control._formState.isSubmitting ? <Spinner /> : "New API"}
+        </Button>
+        <Dialog
+          open={open}
+          onOpenChange={(value) => {
+            setOpen(value)
+            if (!value) {
+              form.reset()
+            }
+          }}
+        >
           <DialogContent>
             <Form {...form}>
               <form

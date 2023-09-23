@@ -2,13 +2,13 @@ import { GoWorkflow } from "react-icons/go"
 import { PiDatabase } from "react-icons/pi"
 import {
   RxAvatar,
-  RxChatBubble,
   RxDiscordLogo,
   RxFileText,
   RxGithubLogo,
   RxGlobe,
-  RxRocket,
+  RxPlay,
 } from "react-icons/rx"
+import { TbBrain } from "react-icons/tb"
 
 export type SiteConfig = typeof siteConfig
 
@@ -19,7 +19,7 @@ export const siteConfig = {
     {
       title: "Agents",
       href: "/agents",
-      icon: RxRocket,
+      icon: RxPlay,
     },
     {
       title: "workflows",
@@ -39,7 +39,7 @@ export const siteConfig = {
     {
       title: "llms",
       href: "/llms",
-      icon: RxChatBubble,
+      icon: TbBrain,
     },
   ],
   footerNav: [
@@ -206,6 +206,11 @@ export const siteConfig = {
     {
       value: "PUBMED",
       title: "PubMed",
+      metadata: [],
+    },
+    {
+      value: "CODE_EXECUTOR",
+      title: "Code interpreter (alpha)",
       metadata: [],
     },
     {

@@ -123,6 +123,23 @@ export function DataTable<TData, TValue>({
     }
   }
 
+  function mapMimeTypeToFileType(mimeType: string): string {
+    const typeMapping: { [key: string]: string } = {
+      "text/plain": "TXT",
+      "application/pdf": "PDF",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+        "PPTX",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        "DOCX",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+        "XLSX",
+      "text/markdown": "MARKDOWN",
+      "text/csv": "CSV",
+    }
+
+    return typeMapping[mimeType] || "UNKNOWN"
+  }
+
   const openVault = async () => {
     // Open Vault with a valid session token
     const response = await fetch("/datasources/apideck/", {
@@ -143,11 +160,14 @@ export function DataTable<TData, TValue>({
           "text/plain",
           "text/markdown",
           "text/csv",
+          "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ]
 
         if (!supportedMimeTypes.includes(file.mime_type)) {
           toast({
-            description: `File type ${file.mime_type} is not supported. Please select a .pdf, .txt, .md, or .csv file.`,
+            description: `File type ${file.mime_type} is not supported.`,
             variant: "destructive",
           })
           form.reset()
@@ -168,9 +188,11 @@ export function DataTable<TData, TValue>({
           }),
         })
         const { publicUrl } = await response.json()
+        const fileType = mapMimeTypeToFileType(file.mime_type)
 
         form.setValue("url", publicUrl)
-        form.setValue("type", file.mime_type.split("/").pop().toUpperCase())
+        form.setValue("type", fileType)
+
         setIsDownloadingFile(false)
       },
     })
@@ -191,8 +213,6 @@ export function DataTable<TData, TValue>({
           size="sm"
           onClick={() => {
             setOpen(true)
-            //setIsLoadingFilePicker(true)
-            //openVault()
           }}
         >
           {form.control._formState.isSubmitting || isDownloadingFile ? (
@@ -291,8 +311,8 @@ export function DataTable<TData, TValue>({
                             Connect third-party applications.
                           </AlertDescription>
                         </div>
-                        <Button variant="secondary" size="sm">
-                          Connect
+                        <Button variant="outline" size="sm">
+                          Coming soon
                         </Button>
                       </Alert>
                     </div>
