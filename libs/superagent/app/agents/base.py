@@ -92,10 +92,11 @@ class AgentBase:
 
     async def _get_memory(self) -> MotorheadMemory:
         memory = MotorheadMemory(
-            session_id=f"{self.agent_id}-{self.session_id}",
+            session_id=f"{self.agent_id}-{self.session_id}"
+            if self.session_id
+            else f"{self.agent_id}",
             memory_key="chat_history",
-            client_id=config("MOTORHEAD_CLIENT_ID"),
-            api_key=config("MOTORHEAD_API_KEY"),
+            url=config("MEMORY_API_URL"),
             return_messages=True,
             output_key="output",
         )
@@ -117,6 +118,7 @@ class AgentBase:
         llm = await self._get_llm(agent_llm=config.llms[0], model=config.llmModel)
         prompt = await self._get_prompt(agent=config)
         memory = await self._get_memory()
+
         if len(tools) > 0:
             agent = initialize_agent(
                 tools,
@@ -148,7 +150,6 @@ class AgentBase:
                 memory=memory,
                 output_key="output",
                 verbose=True,
-                return_final_only=True,
                 prompt=PromptTemplate.from_template(prompt),
             )
         return agent

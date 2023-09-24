@@ -43,9 +43,9 @@ openpyxl = "^3.1.2"
 unstructured = "^0.10.16"
 python-docx = "^0.8.11"
 langsmith = "^0.0.39"
-langchain = "^0.0.297"
 requests = "^2.31.0"
 wolframalpha = "^5.0.0"
+langchain = "^0.0.300"
 
 
 [build-system]
