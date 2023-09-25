@@ -280,7 +280,7 @@ export function DataTable<TData, TValue>({
                           size="sm"
                           onClick={() => {
                             setSelectedType("webpage")
-                            form.setValue("type", "URL")
+                            form.setValue("type", "WEBPAGE")
                           }}
                         >
                           Add URLs
@@ -355,10 +355,10 @@ export function DataTable<TData, TValue>({
                       name="url"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>URLs</FormLabel>
+                          <FormLabel>URL</FormLabel>
                           <FormControl>
-                            <Textarea
-                              placeholder="Comma separeted list of URLs."
+                            <Input
+                              placeholder="E.g https://www.superagent.sh"
                               {...field}
                             />
                           </FormControl>

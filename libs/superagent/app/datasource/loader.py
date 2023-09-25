@@ -14,8 +14,10 @@ from langchain.document_loaders import (
     UnstructuredWordDocumentLoader,
     WebBaseLoader,
     YoutubeLoader,
+    RecursiveUrlLoader,
 )
 from langchain.document_loaders.airbyte import AirbyteStripeLoader
+from bs4 import BeautifulSoup as Soup
 from llama_index import download_loader
 from pyairtable import Api
 
@@ -120,9 +122,16 @@ class DataLoader:
             return loader.load_and_split()
 
     def load_webpage(self):
-        RemoteDepthReader = download_loader("RemoteDepthReader")
-        loader = RemoteDepthReader(depth=0)
-        return loader.load_langchain_documents(url=self.datasource.url)
+        loader = RecursiveUrlLoader(
+            url=self.datasource.url,
+            max_depth=2,
+            extractor=lambda x: Soup(x, "html.parser").text,
+        )
+        chunks = loader.load_and_split()
+        for chunk in chunks:
+            if "language" in chunk.metadata:
+                del chunk.metadata["language"]
+        return chunks
 
     def load_notion(self):
         metadata = json.loads(self.datasource.metadata)
