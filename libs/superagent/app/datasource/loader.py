@@ -5,19 +5,19 @@ from typing import Any
 from urllib.parse import urlparse
 
 import requests
+from bs4 import BeautifulSoup as Soup
 from langchain.docstore.document import Document
 from langchain.document_loaders import (
     GitLoader,
     PyPDFLoader,
+    RecursiveUrlLoader,
     TextLoader,
     UnstructuredMarkdownLoader,
     UnstructuredWordDocumentLoader,
     WebBaseLoader,
     YoutubeLoader,
-    RecursiveUrlLoader,
 )
 from langchain.document_loaders.airbyte import AirbyteStripeLoader
-from bs4 import BeautifulSoup as Soup
 from llama_index import download_loader
 from pyairtable import Api
 

@@ -283,7 +283,7 @@ export function DataTable<TData, TValue>({
                             form.setValue("type", "WEBPAGE")
                           }}
                         >
-                          Add URLs
+                          Add webpage
                         </Button>
                       </Alert>
                       <Alert className="flex items-center justify-between">
