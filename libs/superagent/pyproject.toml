@@ -46,6 +46,7 @@ langsmith = "^0.0.39"
 requests = "^2.31.0"
 wolframalpha = "^5.0.0"
 langchain = "^0.0.300"
+bs4 = "^0.0.1"
 
 
 [build-system]
