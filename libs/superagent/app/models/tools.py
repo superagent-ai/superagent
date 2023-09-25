@@ -45,3 +45,7 @@ class WolframInput(BaseModel):
 
 class CodeExecutorInput(BaseModel):
     python_code: str
+
+
+class BrowserInput(BaseModel):
+    url: str

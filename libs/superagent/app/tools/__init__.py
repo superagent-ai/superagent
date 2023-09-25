@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional, Type
 from app.models.tools import (
     AgentInput,
     BingSearchInput,
+    BrowserInput,
     ChatGPTInput,
     CodeExecutorInput,
     MetaphorSearchInput,
@@ -15,6 +16,7 @@ from app.models.tools import (
 )
 from app.tools.agent import Agent
 from app.tools.bing_search import BingSearch
+from app.tools.browser import Browser
 from app.tools.chatgpt import get_chatpgt_tool
 from app.tools.code_executor import CodeExecutor
 from app.tools.metaphor import MetaphorSearch
@@ -44,6 +46,7 @@ TOOL_TYPE_MAPPING = {
     "REPLICATE": {"class": Replicate, "schema": ReplicateInput},
     "WOLFRAM_ALPHA": {"class": WolframAlpha, "schema": WolframInput},
     "CODE_EXECUTOR": {"class": CodeExecutor, "schema": CodeExecutorInput},
+    "BROWSER": {"class": Browser, "schema": BrowserInput},
 }
 
 
