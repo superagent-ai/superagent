@@ -214,6 +214,11 @@ export const siteConfig = {
       metadata: [],
     },
     {
+      value: "BROWSER",
+      title: "Browser",
+      metadata: [],
+    },
+    {
       value: "OPENAPI",
       title: "OpenAPI",
       metadata: [
