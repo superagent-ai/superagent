@@ -12,6 +12,7 @@ from app.models.tools import (
     ReplicateInput,
     WolframInput,
     ZapierInput,
+    BrowserInput,
 )
 from app.tools.agent import Agent
 from app.tools.bing_search import BingSearch
@@ -23,6 +24,7 @@ from app.tools.pubmed import PubMed
 from app.tools.replicate import Replicate
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
+from app.tools.browser import Browser
 
 TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
@@ -44,6 +46,7 @@ TOOL_TYPE_MAPPING = {
     "REPLICATE": {"class": Replicate, "schema": ReplicateInput},
     "WOLFRAM_ALPHA": {"class": WolframAlpha, "schema": WolframInput},
     "CODE_EXECUTOR": {"class": CodeExecutor, "schema": CodeExecutorInput},
+    "BROWSER": {"class": Browser, "schema": BrowserInput},
 }
 
 
