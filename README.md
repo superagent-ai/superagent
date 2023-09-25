@@ -67,21 +67,17 @@ To see how to contribute, visit [Contribution guidelines](https://github.com/hom
 
 3. Replace the contents of the `.replit` file in your REPL with the following
     ```sh
-    run = "cd ./libs/superagent && ./replit.sh"
+    run = "chmod 777 ./libs/superagent/replit.sh && cd ./libs/superagent && ./replit.sh"
     modules = ["python-3.10:v18-20230807-322e88b", "nodejs-18:v3-20230608-f4cd419"]
-    
+
     hidden = [".pythonlibs"]
-    
+
     [nix]
     channel = "stable-23_05"
-    
+
     [deployment]
-    run = ["sh", "-c", "cd ./libs/superagent && ./replit.sh"]
+    run = ["sh", "-c", "chmod 777 ./libs/superagent/replit.sh && cd ./libs/superagent && ./replit.sh"]
     deploymentTarget = "cloudrun"
-    ```
-4. Run the following command in the Replit console:
-    ```sh
-    chmod 777 /libs/superagent/replit.sh
     ```
     
 4. Add all necessary `.env` variables as Replit `Secrets`. Also add the following additional secret:
