@@ -1,14 +1,15 @@
 import aiohttp
 import requests
-
 from bs4 import BeautifulSoup
-
 from langchain.tools import BaseTool
 
 
 class Browser(BaseTool):
     name = "Browser"
-    description = "a portal to the internet. Use this when you need to get specific content from a website."
+    description = (
+        "a portal to the internet. Use this when you need to "
+        "get specific content from a website."
+    )
     return_direct = False
 
     def _run(self, url: str) -> None:

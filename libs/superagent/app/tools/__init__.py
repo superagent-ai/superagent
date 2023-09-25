@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional, Type
 from app.models.tools import (
     AgentInput,
     BingSearchInput,
+    BrowserInput,
     ChatGPTInput,
     CodeExecutorInput,
     MetaphorSearchInput,
@@ -12,10 +13,10 @@ from app.models.tools import (
     ReplicateInput,
     WolframInput,
     ZapierInput,
-    BrowserInput,
 )
 from app.tools.agent import Agent
 from app.tools.bing_search import BingSearch
+from app.tools.browser import Browser
 from app.tools.chatgpt import get_chatpgt_tool
 from app.tools.code_executor import CodeExecutor
 from app.tools.metaphor import MetaphorSearch
@@ -24,7 +25,6 @@ from app.tools.pubmed import PubMed
 from app.tools.replicate import Replicate
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
-from app.tools.browser import Browser
 
 TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
