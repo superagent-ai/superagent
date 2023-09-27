@@ -1,7 +1,7 @@
 import asyncio
 import json
-import segment.analytics as analytics
 
+import segment.analytics as analytics
 from decouple import config
 from fastapi import APIRouter, Depends
 
