@@ -249,18 +249,6 @@ export default function Chat({
                   <CardDescription>{agent?.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex space-x-2">
-                    {agent?.tools.map((tool) => (
-                      <Badge variant="outline" key={tool.id}>
-                        {tool.tool.name}
-                      </Badge>
-                    ))}
-                    {agent?.datasources.map((datasource) => (
-                      <Badge variant="outline" key={datasource.id}>
-                        {datasource.datasource.name}
-                      </Badge>
-                    ))}
-                  </div>
                   <p className="text-muted-foreground mt-6 text-xs">
                     Powered by{" "}
                     <a
