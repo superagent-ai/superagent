@@ -1,6 +1,8 @@
 import asyncio
 import json
+import segment.analytics as analytics
 
+from decouple import config
 from fastapi import APIRouter, Depends
 
 from app.datasource.flow import vectorize_datasource
@@ -15,7 +17,10 @@ from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 from prisma.models import Datasource
 
+SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
+
 router = APIRouter()
+analytics.write_key = SEGMENT_WRITE_KEY
 
 
 @router.post(
@@ -32,6 +37,9 @@ async def create(
     try:
         if body.metadata:
             body.metadata = json.dumps(body.metadata)
+
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Created Datasource")
         data = await prisma.datasource.create({**body.dict(), "apiUserId": api_user.id})
 
         async def run_vectorize_flow(datasource: Datasource):
@@ -93,6 +101,8 @@ async def update(
 ):
     """Endpoint for updating a specific datasource"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Updated Datasource")
         data = await prisma.datasource.update(
             where={"id": datasource_id},
             data=body.dict(),
@@ -110,6 +120,8 @@ async def update(
 async def delete(datasource_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for deleting a specific datasource"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Deleted Datasource")
         await prisma.agentdatasource.delete_many(where={"datasourceId": datasource_id})
         await prisma.datasource.delete(where={"id": datasource_id})
         return {"success": True, "data": None}

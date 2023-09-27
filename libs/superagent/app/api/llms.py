@@ -1,3 +1,6 @@
+import segment.analytics as analytics
+
+from decouple import config
 from fastapi import APIRouter, Depends
 
 from app.models.request import LLM as LLMRequest
@@ -7,7 +10,10 @@ from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 from prisma import Json
 
+SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
+
 router = APIRouter()
+analytics.write_key = SEGMENT_WRITE_KEY
 
 
 @router.post(
@@ -19,6 +25,8 @@ router = APIRouter()
 async def create(body: LLMRequest, api_user=Depends(get_current_api_user)):
     """Endpoint for creating an LLM"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Created LLM")
         data = await prisma.llm.create(
             {
                 **body.dict(),
@@ -74,6 +82,8 @@ async def get(llm_id: str, api_user=Depends(get_current_api_user)):
 async def update(llm_id: str, body: LLMRequest, api_user=Depends(get_current_api_user)):
     """Endpoint for patching an LLM"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Updated LLM")
         data = await prisma.llm.update(
             where={"id": llm_id},
             data={
