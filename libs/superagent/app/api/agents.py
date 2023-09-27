@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import segment.analytics as analytics
 from typing import AsyncIterable
 
 from decouple import config
@@ -43,8 +44,11 @@ from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 
+SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY")
+
 router = APIRouter()
 langsmith_client = Client()
+analytics.write_key = SEGMENT_WRITE_KEY
 logging.basicConfig(level=logging.INFO)
 
 
@@ -190,11 +194,15 @@ async def invoke(
 
     if enable_streaming:
         logging.info("Streaming enabled. Preparing streaming response...")
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Invoked Agent", {**body.dict()})
         generator = send_message(agent, content=input, callback=callback)
         return StreamingResponse(generator, media_type="text/event-stream")
 
     logging.info("Streaming not enabled. Invoking agent synchronously...")
     output = await agent.acall(inputs={"input": input}, tags=[agent_id])
+    if SEGMENT_WRITE_KEY:
+        analytics.track(api_user.id, "Invoked Agent", {**body.dict()})
     return {"success": True, "data": output}
 
 
