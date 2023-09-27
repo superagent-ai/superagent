@@ -1,5 +1,4 @@
 import segment.analytics as analytics
-
 from decouple import config
 from fastapi import APIRouter, Depends
 
@@ -7,7 +6,7 @@ from app.models.response import ApiUser as ApiUserResponse
 from app.utils.api import generate_jwt, get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 
-SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY")
+SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
 router = APIRouter()
 analytics.write_key = SEGMENT_WRITE_KEY
