@@ -2,6 +2,7 @@ import asyncio
 import logging
 from typing import AsyncIterable
 
+import segment.analytics as analytics
 from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
@@ -43,8 +44,11 @@ from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 
+SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
+
 router = APIRouter()
 langsmith_client = Client()
+analytics.write_key = SEGMENT_WRITE_KEY
 logging.basicConfig(level=logging.INFO)
 
 
@@ -176,6 +180,9 @@ async def invoke(
         finally:
             callback.done.set()
 
+    if SEGMENT_WRITE_KEY:
+        analytics.track(api_user.id, "Invoked Agent", {**body.dict()})
+
     logging.info("Invoking agent...")
     session_id = body.sessionId
     input = body.input
@@ -190,6 +197,7 @@ async def invoke(
 
     if enable_streaming:
         logging.info("Streaming enabled. Preparing streaming response...")
+
         generator = send_message(agent, content=input, callback=callback)
         return StreamingResponse(generator, media_type="text/event-stream")
 
