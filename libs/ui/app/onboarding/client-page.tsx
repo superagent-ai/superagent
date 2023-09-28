@@ -67,7 +67,10 @@ export default function OnboardingClientPage() {
     const params: Stripe.CustomerCreateParams = {
       name: company,
     }
-    const customer: Stripe.Customer = await stripe.customers.create(params)
+    let customer: Stripe.Customer | null = null
+    if (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+      customer = await stripe.customers.create(params)
+    }
     const { error } = await supabase
       .from("profiles")
       .update({
@@ -75,7 +78,7 @@ export default function OnboardingClientPage() {
         first_name,
         last_name,
         company,
-        stripe_customer_id: customer.id,
+        stripe_customer_id: customer?.id,
         is_onboarded: true,
       })
       .eq("user_id", user?.id)
