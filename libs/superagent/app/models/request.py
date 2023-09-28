@@ -3,6 +3,10 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel
 
 
+class ApiUser(BaseModel):
+    email: str
+
+
 class Agent(BaseModel):
     isActive: bool = True
     name: str

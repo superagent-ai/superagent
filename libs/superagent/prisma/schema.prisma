@@ -63,6 +63,7 @@ enum DatasourceStatus {
 model ApiUser {
   id          String       @id @default(uuid())
   token       String?
+  email       String?      @db.Text
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   agents      Agent[]
