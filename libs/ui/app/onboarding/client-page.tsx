@@ -1,12 +1,13 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
+import Stripe from "stripe"
 import * as z from "zod"
 
 import { Api } from "@/lib/api"
+import { stripe } from "@/lib/stripe"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -63,9 +64,20 @@ export default function OnboardingClientPage() {
     const {
       data: { token: api_key },
     } = await api.createApiKey(user.email)
+    const params: Stripe.CustomerCreateParams = {
+      name: company,
+    }
+    const customer: Stripe.Customer = await stripe.customers.create(params)
     const { error } = await supabase
       .from("profiles")
-      .update({ api_key, first_name, last_name, company, is_onboarded: true })
+      .update({
+        api_key,
+        first_name,
+        last_name,
+        company,
+        stripe_customer_id: customer.id,
+        is_onboarded: true,
+      })
       .eq("user_id", user?.id)
 
     if (error) {
