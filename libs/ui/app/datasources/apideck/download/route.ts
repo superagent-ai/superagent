@@ -17,15 +17,19 @@ export async function POST(request: NextRequest) {
     id: fileId,
   })
   const path = `public/${randomUUID()}`
+  const storageName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_NAME
+  if (!storageName)
+    throw new Error("Storage name is not defined in environment variables.")
+
   const { error } = await supabase.storage
-    .from("superagent")
+    .from(storageName)
     .upload(path, data, { contentType: mimeType })
 
   if (error) throw error
 
   const {
     data: { publicUrl },
-  } = supabase.storage.from("superagent").getPublicUrl(path)
+  } = supabase.storage.from(storageName).getPublicUrl(path)
 
   return NextResponse.json({ publicUrl })
 }
