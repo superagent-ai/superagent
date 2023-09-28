@@ -46,8 +46,11 @@ export class Api {
     })
   }
 
-  async createApiKey() {
-    return this.fetchFromApi("/api-users", { method: "POST" })
+  async createApiKey(email: string) {
+    return this.fetchFromApi("/api-users", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    })
   }
 
   async createDatasource(payload: any) {

@@ -38,7 +38,6 @@ const formSchema = z.object({
 export default function OnboardingClientPage() {
   const api = new Api()
   const supabase = createClientComponentClient()
-  const router = useRouter()
   const { toast } = useToast()
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,9 +53,16 @@ export default function OnboardingClientPage() {
     const {
       data: { user },
     } = await supabase.auth.getUser()
+    if (!user?.email) {
+      toast({
+        description: `Ooops! User email is missing!`,
+        variant: "destructive",
+      })
+      return
+    }
     const {
       data: { token: api_key },
-    } = await api.createApiKey()
+    } = await api.createApiKey(user.email)
     const { error } = await supabase
       .from("profiles")
       .update({ api_key, first_name, last_name, company, is_onboarded: true })
@@ -65,6 +71,7 @@ export default function OnboardingClientPage() {
     if (error) {
       toast({
         description: `Ooops! ${error?.message}`,
+        variant: "destructive",
       })
 
       return
