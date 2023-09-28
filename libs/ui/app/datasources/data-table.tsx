@@ -285,7 +285,9 @@ export function DataTable<TData, TValue>({
                     <div className="flex flex-col space-y-4">
                       <Alert className="flex items-center justify-between">
                         <div className="flex flex-col">
-                          <AlertTitle>Files</AlertTitle>
+                          <AlertTitle>
+                            GDrive, Dropbox, Box, OneDrive
+                          </AlertTitle>
                           <AlertDescription className="text-muted-foreground">
                             Import from Google Drive, Dropbox, Box etc.
                           </AlertDescription>
@@ -317,7 +319,7 @@ export function DataTable<TData, TValue>({
                             setSelectedType("local")
                           }}
                         >
-                          Add files
+                          Upload files
                         </Button>
                       </Alert>
                       <Alert className="flex items-center justify-between">
@@ -464,7 +466,7 @@ export function DataTable<TData, TValue>({
                           </div>
                           <UploadButton
                             accept={supportedMimeTypes.join(",")}
-                            label="Select files"
+                            label="Upload file"
                             onSelect={async (file) => {
                               handleLocalFileUpload(file)
                               setSelectedFile(file)
