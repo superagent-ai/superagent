@@ -27,4 +27,4 @@ navbar-links:
     url: https://github.com/homanp/superagent
   - type: primary
     text: Login
-    url: https://app.superagent.sh/login
+    url: https://beta.superagent.sh/
