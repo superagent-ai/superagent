@@ -47,7 +47,7 @@ function LibraryCard({
       <HStack justifyContent="space-between">
         <NextLink
           passHref
-          href={`https://app.superagent.sh/share?agentId=${id}&token=${shareableToken}`}
+          href={`https://legacy.superagent.sh/share?agentId=${id}&token=${shareableToken}`}
         >
           <Button
             color="green.500"
