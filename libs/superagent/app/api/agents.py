@@ -62,6 +62,8 @@ logging.basicConfig(level=logging.INFO)
 async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     """Endpoint for creating an agent"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Created Agent", {**body.dict()})
         data = await prisma.agent.create(
             {**body.dict(), "apiUserId": api_user.id},
             include={
@@ -123,6 +125,8 @@ async def get(agent_id: str, api_user=Depends(get_current_api_user)):
 async def delete(agent_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for deleting an agent"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Deleted Agent")
         await prisma.agent.delete(where={"id": agent_id})
         return {"success": True, "data": None}
     except Exception as e:
@@ -140,6 +144,8 @@ async def update(
 ):
     """Endpoint for patching an agent"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Updated Agent")
         data = await prisma.agent.update(
             where={"id": agent_id},
             data={
@@ -252,10 +258,12 @@ async def remove_llm(
 async def add_tool(
     agent_id: str,
     body: AgentToolRequest,
-    _api_user=Depends(get_current_api_user),
+    api_user=Depends(get_current_api_user),
 ):
     """Endpoint for adding a tool to an agent"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Added Agent Tool")
         agent_tool = await prisma.agenttool.find_unique(
             where={
                 "agentId_toolId": {
@@ -300,6 +308,8 @@ async def remove_tool(
 ):
     """Endpoint for removing a tool from an agent"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Deleted Agent Tool")
         await prisma.agenttool.delete(
             where={
                 "agentId_toolId": {
@@ -327,6 +337,9 @@ async def add_datasource(
 ):
     """Endpoint for adding a datasource to an agent"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Added Agent Datasource")
+
         agent_datasource = await prisma.agentdatasource.find_unique(
             where={
                 "agentId_datasourceId": {
@@ -385,6 +398,8 @@ async def remove_datasource(
 ):
     """Endpoint for removing a datasource from an agent"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Deleted Agent Datasource")
         await prisma.agentdatasource.delete(
             where={
                 "agentId_datasourceId": {

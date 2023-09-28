@@ -1,5 +1,7 @@
 import logging
 
+import segment.analytics as analytics
+from decouple import config
 from fastapi import APIRouter, Depends
 
 from app.models.request import (
@@ -17,8 +19,11 @@ from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 from app.workflows.base import WorkflowBase
 
+SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
+
 router = APIRouter()
 logger = logging.getLogger(__name__)
+analytics.write_key = SEGMENT_WRITE_KEY
 
 
 @router.post(
@@ -30,6 +35,8 @@ logger = logging.getLogger(__name__)
 async def create(body: WorkflowRequest, api_user=Depends(get_current_api_user)):
     """Endpoint for creating a worflow"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Created Workflow")
         data = await prisma.workflow.create(
             {
                 **body.dict(),
@@ -86,6 +93,8 @@ async def update(
 ):
     """Endpoint for patching a workflow"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Updated Workflow")
         data = await prisma.workflow.update(
             where={"id": workflow_id},
             data={
@@ -106,6 +115,8 @@ async def update(
 async def delete(workflow_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for deleting a specific workflow"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Deleted Workflow")
         await prisma.workflowstep.delete_many(where={"workflowId": workflow_id})
         await prisma.workflow.delete(where={"id": workflow_id})
         return {"success": True, "data": None}
@@ -124,6 +135,8 @@ async def invoke(
     api_user=Depends(get_current_api_user),
 ):
     """Endpoint for invoking a specific workflow"""
+    if SEGMENT_WRITE_KEY:
+        analytics.track(api_user.id, "Invoked Workflow")
     workflow = WorkflowBase(
         workflow_id=workflow_id, enable_streaming=body.enableStreaming
     )
@@ -143,6 +156,8 @@ async def add_step(
 ):
     """Endpoint for creating a workflow step"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Created Workflow Step")
         data = await prisma.workflowstep.create(
             {
                 **body.dict(),
@@ -182,6 +197,8 @@ async def delete_step(
 ):
     """Endpoint for deleting a specific workflow step"""
     try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Deleted Workflow Step")
         await prisma.workflowstep.delete(where={"id": step_id})
         return {"success": True, "data": None}
     except Exception as e:
