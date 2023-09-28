@@ -270,6 +270,23 @@ export function DataTable<TData, TValue>({
                       </Alert>
                       <Alert className="flex items-center justify-between">
                         <div className="flex flex-col">
+                          <AlertTitle>Local files</AlertTitle>
+                          <AlertDescription className="text-muted-foreground">
+                            Import local files.
+                          </AlertDescription>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedType("local")
+                          }}
+                        >
+                          Add files
+                        </Button>
+                      </Alert>
+                      <Alert className="flex items-center justify-between">
+                        <div className="flex flex-col">
                           <AlertTitle>Webpages</AlertTitle>
                           <AlertDescription className="text-muted-foreground">
                             Import from any webpage or URL.
@@ -399,6 +416,35 @@ export function DataTable<TData, TValue>({
                         )}
                       />
                     </>
+                  )}
+                  {selectedType === "local" && (
+                    <div>
+                      {!selectedFile ? (
+                        <div className="relative flex flex-col items-center justify-between space-y-4 rounded-lg border border-dashed p-4">
+                          <div className="flex flex-col items-center justify-center">
+                            <p className="text-sm">Select files</p>
+                            <p className="text-muted-foreground text-sm">
+                              Upload local files from your device
+                            </p>
+                          </div>
+                          <Button size="sm" variant="secondary">
+                            Select file
+                          </Button>
+                        </div>
+                      ) : (
+                        // eslint-disable-next-line tailwindcss/migration-from-tailwind-2
+                        <div className="flex items-center justify-between rounded-lg border border-green-900 bg-green-900 bg-opacity-20 py-1 pl-4 pr-2">
+                          <p className="text-sm">{selectedFile.name}</p>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setSelectedFile(null)}
+                          >
+                            <RxCross2 size="20px" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   )}
                   {selectedType === "files" && (
                     <div>
