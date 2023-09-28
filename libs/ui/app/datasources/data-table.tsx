@@ -285,9 +285,7 @@ export function DataTable<TData, TValue>({
                     <div className="flex flex-col space-y-4">
                       <Alert className="flex items-center justify-between">
                         <div className="flex flex-col">
-                          <AlertTitle>
-                            GDrive, Dropbox, Box, OneDrive
-                          </AlertTitle>
+                          <AlertTitle>Cloud Storage Services</AlertTitle>
                           <AlertDescription className="text-muted-foreground">
                             Import from Google Drive, Dropbox, Box etc.
                           </AlertDescription>
