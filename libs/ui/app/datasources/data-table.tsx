@@ -283,26 +283,28 @@ export function DataTable<TData, TValue>({
                 <div className="flex flex-col space-y-2">
                   {!selectedType ? (
                     <div className="flex flex-col space-y-4">
-                      <Alert className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                          <AlertTitle>Cloud Storage Services</AlertTitle>
-                          <AlertDescription className="text-muted-foreground">
-                            Import from Google Drive, Dropbox, Box etc.
-                          </AlertDescription>
-                        </div>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={async () => {
-                            setIsOpeningVault(true)
-                            await openVault()
-                            setSelectedType("files")
-                            setOpen(false)
-                          }}
-                        >
-                          {isOpeningVault ? <Spinner /> : "Add files"}
-                        </Button>
-                      </Alert>
+                      {process.env.NEXT_PUBLIC_APIDECK_API_ID && (
+                        <Alert className="flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <AlertTitle>Cloud Storage Services</AlertTitle>
+                            <AlertDescription className="text-muted-foreground">
+                              Import from Google Drive, Dropbox, Box etc.
+                            </AlertDescription>
+                          </div>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={async () => {
+                              setIsOpeningVault(true)
+                              await openVault()
+                              setSelectedType("files")
+                              setOpen(false)
+                            }}
+                          >
+                            {isOpeningVault ? <Spinner /> : "Add files"}
+                          </Button>
+                        </Alert>
+                      )}
                       <Alert className="flex items-center justify-between">
                         <div className="flex flex-col">
                           <AlertTitle>Local files</AlertTitle>
