@@ -156,7 +156,9 @@ class StructuredDatasourceTool(BaseTool):
             df = pd.DataFrame(data)
         agent = create_pandas_dataframe_agent(
             ChatOpenAI(
-                temperature=0, model="gpt-4", openai_api_key=config("OPENAI_API_KEY")
+                temperature=0,
+                model="gpt-4-0613",
+                openai_api_key=config("OPENAI_API_KEY"),
             ),
             df,
             verbose=True,
