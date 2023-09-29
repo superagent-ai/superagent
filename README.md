@@ -225,6 +225,18 @@ Please refer to the [README](https://github.com/homanp/superagent/blob/v2/libs/l
 
 </details>
 
+<details>
+<summary>Run locally with docker and docker compose</summary>
+
+In the `.docker` folder there are multiple docker-compose files.
+
+The main `docker-compose.yml` file will start up the API and a Postgres DB in docker. 
+
+The other docker compose files can be used individually, or in combination to start up just the bits you need.
+
+> follow the guide in [.docker/README.md](libs/.docker/README.md) file to get started
+</details>
+
 ## 🔗 SDKs
 
 If you are planing on integrating Superagent into your stack, you can use one of the following SDKs:
