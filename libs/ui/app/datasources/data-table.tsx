@@ -342,7 +342,7 @@ export function DataTable<TData, TValue>({
                       </Alert>
                       <Alert className="flex items-center justify-between">
                         <div className="flex flex-col">
-                          <AlertTitle>Gihub</AlertTitle>
+                          <AlertTitle>Github</AlertTitle>
                           <AlertDescription className="text-muted-foreground">
                             Import a repository.
                           </AlertDescription>
