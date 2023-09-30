@@ -34,7 +34,7 @@ We post tutorials regularly on our [Youtube channel](https://www.youtube.com/cha
 
 Superagent allows you to build any AI application/micro service you want, including:
 
-- Question/Answering over Documents (LLM Finetuns/Vectorstores)
+- Question/Answering over Documents (LLM Finetunes/Vectorstores)
 - Chatbots
 - Co-pilots & AI assistants
 - Content generation
