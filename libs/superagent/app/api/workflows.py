@@ -33,7 +33,7 @@ analytics.write_key = SEGMENT_WRITE_KEY
     response_model=WorkflowResponse,
 )
 async def create(body: WorkflowRequest, api_user=Depends(get_current_api_user)):
-    """Endpoint for creating a worflow"""
+    """Endpoint for creating a workflow"""
     try:
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Created Workflow")
