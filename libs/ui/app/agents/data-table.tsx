@@ -283,7 +283,7 @@ export function DataTable<TData, TValue>({
                           <FormLabel>APIs</FormLabel>
                           <FormControl>
                             <MultiSelect
-                              placeholder="Select api..."
+                              placeholder="Select API..."
                               data={tools.map((tool: Tool) => ({
                                 value: tool.id,
                                 label: tool.name,
