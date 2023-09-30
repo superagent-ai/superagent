@@ -161,7 +161,7 @@ export function DataTable<TData, TValue>({
                 className="w-full space-y-4"
               >
                 <DialogHeader>
-                  <DialogTitle>Create new api connection</DialogTitle>
+                  <DialogTitle>Create new API connection</DialogTitle>
                   <DialogDescription>
                     Connect your agents to thousands of third-party APIs and
                     tools.
