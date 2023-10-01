@@ -12,7 +12,7 @@ paths:
         - Agent
       summary: List
       description: List all agents
-      operationID: list_api_v1_agents_get
+      operationId: list_api_v1_agents_get
       responses:
         '200':
           description: Successful Response
@@ -27,7 +27,7 @@ paths:
         - Agent
       summary: Create
       description: Create a new agent
-      operationID: create_api_v1_agents_post
+      operationId: create_api_v1_agents_post
       requestBody:
         content:
           application/json:
@@ -55,11 +55,11 @@ paths:
         - Agent
       summary: Get
       description: Get a single agent
-      operationID: get_api_v1_agents__agent_id__get
+      operationId: get_api_v1_agents__agent_id__get
       parameters:
         - required: true
           schema:
-            title: Agent ID
+            title: Agent Id
             type: string
           name: agent_id
           in: path
@@ -83,11 +83,11 @@ paths:
         - Agent
       summary: Delete
       description: Delete an agent
-      operationID: delete_api_v1_agents__agent_id__delete
+      operationId: delete_api_v1_agents__agent_id__delete
       parameters:
         - required: true
           schema:
-            title: Agent ID
+            title: Agent Id
             type: string
           name: agent_id
           in: path
@@ -110,11 +110,11 @@ paths:
         - Agent
       summary: Update
       description: Patch an agent
-      operationID: update_api_v1_agents__agent_id__patch
+      operationId: update_api_v1_agents__agent_id__patch
       parameters:
         - required: true
           schema:
-            title: Agent ID
+            title: Agent Id
             type: string
           name: agent_id
           in: path
@@ -149,7 +149,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Agent ID
+            title: Agent Id
             type: string
           name: agent_id
           in: path
@@ -178,13 +178,13 @@ paths:
     post:
       tags:
         - Agent
-      summary: Add LLM
+      summary: Add Llm
       description: Add LLM to agent
-      operationID: add_llm_api_v1_agents__agent_id__llms_post
+      operationId: add_llm_api_v1_agents__agent_id__llms_post
       parameters:
         - required: true
           schema:
-            title: Agent ID
+            title: Agent Id
             type: string
           name: agent_id
           in: path
@@ -213,19 +213,19 @@ paths:
     delete:
       tags:
         - Agent
-      summary: Remove LLM
+      summary: Remove Llm
       description: Remove LLM from agent
-      operationID: remove_llm_api_v1_agents__agent_id__llms__llm_id__delete
+      operationId: remove_llm_api_v1_agents__agent_id__llms__llm_id__delete
       parameters:
         - required: true
           schema:
-            title: Agent ID
+            title: Agent Id
             type: string
           name: agent_id
           in: path
         - required: true
           schema:
-            title: LLM ID
+            title: Llm Id
             type: string
           name: llm_id
           in: path
@@ -253,7 +253,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Agent ID
+            title: Agent Id
             type: string
           name: agent_id
           in: path
@@ -281,7 +281,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Agent ID
+            title: Agent Id
             type: string
           name: agent_id
           in: path
@@ -316,13 +316,13 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Agent ID
+            title: Agent Id
             type: string
           name: agent_id
           in: path
         - required: true
           schema:
-            title: Tool ID
+            title: Tool Id
             type: string
           name: tool_id
           in: path
@@ -350,7 +350,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Agent ID
+            title: Agent Id
             type: string
           name: agent_id
           in: path
@@ -378,7 +378,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Agent ID
+            title: Agent Id
             type: string
           name: agent_id
           in: path
@@ -413,13 +413,13 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Agent ID
+            title: Agent Id
             type: string
           name: agent_id
           in: path
         - required: true
           schema:
-            title: Datasource ID
+            title: Datasource Id
             type: string
           name: datasource_id
           in: path
@@ -447,7 +447,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Agent ID
+            title: Agent Id
             type: string
           name: agent_id
           in: path
@@ -519,7 +519,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: LLM ID
+            title: Llm Id
             type: string
           name: llm_id
           in: path
@@ -547,7 +547,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: LLM ID
+            title: Llm Id
             type: string
           name: llm_id
           in: path
@@ -575,7 +575,7 @@ paths:
   /api/v1/api-users:
     post:
       tags:
-        - API user
+        - Api user
       summary: Create
       description: Create a new API user
       operationId: create_api_v1_api_users_post
@@ -601,9 +601,9 @@ paths:
   /api/v1/api-users/me:
     get:
       tags:
-        - API user
+        - Api user
       summary: Get
-      description: Get a single API user
+      description: Get a single api user
       operationId: get_api_v1_api_users_me_get
       responses:
         '200':
@@ -616,9 +616,9 @@ paths:
         - HTTPBearer: []
     delete:
       tags:
-        - API user
+        - Api user
       summary: Delete
-      description: Delete an API user
+      description: Delete an api user
       operationId: delete_api_v1_api_users_me_delete
       responses:
         '200':
@@ -681,7 +681,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Datasource ID
+            title: Datasource Id
             type: string
           name: datasource_id
           in: path
@@ -709,7 +709,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Datasource ID
+            title: Datasource Id
             type: string
           name: datasource_id
           in: path
@@ -736,7 +736,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Datasource ID
+            title: Datasource Id
             type: string
           name: datasource_id
           in: path
@@ -814,7 +814,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Tool ID
+            title: Tool Id
             type: string
           name: tool_id
           in: path
@@ -842,7 +842,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Tool ID
+            title: Tool Id
             type: string
           name: tool_id
           in: path
@@ -869,7 +869,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Tool ID
+            title: Tool Id
             type: string
           name: tool_id
           in: path
@@ -947,7 +947,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Workflow ID
+            title: Workflow Id
             type: string
           name: workflow_id
           in: path
@@ -975,7 +975,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Workflow ID
+            title: Workflow Id
             type: string
           name: workflow_id
           in: path
@@ -1002,7 +1002,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Workflow ID
+            title: Workflow Id
             type: string
           name: workflow_id
           in: path
@@ -1037,7 +1037,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Workflow ID
+            title: Workflow Id
             type: string
           name: workflow_id
           in: path
@@ -1071,7 +1071,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Workflow ID
+            title: Workflow Id
             type: string
           name: workflow_id
           in: path
@@ -1099,7 +1099,7 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Workflow ID
+            title: Workflow Id
             type: string
           name: workflow_id
           in: path
@@ -1134,13 +1134,13 @@ paths:
       parameters:
         - required: true
           schema:
-            title: Workflow ID
+            title: Workflow Id
             type: string
           name: workflow_id
           in: path
         - required: true
           schema:
-            title: Step ID
+            title: Step Id
             type: string
           name: step_id
           in: path
@@ -1160,8 +1160,8 @@ paths:
         - HTTPBearer: []
 components:
   schemas:
-    AgentDatasourceList:
-      title: AgentDatasourceList
+    AgentDatasosurceList:
+      title: AgentDatasosurceList
       required:
         - success
       type: object
@@ -1380,7 +1380,7 @@ components:
       title: Agent
       required:
         - name
-        - LLMModel
+        - llmModel
         - description
       type: object
       properties:
@@ -1395,7 +1395,7 @@ components:
           title: Prompt
           type: string
         llmModel:
-          title: LLMmodel
+          title: Llmmodel
           type: string
         description:
           title: Description
@@ -1406,11 +1406,11 @@ components:
     app__models__request__AgentDatasource:
       title: AgentDatasource
       required:
-        - datasourceID
+        - datasourceId
       type: object
       properties:
         datasourceId:
-          title: DatasourceID
+          title: Datasourceid
           type: string
     app__models__request__AgentInvoke:
       title: AgentInvoke
@@ -1423,7 +1423,7 @@ components:
           title: Input
           type: string
         sessionId:
-          title: SessionID
+          title: Sessionid
           type: string
         enableStreaming:
           title: Enablestreaming
@@ -1431,23 +1431,23 @@ components:
     app__models__request__AgentLLM:
       title: AgentLLM
       required:
-        - LLMID
+        - llmId
       type: object
       properties:
         llmId:
-          title: LLMID
+          title: Llmid
           type: string
     app__models__request__AgentTool:
       title: AgentTool
       required:
-        - toolID
+        - toolId
       type: object
       properties:
         toolId:
-          title: ToolID
+          title: Toolid
           type: string
     app__models__request__ApiUser:
-      title: APIUser
+      title: ApiUser
       required:
         - email
       type: object
@@ -1473,7 +1473,7 @@ components:
           title: Type
           type: string
         url:
-          title: URL
+          title: Url
           type: string
         metadata:
           title: Metadata
@@ -1482,14 +1482,14 @@ components:
       title: LLM
       required:
         - provider
-        - APIKey
+        - apiKey
       type: object
       properties:
         provider:
           title: Provider
           type: string
         apiKey:
-          title: APIkey
+          title: Apikey
           type: string
         options:
           title: Options
@@ -1534,7 +1534,7 @@ components:
       title: WorkflowStep
       required:
         - order
-        - agentID
+        - agentId
         - input
         - output
       type: object
@@ -1543,7 +1543,7 @@ components:
           title: Order
           type: integer
         agentId:
-          title: AgentID
+          title: Agentid
           type: string
         input:
           title: Input
@@ -1576,7 +1576,7 @@ components:
           title: Data
           type: object
     app__models__response__ApiUser:
-      title: APIUser
+      title: ApiUser
       required:
         - success
       type: object
@@ -1633,18 +1633,18 @@ components:
     prisma__models__Agent:
       title: Agent
       required:
-        - ID
+        - id
         - name
         - description
         - isActive
         - createdAt
         - updatedAt
-        - LLMModel
-        - APIUserID
+        - llmModel
+        - apiUserId
       type: object
       properties:
         id:
-          title: ID
+          title: Id
           type: string
         name:
           title: Name
@@ -1667,7 +1667,7 @@ components:
           type: string
           format: date-time
         llms:
-          title: LLMs
+          title: Llms
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__AgentLLM'
@@ -1677,7 +1677,7 @@ components:
           title: Prompt
           type: string
         apiUserId:
-          title: APIuserID
+          title: Apiuserid
           type: string
         apiUser:
           $ref: '#/components/schemas/prisma__models__ApiUser'
@@ -1696,21 +1696,21 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__WorkflowStep'
-      description: Represents an agent record
+      description: Represents a Agent record
     prisma__models__AgentDatasource:
       title: AgentDatasource
       required:
-        - agentID
-        - datasourceID
+        - agentId
+        - datasourceId
         - createdAt
         - updatedAt
       type: object
       properties:
         agentId:
-          title: AgentID
+          title: Agentid
           type: string
         datasourceId:
-          title: DatasourceID
+          title: Datasourceid
           type: string
         agent:
           $ref: '#/components/schemas/prisma__models__Agent'
@@ -1724,21 +1724,21 @@ components:
           title: Updatedat
           type: string
           format: date-time
-      description: Represents an agent datasource record
+      description: Represents a AgentDatasource record
     prisma__models__AgentLLM:
       title: AgentLLM
       required:
-        - agentID
-        - LLMID
+        - agentId
+        - llmId
         - createdAt
         - updatedAt
       type: object
       properties:
         agentId:
-          title: AgentID
+          title: Agentid
           type: string
         llmId:
-          title: LLMID
+          title: Llmid
           type: string
         agent:
           $ref: '#/components/schemas/prisma__models__Agent'
@@ -1752,21 +1752,21 @@ components:
           title: Updatedat
           type: string
           format: date-time
-      description: Represents an agent LLM record
+      description: Represents a AgentLLM record
     prisma__models__AgentTool:
       title: AgentTool
       required:
-        - agentID
-        - toolID
+        - agentId
+        - toolId
         - createdAt
         - updatedAt
       type: object
       properties:
         agentId:
-          title: AgentID
+          title: Agentid
           type: string
         toolId:
-          title: ToolID
+          title: Toolid
           type: string
         agent:
           $ref: '#/components/schemas/prisma__models__Agent'
@@ -1780,17 +1780,17 @@ components:
           title: Updatedat
           type: string
           format: date-time
-      description: Represents an agent tool record
+      description: Represents a AgentTool record
     prisma__models__ApiUser:
-      title: APIUser
+      title: ApiUser
       required:
-        - ID
+        - id
         - createdAt
         - updatedAt
       type: object
       properties:
         id:
-          title: ID
+          title: Id
           type: string
         token:
           title: Token
@@ -1812,7 +1812,7 @@ components:
           items:
             $ref: '#/components/schemas/prisma__models__Agent'
         llms:
-          title: LLMs
+          title: Llms
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__LLM'
@@ -1826,26 +1826,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__Tool'
-        workflows:
-          title: Workflows
+        worflows:
+          title: Worflows
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__Workflow'
-      description: Represents an API user record
+      description: Represents a ApiUser record
     prisma__models__Datasource:
       title: Datasource
       required:
-        - ID
+        - id
         - name
         - type
-        - APIUserId
+        - apiUserId
         - createdAt
         - updatedAt
         - status
       type: object
       properties:
         id:
-          title: ID
+          title: Id
           type: string
         name:
           title: Name
@@ -1854,12 +1854,12 @@ components:
           title: Description
           type: string
         url:
-          title: URL
+          title: Url
           type: string
         type:
           $ref: '#/components/schemas/DatasourceType'
         apiUserId:
-          title: APIuserID
+          title: Apiuserid
           type: string
         apiUser:
           $ref: '#/components/schemas/prisma__models__ApiUser'
@@ -1881,25 +1881,25 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__AgentDatasource'
-      description: Represents a datasource record
+      description: Represents a Datasource record
     prisma__models__LLM:
       title: LLM
       required:
-        - ID
+        - id
         - provider
-        - APIKey
+        - apiKey
         - createdAt
         - updatedAt
-        - APIUserID
+        - apiUserId
       type: object
       properties:
         id:
-          title: ID
+          title: Id
           type: string
         provider:
           $ref: '#/components/schemas/LLMProvider'
         apiKey:
-          title: APIkey
+          title: Apikey
           type: string
         options:
           title: Options
@@ -1919,7 +1919,7 @@ components:
           type: string
           format: date-time
         apiUserId:
-          title: APIuserID
+          title: Apiuserid
           type: string
         apiUser:
           $ref: '#/components/schemas/prisma__models__ApiUser'
@@ -1927,7 +1927,7 @@ components:
     prisma__models__Tool:
       title: Tool
       required:
-        - ID
+        - id
         - name
         - description
         - type
@@ -1939,7 +1939,7 @@ components:
       type: object
       properties:
         id:
-          title: ID
+          title: Id
           type: string
         name:
           title: Name
@@ -1964,7 +1964,7 @@ components:
           type: string
           format: date-time
         apiUserId:
-          title: APIuserID
+          title: Apiuserid
           type: string
         apiUser:
           $ref: '#/components/schemas/prisma__models__ApiUser'
@@ -1973,19 +1973,19 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__AgentTool'
-      description: Represents a tool record
+      description: Represents a Tool record
     prisma__models__Workflow:
       title: Workflow
       required:
-        - ID
+        - id
         - name
         - createdAt
         - updatedAt
-        - APIuserID
+        - apiUserId
       type: object
       properties:
         id:
-          title: ID
+          title: Id
           type: string
         name:
           title: Name
@@ -2007,32 +2007,32 @@ components:
           items:
             $ref: '#/components/schemas/prisma__models__WorkflowStep'
         apiUserId:
-          title: APIuserID
+          title: Apiuserid
           type: string
         apiUser:
           $ref: '#/components/schemas/prisma__models__ApiUser'
-      description: Represents a workflow record
+      description: Represents a Workflow record
     prisma__models__WorkflowStep:
       title: WorkflowStep
       required:
-        - ID
+        - id
         - order
-        - workflowID
+        - workflowId
         - createdAt
         - updatedAt
         - input
         - output
-        - agentID
+        - agentId
       type: object
       properties:
         id:
-          title: ID
+          title: Id
           type: string
         order:
           title: Order
           type: integer
         workflowId:
-          title: WorkflowID
+          title: Workflowid
           type: string
         workflow:
           $ref: '#/components/schemas/prisma__models__Workflow'
@@ -2050,12 +2050,12 @@ components:
         output:
           title: Output
           type: string
-        agentID:
-          title: AgentID
+        agentId:
+          title: Agentid
           type: string
         agent:
           $ref: '#/components/schemas/prisma__models__Agent'
-      description: Represents a workflow step record
+      description: Represents a WorkflowStep record
   securitySchemes:
     HTTPBearer:
       type: http
