@@ -65,7 +65,6 @@ export default function LLMClientPage({
     resolver: zodResolver(formSchema),
     defaultValues: {
       apiKey: "",
-      options: {},
     },
   })
 
