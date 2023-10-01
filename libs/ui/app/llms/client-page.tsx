@@ -151,7 +151,7 @@ export default function LLMClientPage({
                         <DialogHeader>
                           <DialogTitle>Configure {llm.name}</DialogTitle>
                           <DialogDescription>
-                            Enter your OpenAI api key below. You can find your
+                            Enter your OpenAI API key below. You can find your
                             key by logging into your OpenAI account.
                           </DialogDescription>
                         </DialogHeader>

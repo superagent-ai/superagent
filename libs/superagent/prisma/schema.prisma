@@ -71,7 +71,7 @@ model ApiUser {
   llms        LLM[]
   datasources Datasource[]
   tools       Tool[]
-  worflows    Workflow[]
+  workflows    Workflow[]
 }
 
 model Agent {

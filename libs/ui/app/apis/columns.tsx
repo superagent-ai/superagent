@@ -93,7 +93,7 @@ export function CopyButton({ id }: { id: string }) {
       onClick={() => {
         navigator.clipboard.writeText(id)
         toast({
-          description: "API id copied to clipboard",
+          description: "API ID copied to clipboard",
         })
       }}
     >
@@ -147,7 +147,7 @@ export function EditTool({
           className="w-full space-y-4"
         >
           <DialogHeader>
-            <DialogTitle>Update api connection</DialogTitle>
+            <DialogTitle>Update API connection</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col space-y-2">
             <FormField
