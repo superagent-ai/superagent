@@ -25,20 +25,17 @@ analytics.write_key = SEGMENT_WRITE_KEY
 )
 async def create(body: LLMRequest, api_user=Depends(get_current_api_user)):
     """Endpoint for creating an LLM"""
-    try:
-        if SEGMENT_WRITE_KEY:
-            analytics.track(api_user.id, "Created LLM")
-        data = await prisma.llm.create(
-            {
-                **body.dict(),
-                "apiUserId": api_user.id,
-                "options": json.dumps(body.options) if body.options else None,
-            }
-        )
-        data.options = json.dumps(data.options)
-        return {"success": True, "data": data}
-    except Exception as e:
-        handle_exception(e)
+    if SEGMENT_WRITE_KEY:
+        analytics.track(api_user.id, "Created LLM")
+    data = await prisma.llm.create(
+        {
+            **body.dict(),
+            "apiUserId": api_user.id,
+            "options": json.dumps(body.options),
+        }
+    )
+    data.options = json.dumps(data.options)
+    return {"success": True, "data": data}
 
 
 @router.get(
