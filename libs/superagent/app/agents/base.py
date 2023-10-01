@@ -3,7 +3,7 @@ from typing import Any, List
 from decouple import config
 from langchain import LLMChain, PromptTemplate
 from langchain.agents import AgentType, initialize_agent
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models import ChatOpenAI, AzureChatOpenAI
 from langchain.memory.motorhead_memory import MotorheadMemory
 from langchain.prompts import MessagesPlaceholder
 from langchain.schema import SystemMessage
@@ -80,6 +80,14 @@ class AgentBase:
         if agent_llm.llm.provider == "OPENAI":
             return ChatOpenAI(
                 model=LLM_MAPPING[model],
+                openai_api_key=agent_llm.llm.apiKey,
+                temperature=0,
+                streaming=self.enable_streaming,
+                callbacks=[self.callback] if self.enable_streaming else [],
+                **(agent_llm.llm.options if agent_llm.llm.options else {}),
+            )
+        if agent_llm.llm.provider == "AZURE_OPENAI":
+            return AzureChatOpenAI(
                 openai_api_key=agent_llm.llm.apiKey,
                 temperature=0,
                 streaming=self.enable_streaming,

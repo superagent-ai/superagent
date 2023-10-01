@@ -1,4 +1,6 @@
 import segment.analytics as analytics
+import json
+
 from decouple import config
 from fastapi import APIRouter, Depends
 
@@ -30,9 +32,10 @@ async def create(body: LLMRequest, api_user=Depends(get_current_api_user)):
             {
                 **body.dict(),
                 "apiUserId": api_user.id,
-                "options": Json(body.options),
+                "options": json.dumps(body.options) if body.options else None,
             }
         )
+        data.options = json.dumps(data.options)
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -50,6 +53,9 @@ async def list(api_user=Depends(get_current_api_user)):
         data = await prisma.llm.find_many(
             where={"apiUserId": api_user.id}, order={"createdAt": "desc"}
         )
+        # Convert options to string
+        for item in data:
+            item.options = json.dumps(item.options)
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -67,6 +73,7 @@ async def get(llm_id: str, api_user=Depends(get_current_api_user)):
         data = await prisma.llm.find_first(
             where={"id": llm_id, "apiUserId": api_user.id}
         )
+        data.options = json.dumps(data.options)
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -91,6 +98,7 @@ async def update(llm_id: str, body: LLMRequest, api_user=Depends(get_current_api
                 "options": Json(body.options),
             },
         )
+        data.options = json.dumps(data.options)
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
