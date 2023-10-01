@@ -261,7 +261,9 @@ export default function Settings({
                         </FormControl>
                         <SelectContent>
                           {siteConfig.llms
-                            .find((llm) => llm.id === "OPENAI")
+                            .find(
+                              (llm) => llm.id === agent.llms[0].llm.provider
+                            )
                             ?.options.map((option) => (
                               <SelectItem
                                 key={option.value}

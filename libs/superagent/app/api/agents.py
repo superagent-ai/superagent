@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import json
 from typing import AsyncIterable
 
 import segment.analytics as analytics
@@ -111,6 +112,8 @@ async def get(agent_id: str, api_user=Depends(get_current_api_user)):
                 "llms": {"include": {"llm": True}},
             },
         )
+        for llm in data.llms:
+            llm.llm.options = json.dumps(llm.llm.options)
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
