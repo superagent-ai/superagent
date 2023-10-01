@@ -47,7 +47,7 @@ const formSchema = z.object({
   apiKey: z.string().nonempty({
     message: "API key is required.",
   }),
-  options: z.record(z.any()),
+  options: z.record(z.any()).nullable(),
 })
 
 export default function LLMClientPage({
@@ -65,6 +65,7 @@ export default function LLMClientPage({
     resolver: zodResolver(formSchema),
     defaultValues: {
       apiKey: "",
+      options: null,
     },
   })
 
