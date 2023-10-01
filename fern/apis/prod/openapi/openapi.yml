@@ -145,7 +145,7 @@ paths:
         - Agent
       summary: Invoke
       description: Invoke an agent
-      operationID: invoke_api_v1_agents__agent_id__invoke_post
+      operationId: invoke_api_v1_agents__agent_id__invoke_post
       parameters:
         - required: true
           schema:
@@ -249,7 +249,7 @@ paths:
         - Agent
       summary: List Tools
       description: List agent tools
-      operationID: list_tools_api_v1_agents__agent_id__tools_get
+      operationId: list_tools_api_v1_agents__agent_id__tools_get
       parameters:
         - required: true
           schema:
@@ -277,7 +277,7 @@ paths:
         - Agent
       summary: Add Tool
       description: Add tool to agent
-      operationID: add_tool_api_v1_agents__agent_id__tools_post
+      operationId: add_tool_api_v1_agents__agent_id__tools_post
       parameters:
         - required: true
           schema:
@@ -312,7 +312,7 @@ paths:
         - Agent
       summary: Remove Tool
       description: Remove tool from agent
-      operationID: remove_tool_api_v1_agents__agent_id__tools__tool_id__delete
+      operationId: remove_tool_api_v1_agents__agent_id__tools__tool_id__delete
       parameters:
         - required: true
           schema:
@@ -346,7 +346,7 @@ paths:
         - Agent
       summary: List Datasources
       description: List agent datasources
-      operationID: list_datasources_api_v1_agents__agent_id__datasources_get
+      operationId: list_datasources_api_v1_agents__agent_id__datasources_get
       parameters:
         - required: true
           schema:
@@ -374,7 +374,7 @@ paths:
         - Agent
       summary: Add Datasource
       description: Add datasource to agent
-      operationID: add_datasource_api_v1_agents__agent_id__datasources_post
+      operationId: add_datasource_api_v1_agents__agent_id__datasources_post
       parameters:
         - required: true
           schema:
@@ -409,7 +409,7 @@ paths:
         - Agent
       summary: Remove Datasource
       description: Remove datasource from agent
-      operationID: remove_datasource_api_v1_agents__agent_id__datasources__datasource_id__delete
+      operationId: remove_datasource_api_v1_agents__agent_id__datasources__datasource_id__delete
       parameters:
         - required: true
           schema:
@@ -443,7 +443,7 @@ paths:
         - Agent
       summary: List Runs
       description: List agent runs
-      operationID: list_runs_api_v1_agents__agent_id__runs_get
+      operationId: list_runs_api_v1_agents__agent_id__runs_get
       parameters:
         - required: true
           schema:
@@ -472,7 +472,7 @@ paths:
         - LLM
       summary: List
       description: List all LLMs
-      operationID: list_api_v1_llms_get
+      operationId: list_api_v1_llms_get
       responses:
         '200':
           description: Successful Response
@@ -487,7 +487,7 @@ paths:
         - LLM
       summary: Create
       description: Create a new LLM
-      operationID: create_api_v1_llms_post
+      operationId: create_api_v1_llms_post
       requestBody:
         content:
           application/json:
@@ -515,7 +515,7 @@ paths:
         - LLM
       summary: Get
       description: Get a single LLM
-      operationID: get_api_v1_llms__llm_id__get
+      operationId: get_api_v1_llms__llm_id__get
       parameters:
         - required: true
           schema:
@@ -543,7 +543,7 @@ paths:
         - LLM
       summary: Update
       description: Patch an LLM
-      operationID: update_api_v1_llms__llm_id__patch
+      operationId: update_api_v1_llms__llm_id__patch
       parameters:
         - required: true
           schema:
@@ -578,12 +578,12 @@ paths:
         - API user
       summary: Create
       description: Create a new API user
-      operationID: create_api_v1_api_users_post
+      operationId: create_api_v1_api_users_post
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/app__models__request__APIUser'
+              $ref: '#/components/schemas/app__models__request__ApiUser'
         required: true
       responses:
         '200':
@@ -591,7 +591,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/app__models__response__APIUser'
+                $ref: '#/components/schemas/app__models__response__ApiUser'
         '422':
           description: Validation Error
           content:
@@ -604,14 +604,14 @@ paths:
         - API user
       summary: Get
       description: Get a single API user
-      operationID: get_api_v1_api_users_me_get
+      operationId: get_api_v1_api_users_me_get
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/app__models__response__APIUser'
+                $ref: '#/components/schemas/app__models__response__ApiUser'
       security:
         - HTTPBearer: []
     delete:
@@ -619,7 +619,7 @@ paths:
         - API user
       summary: Delete
       description: Delete an API user
-      operationID: delete_api_v1_api_users_me_delete
+      operationId: delete_api_v1_api_users_me_delete
       responses:
         '200':
           description: Successful Response
@@ -634,7 +634,7 @@ paths:
         - Datasource
       summary: List
       description: List all datasources
-      operationID: list_api_v1_datasources_get
+      operationId: list_api_v1_datasources_get
       responses:
         '200':
           description: Successful Response
@@ -649,7 +649,7 @@ paths:
         - Datasource
       summary: Create
       description: Create a new datasource
-      operationID: create_api_v1_datasources_post
+      operationId: create_api_v1_datasources_post
       requestBody:
         content:
           application/json:
@@ -677,7 +677,7 @@ paths:
         - Datasource
       summary: Get
       description: Get a specific datasource
-      operationID: get_api_v1_datasources__datasource_id__get
+      operationId: get_api_v1_datasources__datasource_id__get
       parameters:
         - required: true
           schema:
@@ -705,7 +705,7 @@ paths:
         - Datasource
       summary: Delete
       description: Delete a specific datasource
-      operationID: delete_api_v1_datasources__datasource_id__delete
+      operationId: delete_api_v1_datasources__datasource_id__delete
       parameters:
         - required: true
           schema:
@@ -732,7 +732,7 @@ paths:
         - Datasource
       summary: Update
       description: Update a specific datasource
-      operationID: update_api_v1_datasources__datasource_id__patch
+      operationId: update_api_v1_datasources__datasource_id__patch
       parameters:
         - required: true
           schema:
@@ -767,7 +767,7 @@ paths:
         - Tool
       summary: List
       description: List all tools
-      operationID: list_api_v1_tools_get
+      operationId: list_api_v1_tools_get
       responses:
         '200':
           description: Successful Response
@@ -782,7 +782,7 @@ paths:
         - Tool
       summary: Create
       description: Create a new tool
-      operationID: create_api_v1_tools_post
+      operationId: create_api_v1_tools_post
       requestBody:
         content:
           application/json:
@@ -810,7 +810,7 @@ paths:
         - Tool
       summary: Get
       description: Get a specific tool
-      operationID: get_api_v1_tools__tool_id__get
+      operationId: get_api_v1_tools__tool_id__get
       parameters:
         - required: true
           schema:
@@ -838,7 +838,7 @@ paths:
         - Tool
       summary: Delete
       description: Delete a specific tool
-      operationID: delete_api_v1_tools__tool_id__delete
+      operationId: delete_api_v1_tools__tool_id__delete
       parameters:
         - required: true
           schema:
@@ -865,7 +865,7 @@ paths:
         - Tool
       summary: Update
       description: Update a specific tool
-      operationID: update_api_v1_tools__tool_id__patch
+      operationId: update_api_v1_tools__tool_id__patch
       parameters:
         - required: true
           schema:
@@ -900,7 +900,7 @@ paths:
         - Workflow
       summary: List
       description: List all workflows
-      operationID: list_api_v1_workflows_get
+      operationId: list_api_v1_workflows_get
       responses:
         '200':
           description: Successful Response
@@ -915,7 +915,7 @@ paths:
         - Workflow
       summary: Create
       description: Create a new workflow
-      operationID: create_api_v1_workflows_post
+      operationId: create_api_v1_workflows_post
       requestBody:
         content:
           application/json:
@@ -943,7 +943,7 @@ paths:
         - Workflow
       summary: Get
       description: Get a single workflow
-      operationID: get_api_v1_workflows__workflow_id__get
+      operationId: get_api_v1_workflows__workflow_id__get
       parameters:
         - required: true
           schema:
@@ -971,7 +971,7 @@ paths:
         - Workflow
       summary: Delete
       description: Delete a specific workflow
-      operationID: delete_api_v1_workflows__workflow_id__delete
+      operationId: delete_api_v1_workflows__workflow_id__delete
       parameters:
         - required: true
           schema:
@@ -998,7 +998,7 @@ paths:
         - Workflow
       summary: Update
       description: Patch a workflow
-      operationID: update_api_v1_workflows__workflow_id__patch
+      operationId: update_api_v1_workflows__workflow_id__patch
       parameters:
         - required: true
           schema:
@@ -1033,7 +1033,7 @@ paths:
         - Workflow
       summary: Invoke
       description: Invoke a specific workflow
-      operationID: invoke_api_v1_workflows__workflow_id__invoke_post
+      operationId: invoke_api_v1_workflows__workflow_id__invoke_post
       parameters:
         - required: true
           schema:
@@ -1067,7 +1067,7 @@ paths:
         - Workflow
       summary: List Steps
       description: List all steps of a workflow
-      operationID: list_steps_api_v1_workflows__workflow_id__steps_get
+      operationId: list_steps_api_v1_workflows__workflow_id__steps_get
       parameters:
         - required: true
           schema:
@@ -1095,7 +1095,7 @@ paths:
         - Workflow
       summary: Add Step
       description: Create a new workflow step
-      operationID: add_step_api_v1_workflows__workflow_id__steps_post
+      operationId: add_step_api_v1_workflows__workflow_id__steps_post
       parameters:
         - required: true
           schema:
@@ -1130,7 +1130,7 @@ paths:
         - Workflow
       summary: Delete Step
       description: Delete a specific workflow step
-      operationID: delete_step_api_v1_workflows__workflow_id__steps__step_id__delete
+      operationId: delete_step_api_v1_workflows__workflow_id__steps__step_id__delete
       parameters:
         - required: true
           schema:
@@ -1409,7 +1409,7 @@ components:
         - datasourceID
       type: object
       properties:
-        datasourceID:
+        datasourceId:
           title: DatasourceID
           type: string
     app__models__request__AgentInvoke:
@@ -1422,7 +1422,7 @@ components:
         input:
           title: Input
           type: string
-        sessionID:
+        sessionId:
           title: SessionID
           type: string
         enableStreaming:
@@ -1434,7 +1434,7 @@ components:
         - LLMID
       type: object
       properties:
-        llmID:
+        llmId:
           title: LLMID
           type: string
     app__models__request__AgentTool:
@@ -1443,10 +1443,10 @@ components:
         - toolID
       type: object
       properties:
-        toolID:
+        toolId:
           title: ToolID
           type: string
-    app__models__request__APIUser:
+    app__models__request__ApiUser:
       title: APIUser
       required:
         - email
@@ -1542,7 +1542,7 @@ components:
         order:
           title: Order
           type: integer
-        agentID:
+        agentId:
           title: AgentID
           type: string
         input:
@@ -1575,7 +1575,7 @@ components:
         data:
           title: Data
           type: object
-    app__models__response__APIUser:
+    app__models__response__ApiUser:
       title: APIUser
       required:
         - success
@@ -1585,7 +1585,7 @@ components:
           title: Success
           type: boolean
         data:
-          $ref: '#/components/schemas/prisma__models__APIUser'
+          $ref: '#/components/schemas/prisma__models__ApiUser'
     app__models__response__Datasource:
       title: Datasource
       required:
@@ -1676,11 +1676,11 @@ components:
         prompt:
           title: Prompt
           type: string
-        apiUserID:
+        apiUserId:
           title: APIuserID
           type: string
         apiUser:
-          $ref: '#/components/schemas/prisma__models__APIUser'
+          $ref: '#/components/schemas/prisma__models__ApiUser'
         datasources:
           title: Datasources
           type: array
@@ -1706,10 +1706,10 @@ components:
         - updatedAt
       type: object
       properties:
-        agentID:
+        agentId:
           title: AgentID
           type: string
-        datasourceID:
+        datasourceId:
           title: DatasourceID
           type: string
         agent:
@@ -1734,10 +1734,10 @@ components:
         - updatedAt
       type: object
       properties:
-        agentID:
+        agentId:
           title: AgentID
           type: string
-        llmID:
+        llmId:
           title: LLMID
           type: string
         agent:
@@ -1762,10 +1762,10 @@ components:
         - updatedAt
       type: object
       properties:
-        agentID:
+        agentId:
           title: AgentID
           type: string
-        toolID:
+        toolId:
           title: ToolID
           type: string
         agent:
@@ -1781,7 +1781,7 @@ components:
           type: string
           format: date-time
       description: Represents an agent tool record
-    prisma__models__APIUser:
+    prisma__models__ApiUser:
       title: APIUser
       required:
         - ID
@@ -1858,11 +1858,11 @@ components:
           type: string
         type:
           $ref: '#/components/schemas/DatasourceType'
-        apiUserID:
+        apiUserId:
           title: APIuserID
           type: string
         apiUser:
-          $ref: '#/components/schemas/prisma__models__APIUser'
+          $ref: '#/components/schemas/prisma__models__ApiUser'
         createdAt:
           title: Createdat
           type: string
@@ -1918,11 +1918,11 @@ components:
           title: Updatedat
           type: string
           format: date-time
-        apiUserID:
+        apiUserId:
           title: APIuserID
           type: string
         apiUser:
-          $ref: '#/components/schemas/prisma__models__APIUser'
+          $ref: '#/components/schemas/prisma__models__ApiUser'
       description: Represents a LLM record
     prisma__models__Tool:
       title: Tool
@@ -1963,11 +1963,11 @@ components:
           title: Updatedat
           type: string
           format: date-time
-        apiUserID:
+        apiUserId:
           title: APIuserID
           type: string
         apiUser:
-          $ref: '#/components/schemas/prisma__models__APIUser'
+          $ref: '#/components/schemas/prisma__models__ApiUser'
         tools:
           title: Tools
           type: array
@@ -2006,11 +2006,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__WorkflowStep'
-        apiUserID:
+        apiUserId:
           title: APIuserID
           type: string
         apiUser:
-          $ref: '#/components/schemas/prisma__models__APIUser'
+          $ref: '#/components/schemas/prisma__models__ApiUser'
       description: Represents a workflow record
     prisma__models__WorkflowStep:
       title: WorkflowStep
@@ -2031,7 +2031,7 @@ components:
         order:
           title: Order
           type: integer
-        workflowID:
+        workflowId:
           title: WorkflowID
           type: string
         workflow:
