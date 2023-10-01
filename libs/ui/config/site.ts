@@ -87,7 +87,7 @@ export const siteConfig = {
     {
       id: "OPENAI",
       description:
-        "Power your agents with the latest models from OpenAI, powerful for calling external APIs and reasoning.",
+        "Power your assistants with the latest models from OpenAI, powerful for calling external APIs and reasoning.",
       name: "OpenAI",
       logo: "/openai-logo.png",
       options: [
@@ -110,18 +110,13 @@ export const siteConfig = {
       ],
     },
     {
-      disabled: true,
-      id: "META",
+      disabled: false,
+      id: "AZURE_OPENAI",
       description:
-        "Use Meta's latest models such as Llama and Llama 2 to power your agents. An open source alternative to OpenAI.",
-      name: "Meta",
-      logo: "/meta-logo.png",
-      options: [
-        {
-          value: "LLAMA",
-          title: "Llama",
-        },
-      ],
+        "Use Azure OpenAI to power your assistants with the latest OpenAI models.",
+      name: "Azure OpenAI",
+      logo: "/azure-logo.png",
+      options: [],
     },
   ],
   datasourceTypes: [
