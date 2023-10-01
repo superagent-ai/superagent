@@ -34,6 +34,7 @@ class Datasource(BaseModel):
     name: str
     description: str
     type: str
+    content: Optional[str]
     url: Optional[str]
     metadata: Optional[Dict[Any, Any]]
 

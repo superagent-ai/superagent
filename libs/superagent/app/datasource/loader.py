@@ -59,15 +59,25 @@ class DataLoader:
             raise ValueError(f"Unsupported datasource type: {self.datasource.type}")
 
     def load_txt(self):
-        file_response = requests.get(self.datasource.url).text
         with NamedTemporaryFile(suffix=".txt", delete=True) as temp_file:
+            if self.datasource.url:
+                file_response = requests.get(self.datasource.url).text
+            else:
+                file_response = self.datasource.content
             temp_file.write(file_response.encode())
             temp_file.flush()
             loader = TextLoader(file_path=temp_file.name)
             return loader.load_and_split()
 
     def load_pdf(self):
-        loader = PyPDFLoader(file_path=self.datasource.url)
+        if self.datasource.url:
+            loader = PyPDFLoader(file_path=self.datasource.url)
+        else:
+            with NamedTemporaryFile(suffix=".pdf", delete=True) as temp_file:
+                temp_file.write(self.datasource.content)
+                temp_file.flush()
+                loader = UnstructuredWordDocumentLoader(file_path=temp_file.name)
+                return loader.load_and_split()
         return loader.load_and_split()
 
     def load_google_doc(self):
@@ -76,8 +86,11 @@ class DataLoader:
     def load_pptx(self):
         from pptx import Presentation
 
-        file_response = requests.get(self.datasource.url).content
         with NamedTemporaryFile(suffix=".pptx", delete=True) as temp_file:
+            if self.datasource.url:
+                file_response = requests.get(self.datasource.url).content
+            else:
+                file_response = self.datasource.content
             temp_file.write(file_response)
             temp_file.flush()
             presentation = Presentation(temp_file.name)
@@ -90,21 +103,26 @@ class DataLoader:
             return [Document(page_content=result)]
 
     def load_docx(self):
-        file_response = requests.get(self.datasource.url).content
         with NamedTemporaryFile(suffix=".docx", delete=True) as temp_file:
+            if self.datasource.url:
+                file_response = requests.get(self.datasource.url).content
+            else:
+                file_response = self.datasource.content
             temp_file.write(file_response)
             temp_file.flush()
             loader = UnstructuredWordDocumentLoader(file_path=temp_file.name)
             return loader.load_and_split()
 
     def load_markdown(self):
-        file_response = requests.get(self.datasource.url).text
-        if file_response:
-            with NamedTemporaryFile(suffix=".md", delete=True) as temp_file:
-                temp_file.write(file_response.encode())
-                temp_file.flush()
-                loader = UnstructuredMarkdownLoader(file_path=temp_file.name)
-                return loader.load()
+        with NamedTemporaryFile(suffix=".md", delete=True) as temp_file:
+            if self.datasource.url:
+                file_response = requests.get(self.datasource.url).text
+            else:
+                file_response = self.datasource.content
+            temp_file.write(file_response.encode())
+            temp_file.flush()
+            loader = UnstructuredMarkdownLoader(file_path=temp_file.name)
+            return loader.load()
 
     def load_github(self):
         parsed_url = urlparse(self.datasource.url)
