@@ -100,10 +100,6 @@ export const siteConfig = {
           title: "gpt-3.5-turbo-0613",
         },
         {
-          value: "GPT_4_32K_0613",
-          title: "gpt-4-32k-0613",
-        },
-        {
           value: "GPT_4_0613",
           title: "gpt-4-0613",
         },

@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The open framework for building AI Assistants
-  version: 0.1.10
+  version: 0.1.13
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -1296,6 +1296,7 @@ components:
       title: LLMProvider
       enum:
         - OPENAI
+        - AZURE_OPENAI
       type: string
       description: An enumeration.
     ToolList:
@@ -1471,6 +1472,9 @@ components:
           type: string
         type:
           title: Type
+          type: string
+        content:
+          title: Content
           type: string
         url:
           title: Url
@@ -1826,8 +1830,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__Tool'
-        worflows:
-          title: Worflows
+        workflows:
+          title: Workflows
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__Workflow'
@@ -1849,6 +1853,9 @@ components:
           type: string
         name:
           title: Name
+          type: string
+        content:
+          title: Content
           type: string
         description:
           title: Description
