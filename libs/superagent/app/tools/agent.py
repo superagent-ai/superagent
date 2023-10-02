@@ -15,9 +15,9 @@ class Agent(BaseTool):
         url = f"https://api.beta.superagent.sh/api/v1/agents/{agent_id}/invoke"
         headers = {
             "content-type": "application/json",
-            "authorization": f"Bearar {api_key}",
+            "authorization": f"Bearer {api_key}",
         }
-        data = {"enableStreaming": False, "input": input}
+        data = {"enableStreaming": False, "input": str(input)}
         response = requests.post(url=url, headers=headers, json=data)
         output = response.json()
         return output.get("data")
@@ -25,15 +25,13 @@ class Agent(BaseTool):
     async def _arun(self, input: Any) -> str:
         agent_id = self.metadata["agentId"]
         api_key = self.metadata["apiKey"]
-        print(api_key)
-        print(agent_id)
         url = f"https://api.beta.superagent.sh/api/v1/agents/{agent_id}/invoke"
         headers = {
             "content-type": "application/json",
-            "authorization": f"Bearar {api_key}",
+            "authorization": f"Bearer {api_key}",
         }
-        data = {"enableStreaming": False, "input": input}
+        data = {"enableStreaming": False, "input": str(input)}
         async with aiohttp.ClientSession() as session:
             async with session.post(url=url, headers=headers, json=data) as response:
                 output = await response.json()
-        return output.get("data")
+        return output
