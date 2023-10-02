@@ -119,7 +119,7 @@ class StructuredDatasourceTool(BaseTool):
             response = requests.get(datasource.url)
             file_content = StringIO(response.text)
         else:
-            file_content = datasource.content
+            file_content = StringIO(datasource.content)
         df = pd.read_csv(file_content)
         return df
 
