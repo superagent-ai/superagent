@@ -43,7 +43,7 @@ class WolframInput(BaseModel):
     input: str
 
 
-class CodeExecutorInput(BaseModel):
+class E2BCodeExecutorInput(BaseModel):
     python_code: str
 
 

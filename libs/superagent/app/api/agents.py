@@ -1,6 +1,6 @@
 import asyncio
-import logging
 import json
+import logging
 from typing import AsyncIterable
 
 import segment.analytics as analytics
