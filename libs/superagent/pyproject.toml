@@ -48,6 +48,7 @@ wolframalpha = "^5.0.0"
 langchain = "^0.0.300"
 bs4 = "^0.0.1"
 segment-analytics-python = "^2.2.3"
+e2b = "^0.6.0"
 
 
 [build-system]
