@@ -838,13 +838,13 @@ ssh = ["paramiko (>=2.4.3)"]
 
 [[package]]
 name = "e2b"
-version = "0.6.0"
+version = "0.7.1"
 description = "E2B SDK that give agents cloud environments"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "e2b-0.6.0-py3-none-any.whl", hash = "sha256:c0ec90c79d765dbf577a2c2796dd2ac36da4919163210fc6ee13121daafcd328"},
-    {file = "e2b-0.6.0.tar.gz", hash = "sha256:0d1f7ed77b2b5ae117fd45405066ad69a7001fd5dba901ff3291d8d527a6f235"},
+    {file = "e2b-0.7.1-py3-none-any.whl", hash = "sha256:086d543a4bcd0276c532b033280e4ac5b0d23ddcf54eaa9dea0794b21be18491"},
+    {file = "e2b-0.7.1.tar.gz", hash = "sha256:38e2b8069259411dc8f67eaadace22f6066f3c0f1a5ab901a4ba18ab0c8af843"},
 ]
 
 [package.dependencies]
@@ -4666,4 +4666,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "9a7e46d9900d0e58bc9b5ff61ec535da7445c5094309140e108755af4f7eff9b"
+content-hash = "547266a2437e589d8a21512b4a7b01acfca1cf1db6db4d2f93484e4800b44417"
