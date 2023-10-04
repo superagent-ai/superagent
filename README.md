@@ -2,7 +2,7 @@
 
 # Superagent 🥷
 
-### The open framework for for building AI Assistants
+### The open framework for building AI Assistants
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/Superagent" />
