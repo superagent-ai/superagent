@@ -9,7 +9,7 @@ class E2BCodeExecutor(BaseTool):
 
     def _run(self, python_code: str) -> str:
         api_token = config("E2B_API_KEY")
-        output, err = run_code_sync("Python3-DataAnalysis", python_code, api_token)
+        output, err = run_code_sync("Python3_DataAnalysis", python_code, api_token)
 
         if err:
             return "There was following error during execution: " + err
@@ -18,7 +18,7 @@ class E2BCodeExecutor(BaseTool):
 
     async def _arun(self, python_code: str) -> str:
         api_token = config("E2B_API_KEY")
-        output, err = await run_code("Python3-DataAnalysis", python_code, api_token)
+        output, err = await run_code("Python3_DataAnalysis", python_code, api_token)
 
         if err:
             return "There was following error during execution: " + err
