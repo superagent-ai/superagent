@@ -36,7 +36,7 @@ class ReplicateInput(BaseModel):
 
 
 class AgentInput(BaseModel):
-    input: Any
+    input: str
 
 
 class WolframInput(BaseModel):
