@@ -18,7 +18,6 @@ from langchain.document_loaders import (
     YoutubeLoader,
 )
 from langchain.document_loaders.airbyte import AirbyteStripeLoader
-from llama_index import download_loader
 from pyairtable import Api
 
 from prisma.models import Datasource
@@ -45,8 +44,6 @@ class DataLoader:
             return self.load_github()
         elif self.datasource.type == "WEBPAGE":
             return self.load_webpage()
-        elif self.datasource.type == "NOTION":
-            return self.load_notion()
         elif self.datasource.type == "YOUTUBE":
             return self.load_youtube()
         elif self.datasource.type == "URL":
@@ -150,14 +147,6 @@ class DataLoader:
             if "language" in chunk.metadata:
                 del chunk.metadata["language"]
         return chunks
-
-    def load_notion(self):
-        metadata = json.loads(self.datasource.metadata)
-        NotionPageReader = download_loader("NotionPageReader")
-        integration_token = metadata["integration_token"]
-        page_ids = metadata["page_ids"]
-        loader = NotionPageReader(integration_token=integration_token)
-        return loader.load_langchain_documents(page_ids=page_ids.split(","))
 
     def load_youtube(self):
         video_id = self.datasource.url.split("youtube.com/watch?v=")[-1]
