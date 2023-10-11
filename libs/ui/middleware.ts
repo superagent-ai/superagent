@@ -43,6 +43,5 @@ export const config = {
     "/datasources/:path*",
     "/workflows/:path*",
     "/llms/:path*",
-    "/onboarding",
   ],
 }
