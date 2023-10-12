@@ -1634,21 +1634,7 @@ optional = false
 python-versions = ">=3.7"
 files = [
     {file = "lamini-0.0.21-1-py3-none-any.whl", hash = "sha256:a764a359e0ef1244b871f7a301f339f8371dead07b9ecf64c8feb852cd148e33"},
-    {file = "lamini-0.0.21-10-py3-none-any.whl", hash = "sha256:d4040558d0819a231ae55fb44e2b11c5a408ee1d8bae16b28c00299b0c786c24"},
-    {file = "lamini-0.0.21-11-py3-none-any.whl", hash = "sha256:47f1d1d0dbb49bdc071c848da07d9590369744e275313945dbf335fd030d5b42"},
-    {file = "lamini-0.0.21-12-py3-none-any.whl", hash = "sha256:cef5ec2b8690291b46a322db2e39210239e743f509d2ab08163a580802e02b42"},
-    {file = "lamini-0.0.21-13-py3-none-any.whl", hash = "sha256:1f95219e07f363a822fac26441a50d21950835b94716d2a4357d04d601357e39"},
-    {file = "lamini-0.0.21-14-py3-none-any.whl", hash = "sha256:bb39255c04bfa455041194f8ac311c58a09718c911f69dd3b3d9affe4d20b6ec"},
-    {file = "lamini-0.0.21-15-py3-none-any.whl", hash = "sha256:176fcff1ae660f7141384a4801d1add34535f6d5dcb92b794556e5e6acc9d186"},
-    {file = "lamini-0.0.21-16-py3-none-any.whl", hash = "sha256:6d5bbf125fdff9606fa54d225812880897b0d96192f341191da404d66c1377d4"},
     {file = "lamini-0.0.21-2-py3-none-any.whl", hash = "sha256:4ad89fa3273aff55c4b8fa6f472564be15b5d10ce17d451b448268169ce08624"},
-    {file = "lamini-0.0.21-3-py3-none-any.whl", hash = "sha256:800fa7540419f3de6eac88def25f37bdcfa72cd84a682f0fbabacd71d6a09e2a"},
-    {file = "lamini-0.0.21-4-py3-none-any.whl", hash = "sha256:7538ac9e627ffda518d052d51033d20b3f893b66e3bb33f1995805989390ecfb"},
-    {file = "lamini-0.0.21-5-py3-none-any.whl", hash = "sha256:0d4ad12165a0c8601723ef981ef1132330556a983cef2686980a7fe37dd28164"},
-    {file = "lamini-0.0.21-6-py3-none-any.whl", hash = "sha256:eafea385d3d50b4960405a8d47819eb19075c2b53ab71af424c5b2c452f80e25"},
-    {file = "lamini-0.0.21-7-py3-none-any.whl", hash = "sha256:7c42927ede4ee73707214667d3465519bb59571653a2e6d120a19311830e7002"},
-    {file = "lamini-0.0.21-8-py3-none-any.whl", hash = "sha256:74681234074d3026158fbb40c284aa3651a60da63ffeef00dfc91970ef4e3104"},
-    {file = "lamini-0.0.21-9-py3-none-any.whl", hash = "sha256:177de8f9dcc654b7acfd673563ecb6b11d034590dd6e5bd212b28ad7874d0cac"},
     {file = "lamini-0.0.21-py3-none-any.whl", hash = "sha256:a8cfef44ed759a2b5a747797301295bf54b7485c3be589550a0c8b617f84c651"},
     {file = "lamini-0.0.21.tar.gz", hash = "sha256:e3d1a0d99c122fe2221473a3f17e90aaf90eecf319c9c6cda16b9ee525260f23"},
 ]
@@ -3315,6 +3301,25 @@ files = [
 ]
 
 [[package]]
+name = "replicate"
+version = "0.15.4"
+description = "Python client for Replicate"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "replicate-0.15.4-py3-none-any.whl", hash = "sha256:082cc363357ba02da820ede147cc35677499d4ae67e554e48d4e8212122b3f14"},
+    {file = "replicate-0.15.4.tar.gz", hash = "sha256:8f3fd07685da42aa6de31f895129762322ef07352294c13af8080bf53f126c83"},
+]
+
+[package.dependencies]
+httpx = ">=0.21.0,<1"
+packaging = "*"
+pydantic = ">1"
+
+[package.extras]
+dev = ["black", "mypy", "pytest", "pytest-asyncio", "pytest-recording", "respx", "ruff"]
+
+[[package]]
 name = "requests"
 version = "2.31.0"
 description = "Python HTTP for Humans."
@@ -4666,4 +4671,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "547266a2437e589d8a21512b4a7b01acfca1cf1db6db4d2f93484e4800b44417"
+content-hash = "8d21d0408ae20132fe093e2069c6413a85d0e33c2075fed4d7dc36aab43edce9"
