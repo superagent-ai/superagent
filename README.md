@@ -234,7 +234,7 @@ The main `docker-compose.yml` file will start up the API and a Postgres DB in do
 
 The other docker compose files can be used individually, or in combination to start up just the bits you need.
 
-> follow the guide in [.docker/README.md](libs/.docker/README.md) file to get started
+> follow the guide in [.docker/README.md](https://github.com/homanp/superagent/blob/main/libs/.docker/README.md) file to get started
 </details>
 
 ## 🔗 SDKs
