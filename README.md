@@ -51,7 +51,7 @@ Superagent allows you to build any AI application/micro service you want, includ
 - REST API
 - API connectivity
 - Vectorization
-- Support for proprietory and OSS LLMs
+- Support for proprietary and OSS LLMs
 - API concurrency
 
 
