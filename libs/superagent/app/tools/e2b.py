@@ -2,6 +2,7 @@ from decouple import config
 from e2b import DataAnalysis
 from langchain.tools import BaseTool
 
+
 class E2BCodeExecutor(BaseTool):
     name = "Code interpreter"
     description = "useful for running python code, it returns the output of the code"
@@ -24,7 +25,6 @@ class E2BCodeExecutor(BaseTool):
         # `artifact_bytes` is a chart file (.png) in bytes
         # TODO: Send the artifact bytes to frontend, save it to DB, etc
         artifact_bytes = artifact.download()
-
 
     def _run(self, python_code: str) -> str:
         # E2B offers both streaming output and artifacts or retrieving them after the code has finished running.
@@ -51,4 +51,3 @@ class E2BCodeExecutor(BaseTool):
         #
         # raise NotImplementedError("E2B Code Executor doesn't support async")
         return self._run(python_code)
-
