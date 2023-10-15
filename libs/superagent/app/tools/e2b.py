@@ -7,8 +7,8 @@ class E2BCodeExecutor(BaseTool):
     description = "useful for running python code, it returns the output of the code"
 
     # E2B session represents a sandbox runtime for LLM - it's a microVM for every instance of an agent.
-    # We probably should keep an active E2B session for the whole time an agent is active.
     #
+    # We probably should keep an active E2B session for the whole time an agent is active.
     # If the "E2B_API_KEY" env var is set, E2B automatically loads it, no need to pass it to the constructor.
     _session = DataAnalysis()
 
@@ -28,7 +28,6 @@ class E2BCodeExecutor(BaseTool):
 
     def _run(self, python_code: str) -> str:
         # E2B offers both streaming output and artifacts or retrieving them after the code has finished running.
-        # Artifact is a chart file created by matplotlib
         stdout, err, artifacts = self._session.run_python(
             code=python_code,
             # TODO: To create more responsive UI, you might want to stream stdout, stderr, and artifacts
