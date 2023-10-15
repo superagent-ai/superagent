@@ -47,6 +47,9 @@ class E2BCodeExecutor(BaseTool):
         return stdout
 
     async def _arun(self, python_code: str) -> str:
-        # TODO: We don't support async/await flows anymore for now.
-        raise NotImplementedError("E2B Code Executor doesn't support async")
+        # E2B doesn't support async/await flows anymore for now.
+        # We can either throw an exception or just call the sync version:
+        #
+        # raise NotImplementedError("E2B Code Executor doesn't support async")
+        return self._run(python_code)
 
