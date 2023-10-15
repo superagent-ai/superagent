@@ -32,11 +32,13 @@ class AgentBase:
         agent_id: str,
         session_id: str = None,
         enable_streaming: bool = False,
+        output_schema: str = None,
         callback: CustomAsyncIteratorCallbackHandler = None,
     ):
         self.agent_id = agent_id
         self.session_id = session_id
         self.enable_streaming = enable_streaming
+        self.output_schema = output_schema
         self.callback = callback
 
     async def _get_tools(
@@ -96,7 +98,26 @@ class AgentBase:
             )
 
     async def _get_prompt(self, agent: Agent) -> SystemMessage:
-        return SystemMessage(content=agent.prompt or DEFAULT_PROMPT)
+        if self.output_schema:
+            if agent.prompt:
+                content = (
+                    f"{agent.prompt}\n\n"
+                    "The output should be formatted as a JSON instance "
+                    "that conforms to the JSON schema below.\n\n"
+                    "Here is the output schema:\n"
+                    f"{self.output_schema}"
+                )
+            else:
+                content = (
+                    f"{DEFAULT_PROMPT}\n\n"
+                    "The output should be formatted as a JSON instance "
+                    "that conforms to the JSON schema below.\n\n"
+                    "Here is the output schema:\n"
+                    f"{self.output_schema}"
+                )
+        else:
+            content = agent.prompt or DEFAULT_PROMPT
+        return SystemMessage(content=content)
 
     async def _get_memory(self) -> MotorheadMemory:
         memory = MotorheadMemory(

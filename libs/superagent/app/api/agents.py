@@ -196,11 +196,13 @@ async def invoke(
     session_id = body.sessionId
     input = body.input
     enable_streaming = body.enableStreaming
+    output_schema = body.outputSchema
     callback = CustomAsyncIteratorCallbackHandler()
     agent = await AgentBase(
         agent_id=agent_id,
         session_id=session_id,
         enable_streaming=enable_streaming,
+        output_schema=output_schema,
         callback=callback,
     ).get_agent()
 
@@ -212,6 +214,8 @@ async def invoke(
 
     logging.info("Streaming not enabled. Invoking agent synchronously...")
     output = await agent.acall(inputs={"input": input}, tags=[agent_id])
+    if output_schema:
+        output = json.loads(output.get("output"))
     return {"success": True, "data": output}
 
 
