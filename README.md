@@ -77,7 +77,7 @@ To see how to contribute, visit [Contribution guidelines](https://github.com/hom
 
     [deployment]
     run = ["sh", "-c", "chmod 777 ./libs/superagent/replit.sh && cd ./libs/superagent && ./replit.sh"]
-    deploymentTarget = "cloud run"
+    deploymentTarget = "cloudrun"
     ```
     
 4. Add all necessary `.env` variables as Replit `Secrets`. Also, add the following additional secret:
@@ -144,7 +144,7 @@ We have separated the UI and API into two separate Supabase projects, which is r
 
 1. Create a new Github OAuth app in your [Github account](https://github.com/settings/developers)
 
-2. Copy the `CLIENT_ID` and `CLIENT_SECRET` and paste them into the `.env` variabels in the Superagent UI project.
+2. Copy the `CLIENT_ID` and `CLIENT_SECRET` and paste them into the `.env` variables in the Superagent UI project.
 
 3. Set the following callback URL
     ```sh
@@ -181,13 +181,13 @@ We have separated the UI and API into two separate Supabase projects, which is r
 5. Run database migrations
 
     ```sh
-    poetry run prima migrate dev
+    poetry run prisma migrate dev
     ```
 
 6. Start the server
 
     ```sh
-    unicorn app.main:app --reload
+    uvicorn app.main:app --reload
     ```
 </details>
 
