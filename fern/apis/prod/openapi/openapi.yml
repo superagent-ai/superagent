@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The open framework for building AI Assistants
-  version: 0.1.13
+  version: 0.1.17
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -1429,6 +1429,9 @@ components:
         enableStreaming:
           title: Enablestreaming
           type: boolean
+        outputSchema:
+          title: Outputschema
+          type: string
     app__models__request__AgentLLM:
       title: AgentLLM
       required:
