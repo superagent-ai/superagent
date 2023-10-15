@@ -20,7 +20,7 @@ class E2BCodeExecutor(BaseTool):
     def _download_artifact(self, artifact):
         # Artifact is a chart file created by matplotlib
         # You can download it right from the E2B LLM Sandbox
-
+        #
         # `artifact_bytes` is a chart file (.png) in bytes
         # TODO: Send the artifact bytes to frontend, save it to DB, etc
         artifact_bytes = artifact.download()
