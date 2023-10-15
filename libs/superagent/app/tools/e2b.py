@@ -1,27 +1,52 @@
 from decouple import config
-from e2b import run_code, run_code_sync
+from e2b import DataAnalysis
 from langchain.tools import BaseTool
-
 
 class E2BCodeExecutor(BaseTool):
     name = "Code interpreter"
     description = "useful for running python code, it returns the output of the code"
 
+    # E2B session represents a sandbox runtime for LLM - it's a microVM for every instance of an agent.
+    # We probably should keep an active E2B session for the whole time an agent is active.
+    #
+    # If the "E2B_API_KEY" env var is set, E2B automatically loads it, no need to pass it to the constructor.
+    _session = DataAnalysis()
+
+    # TODO: Once we know the the agent is done, we need to close the E2B session.
+    # You most likely want to keep the E2B session active for the whole lifecycle of an agent.
+    def _close_session(self):
+        self._session.close()
+
+    def _download_artifact(self, artifact):
+        # Artifact is a chart file created by matplotlib
+        # You can download it right from the E2B LLM Sandbox
+
+        # `artifact_bytes` is a chart file (.png) in bytes
+        # TODO: Send the artifact bytes to frontend, save it to DB, etc
+        artifact_bytes = artifact.download()
+
+
     def _run(self, python_code: str) -> str:
-        api_token = config("E2B_API_KEY")
-        output, err = run_code_sync("Python3_DataAnalysis", python_code, api_token)
+        # E2B offers both streaming output and artifacts or retrieving them after the code has finished running.
+        # Artifact is a chart file created by matplotlib
+        stdout, err, artifacts = self._session.run_python(
+            code=python_code,
+            # TODO: To create more responsive UI, you might want to stream stdout, stderr, and artifacts
+            on_stdout=lambda line: print("stdout", line),
+            on_stderr=lambda line: print("stderr", line),
+            on_artifact=self._download_artifact,
+        )
+
+        # Or you can download artifacts after the code has finished running:
+        # for artifact in artifacts:
+        #   self._download_artifact(artifact)
 
         if err:
             return "There was following error during execution: " + err
 
-        return output
+        return stdout
 
     async def _arun(self, python_code: str) -> str:
-        api_token = config("E2B_API_KEY")
-        output, err = await run_code("Python3_DataAnalysis", python_code, api_token)
+        # TODO: We don't support async/await flows anymore for now.
+        raise NotImplementedError("E2B Code Executor doesn't support async")
 
-        if err:
-            return "There was following error during execution: " + err
-
-        print("output", output)
-        return output
