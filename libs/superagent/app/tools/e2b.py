@@ -1,4 +1,4 @@
-from decouple import config
+# flake8: noqa
 from e2b import DataAnalysis
 from langchain.tools import BaseTool
 
