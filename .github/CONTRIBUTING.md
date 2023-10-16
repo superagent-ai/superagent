@@ -18,4 +18,4 @@ Contact a maintainer of SuperAgent with any questions or help you might need.
 
 ### Release process
 
-SuperAgent tries to follow the same ad hoc release proccess.
+SuperAgent tries to follow the same ad hoc release process.
