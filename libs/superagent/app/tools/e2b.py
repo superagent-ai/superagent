@@ -1,5 +1,6 @@
 # flake8: noqa
-from e2b import DataAnalysis
+from decouple import config
+from e2b.templates.data_analysis import DataAnalysis
 from langchain.tools import BaseTool
 
 
@@ -11,7 +12,7 @@ class E2BCodeExecutor(BaseTool):
     #
     # We probably should keep an active E2B session for the whole time an agent is active.
     # If the "E2B_API_KEY" env var is set, E2B automatically loads it, no need to pass it to the constructor.
-    _session = DataAnalysis()
+    _session = DataAnalysis(api_key=config("E2B_API_KEY"))
 
     # TODO: Once we know the the agent is done, we need to close the E2B session.
     # You most likely want to keep the E2B session active for the whole lifecycle of an agent.

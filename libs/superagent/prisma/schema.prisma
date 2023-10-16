@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider          = "postgresql"
-  url               = env("DATABASE_URL")
+  url               = env("DATABAS_URL")
   shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
@@ -75,21 +75,22 @@ model ApiUser {
 }
 
 model Agent {
-  id            String            @id @default(uuid())
-  name          String
-  avatar        String?
-  description   String            @default("Add a agent description...") @db.Text
-  isActive      Boolean           @default(false)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  llms          AgentLLM[]
-  llmModel      LLMModel          @default(GPT_3_5_TURBO_16K_0613)
-  prompt        String?
-  apiUserId     String
-  apiUser       ApiUser           @relation(fields: [apiUserId], references: [id])
-  datasources   AgentDatasource[]
-  tools         AgentTool[]
-  workflowSteps WorkflowStep[]
+  id             String            @id @default(uuid())
+  name           String
+  avatar         String?
+  initialMessage String?           @db.Text()
+  description    String            @default("Add a agent description...") @db.Text
+  isActive       Boolean           @default(false)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  llms           AgentLLM[]
+  llmModel       LLMModel          @default(GPT_3_5_TURBO_16K_0613)
+  prompt         String?
+  apiUserId      String
+  apiUser        ApiUser           @relation(fields: [apiUserId], references: [id])
+  datasources    AgentDatasource[]
+  tools          AgentTool[]
+  workflowSteps  WorkflowStep[]
 }
 
 model Datasource {
