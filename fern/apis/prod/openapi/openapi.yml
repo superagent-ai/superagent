@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The open framework for building AI Assistants
-  version: 0.1.17
+  version: 0.1.18
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -1392,6 +1392,9 @@ components:
         name:
           title: Name
           type: string
+        initialMessage:
+          title: Initialmessage
+          type: string
         prompt:
           title: Prompt
           type: string
@@ -1573,7 +1576,6 @@ components:
       title: AgentInvoke
       required:
         - success
-        - data
       type: object
       properties:
         success:
@@ -1581,7 +1583,6 @@ components:
           type: boolean
         data:
           title: Data
-          type: object
     app__models__response__ApiUser:
       title: ApiUser
       required:
@@ -1658,6 +1659,9 @@ components:
           type: string
         avatar:
           title: Avatar
+          type: string
+        initialMessage:
+          title: Initialmessage
           type: string
         description:
           title: Description
