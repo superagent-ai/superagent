@@ -10,6 +10,7 @@ class ApiUser(BaseModel):
 class Agent(BaseModel):
     isActive: bool = True
     name: str
+    initialMessage: Optional[str]
     prompt: Optional[str]
     llmModel: str
     description: str
