@@ -1,7 +1,7 @@
 # flake8: noqa
 import ast
 from decouple import config
-from e2b.templates.data_analysis import DataAnalysis
+from e2b import DataAnalysis
 from langchain.tools import BaseTool
 
 
