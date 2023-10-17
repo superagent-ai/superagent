@@ -24,7 +24,7 @@ After you have carefully set all the values in both the root `superagent/.env`, 
   docker-compose --env-file docker.env -f docker-compose.pgdb.yml up --build -d
   ```
 
-- `docker-compose.mh.yml` - Can be used to start a [motorhead](https://github.com/getmetal/motorhead) server. Motorhead is a locally memory and information retrieval server for LLMs.
+- `docker-compose.mh.yml` - Can be used to start a [motorhead](https://github.com/getmetal/motorhead) server. Motorhead is a local memory and information retrieval server for LLMs.
 
 Stop everything with:
 
@@ -65,7 +65,7 @@ docker system prune
 
 3. Set the NETWORK_MODE mode suitable for your setup:
 
-   You can create a custom network to use with `docker network create superagent_default` this will allow all the services to communicate with each other even if you start them seperately. If you run `a supabase data base for the frontend set the network as supabase_network_ui``.
+   You can create a custom network to use with `docker network create superagent_default` this will allow all the services to communicate with each other even if you start them separately. If you run `a supabase database for the frontend set the network as supabase_network_ui``.
 
    ``` bash
    # Create and use a docker network.
