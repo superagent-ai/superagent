@@ -19,11 +19,15 @@ class E2BCodeExecutor(BaseTool):
         tree = ast.parse(code)
         node = tree.body[-1]
         if isinstance(node, ast.Expr) and isinstance(node.value, ast.Call):
-            if isinstance(node.value.func, ast.Name) and node.value.func.id == 'print':
+            if isinstance(node.value.func, ast.Name) and node.value.func.id == "print":
                 return tree
-        tree.body[-1] = ast.Expr(value=ast.Call(func=ast.Name(id='print', ctx=ast.Load()),
-                                        args=[node.value],
-                                        keywords=[]))
+        tree.body[-1] = ast.Expr(
+            value=ast.Call(
+                func=ast.Name(id="print", ctx=ast.Load()),
+                args=[node.value],
+                keywords=[],
+            )
+        )
         return ast.unparse(tree)
 
     # TODO: Once we know the the agent is done, we need to close the E2B session.
