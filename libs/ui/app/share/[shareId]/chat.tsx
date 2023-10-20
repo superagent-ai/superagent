@@ -12,7 +12,6 @@ import remarkMath from "remark-math"
 
 import { Agent } from "@/types/agent"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
@@ -177,7 +176,7 @@ export default function Chat({
 }) {
   const [messages, setMessages] = React.useState<
     { type: string; message: string }[]
-  >([])
+  >(agent.initialMessage ? [{ type: "ai", message: agent.initialMessage }] : [])
   const [session, setSession] = React.useState<string | null>(null)
   const { toast } = useToast()
 
