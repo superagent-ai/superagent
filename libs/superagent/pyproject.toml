@@ -50,6 +50,7 @@ bs4 = "^0.0.1"
 segment-analytics-python = "^2.2.3"
 replicate = "^0.15.4"
 e2b = "^0.9.3"
+youtube-transcript-api = "^0.6.1"
 
 
 [build-system]
