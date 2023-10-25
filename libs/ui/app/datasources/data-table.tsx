@@ -324,6 +324,24 @@ export function DataTable<TData, TValue>({
                       </Alert>
                       <Alert className="flex items-center justify-between">
                         <div className="flex flex-col">
+                          <AlertTitle>YouTube</AlertTitle>
+                          <AlertDescription className="text-muted-foreground">
+                            Import from YouTube
+                          </AlertDescription>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedType("youtube")
+                            form.setValue("type", "YOUTUBE")
+                          }}
+                        >
+                          Import
+                        </Button>
+                      </Alert>
+                      <Alert className="flex items-center justify-between">
+                        <div className="flex flex-col">
                           <AlertTitle>Webpages</AlertTitle>
                           <AlertDescription className="text-muted-foreground">
                             Import from any webpage or URL.
@@ -402,6 +420,24 @@ export function DataTable<TData, TValue>({
                         )}
                       />
                     </>
+                  )}
+                  {selectedType === "youtube" && (
+                    <FormField
+                      control={form.control}
+                      name="url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>YouTube URL</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="E.g https://www.youtube.com/watch?v=qhygOGPlC74"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   )}
                   {selectedType === "webpage" && (
                     <FormField
