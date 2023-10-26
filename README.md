@@ -34,15 +34,15 @@ We post tutorials regularly on our [YouTube channel](https://www.youtube.com/cha
 
 Superagent allows you to build any AI application/microservice you want, including:
 
-- Question/Answering over Documents (LLM Finetunes/Vectorstores)
-- Chatbots
-- Co-pilots & AI assistants
-- Content generation
-- Data aggregation
-- Workflow automation
+- Question/Answering over Documents (LLM Finetunes/Vectorstores).
+- Chatbots.
+- Co-pilots & AI assistants.
+- Content generation.
+- Data aggregation.
+- Workflow automation.
 
 
-## 👀 Features
+## 👀 Features:
 
 - Memory
 - Streaming
@@ -55,12 +55,13 @@ Superagent allows you to build any AI application/microservice you want, includi
 - API concurrency
 
 
-## 📋 Documentation
+## 📋 Documentation:
 For full documentation, visit [docs.superagent.sh](https://docs.superagent.sh)
 
 To see how to contribute, visit [Contribution guidelines](https://github.com/homanp/Superagent/blob/main/.github/CONTRIBUTING.md)
 
-## ☁️ Run on Replit
+## ☁️ Run on Replit:
+
 1. Create a Replit REPL by importing the Superagent Github Repository. [Link](https://docs.replit.com/hosting/deployments/deploying-a-github-repository)
 
 2. Set the REPL language to `Python`
@@ -88,7 +89,7 @@ To see how to contribute, visit [Contribution guidelines](https://github.com/hom
 5. Deploy the REPL using Replit `Autoscale`
 
 
-## 🛠️ Run locally
+## 🛠️ Run locally:
 
 Clone the Superagent repository into a public GitHub repository or fork it from [https://github.com/homanp/superagent/fork](https://github.com/homanp/superagent/fork). 
 
@@ -102,7 +103,7 @@ Both the API and UI require a database in order to work. We recommend setting th
 Create a [Supabase](https://supabase.com) account and project. 
 We have separated the UI and API into two separate Supabase projects, which is recommended since the app runs on `prisma`.
 
-**Supabase setup for Superagent UI project**
+**Supabase setup for Superagent UI project:**
 
 1. Run the migrations (checkout Superagent UI section for this)
     ```sh
@@ -246,12 +247,12 @@ If you are planning on integrating Superagent into your stack, you can use one o
 - [Swift](https://github.com/simonweniger/superagent-swift) (community)
 
 
-## 🫶 Contributions
+## 🫶 Contributions:
 
 Superagent is an open-source project, and contributions are welcome. If you want to contribute, you can create new features, fix bugs, or improve the infrastructure. Please refer to the [CONTRIBUTING.md](https://github.com/homanp/Superagent/blob/main/.github/CONTRIBUTING.md) file in the repository for more information on how to contribute.
 
 
-## ⭐ Acknowledgements
+## ⭐ Acknowledgements:
 
 We want to give a big shout-out to the following open-source projects, without which Superagent wouldn't be possible.
 
