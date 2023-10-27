@@ -1,11 +1,13 @@
 import logging
 import os
 import uuid
-from decouple import config
+
 import backoff
+from decouple import config
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
 from pydantic.dataclasses import dataclass
+
 # from app.vectorstores.astra_client import AstraClient, QueryResponse
 from astra_client import AstraClient, QueryResponse
 
@@ -34,12 +36,12 @@ class Response:
 
 class AstraVectorStore:
     def __init__(
-            self,
-            astra_id: str = config("ASTRA_DB_ID", ""),
-            astra_region: str = config("ASTRA_DB_REGION", "us-east1"),
-            astra_application_token: str = config("ASTRA_DB_APPLICATION_TOKEN", ""),
-            collection_name: str = config("COLLECTION_NAME", "superagent_vector_json"),
-            keyspace_name: str = config("KEYSPACE_NAME", "recommender_demo"),
+        self,
+        astra_id: str = config("ASTRA_DB_ID", ""),
+        astra_region: str = config("ASTRA_DB_REGION", "us-east1"),
+        astra_application_token: str = config("ASTRA_DB_APPLICATION_TOKEN", ""),
+        collection_name: str = config("COLLECTION_NAME", "superagent_vector_json"),
+        keyspace_name: str = config("KEYSPACE_NAME", "recommender_demo"),
     ) -> None:
         if not astra_id:
             raise ValueError(
@@ -72,11 +74,15 @@ class AstraVectorStore:
             )
 
         request_url = f"https://{astra_id}-{astra_region}.apps.astra.datastax.com/api/json/v1/{keyspace_name}/{collection_name}"
-        request_headers = {'x-cassandra-token': astra_application_token, 'Content-Type': 'application/json'}
+        request_headers = {
+            "x-cassandra-token": astra_application_token,
+            "Content-Type": "application/json",
+        }
         self.index = AstraClient(request_url, request_headers)
 
         self.embeddings = OpenAIEmbeddings(
-            model="text-embedding-ada-002", openai_api_key=os.getenv("OPENAI_API_KEY", "")
+            model="text-embedding-ada-002",
+            openai_api_key=os.getenv("OPENAI_API_KEY", ""),
         )
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=3)
@@ -120,15 +126,6 @@ class AstraVectorStore:
 
         return self.index.describe_index_stats()
 
-        ### For requesting from astra we can use this: to query
-        # json.dumps({"find": {"sort": {"$vector": embedding},"options": {"limit": number}}})
-        # requests.request("POST", astra_init.request_url, headers=astra_init.request_headers, data=payload).json()
-
-        ### to insert:
-        # to_insert = {"insertOne": {"document": {"document_id": document_id, "question_id": question_id, "answer":answer, "question":question,"$vector":embedding}}}
-        # response = requests.request("POST", astra_init.request_url, headers=astra_init.request_headers, data=json.dumps(to_insert))
-
-
     def query(
         self,
         prompt: str,
@@ -154,14 +151,11 @@ class AstraVectorStore:
         # filter raw_responses based on the minimum similarity score if min_score is set
         if min_score is not None:
             raw_responses.matches = [
-                match
-                for match in raw_responses.matches
-                if match.score >= min_score
+                match for match in raw_responses.matches if match.score >= min_score
             ]
 
         formatted_responses = self._format_response(raw_responses)
         return formatted_responses
-
 
     def _extract_match_data(self, match):
         """Extracts id, text, and metadata from a match."""
@@ -170,7 +164,6 @@ class AstraVectorStore:
         metadata = match.metadata
         metadata.pop("text")
         return id, text, metadata
-
 
     def _format_response(self, response: QueryResponse) -> list[Response]:
         """
@@ -191,6 +184,35 @@ class AstraVectorStore:
 
         return responses
 
+    def delete(self, datasource_id: str):
+        vector_dimensionality = 1536
+        arbitrary_vector = [1.0] * vector_dimensionality
+        try:
+            documents_in_namespace = self.index.query(
+                arbitrary_vector,
+                namespace=datasource_id,
+                top_k=1000,
+                include_metadata=False,
+                include_values=False,
+            )
+            vector_ids = [match.id for match in documents_in_namespace.get("matches")]
+            if len(vector_ids) == 0:
+                logger.info(
+                    f"No vectors found in namespace `{datasource_id}`. "
+                    f"Deleting `{datasource_id}` using default namespace."
+                )
+
+                self.index.delete(
+                    filter={"datasource_id": datasource_id}, delete_all=False
+                )
+            else:
+                logger.info(
+                    f"Deleting {len(vector_ids)} documents in namespace {datasource_id}"
+                )
+                self.index.delete(ids=vector_ids, delete_all=False)
+        except Exception as e:
+            logger.error(f"Failed to delete {datasource_id}. Error: {e}")
+
     def clear_cache(self, agent_id: str, datasource_id: str | None = None):
         try:
             filter_dict = {"agentId": agent_id, "type": "cache"}
@@ -204,6 +226,9 @@ class AstraVectorStore:
                 f"Failed to delete vectors with agentId `{agent_id}`. Error: {e}"
             )
 
+
 ### For test purposes only
 res = AstraVectorStore().query("test", min_score=0.5)
 print("****", res)
+
+AstraVectorStore().delete("test")
