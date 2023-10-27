@@ -1,0 +1,209 @@
+import logging
+import os
+import uuid
+from decouple import config
+import backoff
+from langchain.docstore.document import Document
+from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
+from pydantic.dataclasses import dataclass
+# from app.vectorstores.astra_client import AstraClient, QueryResponse
+from astra_client import AstraClient, QueryResponse
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class Response:
+    id: str
+    text: str
+    metadata: dict
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "text": self.text,
+            "metadata": self.metadata,
+        }
+
+    def __init__(self, id: str, text: str, metadata: dict | None = None):
+        """Core dataclass for single record."""
+        self.id = id
+        self.text = text
+        self.metadata = metadata or {}
+
+
+class AstraVectorStore:
+    def __init__(
+            self,
+            astra_id: str = config("ASTRA_DB_ID", ""),
+            astra_region: str = config("ASTRA_DB_REGION", "us-east1"),
+            astra_application_token: str = config("ASTRA_DB_APPLICATION_TOKEN", ""),
+            collection_name: str = config("COLLECTION_NAME", "superagent_vector_json"),
+            keyspace_name: str = config("KEYSPACE_NAME", "recommender_demo"),
+    ) -> None:
+        if not astra_id:
+            raise ValueError(
+                "Please provide an Astra DB ID via the "
+                "`ASTRA_DB_ID` environment variable."
+            )
+
+        if not astra_region:
+            raise ValueError(
+                "Please provide a Astra Region Name via the "
+                "`ASTRA_DB_REGION` environment variable."
+            )
+
+        if not astra_application_token:
+            raise ValueError(
+                "Please provide a Astra token via the "
+                "`ASTRA_DB_APPLICATION_TOKEN` environment variable."
+            )
+
+        if not collection_name:
+            raise ValueError(
+                "Please provide a Astra collection anme via the "
+                "`COLLECTION_NAME` environment variable."
+            )
+
+        if not keyspace_name:
+            raise ValueError(
+                "Please provide a Astra keyspace via the "
+                "`KEYSPACE_NAME` environment variable."
+            )
+
+        request_url = f"https://{astra_id}-{astra_region}.apps.astra.datastax.com/api/json/v1/{keyspace_name}/{collection_name}"
+        request_headers = {'x-cassandra-token': astra_application_token, 'Content-Type': 'application/json'}
+        self.index = AstraClient(request_url, request_headers)
+
+        self.embeddings = OpenAIEmbeddings(
+            model="text-embedding-ada-002", openai_api_key=os.getenv("OPENAI_API_KEY", "")
+        )
+
+    @backoff.on_exception(backoff.expo, Exception, max_tries=3)
+    def _embed_with_retry(self, texts):
+        return self.embeddings.embed_documents(texts)
+
+    def embed_documents(self, documents: list[Document], batch_size: int = 100):
+        chunks = [
+            {
+                "id": str(uuid.uuid4()),
+                "text": doc.page_content,
+                "chunk": i,
+                **doc.metadata,
+            }
+            for i, doc in enumerate(documents)
+        ]
+
+        def batch_generator(chunks, batch_size):
+            for i in range(0, len(chunks), batch_size):
+                i_end = min(len(chunks), i + batch_size)
+                batch = chunks[i:i_end]
+                yield batch
+
+        batch_gen = batch_generator(chunks, batch_size)
+
+        for batch in batch_gen:
+            batch_ids = [chunk["id"] for chunk in batch]
+            texts_to_embed = [chunk["text"] for chunk in batch]
+            logger.debug(f"Texts to embed: {texts_to_embed}")
+
+            embeddings = self._embed_with_retry(texts_to_embed)
+            to_upsert = list(zip(batch_ids, embeddings, batch))
+            logger.debug(f"Upserting: {to_upsert}")
+
+            try:
+                ## need to implement upsert here using our json api methods
+                res = self.index.upsert(vectors=to_upsert)
+                logger.info(f"Upserted documents. {res}")
+            except Exception as e:
+                logger.error(f"Failed to upsert documents. Error: {e}")
+
+        return self.index.describe_index_stats()
+
+        ### For requesting from astra we can use this: to query
+        # json.dumps({"find": {"sort": {"$vector": embedding},"options": {"limit": number}}})
+        # requests.request("POST", astra_init.request_url, headers=astra_init.request_headers, data=payload).json()
+
+        ### to insert:
+        # to_insert = {"insertOne": {"document": {"document_id": document_id, "question_id": question_id, "answer":answer, "question":question,"$vector":embedding}}}
+        # response = requests.request("POST", astra_init.request_url, headers=astra_init.request_headers, data=json.dumps(to_insert))
+
+
+    def query(
+        self,
+        prompt: str,
+        metadata_filter: dict | None = None,
+        top_k: int = 3,
+        namespace: str | None = None,
+        min_score: float | None = None,  # new argument for minimum similarity score
+    ) -> list[Response]:
+        """
+        Returns results from the vector database.
+        """
+        vector = self.embeddings.embed_query(prompt)
+
+        raw_responses: QueryResponse = self.index.query(
+            vector,
+            filter=metadata_filter,
+            top_k=top_k,
+            include_metadata=True,
+            namespace=namespace,
+        )
+        logger.debug(f"Raw responses: {raw_responses}")  # leaving for debugging
+
+        # filter raw_responses based on the minimum similarity score if min_score is set
+        if min_score is not None:
+            raw_responses.matches = [
+                match
+                for match in raw_responses.matches
+                if match.score >= min_score
+            ]
+
+        formatted_responses = self._format_response(raw_responses)
+        return formatted_responses
+
+
+    def _extract_match_data(self, match):
+        """Extracts id, text, and metadata from a match."""
+        id = match.id
+        text = match.metadata.get("text")
+        metadata = match.metadata
+        metadata.pop("text")
+        return id, text, metadata
+
+
+    def _format_response(self, response: QueryResponse) -> list[Response]:
+        """
+        Formats the response dictionary from the vector database into a list of
+        Response objects.
+        """
+        if not response.get("matches"):
+            return []
+
+        ids, texts, metadata = zip(
+            *[self._extract_match_data(match) for match in response.matches]
+        )
+
+        responses = [
+            Response(id=id, text=text, metadata=meta)
+            for id, text, meta in zip(ids, texts, metadata)
+        ]
+
+        return responses
+
+    def clear_cache(self, agent_id: str, datasource_id: str | None = None):
+        try:
+            filter_dict = {"agentId": agent_id, "type": "cache"}
+            if datasource_id:
+                filter_dict["datasource_id"] = datasource_id
+
+            self.index.delete(filter=dict(filter_dict), delete_all=False)
+            logger.info(f"Deleted vectors with agentId `{agent_id}`.")
+        except Exception as e:
+            logger.error(
+                f"Failed to delete vectors with agentId `{agent_id}`. Error: {e}"
+            )
+
+### For test purposes only
+res = AstraVectorStore().query("test", min_score=0.5)
+print("****", res)
