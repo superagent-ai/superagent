@@ -191,6 +191,35 @@ class AstraVectorStore:
 
         return responses
 
+    def delete(self, datasource_id: str):
+        vector_dimensionality = 1536
+        arbitrary_vector = [1.0] * vector_dimensionality
+        try:
+            documents_in_namespace = self.index.query(
+                arbitrary_vector,
+                namespace=datasource_id,
+                top_k=1000,
+                include_metadata=False,
+                include_values=False,
+            )
+            vector_ids = [match.id for match in documents_in_namespace.get("matches")]
+            if len(vector_ids) == 0:
+                logger.info(
+                    f"No vectors found in namespace `{datasource_id}`. "
+                    f"Deleting `{datasource_id}` using default namespace."
+                )
+
+                self.index.delete(
+                    filter={"datasource_id": datasource_id}, delete_all=False
+                )
+            else:
+                logger.info(
+                    f"Deleting {len(vector_ids)} documents in namespace {datasource_id}"
+                )
+                self.index.delete(ids=vector_ids, delete_all=False)
+        except Exception as e:
+            logger.error(f"Failed to delete {datasource_id}. Error: {e}")
+
     def clear_cache(self, agent_id: str, datasource_id: str | None = None):
         try:
             filter_dict = {"agentId": agent_id, "type": "cache"}
@@ -207,3 +236,5 @@ class AstraVectorStore:
 ### For test purposes only
 res = AstraVectorStore().query("test", min_score=0.5)
 print("****", res)
+
+AstraVectorStore().delete("test")

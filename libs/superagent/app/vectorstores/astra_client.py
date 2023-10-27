@@ -1,8 +1,13 @@
+from logging import Logger
+from typing import Optional, List, Any
+
 import requests
 import json
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Union
 from pydantic.dataclasses import dataclass
+
+
 @dataclass
 class Response:
     id: str
@@ -10,12 +15,16 @@ class Response:
     metadata: dict
     values: list
 
+
 @dataclass
 class QueryResponse:
     matches: List[Response]
+
     def get(self, key):
         return self.__dict__[key]
 
+
+logger = Logger(__name__)
 
 
 class AstraClient:
@@ -23,6 +32,7 @@ class AstraClient:
         A client for interacting with a Pinecone index via REST API.
         For improved performance, use the Pinecone GRPC index client.
     """
+
     def __init__(self, request_url: str, request_header: dict):
         """Core dataclass for single record."""
         self.request_url = request_url
@@ -83,7 +93,7 @@ class AstraClient:
             "find": {"sort": {"$vector": vector}, "projection": {"$similarity": 1}, "options": {"limit": top_k}}}
         query = {"find": {"sort": {"$vector": vector}, "options": {"limit": top_k}}}
         print(requests.request("POST", self.request_url, headers=self.request_header,
-                             data=json.dumps(score_query)).json())
+                               data=json.dumps(score_query)).json())
         if filters is not None:
             score_query["find"]["filter"] = filters
             query["find"]["filter"] = filters
@@ -102,13 +112,26 @@ class AstraClient:
                     response.append(elt1 | elt2)
         return response
 
-
     def upsert(self):
         return None
 
+    def delete(self,
+               ids: Optional[List[str]] = None,
+               delete_all: Optional[bool] = None,
+               filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None) -> Dict[str, Any]:
 
-    def delete(self):
-        return None
+        if ids is not None:
+            query = {"deleteMany": {"filter": {
+                "_id": {
+                    "$in": ids
+                }}
+            }}
+        if filter is not None:
+            query = {"deleteMany": {"filter": filter}}
+        response = requests.request("POST", self.request_url, headers=self.request_header,
+                                    data=json.dumps(query))
+        print(response.text)
+        return response
 
     @staticmethod
     def describe_index_stats():
