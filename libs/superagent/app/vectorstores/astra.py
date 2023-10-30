@@ -118,7 +118,6 @@ class AstraVectorStore:
             logger.debug(f"Upserting: {to_upsert}")
 
             try:
-                ## need to implement upsert here using our json api methods
                 res = self.index.upsert(vectors=to_upsert)
                 logger.info(f"Upserted documents. {res}")
             except Exception as e:

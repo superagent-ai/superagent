@@ -123,8 +123,79 @@ class AstraClient:
                     response.append(elt1 | elt2)
         return response
 
-    def upsert(self):
-        return None
+
+    def upsert(self, to_upsert):
+        for record in to_upsert:
+            record_id = record[2]["id"]
+            record_text = record[2]["text"]
+            record_embedding = record[1]
+            record_metadata = None
+            to_insert = []
+            upserted_ids = []
+
+            # check if id exists:
+            query = json.dumps({
+                "findOne": {
+                    "filter": {
+                        "id": record[2]["id"]
+                }}})
+            result = requests.request(
+                "POST",
+                self.request_url,
+                headers=self.request_header,
+                data=json.dumps(query),
+            )
+
+            # if the id doesn't exist, prepare record for inserting
+            if json.loads(result.text)['data']['document'] == None:
+                to_insert.append({"id": record_id, "$vector": record_embedding, "metadata": {"text": record_text}})
+
+            # else, update record with that id
+            else:
+                query = json.dumps({
+                    "findOneAndUpdate": {
+                        "filter": {
+                            "id": record_id
+                        },
+                        "update": {
+                            "$set": {
+                                "$vector": record_embedding,
+                                "metadata": {"text": record_text},
+                            }},
+                        "options": {
+                            "returnDocument": "after"
+                        }
+                      }
+                    })
+                result = requests.request(
+                    "POST",
+                    self.request_url,
+                    headers=self.request_header,
+                    data=json.dumps(query),
+                )
+
+                if json.loads(result.text)["data"]["status"]["matchedCount"] == 1 and json.loads(result.text)["data"]["status"]["modifiedCount"] == 1:
+                    upserted_ids.append(record_id)
+                else:
+                    pass
+                    # Raise exception or catch error and log?
+
+            # now insert the records stored in to_insert
+            payload = json.dumps({
+            "insertMany": {
+                "documents": to_insert }})
+            result = requests.request(
+                    "POST",
+                    self.request_url,
+                    headers=self.request_header,
+                    data=json.dumps(query),
+                )
+            for inserted_id in json.loads(result.text)["status"]["insertedIds"]:
+                upsertd_ids.append(upserted_ids)
+
+
+        return upserted_ids
+
 
     def delete(
         self,
