@@ -261,6 +261,12 @@ We want to give a big shout-out to the following open-source projects, without w
 - [Supabase](https://github.com/supabase/supabase)
 - [next.js](https://github.com/vercel/next.js)
 - [Vercel](https://github.com/vercel)
+
+## All Thanks To Our Contributors 
+
+<a href="https://github.com/homanp/superagent/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=homanp/superagent" />
+</a>
 - [Fern](https://github.com/fern-api/fern)
 - [Langchain](https://github.com/langchain-ai/langchain)
 - [LlamaIndex](https://github.com/jerryjliu/llama_index)
