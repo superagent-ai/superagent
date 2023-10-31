@@ -243,7 +243,7 @@ If you are planning on integrating Superagent into your stack, you can use one o
 
 - [Python](https://github.com/homanp/superagent-py)
 - [Typescript/Javascript](https://github.com/homanp/superagent-js)
-- [Swift](https://github.com/simonweniger/superagent-swift) (community)
+- [Swift](https://github.com/simonweniger/superagent-swift) (Community)
 
 
 ## 🫶 Contributions:
