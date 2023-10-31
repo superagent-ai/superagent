@@ -118,7 +118,7 @@ class AstraVectorStore:
             logger.debug(f"Upserting: {to_upsert}")
 
             try:
-                res = self.index.upsert(vectors=to_upsert)
+                res = self.index.upsert(to_upsert=to_upsert)
                 logger.info(f"Upserted documents. {res}")
             except Exception as e:
                 logger.error(f"Failed to upsert documents. Error: {e}")
@@ -231,3 +231,15 @@ res = AstraVectorStore().query("test", min_score=0.5)
 print("****", res)
 
 AstraVectorStore().delete("test")
+
+astra_vectorstore = AstraVectorStore()
+
+with open('random_sentences.txt', 'r') as f:
+    lines = f.readlines()
+
+documents = []
+for line in lines:
+    doc =  Document(page_content=line, metadata={"source": "local"})
+    documents.append(doc)
+
+astra_vectorstore.embed_documents(documents[0:20])

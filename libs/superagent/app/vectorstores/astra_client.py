@@ -125,42 +125,48 @@ class AstraClient:
 
 
     def upsert(self, to_upsert):
+        to_insert = []
+        upserted_ids = []
+        not_upserted_ids = []
         for record in to_upsert:
-            record_id = record[2]["id"]
+            record_id = record[0]
             record_text = record[2]["text"]
             record_embedding = record[1]
-            record_metadata = None
-            to_insert = []
-            upserted_ids = []
+
+            reserved_keys = ["id", "_id", "chunk"]
+            record_metadata = {}
+            for k in list(record[2].keys()):
+                if k not in reserved_keys:
+                    record_metadata[k] = record[2][k]
 
             # check if id exists:
             query = json.dumps({
                 "findOne": {
                     "filter": {
-                        "id": record[2]["id"]
+                        "_id": record_id
                 }}})
             result = requests.request(
                 "POST",
                 self.request_url,
                 headers=self.request_header,
-                data=json.dumps(query),
+                data=query,
             )
 
             # if the id doesn't exist, prepare record for inserting
             if json.loads(result.text)['data']['document'] == None:
-                to_insert.append({"id": record_id, "$vector": record_embedding, "metadata": {"text": record_text}})
+                to_insert.append({"_id": record_id, "$vector": record_embedding, "metadata": record_metadata})
 
             # else, update record with that id
             else:
                 query = json.dumps({
                     "findOneAndUpdate": {
                         "filter": {
-                            "id": record_id
+                            "_id": record_id
                         },
                         "update": {
                             "$set": {
                                 "$vector": record_embedding,
-                                "metadata": {"text": record_text},
+                                "metadata": record_metadata,
                             }},
                         "options": {
                             "returnDocument": "after"
@@ -171,30 +177,27 @@ class AstraClient:
                     "POST",
                     self.request_url,
                     headers=self.request_header,
-                    data=json.dumps(query),
+                    data=query,
                 )
 
-                if json.loads(result.text)["data"]["status"]["matchedCount"] == 1 and json.loads(result.text)["data"]["status"]["modifiedCount"] == 1:
+                if json.loads(result.text)["status"]["matchedCount"] == 1 and json.loads(result.text)["status"]["modifiedCount"] == 1:
                     upserted_ids.append(record_id)
-                else:
-                    pass
-                    # Raise exception or catch error and log?
 
-            # now insert the records stored in to_insert
-            payload = json.dumps({
+        # now insert the records stored in to_insert
+        if len(to_insert) > 0:
+            query = json.dumps({
             "insertMany": {
                 "documents": to_insert }})
             result = requests.request(
                     "POST",
                     self.request_url,
                     headers=self.request_header,
-                    data=json.dumps(query),
+                    data=query,
                 )
             for inserted_id in json.loads(result.text)["status"]["insertedIds"]:
-                upsertd_ids.append(upserted_ids)
+                upserted_ids.append(inserted_id)
 
-
-        return upserted_ids
+        return list(set(upserted_ids))
 
 
     def delete(
