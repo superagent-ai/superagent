@@ -254,20 +254,3 @@ Superagent is an open-source project, and contributions are welcome. If you want
 <a href="https://github.com/homanp/superagent/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=homanp/superagent" />
 </a>
-
-
-## ⭐ Acknowledgements:
-
-We want to give a big shout-out to the following open-source projects, without which Superagent wouldn't be possible.
-
-- [FastAPI](https://github.com/tiangolo/fastapi)
-- [Prefect](https://github.com/PrefectHQ/prefect)
-- [Supabase](https://github.com/supabase/supabase)
-- [next.js](https://github.com/vercel/next.js)
-- [Vercel](https://github.com/vercel)
-- [Fern](https://github.com/fern-api/fern)
-- [Langchain](https://github.com/langchain-ai/langchain)
-- [LlamaIndex](https://github.com/jerryjliu/llama_index)
-- [Prisma](https://github.com/prisma/prisma)
-- [Resend](https://github.com/resendlabs)
-- [Motorhead](https://github.com/getmetal/motorhead)
