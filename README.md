@@ -32,7 +32,7 @@ We post tutorials regularly on our [YouTube channel](https://www.youtube.com/cha
 
 ## ✨ Use cases
 
-Superagent allows you to build any AI application/microservice you want, including:
+Superagent lets you build any AI application/microservice you want, including:
 
 - Question/Answering over Documents (LLM Finetunes/Vectorstores).
 - Chatbots.
@@ -52,8 +52,7 @@ Superagent allows you to build any AI application/microservice you want, includi
 - API connectivity
 - Vectorization
 - Support for proprietary and OSS LLMs
-- API concurrency
-
+- API concurrency support
 
 ## 📋 Documentation:
 For full documentation, visit [docs.superagent.sh](https://docs.superagent.sh)
@@ -86,7 +85,7 @@ To see how to contribute, visit [Contribution guidelines](https://github.com/hom
     TZ = Etc/UTC
     ```
 
-5. Deploy the REPL using Replit `Autoscale`
+5. Deploy the REPL using Replit `Autoscale`.
 
 
 ## 🛠️ Run locally:
