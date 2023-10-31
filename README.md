@@ -28,7 +28,7 @@ https://github.com/homanp/superagent/assets/2464556/d02a05d0-64e6-48a2-a102-fb13
 
 ## 🧐 Tutorials
 
-We post tutorials regularly on our [YouTube channel](https://www.youtube.com/channel/UCBeXnF8gh2EwAmOIwpmfjmA). Make sure to check them out! 
+We post tutorials regularly on our [YouTube channel](https://www.youtube.com/channel/UCBeXnF8gh2EwAmOIwpmfjmA). Make sure to check them out ! 
 
 ## ✨ Use cases
 
@@ -90,7 +90,7 @@ To see how to contribute, visit [Contribution guidelines](https://github.com/hom
 
 ## 🛠️ Run locally:
 
-Clone the Superagent repository into a public GitHub repository or fork it from [https://github.com/homanp/superagent/fork](https://github.com/homanp/superagent/fork). 
+Clone the Superagent repository into a public GitHub repository or Fork it from [https://github.com/homanp/superagent/fork](https://github.com/homanp/superagent/fork). 
 
 If you plan to distribute the code, keep the source code public.
 
@@ -230,7 +230,7 @@ Please refer to the [README](https://github.com/homanp/superagent/blob/v2/libs/l
 
 In the `.docker` folder, there are multiple docker-compose files.
 
-The main `docker-compose.yml` file will start the API and a Postgres DB in docker. 
+The main `docker-compose.yml` file will start the API and a Postgres-DB in docker. 
 
 The other docker-compose files can be used individually or in combination to start up the necessary bits.
 
@@ -239,7 +239,7 @@ The other docker-compose files can be used individually or in combination to sta
 
 ## 🔗 SDKs
 
-If you are planning on integrating Superagent into your stack, you can use one of the following SDKs:
+If you are planning to integrate Superagent into your stack, you can use one of the following SDKs:
 
 - [Python](https://github.com/homanp/superagent-py)
 - [Typescript/Javascript](https://github.com/homanp/superagent-js)
