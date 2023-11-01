@@ -190,7 +190,7 @@ async def invoke(
             callback.done.set()
 
     if SEGMENT_WRITE_KEY:
-        analytics.track(api_user.id, "Invoked Agent", {**body.dict()})
+        analytics.track(api_user.id, "Invoked Agent")
 
     logging.info("Invoking agent...")
     session_id = body.sessionId
