@@ -26,13 +26,12 @@ class AstraClient:
     A client for interacting with an Astra index via REST API Built for SuperAgent use only!
     """
 
-    def __init__(self, astra_id: str, token: str, region:str, keyspace_name: str, collection_name: str):
+    def __init__(self, astra_id: str,region:str, token: str, keyspace_name: str, collection_name: str):
         self.astra_id = astra_id
         self.astra_application_token = token
         self.astra_region = region
         self.keyspace_name = keyspace_name
         self.collection_name = collection_name
-        self.create_index()
         self.request_url = f"https://{self.astra_id}-{self.astra_region}.apps.astra.datastax.com/api/json/v1/{self.keyspace_name}/{self.collection_name}"
         self.request_header = {
             "x-cassandra-token": self.astra_application_token,
@@ -56,15 +55,14 @@ class AstraClient:
           }
         }
         resp = requests.request("POST", self.create_url, headers=self.request_header, data=json.dumps(create_query))
-        if resp.code == 200:
+        if resp.status_code == 200:
             print(f"[INFO] {resp.text}")
         else:
-            raise Exception(f"[ERROR] Failed with the following error: {resp.code}, {resp.text}")
+            raise Exception(f"[ERROR] Failed with the following error: {resp.status_code}, {resp.text}")
 
     def find_index(self):
         find_query =  {
             "findCollections": {
-            "name": self.collection_name,
             "options": {
               "explain" : True
           }
@@ -72,16 +70,17 @@ class AstraClient:
         }
         resp = requests.request("POST", self.create_url, headers=self.request_header, data=json.dumps(find_query))
         text_response = json.loads(resp.text)
-        if resp.code == 200 and "status" in text_response:
-            for elt in text_response["status"]["collections"]:
-                if elt["name"] == self.collection_name:
-                    v_dim = elt["options"]["vector"]["dimension"]
-                    if v_dim != 1536:
-                        raise Exception(f"Collection vector dimension is not valid, expected 1536, found {v_dim}")
-                else:
-                    raise Exception(f"[ERROR] Something went wrong! Astra collection  {self.collection_name} not found under {self.keyspace_name}")
+
+        collection_output = list(filter(lambda d: d['name'] == self.collection_name, text_response["status"]["collections"]))
+        if len(collection_output)==0:
+            raise Exception(f"[ERROR] Something went wrong! Astra collection {self.collection_name} not found under {self.keyspace_name}")
+
+        if resp.status_code == 200 and "status" in text_response:
+            v_dim = collection_output[0]["options"]["vector"]["dimension"]
+            if v_dim != 1536:
+                raise Exception(f"Collection vector dimension is not valid, expected 1536, found {v_dim}")
         else:
-            raise Exception(f"Failed with the following error: {resp.code}, {resp.text}")
+            raise Exception(f"Failed with the following error: {resp.status_code}, {resp.text}")
 
 
     def query(
