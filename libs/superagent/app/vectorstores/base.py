@@ -20,5 +20,7 @@ class VectorStoreBase:
                 index_name = os.getenv("PINECONE_INDEX", "superagent")
             return PineconeVectorStore(index_name=index_name)
         if self.vectorstore == "astra":
-            return AstraVectorStore()
+            if index_name is None:
+                index_name = os.getenv("COLLECTION_NAME", "superagent")
+            return AstraVectorStore(collection_name=index_name)
 

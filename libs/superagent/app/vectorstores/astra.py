@@ -40,8 +40,8 @@ class AstraVectorStore:
         astra_id: str = config("ASTRA_DB_ID", ""),
         astra_region: str = config("ASTRA_DB_REGION", "us-east1"),
         astra_application_token: str = config("ASTRA_DB_APPLICATION_TOKEN", ""),
-        collection_name: str = config("COLLECTION_NAME", "superagent_vector_json"),
-        keyspace_name: str = config("KEYSPACE_NAME", "recommender_demo"),
+        collection_name: str = config("COLLECTION_NAME", "superagent"),
+        keyspace_name: str = config("KEYSPACE_NAME", ""),
     ) -> None:
         if not astra_id:
             raise ValueError(
@@ -51,34 +51,29 @@ class AstraVectorStore:
 
         if not astra_region:
             raise ValueError(
-                "Please provide a Astra Region Name via the "
+                "Please provide an Astra Region Name via the "
                 "`ASTRA_DB_REGION` environment variable."
             )
 
         if not astra_application_token:
             raise ValueError(
-                "Please provide a Astra token via the "
+                "Please provide an Astra token via the "
                 "`ASTRA_DB_APPLICATION_TOKEN` environment variable."
             )
 
         if not collection_name:
             raise ValueError(
-                "Please provide a Astra collection anme via the "
+                "Please provide an Astra collection name via the "
                 "`COLLECTION_NAME` environment variable."
             )
 
         if not keyspace_name:
             raise ValueError(
-                "Please provide a Astra keyspace via the "
+                "Please provide an Astra keyspace via the "
                 "`KEYSPACE_NAME` environment variable."
             )
 
-        request_url = f"https://{astra_id}-{astra_region}.apps.astra.datastax.com/api/json/v1/{keyspace_name}/{collection_name}"
-        request_headers = {
-            "x-cassandra-token": astra_application_token,
-            "Content-Type": "application/json",
-        }
-        self.index = AstraClient(request_url, request_headers)
+        self.index = AstraClient(astra_id, astra_region, astra_application_token, keyspace_name, collection_name)
 
         self.embeddings = OpenAIEmbeddings(
             model="text-embedding-ada-002",
