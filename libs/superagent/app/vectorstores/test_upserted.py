@@ -3,9 +3,9 @@ import json
 
 KEYSPACE_NAME = "recommender_demo"
 COLLECTION_NAME = "superagent_vector_json"
-ASTRA_DB_ID = "8b400d8c-9cd5-436c-9e3a-59c1223fc993"
-ASTRA_DB_REGION="us-east1"
-ASTRA_DB_APPLICATION_TOKEN = "AstraCS:QtcpGfRxYillIMbEuvfypEJk:76f79aa49c8776c0be0a8ca31b5f8e7976d599db6b72f7723423840916ca7a28"
+ASTRA_DB_ID = ""
+ASTRA_DB_REGION=""
+ASTRA_DB_APPLICATION_TOKEN = ""
 
 url = f"https://{ASTRA_DB_ID}-{ASTRA_DB_REGION}.apps.astra.datastax.com/api/json/v1/{KEYSPACE_NAME}/{COLLECTION_NAME}"
 headers = { 'x-cassandra-token': ASTRA_DB_APPLICATION_TOKEN,  'Content-Type': 'application/json'}
