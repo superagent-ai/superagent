@@ -15,6 +15,7 @@ class VectorStoreBase:
         Determine the vectorstore
         """
         self.vectorstore = config("VECTORSTORE", default="pinecone")
+        self.get_database()
 
     def get_database(self, index_name: Optional[str] = None) -> Any:
         if self.vectorstore == "pinecone":
