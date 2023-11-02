@@ -4,8 +4,7 @@ import uuid
 
 import backoff
 
-# from app.vectorstores.astra_client import AstraClient, QueryResponse
-from astra_client import AstraClient, QueryResponse
+from app.vectorstores.astra_client import AstraClient, QueryResponse
 from decouple import config
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
