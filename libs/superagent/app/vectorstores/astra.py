@@ -3,13 +3,13 @@ import os
 import uuid
 
 import backoff
+
+# from app.vectorstores.astra_client import AstraClient, QueryResponse
+from astra_client import AstraClient, QueryResponse
 from decouple import config
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
 from pydantic.dataclasses import dataclass
-
-# from app.vectorstores.astra_client import AstraClient, QueryResponse
-from astra_client import AstraClient, QueryResponse
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,13 @@ class AstraVectorStore:
                 "`KEYSPACE_NAME` environment variable."
             )
 
-        self.index = AstraClient(astra_id, astra_region, astra_application_token, keyspace_name, collection_name)
+        self.index = AstraClient(
+            astra_id,
+            astra_region,
+            astra_application_token,
+            keyspace_name,
+            collection_name,
+        )
 
         self.embeddings = OpenAIEmbeddings(
             model="text-embedding-ada-002",

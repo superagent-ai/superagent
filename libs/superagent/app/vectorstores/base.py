@@ -1,11 +1,13 @@
 import os
 from typing import Any, Optional
+
 from decouple import config
 
-from app.vectorstores.pinecone import PineconeVectorStore
 from app.vectorstores.astra import AstraVectorStore
+from app.vectorstores.pinecone import PineconeVectorStore
 
 # NOTE: Need an abstract class for the base vectorstore with defined methods
+
 
 class VectorStoreBase:
     def __init__(self):
@@ -23,4 +25,3 @@ class VectorStoreBase:
             if index_name is None:
                 index_name = os.getenv("COLLECTION_NAME", "superagent")
             return AstraVectorStore(collection_name=index_name)
-

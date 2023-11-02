@@ -1,3 +1,5 @@
+# flake8: noqa
+
 import json
 from typing import Any, Dict, List, Optional, Union
 
@@ -26,7 +28,14 @@ class AstraClient:
     A client for interacting with an Astra index via REST API Built for SuperAgent use only!
     """
 
-    def __init__(self, astra_id: str,region:str, token: str, keyspace_name: str, collection_name: str):
+    def __init__(
+        self,
+        astra_id: str,
+        region: str,
+        token: str,
+        keyspace_name: str,
+        collection_name: str,
+    ):
         self.astra_id = astra_id
         self.astra_application_token = token
         self.astra_region = region
@@ -44,44 +53,56 @@ class AstraClient:
         self.find_index()
 
     def create_index(self):
-        create_query = { "createCollection": {
-            "name": self.collection_name,
-            "options": {
-              "vector": {
-                  "dimension": 1536,
-                  "metric": "cosine"
-              }
+        create_query = {
+            "createCollection": {
+                "name": self.collection_name,
+                "options": {"vector": {"dimension": 1536, "metric": "cosine"}},
             }
-          }
         }
-        resp = requests.request("POST", self.create_url, headers=self.request_header, data=json.dumps(create_query))
+        resp = requests.request(
+            "POST",
+            self.create_url,
+            headers=self.request_header,
+            data=json.dumps(create_query),
+        )
         if resp.status_code == 200:
             print(f"[INFO] {resp.text}")
         else:
-            raise Exception(f"[ERROR] Failed with the following error: {resp.status_code}, {resp.text}")
+            raise Exception(
+                f"[ERROR] Failed with the following error: {resp.status_code}, {resp.text}"
+            )
 
     def find_index(self):
-        find_query =  {
-            "findCollections": {
-            "options": {
-              "explain" : True
-          }
-        }
-        }
-        resp = requests.request("POST", self.create_url, headers=self.request_header, data=json.dumps(find_query))
+        find_query = {"findCollections": {"options": {"explain": True}}}
+        resp = requests.request(
+            "POST",
+            self.create_url,
+            headers=self.request_header,
+            data=json.dumps(find_query),
+        )
         text_response = json.loads(resp.text)
 
-        collection_output = list(filter(lambda d: d['name'] == self.collection_name, text_response["status"]["collections"]))
-        if len(collection_output)==0:
-            raise Exception(f"[ERROR] Something went wrong! Astra collection {self.collection_name} not found under {self.keyspace_name}")
+        collection_output = list(
+            filter(
+                lambda d: d["name"] == self.collection_name,
+                text_response["status"]["collections"],
+            )
+        )
+        if len(collection_output) == 0:
+            raise Exception(
+                f"[ERROR] Something went wrong! Astra collection {self.collection_name} not found under {self.keyspace_name}"
+            )
 
         if resp.status_code == 200 and "status" in text_response:
             v_dim = collection_output[0]["options"]["vector"]["dimension"]
             if v_dim != 1536:
-                raise Exception(f"Collection vector dimension is not valid, expected 1536, found {v_dim}")
+                raise Exception(
+                    f"Collection vector dimension is not valid, expected 1536, found {v_dim}"
+                )
         else:
-            raise Exception(f"Failed with the following error: {resp.status_code}, {resp.text}")
-
+            raise Exception(
+                f"Failed with the following error: {resp.status_code}, {resp.text}"
+            )
 
     def query(
         self,
@@ -173,7 +194,6 @@ class AstraClient:
                     response.append(elt1 | elt2)
         return response
 
-
     def upsert(self, to_upsert):
         to_insert = []
         upserted_ids = []
@@ -190,11 +210,7 @@ class AstraClient:
                     record_metadata[k] = record[2][k]
 
             # check if id exists:
-            query = json.dumps({
-                "findOne": {
-                    "filter": {
-                        "_id": record_id
-                }}})
+            query = json.dumps({"findOne": {"filter": {"_id": record_id}}})
             result = requests.request(
                 "POST",
                 self.request_url,
@@ -203,26 +219,31 @@ class AstraClient:
             )
 
             # if the id doesn't exist, prepare record for inserting
-            if json.loads(result.text)['data']['document'] == None:
-                to_insert.append({"_id": record_id, "$vector": record_embedding, "metadata": record_metadata})
+            if json.loads(result.text)["data"]["document"] == None:
+                to_insert.append(
+                    {
+                        "_id": record_id,
+                        "$vector": record_embedding,
+                        "metadata": record_metadata,
+                    }
+                )
 
             # else, update record with that id
             else:
-                query = json.dumps({
-                    "findOneAndUpdate": {
-                        "filter": {
-                            "_id": record_id
-                        },
-                        "update": {
-                            "$set": {
-                                "$vector": record_embedding,
-                                "metadata": record_metadata,
-                            }},
-                        "options": {
-                            "returnDocument": "after"
+                query = json.dumps(
+                    {
+                        "findOneAndUpdate": {
+                            "filter": {"_id": record_id},
+                            "update": {
+                                "$set": {
+                                    "$vector": record_embedding,
+                                    "metadata": record_metadata,
+                                }
+                            },
+                            "options": {"returnDocument": "after"},
                         }
-                      }
-                    })
+                    }
+                )
                 result = requests.request(
                     "POST",
                     self.request_url,
@@ -230,30 +251,30 @@ class AstraClient:
                     data=query,
                 )
 
-                if json.loads(result.text)["status"]["matchedCount"] == 1 and json.loads(result.text)["status"]["modifiedCount"] == 1:
+                if (
+                    json.loads(result.text)["status"]["matchedCount"] == 1
+                    and json.loads(result.text)["status"]["modifiedCount"] == 1
+                ):
                     upserted_ids.append(record_id)
 
         # now insert the records stored in to_insert
         if len(to_insert) > 0:
-            query = json.dumps({
-            "insertMany": {
-                "documents": to_insert }})
+            query = json.dumps({"insertMany": {"documents": to_insert}})
             result = requests.request(
-                    "POST",
-                    self.request_url,
-                    headers=self.request_header,
-                    data=query,
-                )
+                "POST",
+                self.request_url,
+                headers=self.request_header,
+                data=query,
+            )
             for inserted_id in json.loads(result.text)["status"]["insertedIds"]:
                 upserted_ids.append(inserted_id)
 
         return list(set(upserted_ids))
 
-
     def delete(
         self,
         ids: Optional[List[str]] = None,
-        delete_all: Optional[bool] = None,
+        _delete_all: Optional[bool] = None,
         filter: Optional[Dict[str, Union[str, float, int, bool, List, dict]]] = None,
     ) -> Dict[str, Any]:
         if ids is not None:
