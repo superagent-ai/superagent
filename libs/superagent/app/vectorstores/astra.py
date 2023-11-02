@@ -219,22 +219,3 @@ class AstraVectorStore:
             logger.error(
                 f"Failed to delete vectors with agentId `{agent_id}`. Error: {e}"
             )
-
-
-### For test purposes only
-res = AstraVectorStore().query("test", min_score=0.5)
-print("****", res)
-
-AstraVectorStore().delete("test")
-
-astra_vectorstore = AstraVectorStore()
-
-with open('random_sentences.txt', 'r') as f:
-    lines = f.readlines()
-
-documents = []
-for line in lines:
-    doc =  Document(page_content=line, metadata={"source": "local"})
-    documents.append(doc)
-
-astra_vectorstore.embed_documents(documents[0:20])
