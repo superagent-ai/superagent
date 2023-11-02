@@ -120,7 +120,7 @@ Provide a YAML file that specifies the values for the parameters while installin
 
 As superagent UI is build using NextJS, some of the environment variables passed into the Docker container running in Kubernetes will be ignored unless they are provided at the time the image is built. There are a couple of ways to deal with this.
 
-1. Copy your own `.env.production` in the `ui` folder, with the values for any `NEXT_PUBLIC_` env vars that you are using (dont include any values for non NEXT_PUBLIC_ env vars) and only include the ones you are actually using.
+1. Copy your own `.env.production` in the `ui` folder, with the values for any `NEXT_PUBLIC_` env vars that you are using (don't include any values for non NEXT_PUBLIC_ env vars) and only include the ones you are actually using.
 
 ``` bash
 cp .env.production superagent/ui/.env.production

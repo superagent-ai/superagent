@@ -28,21 +28,21 @@ https://github.com/homanp/superagent/assets/2464556/d02a05d0-64e6-48a2-a102-fb13
 
 ## 🧐 Tutorials
 
-We post tutorials regularly on our [YouTube channel](https://www.youtube.com/channel/UCBeXnF8gh2EwAmOIwpmfjmA). Make sure to check them out! 
+We post tutorials regularly on our [YouTube channel](https://www.youtube.com/channel/UCBeXnF8gh2EwAmOIwpmfjmA). Make sure to check them out ! 
 
 ## ✨ Use cases
 
-Superagent allows you to build any AI application/microservice you want, including:
+Superagent lets you build any AI application/microservice you want, including:
 
-- Question/Answering over Documents (LLM Finetunes/Vectorstores)
-- Chatbots
-- Co-pilots & AI assistants
-- Content generation
-- Data aggregation
-- Workflow automation
+- Question/Answering over Documents (LLM Finetunes/Vectorstores).
+- Chatbots.
+- Co-pilots & AI assistants.
+- Content generation.
+- Data aggregation.
+- Workflow automation.
 
 
-## 👀 Features
+## 👀 Features:
 
 - Memory
 - Streaming
@@ -52,15 +52,15 @@ Superagent allows you to build any AI application/microservice you want, includi
 - API connectivity
 - Vectorization
 - Support for proprietary and OSS LLMs
-- API concurrency
+- API concurrency support
 
-
-## 📋 Documentation
+## 📋 Documentation:
 For full documentation, visit [docs.superagent.sh](https://docs.superagent.sh)
 
 To see how to contribute, visit [Contribution guidelines](https://github.com/homanp/Superagent/blob/main/.github/CONTRIBUTING.md)
 
-## ☁️ Run on Replit
+## ☁️ Run on Replit:
+
 1. Create a Replit REPL by importing the Superagent Github Repository. [Link](https://docs.replit.com/hosting/deployments/deploying-a-github-repository)
 
 2. Set the REPL language to `Python`
@@ -85,12 +85,12 @@ To see how to contribute, visit [Contribution guidelines](https://github.com/hom
     TZ = Etc/UTC
     ```
 
-5. Deploy the REPL using Replit `Autoscale`
+5. Deploy the REPL using Replit `Autoscale`.
 
 
-## 🛠️ Run locally
+## 🛠️ Run locally:
 
-Clone the Superagent repository into a public GitHub repository or fork it from [https://github.com/homanp/superagent/fork](https://github.com/homanp/superagent/fork). 
+Clone the Superagent repository into a public GitHub repository or Fork it from [https://github.com/homanp/superagent/fork](https://github.com/homanp/superagent/fork). 
 
 If you plan to distribute the code, keep the source code public.
 
@@ -102,7 +102,7 @@ Both the API and UI require a database in order to work. We recommend setting th
 Create a [Supabase](https://supabase.com) account and project. 
 We have separated the UI and API into two separate Supabase projects, which is recommended since the app runs on `prisma`.
 
-**Supabase setup for Superagent UI project**
+**Supabase setup for Superagent UI project:**
 
 1. Run the migrations (checkout Superagent UI section for this)
     ```sh
@@ -230,7 +230,7 @@ Please refer to the [README](https://github.com/homanp/superagent/blob/v2/libs/l
 
 In the `.docker` folder, there are multiple docker-compose files.
 
-The main `docker-compose.yml` file will start the API and a Postgres DB in docker. 
+The main `docker-compose.yml` file will start the API and a Postgres-DB in docker. 
 
 The other docker-compose files can be used individually or in combination to start up the necessary bits.
 
@@ -239,30 +239,17 @@ The other docker-compose files can be used individually or in combination to sta
 
 ## 🔗 SDKs
 
-If you are planning on integrating Superagent into your stack, you can use one of the following SDKs:
+If you are planning to integrate Superagent into your stack, you can use one of the following SDKs:
 
 - [Python](https://github.com/homanp/superagent-py)
 - [Typescript/Javascript](https://github.com/homanp/superagent-js)
-- [Swift](https://github.com/simonweniger/superagent-swift) (community)
+- [Swift](https://github.com/simonweniger/superagent-swift) (Community)
 
 
-## 🫶 Contributions
+## 🫶 Contributions:
 
 Superagent is an open-source project, and contributions are welcome. If you want to contribute, you can create new features, fix bugs, or improve the infrastructure. Please refer to the [CONTRIBUTING.md](https://github.com/homanp/Superagent/blob/main/.github/CONTRIBUTING.md) file in the repository for more information on how to contribute.
 
-
-## ⭐ Acknowledgements
-
-We want to give a big shout-out to the following open-source projects, without which Superagent wouldn't be possible.
-
-- [FastAPI](https://github.com/tiangolo/fastapi)
-- [Prefect](https://github.com/PrefectHQ/prefect)
-- [Supabase](https://github.com/supabase/supabase)
-- [next.js](https://github.com/vercel/next.js)
-- [Vercel](https://github.com/vercel)
-- [Fern](https://github.com/fern-api/fern)
-- [Langchain](https://github.com/langchain-ai/langchain)
-- [LlamaIndex](https://github.com/jerryjliu/llama_index)
-- [Prisma](https://github.com/prisma/prisma)
-- [Resend](https://github.com/resendlabs)
-- [Motorhead](https://github.com/getmetal/motorhead)
+<a href="https://github.com/homanp/superagent/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=homanp/superagent" />
+</a>
