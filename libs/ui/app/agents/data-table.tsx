@@ -17,7 +17,6 @@ import { useAsync } from "react-use"
 import * as z from "zod"
 
 import { Profile } from "@/types/profile"
-import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -34,7 +33,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -42,13 +40,6 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { MultiSelect } from "@/components/ui/multi-select"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
 import {
   Table,
@@ -91,6 +82,7 @@ const formSchema = z.object({
   }),
   tools: z.array(z.string()),
   datasources: z.array(z.string()),
+  prompt: z.string(),
 })
 
 export function DataTable<TData, TValue>({
@@ -123,6 +115,7 @@ export function DataTable<TData, TValue>({
       isActive: true,
       tools: [],
       datasources: [],
+      prompt: "You are an helpful AI Assistant",
     },
   })
   const { value: llms = [] } = useAsync(async () => {
@@ -238,42 +231,6 @@ export function DataTable<TData, TValue>({
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="llmModel"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Model</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a model" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {siteConfig.llms
-                              .find((llm) => llm.id === "OPENAI")
-                              ?.options.map((option) => (
-                                <SelectItem
-                                  key={option.value}
-                                  value={option.value}
-                                >
-                                  {option.title}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription className="text-sm">
-                          Make sure you have access to these models in your
-                          OpenAI account
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                   {tools.length > 0 && (
                     <FormField
                       control={form.control}
@@ -283,7 +240,7 @@ export function DataTable<TData, TValue>({
                           <FormLabel>APIs</FormLabel>
                           <FormControl>
                             <MultiSelect
-                              placeholder="Select api..."
+                              placeholder="Select API..."
                               data={tools.map((tool: Tool) => ({
                                 value: tool.id,
                                 label: tool.name,
@@ -298,7 +255,6 @@ export function DataTable<TData, TValue>({
                       )}
                     />
                   )}
-
                   {datasources.length > 0 && (
                     <FormField
                       control={form.control}

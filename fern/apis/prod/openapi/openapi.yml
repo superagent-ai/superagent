@@ -1,8 +1,10 @@
 openapi: 3.0.2
 info:
   title: Superagent
-  description: The agent framework for large language models
-  version: 0.1.0
+  description: The open framework for building AI Assistants
+  version: 0.1.18
+servers:
+  - url: https://api.beta.superagent.sh
 paths:
   /api/v1/agents:
     get:
@@ -577,6 +579,12 @@ paths:
       summary: Create
       description: Create a new API user
       operationId: create_api_v1_api_users_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__ApiUser'
+        required: true
       responses:
         '200':
           description: Successful Response
@@ -584,6 +592,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/app__models__response__ApiUser'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/api-users/me:
     get:
       tags:
@@ -1221,6 +1235,7 @@ components:
       enum:
         - IN_PROGRESS
         - DONE
+        - FAILED
       type: string
       description: An enumeration.
     DatasourceType:
@@ -1229,6 +1244,10 @@ components:
         - TXT
         - PDF
         - CSV
+        - PPTX
+        - XLSX
+        - DOCX
+        - GOOGLE_DOC
         - YOUTUBE
         - GITHUB_REPOSITORY
         - MARKDOWN
@@ -1277,6 +1296,7 @@ components:
       title: LLMProvider
       enum:
         - OPENAI
+        - AZURE_OPENAI
       type: string
       description: An enumeration.
     ToolList:
@@ -1306,6 +1326,7 @@ components:
         - CHATGPT_PLUGIN
         - METAPHOR
         - PUBMED
+        - CODE_EXECUTOR
       type: string
       description: An enumeration.
     ValidationError:
@@ -1371,6 +1392,9 @@ components:
         name:
           title: Name
           type: string
+        initialMessage:
+          title: Initialmessage
+          type: string
         prompt:
           title: Prompt
           type: string
@@ -1408,6 +1432,9 @@ components:
         enableStreaming:
           title: Enablestreaming
           type: boolean
+        outputSchema:
+          title: Outputschema
+          type: string
     app__models__request__AgentLLM:
       title: AgentLLM
       required:
@@ -1426,6 +1453,15 @@ components:
         toolId:
           title: Toolid
           type: string
+    app__models__request__ApiUser:
+      title: ApiUser
+      required:
+        - email
+      type: object
+      properties:
+        email:
+          title: Email
+          type: string
     app__models__request__Datasource:
       title: Datasource
       required:
@@ -1442,6 +1478,9 @@ components:
           type: string
         type:
           title: Type
+          type: string
+        content:
+          title: Content
           type: string
         url:
           title: Url
@@ -1537,7 +1576,6 @@ components:
       title: AgentInvoke
       required:
         - success
-        - data
       type: object
       properties:
         success:
@@ -1545,7 +1583,6 @@ components:
           type: boolean
         data:
           title: Data
-          type: object
     app__models__response__ApiUser:
       title: ApiUser
       required:
@@ -1622,6 +1659,9 @@ components:
           type: string
         avatar:
           title: Avatar
+          type: string
+        initialMessage:
+          title: Initialmessage
           type: string
         description:
           title: Description
@@ -1766,6 +1806,9 @@ components:
         token:
           title: Token
           type: string
+        email:
+          title: Email
+          type: string
         createdAt:
           title: Createdat
           type: string
@@ -1794,8 +1837,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__Tool'
-        worflows:
-          title: Worflows
+        workflows:
+          title: Workflows
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__Workflow'
@@ -1817,6 +1860,9 @@ components:
           type: string
         name:
           title: Name
+          type: string
+        content:
+          title: Content
           type: string
         description:
           title: Description

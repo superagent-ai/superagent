@@ -4,16 +4,15 @@ import * as React from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
-import { RxCheckCircled, RxChevronDown, RxCircle } from "react-icons/rx"
+import { RxCheckCircled, RxCircle } from "react-icons/rx"
 import * as z from "zod"
 
 import { LLM } from "@/types/llm"
 import { Profile } from "@/types/profile"
 import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -47,6 +46,7 @@ const formSchema = z.object({
   apiKey: z.string().nonempty({
     message: "API key is required.",
   }),
+  options: z.record(z.any()),
 })
 
 export default function LLMClientPage({
@@ -59,25 +59,26 @@ export default function LLMClientPage({
   const api = new Api(profile.api_key)
   const router = useRouter()
   const { toast } = useToast()
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState<string | null>(null)
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       apiKey: "",
+      options: {},
     },
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       if (llms.length === 0) {
-        await api.createLLM({ ...values, provider: "OPENAI" })
+        await api.createLLM({ ...values, provider: open })
       } else {
-        await api.patchLLM(llms[0].id, { ...values, provider: "OPENAI" })
+        await api.patchLLM(llms[0].id, { ...values, provider: open })
       }
       toast({
         description: "LLM configuration saved",
       })
-      setOpen(false)
+      setOpen(null)
       router.refresh()
     } catch (error: any) {
       toast({
@@ -88,7 +89,7 @@ export default function LLMClientPage({
   }
 
   return (
-    <div className="container flex max-w-lg flex-1 flex-col items-center justify-center space-y-4">
+    <div className="grid grid-cols-5 gap-4">
       {siteConfig.llms.map((llm) => (
         <div key={llm.id}>
           <Card>
@@ -105,7 +106,9 @@ export default function LLMClientPage({
                     <p>{llm.name}</p>
                   </div>
                 </CardTitle>
-                <CardDescription>{llm.description}</CardDescription>
+                <CardDescription className="h-[80px]">
+                  {llm.description}
+                </CardDescription>
               </div>
             </CardHeader>
             <CardContent>
@@ -130,14 +133,14 @@ export default function LLMClientPage({
                     <Button
                       size="sm"
                       variant="default"
-                      onClick={() => setOpen(true)}
+                      onClick={() => setOpen(llm.id)}
                     >
                       Configure
                     </Button>
                     <Dialog
-                      open={open}
+                      open={open === llm.id}
                       onOpenChange={(value) => {
-                        setOpen(value)
+                        setOpen(value ? llm.id : null)
                         if (!value) {
                           form.reset()
                         }
@@ -147,7 +150,7 @@ export default function LLMClientPage({
                         <DialogHeader>
                           <DialogTitle>Configure {llm.name}</DialogTitle>
                           <DialogDescription>
-                            Enter your OpenAI api key below. You can find your
+                            Enter your OpenAI API key below. You can find your
                             key by logging into your OpenAI account.
                           </DialogDescription>
                         </DialogHeader>
@@ -156,24 +159,96 @@ export default function LLMClientPage({
                             onSubmit={form.handleSubmit(onSubmit)}
                             className="w-full space-y-4"
                           >
-                            <div className="flex flex-col space-y-2">
-                              <FormField
-                                control={form.control}
-                                name="apiKey"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>API key</FormLabel>
-                                    <FormControl>
-                                      <Input
-                                        placeholder="Enter your api key"
-                                        {...field}
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
+                            {llm.id === "OPENAI" && (
+                              <div className="flex flex-col space-y-2">
+                                <FormField
+                                  control={form.control}
+                                  name="apiKey"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>API key</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Enter your api key"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            )}
+                            {llm.id === "AZURE_OPENAI" && (
+                              <div className="flex flex-col space-y-2">
+                                <FormField
+                                  control={form.control}
+                                  name="apiKey"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>API key</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Enter your api key"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="options.openai_api_base"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>OpenAI API base</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Enter your openai api base"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="options.openai_api_version"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>OpenAI API version</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Enter your openai api version"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="options.deployment_name"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>
+                                        OpenAI deployment name
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Enter your openai deployment name"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            )}
                             <DialogFooter>
                               <Button
                                 type="submit"

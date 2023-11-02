@@ -3,7 +3,7 @@ from typing import Any, List
 from decouple import config
 from langchain import LLMChain, PromptTemplate
 from langchain.agents import AgentType, initialize_agent
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.memory.motorhead_memory import MotorheadMemory
 from langchain.prompts import MessagesPlaceholder
 from langchain.schema import SystemMessage
@@ -32,11 +32,13 @@ class AgentBase:
         agent_id: str,
         session_id: str = None,
         enable_streaming: bool = False,
+        output_schema: str = None,
         callback: CustomAsyncIteratorCallbackHandler = None,
     ):
         self.agent_id = agent_id
         self.session_id = session_id
         self.enable_streaming = enable_streaming
+        self.output_schema = output_schema
         self.callback = callback
 
     async def _get_tools(
@@ -86,16 +88,44 @@ class AgentBase:
                 callbacks=[self.callback] if self.enable_streaming else [],
                 **(agent_llm.llm.options if agent_llm.llm.options else {}),
             )
+        if agent_llm.llm.provider == "AZURE_OPENAI":
+            return AzureChatOpenAI(
+                openai_api_key=agent_llm.llm.apiKey,
+                temperature=0,
+                streaming=self.enable_streaming,
+                callbacks=[self.callback] if self.enable_streaming else [],
+                **(agent_llm.llm.options if agent_llm.llm.options else {}),
+            )
 
     async def _get_prompt(self, agent: Agent) -> SystemMessage:
-        return SystemMessage(content=agent.prompt or DEFAULT_PROMPT)
+        if self.output_schema:
+            if agent.prompt:
+                content = (
+                    f"{agent.prompt}\n\n"
+                    "The output should be formatted as a JSON instance "
+                    "that conforms to the JSON schema below.\n\n"
+                    "Here is the output schema:\n"
+                    f"{self.output_schema}"
+                )
+            else:
+                content = (
+                    f"{DEFAULT_PROMPT}\n\n"
+                    "The output should be formatted as a JSON instance "
+                    "that conforms to the JSON schema below.\n\n"
+                    "Here is the output schema:\n"
+                    f"{self.output_schema}"
+                )
+        else:
+            content = agent.prompt or DEFAULT_PROMPT
+        return SystemMessage(content=content)
 
     async def _get_memory(self) -> MotorheadMemory:
         memory = MotorheadMemory(
-            session_id=f"{self.agent_id}-{self.session_id}",
+            session_id=f"{self.agent_id}-{self.session_id}"
+            if self.session_id
+            else f"{self.agent_id}",
             memory_key="chat_history",
-            client_id=config("MOTORHEAD_CLIENT_ID"),
-            api_key=config("MOTORHEAD_API_KEY"),
+            url=config("MEMORY_API_URL"),
             return_messages=True,
             output_key="output",
         )
@@ -117,6 +147,7 @@ class AgentBase:
         llm = await self._get_llm(agent_llm=config.llms[0], model=config.llmModel)
         prompt = await self._get_prompt(agent=config)
         memory = await self._get_memory()
+
         if len(tools) > 0:
             agent = initialize_agent(
                 tools,
@@ -148,7 +179,6 @@ class AgentBase:
                 memory=memory,
                 output_key="output",
                 verbose=True,
-                return_final_only=True,
                 prompt=PromptTemplate.from_template(prompt),
             )
         return agent

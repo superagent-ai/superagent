@@ -129,7 +129,7 @@ Superagent({
     const baseUrl =
       typeof window !== "undefined"
         ? window.location.origin
-        : "https://app.superagent.sh";
+        : "https://legacy.superagent.sh";
 
     return `${baseUrl}/share?agentId=${agent.id}&token=${encrypt(
       apiToken?.token

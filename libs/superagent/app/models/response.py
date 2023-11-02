@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel
 
@@ -65,7 +65,7 @@ class AgentToolList(BaseModel):
 
 class AgentInvoke(BaseModel):
     success: bool
-    data: dict
+    data: Any
 
 
 class Datasource(BaseModel):

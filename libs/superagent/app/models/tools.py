@@ -1,5 +1,3 @@
-from typing import Any
-
 from pydantic import BaseModel
 
 
@@ -36,12 +34,16 @@ class ReplicateInput(BaseModel):
 
 
 class AgentInput(BaseModel):
-    input: Any
+    input: str
 
 
 class WolframInput(BaseModel):
     input: str
 
 
-class CodeExecutorInput(BaseModel):
+class E2BCodeExecutorInput(BaseModel):
     python_code: str
+
+
+class BrowserInput(BaseModel):
+    url: str

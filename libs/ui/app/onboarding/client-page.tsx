@@ -1,12 +1,13 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
+import Stripe from "stripe"
 import * as z from "zod"
 
 import { Api } from "@/lib/api"
+import { stripe } from "@/lib/stripe"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -38,7 +39,6 @@ const formSchema = z.object({
 export default function OnboardingClientPage() {
   const api = new Api()
   const supabase = createClientComponentClient()
-  const router = useRouter()
   const { toast } = useToast()
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,17 +54,39 @@ export default function OnboardingClientPage() {
     const {
       data: { user },
     } = await supabase.auth.getUser()
+    if (!user?.email) {
+      toast({
+        description: `Ooops! User email is missing!`,
+        variant: "destructive",
+      })
+      return
+    }
     const {
       data: { token: api_key },
-    } = await api.createApiKey()
+    } = await api.createApiKey(user.email)
+    const params: Stripe.CustomerCreateParams = {
+      name: company,
+    }
+    let customer: Stripe.Customer | null = null
+    if (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+      customer = await stripe.customers.create(params)
+    }
     const { error } = await supabase
       .from("profiles")
-      .update({ api_key, first_name, last_name, company, is_onboarded: true })
+      .update({
+        api_key,
+        first_name,
+        last_name,
+        company,
+        stripe_customer_id: customer?.id,
+        is_onboarded: true,
+      })
       .eq("user_id", user?.id)
 
     if (error) {
       toast({
         description: `Ooops! ${error?.message}`,
+        variant: "destructive",
       })
 
       return

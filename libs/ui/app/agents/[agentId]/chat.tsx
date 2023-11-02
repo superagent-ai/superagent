@@ -184,7 +184,7 @@ export default function Chat({
   )
   const [messages, setMessages] = React.useState<
     { type: string; message: string }[]
-  >([])
+  >(agent.initialMessage ? [{ type: "ai", message: agent.initialMessage }] : [])
   const [timer, setTimer] = React.useState<number>(0)
   const [session, setSession] = React.useState<string | null>(null)
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)

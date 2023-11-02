@@ -12,7 +12,6 @@ import remarkMath from "remark-math"
 
 import { Agent } from "@/types/agent"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
@@ -177,7 +176,7 @@ export default function Chat({
 }) {
   const [messages, setMessages] = React.useState<
     { type: string; message: string }[]
-  >([])
+  >(agent.initialMessage ? [{ type: "ai", message: agent.initialMessage }] : [])
   const [session, setSession] = React.useState<string | null>(null)
   const { toast } = useToast()
 
@@ -249,18 +248,6 @@ export default function Chat({
                   <CardDescription>{agent?.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex space-x-2">
-                    {agent?.tools.map((tool) => (
-                      <Badge variant="outline" key={tool.id}>
-                        {tool.tool.name}
-                      </Badge>
-                    ))}
-                    {agent?.datasources.map((datasource) => (
-                      <Badge variant="outline" key={datasource.id}>
-                        {datasource.datasource.name}
-                      </Badge>
-                    ))}
-                  </div>
                   <p className="text-muted-foreground mt-6 text-xs">
                     Powered by{" "}
                     <a

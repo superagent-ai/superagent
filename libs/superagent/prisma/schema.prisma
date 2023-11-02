@@ -11,6 +11,7 @@ datasource db {
 
 enum LLMProvider {
   OPENAI
+  AZURE_OPENAI
 }
 
 enum LLMModel {
@@ -63,36 +64,39 @@ enum DatasourceStatus {
 model ApiUser {
   id          String       @id @default(uuid())
   token       String?
+  email       String?      @db.Text
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   agents      Agent[]
   llms        LLM[]
   datasources Datasource[]
   tools       Tool[]
-  worflows    Workflow[]
+  workflows   Workflow[]
 }
 
 model Agent {
-  id            String            @id @default(uuid())
-  name          String
-  avatar        String?
-  description   String            @default("Add a agent description...") @db.Text
-  isActive      Boolean           @default(false)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  llms          AgentLLM[]
-  llmModel      LLMModel          @default(GPT_3_5_TURBO_16K_0613)
-  prompt        String?
-  apiUserId     String
-  apiUser       ApiUser           @relation(fields: [apiUserId], references: [id])
-  datasources   AgentDatasource[]
-  tools         AgentTool[]
-  workflowSteps WorkflowStep[]
+  id             String            @id @default(uuid())
+  name           String
+  avatar         String?
+  initialMessage String?           @db.Text()
+  description    String            @default("Add a agent description...") @db.Text
+  isActive       Boolean           @default(false)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  llms           AgentLLM[]
+  llmModel       LLMModel          @default(GPT_3_5_TURBO_16K_0613)
+  prompt         String?
+  apiUserId      String
+  apiUser        ApiUser           @relation(fields: [apiUserId], references: [id])
+  datasources    AgentDatasource[]
+  tools          AgentTool[]
+  workflowSteps  WorkflowStep[]
 }
 
 model Datasource {
   id          String            @id @default(uuid())
   name        String
+  content     String?           @db.Text()
   description String?
   url         String?
   type        DatasourceType

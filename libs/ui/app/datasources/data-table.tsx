@@ -4,6 +4,7 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { FilePicker } from "@apideck/file-picker-js"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -14,6 +15,7 @@ import {
 } from "@tanstack/react-table"
 import { useForm } from "react-hook-form"
 import { RxCross2 } from "react-icons/rx"
+import { v4 as uuidv4 } from "uuid"
 import * as z from "zod"
 
 import { Profile } from "@/types/profile"
@@ -49,6 +51,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
+import { UploadButton } from "@/components/upload-button"
 
 interface DataTableProps<TData, TValue> {
   columns: (profile: Profile) => ColumnDef<TData, TValue>[]
@@ -73,6 +76,7 @@ export function DataTable<TData, TValue>({
   data,
   profile,
 }: DataTableProps<TData, TValue>) {
+  const supabase = createClientComponentClient()
   const router = useRouter()
   const { toast } = useToast()
   const api = new Api(profile.api_key)
@@ -104,6 +108,15 @@ export function DataTable<TData, TValue>({
       metadata: null,
     },
   })
+  const supportedMimeTypes = [
+    "application/pdf",
+    "text/plain",
+    "text/markdown",
+    "text/csv",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ]
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -155,16 +168,6 @@ export function DataTable<TData, TValue>({
         setIsLoadingFilePicker(false)
       },
       onSelect: async (file: any) => {
-        const supportedMimeTypes = [
-          "application/pdf",
-          "text/plain",
-          "text/markdown",
-          "text/csv",
-          "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        ]
-
         if (!supportedMimeTypes.includes(file.mime_type)) {
           toast({
             description: `File type ${file.mime_type} is not supported.`,
@@ -196,6 +199,38 @@ export function DataTable<TData, TValue>({
         setIsDownloadingFile(false)
       },
     })
+  }
+
+  const handleLocalFileUpload = async (file: File) => {
+    setIsDownloadingFile(true)
+    const storageName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_NAME
+    if (!storageName) {
+      throw new Error(
+        "Storage name is not defined in the environment variables."
+      )
+    }
+    const { data, error } = await supabase.storage
+      .from(storageName)
+      .upload(uuidv4(), file, { contentType: file.type })
+
+    if (data?.path) {
+      const publicUrl = supabase.storage
+        .from(storageName)
+        .getPublicUrl(data?.path).data?.publicUrl
+      form.setValue("url", publicUrl)
+      form.setValue("type", mapMimeTypeToFileType(file.type))
+    } else {
+      throw error
+    }
+
+    setIsDownloadingFile(false)
+
+    if (error) {
+      toast({
+        description: "Ooops, something went wrong, please try again!",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -248,24 +283,61 @@ export function DataTable<TData, TValue>({
                 <div className="flex flex-col space-y-2">
                   {!selectedType ? (
                     <div className="flex flex-col space-y-4">
+                      {process.env.NEXT_PUBLIC_APIDECK_API_ID && (
+                        <Alert className="flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <AlertTitle>Cloud Storage Services</AlertTitle>
+                            <AlertDescription className="text-muted-foreground">
+                              Import from Google Drive, Dropbox, Box etc.
+                            </AlertDescription>
+                          </div>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={async () => {
+                              setIsOpeningVault(true)
+                              await openVault()
+                              setSelectedType("files")
+                              setOpen(false)
+                            }}
+                          >
+                            {isOpeningVault ? <Spinner /> : "Add files"}
+                          </Button>
+                        </Alert>
+                      )}
                       <Alert className="flex items-center justify-between">
                         <div className="flex flex-col">
-                          <AlertTitle>Files</AlertTitle>
+                          <AlertTitle>Local files</AlertTitle>
                           <AlertDescription className="text-muted-foreground">
-                            Import from Google Drive, Dropbox, Box etc.
+                            Import local files.
                           </AlertDescription>
                         </div>
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={async () => {
-                            setIsOpeningVault(true)
-                            await openVault()
-                            setSelectedType("files")
-                            setOpen(false)
+                          onClick={() => {
+                            setSelectedType("local")
                           }}
                         >
-                          {isOpeningVault ? <Spinner /> : "Add files"}
+                          Upload files
+                        </Button>
+                      </Alert>
+                      <Alert className="flex items-center justify-between">
+                        <div className="flex flex-col">
+                          <AlertTitle>YouTube</AlertTitle>
+                          <AlertDescription className="text-muted-foreground">
+                            Import from YouTube
+                          </AlertDescription>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedType("youtube")
+                            form.setValue("type", "YOUTUBE")
+                          }}
+                        >
+                          Import
                         </Button>
                       </Alert>
                       <Alert className="flex items-center justify-between">
@@ -280,15 +352,15 @@ export function DataTable<TData, TValue>({
                           size="sm"
                           onClick={() => {
                             setSelectedType("webpage")
-                            form.setValue("type", "URL")
+                            form.setValue("type", "WEBPAGE")
                           }}
                         >
-                          Add URLs
+                          Add webpage
                         </Button>
                       </Alert>
                       <Alert className="flex items-center justify-between">
                         <div className="flex flex-col">
-                          <AlertTitle>Gihub</AlertTitle>
+                          <AlertTitle>Github</AlertTitle>
                           <AlertDescription className="text-muted-foreground">
                             Import a repository.
                           </AlertDescription>
@@ -349,16 +421,34 @@ export function DataTable<TData, TValue>({
                       />
                     </>
                   )}
+                  {selectedType === "youtube" && (
+                    <FormField
+                      control={form.control}
+                      name="url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>YouTube URL</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="E.g https://www.youtube.com/watch?v=qhygOGPlC74"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                   {selectedType === "webpage" && (
                     <FormField
                       control={form.control}
                       name="url"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>URLs</FormLabel>
+                          <FormLabel>URL</FormLabel>
                           <FormControl>
-                            <Textarea
-                              placeholder="Comma separeted list of URLs."
+                            <Input
+                              placeholder="E.g https://www.superagent.sh"
                               {...field}
                             />
                           </FormControl>
@@ -399,6 +489,40 @@ export function DataTable<TData, TValue>({
                         )}
                       />
                     </>
+                  )}
+                  {selectedType === "local" && (
+                    <div>
+                      {!selectedFile ? (
+                        <div className="relative flex flex-col items-center justify-between space-y-4 rounded-lg border border-dashed p-4">
+                          <div className="flex flex-col items-center justify-center">
+                            <p className="text-sm">Select files</p>
+                            <p className="text-muted-foreground text-sm">
+                              Upload local files from your device
+                            </p>
+                          </div>
+                          <UploadButton
+                            accept={supportedMimeTypes.join(",")}
+                            label="Upload file"
+                            onSelect={async (file) => {
+                              handleLocalFileUpload(file)
+                              setSelectedFile(file)
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        // eslint-disable-next-line tailwindcss/migration-from-tailwind-2
+                        <div className="flex items-center justify-between rounded-lg border border-green-900 bg-green-900 bg-opacity-20 py-1 pl-4 pr-2">
+                          <p className="text-sm">{selectedFile.name}</p>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setSelectedFile(null)}
+                          >
+                            <RxCross2 size="20px" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   )}
                   {selectedType === "files" && (
                     <div>

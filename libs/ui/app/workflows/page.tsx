@@ -14,7 +14,7 @@ export default async function Workflows() {
       <div className="flex flex-1 flex-col items-center justify-center">
         <Image
           src="/workflow.png"
-          alt="Superagent Agent Worflows"
+          alt="Superagent Agent Workflows"
           width={600}
           height={4000}
         />

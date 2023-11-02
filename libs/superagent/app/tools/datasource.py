@@ -103,17 +103,23 @@ class StructuredDatasourceTool(BaseTool):
     description = "useful for when need answer questions"
     return_direct = False
 
-    def _load_xlsx_data(self, url):
-        response = requests.get(url)
+    def _load_xlsx_data(self, datasource: Datasource):
         with NamedTemporaryFile(suffix=".xlsx", delete=True) as temp_file:
-            temp_file.write(response.content)
+            if datasource.url:
+                response = requests.get(datasource.url)
+                temp_file.write(response.content)
+            else:
+                temp_file.write(datasource.content)
             temp_file.flush()
             df = pd.read_excel(temp_file.name, engine="openpyxl")
         return df
 
-    def _load_csv_data(self, url):
-        response = requests.get(url)
-        file_content = StringIO(response.text)
+    def _load_csv_data(self, datasource: Datasource):
+        if datasource.url:
+            response = requests.get(datasource.url)
+            file_content = StringIO(response.text)
+        else:
+            file_content = StringIO(datasource.content)
         df = pd.read_csv(file_content)
         return df
 
@@ -124,15 +130,17 @@ class StructuredDatasourceTool(BaseTool):
         """Use the tool."""
         datasource: Datasource = self.metadata["datasource"]
         if datasource.type == "CSV":
-            df = self._load_csv_data(datasource.url)
+            df = self._load_csv_data(datasource)
         elif datasource.type == "XLSX":
-            df = self._load_xlsx_data(datasource.url)
+            df = self._load_xlsx_data(datasource)
         else:
             data = DataLoader(datasource=datasource).load()
             df = pd.DataFrame(data)
         agent = create_pandas_dataframe_agent(
             ChatOpenAI(
-                temperature=0, model="gpt-4", openai_api_key=config("OPENAI_API_KEY")
+                temperature=0,
+                model="gpt-4-0613",
+                openai_api_key=config("OPENAI_API_KEY"),
             ),
             df,
             verbose=True,
@@ -148,15 +156,17 @@ class StructuredDatasourceTool(BaseTool):
         """Use the tool asynchronously."""
         datasource: Datasource = self.metadata["datasource"]
         if datasource.type == "CSV":
-            df = self._load_csv_data(datasource.url)
+            df = self._load_csv_data(datasource)
         elif datasource.type == "XLSX":
-            df = self._load_xlsx_data(datasource.url)
+            df = self._load_xlsx_data(datasource)
         else:
             data = DataLoader(datasource=datasource).load()
             df = pd.DataFrame(data)
         agent = create_pandas_dataframe_agent(
             ChatOpenAI(
-                temperature=0, model="gpt-4", openai_api_key=config("OPENAI_API_KEY")
+                temperature=0,
+                model="gpt-4-0613",
+                openai_api_key=config("OPENAI_API_KEY"),
             ),
             df,
             verbose=True,

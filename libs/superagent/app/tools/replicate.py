@@ -20,9 +20,6 @@ class Replicate(BaseTool):
     async def _arun(self, prompt: str) -> str:
         model = self.metadata["model"]
         api_token = self.metadata["apiKey"]
-        input = self.metadata["arguments"]
-        model = ReplicateModel(
-            model=model, input=input, api_token=api_token, replicate_api_token=api_token
-        )
+        model = ReplicateModel(model=model, replicate_api_token=api_token)
         output = await model.apredict(prompt)
         return output

@@ -42,6 +42,7 @@ const formSchema = z.object({
   description: z.string().nonempty({
     message: "Description is required",
   }),
+  initialMessage: z.string(),
   llms: z.string(),
   isActive: z.boolean().default(true),
   llmModel: z.string().nonempty({
@@ -84,6 +85,7 @@ export default function Settings({
     defaultValues: {
       name: agent.name,
       description: agent.description,
+      initialMessage: agent.initialMessage,
       llms: agent.llms?.[0]?.llm.provider,
       llmModel: agent.llmModel,
       isActive: true,
@@ -213,7 +215,19 @@ export default function Settings({
               </FormItem>
             )}
           />
-
+          <FormField
+            control={form.control}
+            name="initialMessage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Intro message</FormLabel>
+                <FormControl>
+                  <Input placeholder="E.g Hi, how can I help you?" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <div className="flex flex-col space-y-2">
             <FormLabel>Model</FormLabel>
             {agent.llms.length > 0 ? (
@@ -261,7 +275,9 @@ export default function Settings({
                         </FormControl>
                         <SelectContent>
                           {siteConfig.llms
-                            .find((llm) => llm.id === "OPENAI")
+                            .find(
+                              (llm) => llm.id === agent.llms[0].llm.provider
+                            )
                             ?.options.map((option) => (
                               <SelectItem
                                 key={option.value}

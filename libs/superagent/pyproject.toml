@@ -4,12 +4,12 @@ version = "0.0.54"
 description = ""
 authors = ["Ismail Pelaseyed"]
 readme = "../../README.md"
-packages = [{include = "app"}]
+packages = [{ include = "app" }]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-fastapi = {extras = ["all"], version = "^0.95.1"}
-uvicorn = {extras = ["standard"], version = "^0.22.0"}
+fastapi = { extras = ["all"], version = "^0.95.1" }
+uvicorn = { extras = ["standard"], version = "^0.22.0" }
 gunicorn = "^20.1.0"
 openai = "^0.27.6"
 python-decouple = "^3.8"
@@ -43,9 +43,14 @@ openpyxl = "^3.1.2"
 unstructured = "^0.10.16"
 python-docx = "^0.8.11"
 langsmith = "^0.0.39"
-langchain = "^0.0.297"
 requests = "^2.31.0"
 wolframalpha = "^5.0.0"
+langchain = "^0.0.300"
+bs4 = "^0.0.1"
+segment-analytics-python = "^2.2.3"
+replicate = "^0.15.4"
+e2b = "^0.9.3"
+youtube-transcript-api = "^0.6.1"
 
 
 [build-system]
@@ -58,8 +63,8 @@ exclude = [
     "*/docs/*.py",
     "*/test_*.py",
     "*/.venv/*.py",
-    "app/lib/callbacks.py" # Ignoring this file
-    ]
+    "app/lib/callbacks.py", # Ignoring this file
+]
 ignore_decorators = ["@app.route", "@require_*"]
 ignore_names = ["visit_*", "do_*"]
 make_whitelist = true
@@ -74,5 +79,5 @@ exclude = [
     "*/docs/*.py",
     "*/test_*.py",
     "*/.venv/*.py",
-    "whitelist.py"
-    ]
+    "whitelist.py",
+]
