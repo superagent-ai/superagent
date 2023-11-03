@@ -42,7 +42,7 @@ const formSchema = z.object({
   description: z.string().nonempty({
     message: "Description is required",
   }),
-  initialMessage: z.string().nullable(),
+  initialMessage: z.string(),
   llms: z.string(),
   isActive: z.boolean().default(true),
   llmModel: z.string().nonempty({
@@ -85,7 +85,7 @@ export default function Settings({
     defaultValues: {
       name: agent.name,
       description: agent.description,
-      initialMessage: agent.initialMessage,
+      initialMessage: agent.initialMessage || "",
       llms: agent.llms?.[0]?.llm.provider,
       llmModel: agent.llmModel,
       isActive: true,
