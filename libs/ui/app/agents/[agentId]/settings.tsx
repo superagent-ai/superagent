@@ -85,7 +85,7 @@ export default function Settings({
     defaultValues: {
       name: agent.name,
       description: agent.description,
-      initialMessage: agent.initialMessage,
+      initialMessage: agent.initialMessage || "",
       llms: agent.llms?.[0]?.llm.provider,
       llmModel: agent.llmModel,
       isActive: true,
