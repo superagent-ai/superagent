@@ -42,7 +42,7 @@ const formSchema = z.object({
   description: z.string().nonempty({
     message: "Description is required",
   }),
-  initialMessage: z.string(),
+  initialMessage: z.string().nullable(),
   llms: z.string(),
   isActive: z.boolean().default(true),
   llmModel: z.string().nonempty({
