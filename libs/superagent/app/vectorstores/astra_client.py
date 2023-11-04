@@ -290,11 +290,37 @@ class AstraClient:
         print(response.text)
         return response
 
-    @staticmethod
-    def describe_index_stats():
-        return {
-            "dimension": 1536,
-            "index_fullness": 0.0,
-            "namespaces": {},
-            "total_vector_count": 0,
+    def describe_index_stats(self):
+
+        # get size of vectors in collection
+        url = f"https://{self.astra_id}-{self.astra_region}.apps.astra.datastax.com/api/json/v1/{self.keyspace_name}"
+        query = json.dumps({"findCollections": {"options": {"explain": True}}})
+        try:
+            response = requests.request("POST", url, headers=self.request_header, data=query)
+            response_dict = json.loads(response.text)
+        except Exception as e:
+            raise Exception(f"The following exception occured when requesting data for describe_index_stats(): {e}")
+        if "status" not in response_dict:
+            raise Exception(
+                f"collection data not present when requesting data for describe_index_stats(). The following response was received: {response_dict}")
+
+        collections = [x for x in response_dict["status"]["collections"] if x["name"] == self.collection_name]
+        if len(collections) == 0:
+            raise Exception(
+                f"The following exception occured when processing data for describe_index_stats(): No collections with name {self.collection_name}")
+
+        collection = collections[0]
+        dimension = collection['options']['vector']["dimension"]
+
+        # get number of vectors in collection
+        query = json.dumps({"countDocuments": {}})
+        response = requests.request("POST", self.request_url, headers=self.request_header, data=query)
+        vector_count = json.loads(response.text)["status"]["count"]
+
+        result = {
+            'dimension': dimension,
+            'index_fullness': 0,
+            'namespaces': {'': {'vector_count': vector_count}},
+            'total_vector_count': vector_count
         }
+        return result
