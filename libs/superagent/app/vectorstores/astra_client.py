@@ -290,7 +290,7 @@ class AstraClient:
         print(response.text)
         return response
 
-
+    
     def describe_index_stats(self):
 
         # get size of vectors in collection
@@ -302,11 +302,13 @@ class AstraClient:
         except Exception as e:
             raise Exception(f"The following exception occured when requesting data for describe_index_stats(): {e}")
         if "status" not in response_dict:
-            raise Exception(f"collection data not present when requesting data for describe_index_stats(). The following response was received: {response_dict}")
+            raise Exception(
+                f"collection data not present when requesting data for describe_index_stats(). The following response was received: {response_dict}")
 
         collections = [x for x in response_dict["status"]["collections"] if x["name"] == self.collection_name]
         if len(collections) == 0:
-            raise Exception(f"The following exception occured when processing data for describe_index_stats(): No collections with name {self.collection_name}")
+            raise Exception(
+                f"The following exception occured when processing data for describe_index_stats(): No collections with name {self.collection_name}")
 
         collection = collections[0]
         dimension = collection['options']['vector']["dimension"]
@@ -315,11 +317,11 @@ class AstraClient:
         query = json.dumps({"countDocuments": {}})
         response = requests.request("POST", self.request_url, headers=self.request_header, data=query)
         vector_count = json.loads(response.text)["status"]["count"]
-        
+
         result = {
-                    'dimension': dimension,
-                    'index_fullness': 0,
-                    'namespaces': {'': {'vector_count': vector_count}},
-                    'total_vector_count': vector_count
-                 }
+            'dimension': dimension,
+            'index_fullness': 0,
+            'namespaces': {'': {'vector_count': vector_count}},
+            'total_vector_count': vector_count
+        }
         return result

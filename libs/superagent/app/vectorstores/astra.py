@@ -4,11 +4,12 @@ import uuid
 
 import backoff
 
-from app.vectorstores.astra_client import AstraClient, QueryResponse
+from typing import Literal
 from decouple import config
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
 from pydantic.dataclasses import dataclass
+from app.vectorstores.astra_client import AstraClient, QueryResponse
 
 logger = logging.getLogger(__name__)
 
@@ -156,6 +157,42 @@ class AstraVectorStore:
         formatted_responses = self._format_response(raw_responses)
         return formatted_responses
 
+    def query_documents(
+        self,
+        prompt: str,
+        datasource_id: str,
+        top_k: int | None,
+        query_type: Literal["document", "all"] = "document",
+    ) -> list[str]:
+        if top_k is None:
+            top_k = 3
+
+        logger.info(f"Executing query with document id in namespace {datasource_id}")
+        documents_in_namespace = self.query(
+            prompt=prompt,
+            namespace=datasource_id,
+        )
+
+        if documents_in_namespace == [] and query_type == "document":
+            logger.info("No result with namespace. Executing query without namespace.")
+            documents_in_namespace = self.query(
+                prompt=prompt,
+                metadata_filter={"datasource_id": datasource_id},
+                top_k=top_k,
+            )
+
+        # A hack if we want to search in all documents but with backwards compatibility
+        # with namespaces
+        if documents_in_namespace == [] and query_type == "all":
+            logger.info("Querying all documents.")
+            documents_in_namespace = self.query(
+                prompt=prompt,
+                top_k=top_k,
+            )
+
+        return [str(response) for response in documents_in_namespace]
+
+
     def _extract_match_data(self, match):
         """Extracts id, text, and metadata from a match."""
         id = match.id
@@ -163,6 +200,7 @@ class AstraVectorStore:
         metadata = match.metadata
         metadata.pop("text")
         return id, text, metadata
+
 
     def _format_response(self, response: QueryResponse) -> list[Response]:
         """
@@ -182,6 +220,7 @@ class AstraVectorStore:
         ]
 
         return responses
+
 
     def delete(self, datasource_id: str):
         vector_dimensionality = 1536
