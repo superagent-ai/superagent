@@ -290,6 +290,7 @@ class AstraClient:
         print(response.text)
         return response
 
+    
     def describe_index_stats(self):
 
         # get size of vectors in collection
