@@ -47,3 +47,12 @@ class E2BCodeExecutorInput(BaseModel):
 
 class BrowserInput(BaseModel):
     url: str
+
+
+class GPTVisionInputModel(BaseModel):
+    query: str
+    image_url: str
+
+
+class GPTVisionInput(BaseModel):
+    input: GPTVisionInputModel

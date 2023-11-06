@@ -13,6 +13,7 @@ from app.models.tools import (
     ReplicateInput,
     WolframInput,
     ZapierInput,
+    GPTVisionInput,
 )
 from app.tools.agent import Agent
 from app.tools.bing_search import BingSearch
@@ -25,6 +26,7 @@ from app.tools.pubmed import PubMed
 from app.tools.replicate import Replicate
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
+from app.tools.gpt_vision import GPTVision
 
 TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
@@ -47,6 +49,7 @@ TOOL_TYPE_MAPPING = {
     "WOLFRAM_ALPHA": {"class": WolframAlpha, "schema": WolframInput},
     "CODE_EXECUTOR": {"class": E2BCodeExecutor, "schema": E2BCodeExecutorInput},
     "BROWSER": {"class": Browser, "schema": BrowserInput},
+    "GPT_VISION": {"class": GPTVision, "schema": GPTVisionInput},
 }
 
 

@@ -226,6 +226,17 @@ export const siteConfig = {
       ],
     },
     {
+      value: "GPT_VISION",
+      title: "GPT Vision",
+      metadata: [
+        {
+          key: "opeanaiApiKey",
+          type: "input",
+          label: "Your OpenAI API Key",
+        },
+      ],
+    },
+    {
       value: "WOLFRAM_ALPHA",
       title: "Wolfram Alpha",
       metadata: [
