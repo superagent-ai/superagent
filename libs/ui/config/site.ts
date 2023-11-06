@@ -103,10 +103,6 @@ export const siteConfig = {
           value: "GPT_4_0613",
           title: "gpt-4-0613",
         },
-        {
-          value: "GPT_4_1106_PREVIEW",
-          title: "gpt-4-1106-preview",
-        },
       ],
     },
     {
