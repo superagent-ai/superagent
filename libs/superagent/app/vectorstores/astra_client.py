@@ -142,8 +142,8 @@ class AstraClient:
 
         return formatted_response
 
-    @staticmethod
-    def _format_query_response(responses, include_metadata, include_values):
+    # @staticmethod
+    def _format_query_response(self, responses, include_metadata, include_values):
         final_res = []
         for response in responses:
             id = response.pop("_id")
