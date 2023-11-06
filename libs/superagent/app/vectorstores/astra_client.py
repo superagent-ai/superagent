@@ -136,6 +136,7 @@ class AstraClient:
         responses = self._query(vector, top_k, filter)
         # include_metadata means return all columns in the table (including text that got embedded)
         # include_values means return the vector of the embedding for the searched items
+        print("include_metadata value:", include_metadata)
         formatted_response = self._format_query_response(
             responses, include_metadata, include_values
         )
@@ -172,6 +173,14 @@ class AstraClient:
                 data=json.dumps(score_query),
             ).json()
         )
+        print(
+            requests.request(
+                "POST",
+                self.request_url,
+                headers=self.request_header,
+                data=json.dumps(query),
+            ).json()
+        )
         if filters is not None:
             score_query["find"]["filter"] = filters
             query["find"]["filter"] = filters
@@ -192,6 +201,7 @@ class AstraClient:
             for elt2 in result:
                 if elt1["_id"] == elt2["_id"]:
                     response.append(elt1 | elt2)
+        print(response)
         return response
 
     def upsert(self, to_upsert):
