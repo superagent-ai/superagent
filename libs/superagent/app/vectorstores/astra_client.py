@@ -151,7 +151,7 @@ class AstraClient:
             score = response.pop("$similarity")
             _values = response.pop("$vector")
             values = _values if include_values else []
-            metadata = response if include_metadata else dict()
+            metadata = response['metadata'] if (include_metadata and "metadata" in response.keys()) else dict()
             rsp = Response(id, score, metadata, values)
             final_res.append(rsp)
         return QueryResponse(final_res)
