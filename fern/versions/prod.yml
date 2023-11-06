@@ -11,3 +11,5 @@ navigation:
         path: ../mdx/platform.mdx
   - api-name: prod
     api: Superagent API
+    snippets: 
+      python: superagent-py
