@@ -225,7 +225,7 @@ class AstraVectorStore:
         try:
             documents_in_namespace = self.index.query(
                 arbitrary_vector,
-                namespace=datasource_id,
+                filter={"datasource_id", datasource_id},
                 top_k=1000,
                 include_metadata=False,
                 include_values=False,
