@@ -66,7 +66,7 @@ class AstraClient:
             data=json.dumps(create_query),
         )
         if resp.status_code == 200:
-            print(f"[INFO] {resp.text}")
+            pass
         else:
             raise Exception(
                 f"[ERROR] Failed with the following error: {resp.status_code}, {resp.text}"
@@ -136,7 +136,6 @@ class AstraClient:
         responses = self._query(vector, top_k, filter)
         # include_metadata means return all columns in the table (including text that got embedded)
         # include_values means return the vector of the embedding for the searched items
-        print("include_metadata value:", include_metadata)
         formatted_response = self._format_query_response(
             responses, include_metadata, include_values
         )
@@ -151,7 +150,11 @@ class AstraClient:
             score = response.pop("$similarity")
             _values = response.pop("$vector")
             values = _values if include_values else []
-            metadata = response['metadata'] if (include_metadata and "metadata" in response.keys()) else dict()
+            metadata = (
+                response["metadata"]
+                if (include_metadata and "metadata" in response.keys())
+                else dict()
+            )
             rsp = Response(id, score, metadata, values)
             final_res.append(rsp)
         return QueryResponse(final_res)
@@ -165,22 +168,6 @@ class AstraClient:
             }
         }
         query = {"find": {"sort": {"$vector": vector}, "options": {"limit": top_k}}}
-        print(
-            requests.request(
-                "POST",
-                self.request_url,
-                headers=self.request_header,
-                data=json.dumps(score_query),
-            ).json()
-        )
-        print(
-            requests.request(
-                "POST",
-                self.request_url,
-                headers=self.request_header,
-                data=json.dumps(query),
-            ).json()
-        )
         if filters is not None:
             score_query["find"]["filter"] = filters
             query["find"]["filter"] = filters
@@ -201,7 +188,6 @@ class AstraClient:
             for elt2 in result:
                 if elt1["_id"] == elt2["_id"]:
                     response.append(elt1 | elt2)
-        print(response)
         return response
 
     def upsert(self, to_upsert):
@@ -264,7 +250,9 @@ class AstraClient:
                 response_dict = json.loads(result.text)
 
                 if "status" not in response_dict:
-                    raise Exception(f"There was an issue updating record {record_id}. The following response was received: {response_dict}")
+                    raise Exception(
+                        f"There was an issue updating record {record_id}. The following response was received: {response_dict}"
+                    )
 
                 if (
                     response_dict["status"]["matchedCount"] == 1
@@ -272,7 +260,9 @@ class AstraClient:
                 ):
                     upserted_ids.append(record_id)
                 else:
-                    raise Exception(f"There was an issue updating record {record_id}. The following response was received: {response_dict}")
+                    raise Exception(
+                        f"There was an issue updating record {record_id}. The following response was received: {response_dict}"
+                    )
 
         # now insert the records stored in to_insert
         if len(to_insert) > 0:
@@ -286,7 +276,9 @@ class AstraClient:
             response_dict = json.loads(result.text)
 
             if "status" not in response_dict:
-                raise Exception(f"There was an issue inserting records {to_insert}. The following response was received: {response_dict}")
+                raise Exception(
+                    f"There was an issue inserting records {to_insert}. The following response was received: {response_dict}"
+                )
 
             upserted_ids.extend(response_dict["status"]["insertedIds"])
 
@@ -308,7 +300,6 @@ class AstraClient:
             headers=self.request_header,
             data=json.dumps(query),
         )
-        print(response.text)
         return response
 
     def describe_index_stats(self):

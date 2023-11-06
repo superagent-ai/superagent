@@ -16,7 +16,6 @@ from app.models.response import (
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 from prisma.models import Datasource
-from app.vectorstores.base import VectorStoreBase
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
@@ -125,10 +124,6 @@ async def delete(datasource_id: str, api_user=Depends(get_current_api_user)):
             analytics.track(api_user.id, "Deleted Datasource")
         await prisma.agentdatasource.delete_many(where={"datasourceId": datasource_id})
         await prisma.datasource.delete(where={"id": datasource_id})
-        try:
-            await VectorStoreBase().delete(datasource_id)
-        except:
-            pass
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
