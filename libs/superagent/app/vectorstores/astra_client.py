@@ -254,18 +254,25 @@ class AstraClient:
                         }
                     }
                 )
+
                 result = requests.request(
                     "POST",
                     self.request_url,
                     headers=self.request_header,
                     data=query,
                 )
+                response_dict = json.loads(result.text)
+
+                if "status" not in response_dict:
+                    raise Exception(f"There was an issue updating record {record_id}. The following response was received: {response_dict}")
 
                 if (
-                    json.loads(result.text)["status"]["matchedCount"] == 1
-                    and json.loads(result.text)["status"]["modifiedCount"] == 1
+                    response_dict["status"]["matchedCount"] == 1
+                    and response_dict["status"]["modifiedCount"] == 1
                 ):
                     upserted_ids.append(record_id)
+                else:
+                    raise Exception(f"There was an issue updating record {record_id}. The following response was received: {response_dict}")
 
         # now insert the records stored in to_insert
         if len(to_insert) > 0:
@@ -276,8 +283,12 @@ class AstraClient:
                 headers=self.request_header,
                 data=query,
             )
-            for inserted_id in json.loads(result.text)["status"]["insertedIds"]:
-                upserted_ids.append(inserted_id)
+            response_dict = json.loads(result.text)
+
+            if "status" not in response_dict:
+                raise Exception(f"There was an issue inserting records {to_insert}. The following response was received: {response_dict}")
+
+            upserted_ids.extend(response_dict["status"]["insertedIds"])
 
         return list(set(upserted_ids))
 
