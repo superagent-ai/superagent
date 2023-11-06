@@ -126,7 +126,7 @@ async def delete(datasource_id: str, api_user=Depends(get_current_api_user)):
         await prisma.agentdatasource.delete_many(where={"datasourceId": datasource_id})
         await prisma.datasource.delete(where={"id": datasource_id})
         try:
-            await VectorStoreBase().get_database().delete(datasource_id)
+            await VectorStoreBase().delete(datasource_id)
         except:
             pass
         return {"success": True, "data": None}
