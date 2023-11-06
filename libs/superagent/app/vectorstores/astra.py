@@ -1,14 +1,14 @@
 import logging
 import os
 import uuid
+from typing import Literal
 
 import backoff
-
-from typing import Literal
 from decouple import config
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
 from pydantic.dataclasses import dataclass
+
 from app.vectorstores.astra_client import AstraClient, QueryResponse
 
 logger = logging.getLogger(__name__)
@@ -192,7 +192,6 @@ class AstraVectorStore:
 
         return [str(response) for response in documents_in_namespace]
 
-
     def _extract_match_data(self, match):
         """Extracts id, text, and metadata from a match."""
         id = match.id
@@ -200,7 +199,6 @@ class AstraVectorStore:
         metadata = match.metadata
         metadata.pop("text")
         return id, text, metadata
-
 
     def _format_response(self, response: QueryResponse) -> list[Response]:
         """
@@ -220,7 +218,6 @@ class AstraVectorStore:
         ]
 
         return responses
-
 
     def delete(self, datasource_id: str):
         vector_dimensionality = 1536
