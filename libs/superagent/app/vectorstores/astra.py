@@ -1,14 +1,15 @@
 import logging
+import os
 import uuid
 from typing import Literal
 
 import backoff
-import pinecone
 from decouple import config
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
-from pinecone.core.client.models import QueryResponse
 from pydantic.dataclasses import dataclass
+
+from app.vectorstores.astra_client import AstraClient, QueryResponse
 
 logger = logging.getLogger(__name__)
 
@@ -33,38 +34,57 @@ class Response:
         self.metadata = metadata or {}
 
 
-class PineconeVectorStore:
+class AstraVectorStore:
     def __init__(
         self,
-        index_name: str = config("PINECONE_INDEX"),
-        environment: str = config("PINECONE_ENVIRONMENT"),
-        pinecone_api_key: str = config("PINECONE_API_KEY"),
+        astra_id: str = config("ASTRA_DB_ID", ""),
+        astra_region: str = config("ASTRA_DB_REGION", "us-east1"),
+        astra_application_token: str = config("ASTRA_DB_APPLICATION_TOKEN", ""),
+        collection_name: str = config("COLLECTION_NAME", "superagent"),
+        keyspace_name: str = config("KEYSPACE_NAME", ""),
     ) -> None:
-        if not index_name:
+        if not astra_id:
             raise ValueError(
-                "Please provide a Pinecone Index Name via the "
-                "`PINECONE_INDEX` environment variable."
+                "Please provide an Astra DB ID via the "
+                "`ASTRA_DB_ID` environment variable."
             )
 
-        if not environment:
+        if not astra_region:
             raise ValueError(
-                "Please provide a Pinecone Environment/Region Name via the "
-                "`PINECONE_ENVIRONMENT` environment variable."
+                "Please provide an Astra Region Name via the "
+                "`ASTRA_DB_REGION` environment variable."
             )
 
-        if not pinecone_api_key:
+        if not astra_application_token:
             raise ValueError(
-                "Please provide a Pinecone API key via the "
-                "`PINECONE_API_KEY` environment variable."
+                "Please provide an Astra token via the "
+                "`ASTRA_DB_APPLICATION_TOKEN` environment variable."
             )
 
-        pinecone.init(api_key=pinecone_api_key, environment=environment)
+        if not collection_name:
+            raise ValueError(
+                "Please provide an Astra collection name via the "
+                "`COLLECTION_NAME` environment variable."
+            )
 
-        logger.info(f"Index name: {index_name}")
-        self.index = pinecone.Index(index_name)
+        if not keyspace_name:
+            raise ValueError(
+                "Please provide an Astra keyspace via the "
+                "`KEYSPACE_NAME` environment variable."
+            )
+
+        self.index = AstraClient(
+            astra_id,
+            astra_region,
+            astra_application_token,
+            keyspace_name,
+            collection_name,
+        )
+
         self.embeddings = OpenAIEmbeddings(
-            model="text-embedding-ada-002", openai_api_key=config("OPENAI_API_KEY")
-        )  # type: ignore
+            model="text-embedding-ada-002",
+            openai_api_key=os.getenv("OPENAI_API_KEY", ""),
+        )
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=3)
     def _embed_with_retry(self, texts):
@@ -99,39 +119,12 @@ class PineconeVectorStore:
             logger.debug(f"Upserting: {to_upsert}")
 
             try:
-                res = self.index.upsert(vectors=to_upsert)
+                res = self.index.upsert(to_upsert=to_upsert)
                 logger.info(f"Upserted documents. {res}")
             except Exception as e:
                 logger.error(f"Failed to upsert documents. Error: {e}")
 
         return self.index.describe_index_stats()
-
-    def _extract_match_data(self, match):
-        """Extracts id, text, and metadata from a match."""
-        id = match.id
-        text = match.metadata.get("text")
-        metadata = match.metadata
-        metadata.pop("text")
-        return id, text, metadata
-
-    def _format_response(self, response: QueryResponse) -> list[Response]:
-        """
-        Formats the response dictionary from the vector database into a list of
-        Response objects.
-        """
-        if not response.get("matches"):
-            return []
-
-        ids, texts, metadata = zip(
-            *[self._extract_match_data(match) for match in response["matches"]]
-        )
-
-        responses = [
-            Response(id=id, text=text, metadata=meta)
-            for id, text, meta in zip(ids, texts, metadata)
-        ]
-
-        return responses
 
     def query(
         self,
@@ -157,10 +150,8 @@ class PineconeVectorStore:
 
         # filter raw_responses based on the minimum similarity score if min_score is set
         if min_score is not None:
-            raw_responses["matches"] = [
-                match
-                for match in raw_responses["matches"]
-                if match["score"] >= min_score
+            raw_responses.matches = [
+                match for match in raw_responses.matches if match.score >= min_score
             ]
 
         formatted_responses = self._format_response(raw_responses)
@@ -174,7 +165,7 @@ class PineconeVectorStore:
         query_type: Literal["document", "all"] = "document",
     ) -> list[str]:
         if top_k is None:
-            top_k = 5
+            top_k = 3
 
         logger.info(f"Executing query with document id in namespace {datasource_id}")
         documents_in_namespace = self.query(
@@ -201,36 +192,59 @@ class PineconeVectorStore:
 
         return [str(response) for response in documents_in_namespace]
 
+    def _extract_match_data(self, match):
+        """Extracts id, text, and metadata from a match."""
+        id = match.id
+        text = match.metadata.get("text")
+        metadata = match.metadata
+        metadata.pop("text")
+        return id, text, metadata
+
+    def _format_response(self, response: QueryResponse) -> list[Response]:
+        """
+        Formats the response dictionary from the vector database into a list of
+        Response objects.
+        """
+        if not response.get("matches"):
+            return []
+
+        ids, texts, metadata = zip(
+            *[self._extract_match_data(match) for match in response.matches]
+        )
+
+        responses = [
+            Response(id=id, text=text, metadata=meta)
+            for id, text, meta in zip(ids, texts, metadata)
+        ]
+
+        return responses
+
     def delete(self, datasource_id: str):
         vector_dimensionality = 1536
         arbitrary_vector = [1.0] * vector_dimensionality
-
         try:
             documents_in_namespace = self.index.query(
                 arbitrary_vector,
-                namespace=datasource_id,
-                top_k=9999,
+                filter={"datasource_id", datasource_id},
+                top_k=1000,
                 include_metadata=False,
                 include_values=False,
             )
-
-            vector_ids = [match["id"] for match in documents_in_namespace["matches"]]
-
+            vector_ids = [match.id for match in documents_in_namespace.get("matches")]
             if len(vector_ids) == 0:
                 logger.info(
                     f"No vectors found in namespace `{datasource_id}`. "
                     f"Deleting `{datasource_id}` using default namespace."
                 )
+
                 self.index.delete(
                     filter={"datasource_id": datasource_id}, delete_all=False
                 )
-
             else:
                 logger.info(
                     f"Deleting {len(vector_ids)} documents in namespace {datasource_id}"
                 )
                 self.index.delete(ids=vector_ids, delete_all=False)
-
         except Exception as e:
             logger.error(f"Failed to delete {datasource_id}. Error: {e}")
 
