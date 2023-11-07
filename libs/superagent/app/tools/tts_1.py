@@ -1,9 +1,7 @@
-import io
+from pathlib import Path
 
 from langchain.tools import BaseTool
 from openai import AsyncOpenAI, OpenAI
-from pydub import AudioSegment
-from pydub.playback import play
 
 
 class TTS1(BaseTool):
@@ -13,34 +11,24 @@ class TTS1(BaseTool):
 
     def _run(self, input: dict) -> str:
         client = OpenAI(api_key=self.metadata["openaiApiKey"])
+        speech_file_path = Path(__file__).parent / "speech.mp3"
         response = client.audio.speech.create(
             model="tts-1",
             voice=input["voice"],
             input=input["text"],
         )
 
-        # Convert the binary response content to a byte stream
-        byte_stream = io.BytesIO(response.content)
-
-        # Read the audio data from the byte stream
-        audio = AudioSegment.from_file(byte_stream, format="mp3")
-
-        # Play the audio
-        play(audio)
+        output = response.stream_to_file(speech_file_path)
+        print(output)
 
     async def _arun(self, input: dict) -> str:
         client = AsyncOpenAI(api_key=self.metadata["openaiApiKey"])
+        speech_file_path = Path(__file__).parent / "speech.mp3"
         response = await client.audio.speech.create(
             model="tts-1",
             voice=input["voice"],
             input=input["text"],
         )
 
-        # Convert the binary response content to a byte stream
-        byte_stream = io.BytesIO(response.content)
-
-        # Read the audio data from the byte stream
-        audio = AudioSegment.from_file(byte_stream, format="mp3")
-
-        # Play the audio
-        play(audio)
+        output = response.stream_to_file(speech_file_path)
+        print(output)

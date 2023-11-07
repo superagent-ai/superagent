@@ -241,17 +241,6 @@ export const siteConfig = {
       ],
     },
     {
-      value: "TTS_1",
-      title: "Text-To-Speech (TTS-1)",
-      metadata: [
-        {
-          key: "opeanaiApiKey",
-          type: "input",
-          label: "Your OpenAI API Key",
-        },
-      ],
-    },
-    {
       value: "WOLFRAM_ALPHA",
       title: "Wolfram Alpha",
       metadata: [
