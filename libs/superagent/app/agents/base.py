@@ -1,12 +1,11 @@
 from typing import Any, List
 
 from decouple import config
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
 from langchain.agents import AgentType, initialize_agent
+from langchain.chains import LLMChain
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.memory.motorhead_memory import MotorheadMemory
-from langchain.prompts import MessagesPlaceholder
+from langchain.prompts import MessagesPlaceholder, PromptTemplate
 from langchain.schema import SystemMessage
 from slugify import slugify
 

@@ -1,5 +1,5 @@
 from langchain.tools import BaseTool
-from openai import OpenAI, AsyncOpenAI
+from openai import AsyncOpenAI, OpenAI
 
 
 class GPTVision(BaseTool):

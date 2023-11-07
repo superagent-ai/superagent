@@ -7,26 +7,26 @@ from app.models.tools import (
     BrowserInput,
     ChatGPTInput,
     E2BCodeExecutorInput,
+    GPTVisionInput,
     MetaphorSearchInput,
     OpenapiInput,
     PubMedInput,
     ReplicateInput,
     WolframInput,
     ZapierInput,
-    GPTVisionInput,
 )
 from app.tools.agent import Agent
 from app.tools.bing_search import BingSearch
 from app.tools.browser import Browser
 from app.tools.chatgpt import get_chatpgt_tool
 from app.tools.e2b import E2BCodeExecutor
+from app.tools.gpt_vision import GPTVision
 from app.tools.metaphor import MetaphorSearch
 from app.tools.openapi import Openapi
 from app.tools.pubmed import PubMed
 from app.tools.replicate import Replicate
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
-from app.tools.gpt_vision import GPTVision
 
 TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
