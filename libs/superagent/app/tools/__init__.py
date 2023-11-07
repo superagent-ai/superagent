@@ -7,6 +7,7 @@ from app.models.tools import (
     BrowserInput,
     ChatGPTInput,
     E2BCodeExecutorInput,
+    GPTVisionInput,
     MetaphorSearchInput,
     OpenapiInput,
     PubMedInput,
@@ -19,6 +20,7 @@ from app.tools.bing_search import BingSearch
 from app.tools.browser import Browser
 from app.tools.chatgpt import get_chatpgt_tool
 from app.tools.e2b import E2BCodeExecutor
+from app.tools.gpt_vision import GPTVision
 from app.tools.metaphor import MetaphorSearch
 from app.tools.openapi import Openapi
 from app.tools.pubmed import PubMed
@@ -47,6 +49,7 @@ TOOL_TYPE_MAPPING = {
     "WOLFRAM_ALPHA": {"class": WolframAlpha, "schema": WolframInput},
     "CODE_EXECUTOR": {"class": E2BCodeExecutor, "schema": E2BCodeExecutorInput},
     "BROWSER": {"class": Browser, "schema": BrowserInput},
+    "GPT_VISION": {"class": GPTVision, "schema": GPTVisionInput},
 }
 
 

@@ -62,7 +62,6 @@ class PineconeVectorStore:
 
         logger.info(f"Index name: {index_name}")
         self.index = pinecone.Index(index_name)
-
         self.embeddings = OpenAIEmbeddings(
             model="text-embedding-ada-002", openai_api_key=config("OPENAI_API_KEY")
         )  # type: ignore
