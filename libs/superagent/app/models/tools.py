@@ -56,3 +56,12 @@ class GPTVisionInputModel(BaseModel):
 
 class GPTVisionInput(BaseModel):
     input: GPTVisionInputModel
+
+
+class TTS1InputModel(BaseModel):
+    text: str
+    voice: str
+
+
+class TTS1Input(BaseModel):
+    input: TTS1InputModel

@@ -12,6 +12,7 @@ from app.models.tools import (
     OpenapiInput,
     PubMedInput,
     ReplicateInput,
+    TTS1Input,
     WolframInput,
     ZapierInput,
 )
@@ -25,6 +26,7 @@ from app.tools.metaphor import MetaphorSearch
 from app.tools.openapi import Openapi
 from app.tools.pubmed import PubMed
 from app.tools.replicate import Replicate
+from app.tools.tts_1 import TTS1
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
 
@@ -50,6 +52,7 @@ TOOL_TYPE_MAPPING = {
     "CODE_EXECUTOR": {"class": E2BCodeExecutor, "schema": E2BCodeExecutorInput},
     "BROWSER": {"class": Browser, "schema": BrowserInput},
     "GPT_VISION": {"class": GPTVision, "schema": GPTVisionInput},
+    "TTS_1": {"class": TTS1, "schema": TTS1Input},
 }
 
 
