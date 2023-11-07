@@ -8,7 +8,27 @@ class GPTVision(BaseTool):
     return_direct = False
 
     def _run(self, input: dict) -> str:
-        pass
+        print(input)
+        client = OpenAI(api_key=self.metadata["openaiApiKey"])
+        response = client.chat.completions.create(
+            model="gpt-4-vision-preview",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": input["query"]},
+                        {
+                            "type": "image_url",
+                            "image_url": input["image_url"],
+                        },
+                    ],
+                }
+            ],
+            max_tokens=2000,
+        )
+        print(response)
+        output = response.choices[0]
+        return output
 
     async def _arun(self, input: dict) -> str:
         print(input)
