@@ -14,21 +14,19 @@ class TTS1(BaseTool):
         speech_file_path = Path(__file__).parent / "speech.mp3"
         response = client.audio.speech.create(
             model="tts-1",
-            voice=input["voice"],
+            voice=input["voice"] or "alloy",
             input=input["text"],
         )
-
         output = response.stream_to_file(speech_file_path)
-        print(output)
+        return output
 
     async def _arun(self, input: dict) -> str:
         client = AsyncOpenAI(api_key=self.metadata["openaiApiKey"])
         speech_file_path = Path(__file__).parent / "speech.mp3"
         response = await client.audio.speech.create(
             model="tts-1",
-            voice=input["voice"],
+            voice=input["voice"] or "alloy",
             input=input["text"],
         )
-
         output = response.stream_to_file(speech_file_path)
-        print(output)
+        return output
