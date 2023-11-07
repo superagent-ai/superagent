@@ -8,7 +8,6 @@ class GPTVision(BaseTool):
     return_direct = False
 
     def _run(self, input: dict) -> str:
-        print(input)
         client = OpenAI(api_key=self.metadata["openaiApiKey"])
         response = client.chat.completions.create(
             model="gpt-4-vision-preview",
@@ -24,14 +23,12 @@ class GPTVision(BaseTool):
                     ],
                 }
             ],
-            max_tokens=2000,
+            max_tokens=300,
         )
-        print(response)
         output = response.choices[0]
         return output
 
     async def _arun(self, input: dict) -> str:
-        print(input)
         client = AsyncOpenAI(api_key=self.metadata["openaiApiKey"])
         response = await client.chat.completions.create(
             model="gpt-4-vision-preview",
@@ -47,8 +44,7 @@ class GPTVision(BaseTool):
                     ],
                 }
             ],
-            max_tokens=2000,
+            max_tokens=300,
         )
-        print(response)
         output = response.choices[0]
         return output
