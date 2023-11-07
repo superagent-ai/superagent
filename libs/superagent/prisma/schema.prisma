@@ -36,6 +36,7 @@ enum ToolType {
   CODE_EXECUTOR
   OPENBB
   GPT_VISION
+  TTS_1
 }
 
 enum DatasourceType {
