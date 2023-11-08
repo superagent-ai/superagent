@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.445.0",
+    "@aws-sdk/lib-storage": "^3.445.0",
     "@analytics/segment": "^1.1.4",
     "@chakra-ui/next-js": "^2.1.4",
     "@chakra-ui/react": "^2.7.1",
@@ -26,7 +28,6 @@
     "@uiw/react-codemirror": "^4.19.16",
     "@vercel/analytics": "^1.0.1",
     "analytics": "^0.8.1",
-    "aws-sdk": "^2.1431.0",
     "axios": "^1.4.0",
     "dayjs": "^1.11.8",
     "eslint-config-next": "13.4.2",
