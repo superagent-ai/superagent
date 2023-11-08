@@ -11,7 +11,6 @@ python = "^3.9"
 fastapi = { extras = ["all"], version = "^0.95.1" }
 uvicorn = { extras = ["standard"], version = "^0.22.0" }
 gunicorn = "^20.1.0"
-openai = "^0.27.6"
 python-decouple = "^3.8"
 pydantic = "^1.10.7"
 sse-starlette = "^1.5.0"
@@ -42,15 +41,18 @@ python-pptx = "^0.6.22"
 openpyxl = "^3.1.2"
 unstructured = "^0.10.16"
 python-docx = "^0.8.11"
-langsmith = "^0.0.39"
 requests = "^2.31.0"
 wolframalpha = "^5.0.0"
-langchain = "^0.0.300"
 bs4 = "^0.0.1"
 segment-analytics-python = "^2.2.3"
 replicate = "^0.15.4"
 e2b = "^0.9.3"
 youtube-transcript-api = "^0.6.1"
+langsmith = "^0.0.59"
+langchain = "0.0.331rc2"
+openai = "^1.1.1"
+langchain-experimental = "^0.0.37"
+pydub = "^0.25.1"
 
 
 [build-system]

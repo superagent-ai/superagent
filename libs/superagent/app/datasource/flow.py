@@ -7,7 +7,7 @@ from prefect import flow, task
 from app.datasource.loader import DataLoader
 from app.datasource.types import VALID_UNSTRUCTURED_DATA_TYPES
 from app.utils.prisma import prisma
-from app.vectorstores.pinecone import PineconeVectorStore
+from app.vectorstores.base import VectorStoreBase
 from prisma.models import AgentDatasource, Datasource
 
 
@@ -43,8 +43,8 @@ async def vectorize(datasource: Datasource) -> None:
         document.metadata.update({"datasource_id": datasource.id}) or document
         for document in data
     ]
-    pinecone = PineconeVectorStore()
-    pinecone.embed_documents(documents=newDocuments)
+    vector_store = VectorStoreBase()
+    vector_store.embed_documents(documents=newDocuments)
 
 
 @flow(name="process_datasource", description="Process new agent datasource", retries=0)
