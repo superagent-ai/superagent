@@ -234,7 +234,7 @@ export const siteConfig = {
       title: "GPT Vision",
       metadata: [
         {
-          key: "opeanaiApiKey",
+          key: "openaiApiKey",
           type: "input",
           label: "Your OpenAI API Key",
         },
