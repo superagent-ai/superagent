@@ -1,20 +1,18 @@
-import { Upload } from "@aws-sdk/lib-storage";
 import { S3 } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
 
 const s3 = new S3({
   credentials: {
     accessKeyId: process.env.NEXT_PUBLIC_AMAZON_S3_ACCESS_KEY_ID,
     secretAccessKey: process.env.NEXT_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY
   },
-
   region: process.env.NEXT_PUBLIC_AWS_S3_REGION,
-
   ...(process.env.NEXT_PUBLIC_AWS_OVERRIDE_S3_BASEURL
     ? {
         endpoint: process.env.NEXT_PUBLIC_AWS_OVERRIDE_S3_BASEURL,
         forcePathStyle: true,
       }
-    : {})
+    : {}),
 });
 
 export const APPLICATIONS = [
@@ -209,15 +207,13 @@ export const getFileType = (mimeType) => {
 export const uploadFile = async (file) => {
   const result = await new Upload({
     client: s3,
-
     params: {
         Bucket: process.env.NEXT_PUBLIC_AWS_S3_BUCKET,
         Key: file.name,
         Body: file,
         ContentType: file.type,
       }
-  })
-    .done();
+  }).done();
 
   return result;
 };
