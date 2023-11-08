@@ -1,5 +1,11 @@
 import AWS from "aws-sdk";
 
+import { Upload } from "@aws-sdk/lib-storage";
+import { S3 } from "@aws-sdk/client-s3";
+
+// JS SDK v3 does not support global configuration.
+// Codemod has attempted to pass values to each service client in this file.
+// You may need to update clients outside of this file, if they use global config.
 AWS.config.update({
   accessKeyId: process.env.NEXT_PUBLIC_AMAZON_S3_ACCESS_KEY_ID,
   secretAccessKey: process.env.NEXT_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY,
@@ -12,7 +18,21 @@ AWS.config.update({
     : {}),
 });
 
-const s3 = new AWS.S3();
+const s3 = new S3({
+  credentials: {
+    accessKeyId: process.env.NEXT_PUBLIC_AMAZON_S3_ACCESS_KEY_ID,
+    secretAccessKey: process.env.NEXT_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY
+  },
+
+  region: process.env.NEXT_PUBLIC_AWS_S3_REGION,
+
+  ...(process.env.NEXT_PUBLIC_AWS_OVERRIDE_S3_BASEURL
+    ? {
+        endpoint: process.env.NEXT_PUBLIC_AWS_OVERRIDE_S3_BASEURL,
+        s3ForcePathStyle: true,
+      }
+    : {})
+});
 
 export const APPLICATIONS = [
   {
@@ -204,14 +224,17 @@ export const getFileType = (mimeType) => {
 };
 
 export const uploadFile = async (file) => {
-  const result = await s3
-    .upload({
-      Bucket: process.env.NEXT_PUBLIC_AWS_S3_BUCKET,
-      Key: file.name,
-      Body: file,
-      ContentType: file.type,
-    })
-    .promise();
+  const result = await new Upload({
+    client: s3,
+
+    params: {
+        Bucket: process.env.NEXT_PUBLIC_AWS_S3_BUCKET,
+        Key: file.name,
+        Body: file,
+        ContentType: file.type,
+      }
+  })
+    .done();
 
   return result;
 };
