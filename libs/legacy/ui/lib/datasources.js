@@ -12,7 +12,7 @@ const s3 = new S3({
   ...(process.env.NEXT_PUBLIC_AWS_OVERRIDE_S3_BASEURL
     ? {
         endpoint: process.env.NEXT_PUBLIC_AWS_OVERRIDE_S3_BASEURL,
-        s3ForcePathStyle: true,
+        forcePathStyle: true,
       }
     : {})
 });
