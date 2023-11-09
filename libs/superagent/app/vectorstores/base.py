@@ -35,7 +35,7 @@ class VectorStoreBase:
         self,
         prompt: str,
         metadata_filter: dict | None = None,
-        top_k: int = 3,
+        top_k: int = 5,
         namespace: str | None = None,
         min_score: float | None = None,  # new argument for minimum similarity score
     ):
