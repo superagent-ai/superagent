@@ -1730,13 +1730,13 @@ yaml = ["pyyaml (>=6.0,<7.0)"]
 
 [[package]]
 name = "langchain"
-version = "0.0.331rc2"
+version = "0.0.334"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = ">=3.8.1,<4.0"
 files = [
-    {file = "langchain-0.0.331rc2-py3-none-any.whl", hash = "sha256:de33efb64c7d5055a477034640a262c20e9b74a968cd740f1eb302ab28612589"},
-    {file = "langchain-0.0.331rc2.tar.gz", hash = "sha256:ef9dda2bb0701b473958921cde84d7ee7a7ecdec6a94157537435c02bc377ca4"},
+    {file = "langchain-0.0.334-py3-none-any.whl", hash = "sha256:55532c7d717a3f2cbf0895e47818a84bb8750badc35131f2dd16ce06821d0486"},
+    {file = "langchain-0.0.334.tar.gz", hash = "sha256:76fff43602fd284e86dd38c8fcdcbc036d3d26178d1335148bcc22964a6879b4"},
 ]
 
 [package.dependencies]
@@ -1745,7 +1745,7 @@ anyio = "<4.0"
 async-timeout = {version = ">=4.0.0,<5.0.0", markers = "python_version < \"3.11\""}
 dataclasses-json = ">=0.5.7,<0.7"
 jsonpatch = ">=1.33,<2.0"
-langsmith = ">=0.0.52,<0.1.0"
+langsmith = ">=0.0.62,<0.1.0"
 numpy = ">=1,<2"
 pydantic = ">=1,<3"
 PyYAML = ">=5.3"
@@ -1801,13 +1801,13 @@ six = "*"
 
 [[package]]
 name = "langsmith"
-version = "0.0.59"
+version = "0.0.63"
 description = "Client library to connect to the LangSmith LLM Tracing and Evaluation Platform."
 optional = false
 python-versions = ">=3.8.1,<4.0"
 files = [
-    {file = "langsmith-0.0.59-py3-none-any.whl", hash = "sha256:67e674cf0db479adf8153ed151c4e39b4eaec5f62e7704a7f85294e4755f6e02"},
-    {file = "langsmith-0.0.59.tar.gz", hash = "sha256:d512b856357ff479cdd6a224aafe38ef6f82ff6c8bdd4ba44e4e588b1aeb52ad"},
+    {file = "langsmith-0.0.63-py3-none-any.whl", hash = "sha256:43a521dd10d8405ac21a0b959e3de33e2270e4abe6c73cc4036232a6990a0793"},
+    {file = "langsmith-0.0.63.tar.gz", hash = "sha256:ddb2dfadfad3e05151ed8ba1643d1c516024b80fbd0c6263024400ced06a3768"},
 ]
 
 [package.dependencies]
@@ -5071,4 +5071,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "809efdaa44de0459ed3f7923f04c87cdbc7b6f39644553a104473db511884860"
+content-hash = "4796e6b4895b4d0496a4d1e5bc52aa50c701c9bb8d7d1e629e8aedbf1bfdc2af"
