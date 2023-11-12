@@ -215,7 +215,6 @@ async def invoke(
     logging.info("Streaming not enabled. Invoking agent synchronously...")
     output = await agent.acall(inputs={"input": input}, tags=[agent_id])
     if output_schema:
-        print(output.get("output"))
         try:
             output = json.loads(output.get("output"))
         except Exception as e:
