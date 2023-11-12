@@ -102,14 +102,16 @@ class AgentBase:
             if agent.prompt:
                 content = (
                     f"{agent.prompt}\n\n"
-                    "Always answer using the below output schema. No other characters allowed.\n\n"
+                    "Always answer using the below output schema. "
+                    "No other characters allowed.\n\n"
                     "Here is the output schema:\n"
                     f"{self.output_schema}"
                 )
             else:
                 content = (
                     f"{DEFAULT_PROMPT}\n\n"
-                    "Always answer using the below output schema. No other characters allowed.\n\n"
+                    "Always answer using the below output schema. "
+                    "No other characters allowed.\n\n"
                     "Here is the output schema:\n"
                     f"{self.output_schema}"
                 )
