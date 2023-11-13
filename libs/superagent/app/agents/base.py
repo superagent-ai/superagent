@@ -41,7 +41,7 @@ class AgentBase:
         self.output_schema = output_schema
         self.callback = callback
 
-    async def _get_tools(
+    async def _get_tools_legacy(
         self, agent_datasources: List[AgentDatasource], agent_tools: List[AgentTool]
     ) -> List:
         tools = []
@@ -78,7 +78,7 @@ class AgentBase:
             tools.append(tool)
         return tools
 
-    async def _get_llm(self, agent_llm: AgentLLM, model: str) -> Any:
+    async def _get_llm_legacy(self, agent_llm: AgentLLM, model: str) -> Any:
         if agent_llm.llm.provider == "OPENAI":
             return ChatOpenAI(
                 model=LLM_MAPPING[model],
@@ -97,7 +97,7 @@ class AgentBase:
                 **(agent_llm.llm.options if agent_llm.llm.options else {}),
             )
 
-    async def _get_prompt(self, agent: Agent) -> SystemMessage:
+    async def _get_promp_legacy(self, agent: Agent) -> SystemMessage:
         if self.output_schema:
             if agent.prompt:
                 content = (
@@ -119,7 +119,7 @@ class AgentBase:
             content = agent.prompt or DEFAULT_PROMPT
         return SystemMessage(content=content)
 
-    async def _get_memory(self) -> MotorheadMemory:
+    async def _get_memory_legacy(self) -> MotorheadMemory:
         memory = MotorheadMemory(
             session_id=f"{self.agent_id}-{self.session_id}"
             if self.session_id
@@ -141,44 +141,49 @@ class AgentBase:
                 "tools": {"include": {"tool": True}},
             },
         )
-        tools = await self._get_tools(
-            agent_datasources=config.datasources, agent_tools=config.tools
-        )
-        llm = await self._get_llm(agent_llm=config.llms[0], model=config.llmModel)
-        prompt = await self._get_prompt(agent=config)
-        memory = await self._get_memory()
-
-        if len(tools) > 0:
-            agent = initialize_agent(
-                tools,
-                llm,
-                agent=AgentType.OPENAI_FUNCTIONS,
-                agent_kwargs={
-                    "system_message": prompt,
-                    "extra_prompt_messages": [
-                        MessagesPlaceholder(variable_name="chat_history")
-                    ],
-                },
-                memory=memory,
-                return_intermediate_steps=True,
-                verbose=True,
+        if config.llms[0].llm.provider == "OPENAI":
+            llm = await self._get_llm_legacy(
+                agent_llm=config.llms[0], model=config.llmModel
             )
+            tools = await self._get_tools_legacy(
+                agent_datasources=config.datasources, agent_tools=config.tools
+            )
+            prompt = await self._get_promp_legacy(agent=config)
+            memory = await self._get_memory_legacy()
+
+            if len(tools) > 0:
+                agent = initialize_agent(
+                    tools,
+                    llm,
+                    agent=AgentType.OPENAI_FUNCTIONS,
+                    agent_kwargs={
+                        "system_message": prompt,
+                        "extra_prompt_messages": [
+                            MessagesPlaceholder(variable_name="chat_history")
+                        ],
+                    },
+                    memory=memory,
+                    return_intermediate_steps=True,
+                    verbose=True,
+                )
+                return agent
+            else:
+                prompt_base = (
+                    f"{config.prompt.replace('{', '{{').replace('}', '}}')}"
+                    if config.prompt
+                    else None
+                )
+                prompt_base = prompt_base or DEFAULT_PROMPT
+                prompt_question = "Question: {input}"
+                prompt_history = "History: \n {chat_history}"
+                prompt = f"{prompt_base} \n {prompt_question} \n {prompt_history}"
+                agent = LLMChain(
+                    llm=llm,
+                    memory=memory,
+                    output_key="output",
+                    verbose=True,
+                    prompt=PromptTemplate.from_template(prompt),
+                )
             return agent
         else:
-            prompt_base = (
-                f"{config.prompt.replace('{', '{{').replace('}', '}}')}"
-                if config.prompt
-                else None
-            )
-            prompt_base = prompt_base or DEFAULT_PROMPT
-            prompt_question = "Question: {input}"
-            prompt_history = "History: \n {chat_history}"
-            prompt = f"{prompt_base} \n {prompt_question} \n {prompt_history}"
-            agent = LLMChain(
-                llm=llm,
-                memory=memory,
-                output_key="output",
-                verbose=True,
-                prompt=PromptTemplate.from_template(prompt),
-            )
-        return agent
+            pass
