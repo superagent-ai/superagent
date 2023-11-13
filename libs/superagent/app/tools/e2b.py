@@ -35,7 +35,7 @@ class E2BCodeExecutor(BaseTool):
         # TODO: Send the artifact bytes to frontend, save it to DB, etc
         artifact_bytes = artifact.download()
 
-    def _run(self, python_code: str, callbacks: Optional[CallbackManager] = None) -> str:
+    def _run(self, python_code: str) -> str:
         code = self._add_last_line_print(python_code)
 
         # E2B session represents a sandbox runtime for LLM - it's a microVM for every instance of an agent.
@@ -60,8 +60,8 @@ class E2BCodeExecutor(BaseTool):
 
         return stdout
 
-    async def _arun(self, python_code: str,  callbacks: Optional[CallbackManager] = None) -> str:
+    async def _arun(self, python_code: str) -> str:
         try:
-            return self._run(python_code, callbacks)
+            return self._run(python_code)
         except:
             return "There was an error during execution"
