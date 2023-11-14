@@ -1,5 +1,6 @@
+from typing import Dict, Type
+
 from pydantic import BaseModel
-from typing import Type, Dict
 
 
 class Tool:

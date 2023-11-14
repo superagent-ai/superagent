@@ -1,7 +1,9 @@
-from pydantic import Field, BaseModel
-from app.tools.tool import Tool
 from typing import Type
+
 from litellm import completion
+from pydantic import BaseModel, Field
+
+from app.tools.tool import Tool
 
 
 class ChitChatArgs(BaseModel):
