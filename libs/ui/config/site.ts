@@ -122,6 +122,19 @@ export const siteConfig = {
       logo: "/azure-logo.png",
       options: [],
     },
+    {
+      disabled: true,
+      id: "HUGGINGFACE",
+      description: "Use Open Source models on HuggingFace.",
+      name: "HuggingFace",
+      logo: "/hf-logo.png",
+      options: [
+        {
+          value: "MISTRAL_7B_INSTRUCT_V01",
+          title: "mistral-7b-instruct-v0.1",
+        },
+      ],
+    },
   ],
   datasourceTypes: [
     {
