@@ -14,6 +14,7 @@ from langchain.document_loaders import (
     TextLoader,
     UnstructuredMarkdownLoader,
     UnstructuredWordDocumentLoader,
+    SitemapLoader,
     WebBaseLoader,
     YoutubeLoader,
 )
@@ -21,6 +22,12 @@ from langchain.document_loaders.airbyte import AirbyteStripeLoader
 from pyairtable import Api
 
 from prisma.models import Datasource
+
+import logging
+
+from app.utils.threading import run_async_code_in_thread
+
+logger = logging.getLogger(__name__)
 
 
 class DataLoader:
@@ -52,6 +59,8 @@ class DataLoader:
             return self.load_airtable()
         elif self.datasource.type == "STRIPE":
             return self.load_stripe()
+        elif self.datasource.type == "SITEMAP":
+            return run_async_code_in_thread(self.load_sitemap)
         else:
             raise ValueError(f"Unsupported datasource type: {self.datasource.type}")
 
@@ -79,6 +88,10 @@ class DataLoader:
 
     def load_google_doc(self):
         pass
+
+    def load_sitemap(self):
+        loader = SitemapLoader(self.datasource.url, restrict_to_same_domain=False)
+        return loader.load_and_split()
 
     def load_pptx(self):
         from pptx import Presentation
