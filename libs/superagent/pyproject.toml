@@ -54,6 +54,7 @@ pydub = "^0.25.1"
 langsmith = "^0.0.63"
 langchain = "^0.0.334"
 algoliasearch = "^3.0.0"
+litellm = "^0.14.1"
 
 
 [build-system]
