@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional, Type
 
 from app.models.tools import (
     AgentInput,
+    AlgoliaInput,
     BingSearchInput,
     BrowserInput,
     ChatGPTInput,
@@ -17,6 +18,7 @@ from app.models.tools import (
     ZapierInput,
 )
 from app.tools.agent import Agent
+from app.tools.algolia import Algolia
 from app.tools.bing_search import BingSearch
 from app.tools.browser import Browser
 from app.tools.chatgpt import get_chatpgt_tool
@@ -32,6 +34,7 @@ from app.tools.zapier import ZapierNLA
 
 TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
+    "ALGOLIA": {"class": Algolia, "schema": AlgoliaInput},
     "BING_SEARCH": {
         "class": BingSearch,
         "schema": BingSearchInput,

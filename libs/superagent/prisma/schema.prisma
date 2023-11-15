@@ -26,6 +26,7 @@ enum LLMModel {
 }
 
 enum ToolType {
+  ALGOLIA
   BROWSER
   BING_SEARCH
   REPLICATE

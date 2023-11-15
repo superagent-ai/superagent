@@ -1,6 +1,11 @@
 from pydantic import BaseModel
 
 
+class AlgoliaInput(BaseModel):
+    search_query: str
+    num_of_results: int
+
+
 class DatasourceInput(BaseModel):
     question: str
 
