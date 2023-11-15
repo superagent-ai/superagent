@@ -238,7 +238,14 @@ export function DataTable<TData, TValue>({
                           <FormItem>
                             <FormLabel>{metadataField.label}</FormLabel>
                             <FormControl>
-                              <Input {...field} />
+                              <Input
+                                {...field}
+                                type={
+                                  metadataField.type === "password"
+                                    ? "password"
+                                    : "text"
+                                }
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

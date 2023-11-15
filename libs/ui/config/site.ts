@@ -157,6 +157,27 @@ export const siteConfig = {
   ],
   toolTypes: [
     {
+      value: "ALGOLIA",
+      title: "Algolia Index",
+      metadata: [
+        {
+          key: "index",
+          type: "input",
+          label: "Algolia Index",
+        },
+        {
+          key: "appId",
+          type: "input",
+          label: "Algolia App ID",
+        },
+        {
+          key: "apiKey",
+          type: "password",
+          label: "Algolia API Key",
+        },
+      ],
+    },
+    {
       value: "BING_SEARCH",
       title: "Bing Search",
       metadata: [
