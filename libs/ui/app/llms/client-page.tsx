@@ -70,11 +70,14 @@ export default function LLMClientPage({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      if (llms.length === 0) {
-        await api.createLLM({ ...values, provider: open })
+      const existingLLM = llms.find((llm: any) => llm.provider === open)
+
+      if (existingLLM) {
+        await api.patchLLM(existingLLM.id, { ...values, provider: open })
       } else {
-        await api.patchLLM(llms[0].id, { ...values, provider: open })
+        await api.createLLM({ ...values, provider: open })
       }
+
       toast({
         description: "LLM configuration saved",
       })
@@ -150,8 +153,8 @@ export default function LLMClientPage({
                         <DialogHeader>
                           <DialogTitle>Configure {llm.name}</DialogTitle>
                           <DialogDescription>
-                            Enter your OpenAI API key below. You can find your
-                            key by logging into your OpenAI account.
+                            Enter your API key below. You can find your key by
+                            logging into your account.
                           </DialogDescription>
                         </DialogHeader>
                         <Form {...form}>
@@ -160,6 +163,26 @@ export default function LLMClientPage({
                             className="w-full space-y-4"
                           >
                             {llm.id === "OPENAI" && (
+                              <div className="flex flex-col space-y-2">
+                                <FormField
+                                  control={form.control}
+                                  name="apiKey"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>API key</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Enter your api key"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            )}
+                            {llm.id === "HUGGINGFACE" && (
                               <div className="flex flex-col space-y-2">
                                 <FormField
                                   control={form.control}

@@ -97,6 +97,12 @@ export class Api {
     })
   }
 
+  async deleteAgentLLM(agentId: string, llmId: string) {
+    return this.fetchFromApi(`/agents/${agentId}/llms/${llmId}`, {
+      method: "DELETE",
+    })
+  }
+
   async deleteDatasource(id: string) {
     return this.fetchFromApi(`/datasources/${id}`, { method: "DELETE" })
   }
