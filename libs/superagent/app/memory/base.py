@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional, Tuple, List
 
 import requests
 
@@ -10,11 +10,18 @@ MANAGED_URL = config("MEMORY_API_URL")
 class Memory:
     """Assistant memory"""
 
-    url: str = MANAGED_URL
-    timeout: int = 3000
-    memory_key: str = "history"
-    session_id: str
-    context: Optional[str] = None
+    def __init__(
+        self,
+        session_id: str,
+        url: str = MANAGED_URL,
+        timeout: int = 3000,
+        context: Optional[str] = None,
+    ):
+        self.url = url
+        self.timeout = timeout
+        self.session_id = session_id
+        self.context = context
+        self.chat_memory = []
 
     def __get_headers(self) -> Dict[str, str]:
         headers = {
@@ -22,26 +29,17 @@ class Memory:
         }
         return headers
 
-    async def init(self) -> None:
+    async def init(self) -> Tuple[str, List[Any]]:
         res = requests.get(
             f"{self.url}/sessions/{self.session_id}/memory",
             timeout=self.timeout,
             headers=self.__get_headers(),
         )
         res_data = res.json()
-        res_data = res_data.get("data", res_data)  # Handle Managed Version
-
+        res_data = res_data.get("data", res_data)
         messages = res_data.get("messages", [])
         context = res_data.get("context", "NONE")
-
-        for message in reversed(messages):
-            if message["role"] == "AI":
-                self.chat_memory.add_ai_message(message["content"])
-            else:
-                self.chat_memory.add_user_message(message["content"])
-
-        if context and context != "NONE":
-            self.context = context
+        return (context, list(reversed(messages)))
 
     def save_context(self, inputs: Dict[str, Any], outputs: Dict[str, str]) -> None:
         input_str, output_str = self._get_input_output(inputs, outputs)

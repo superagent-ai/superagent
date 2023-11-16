@@ -31,6 +31,7 @@ from app.tools.replicate import Replicate
 from app.tools.tts_1 import TTS1
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
+from app.tools.chitchat import ChitChatTool, ChitChatArgs
 
 TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
@@ -57,6 +58,8 @@ TOOL_TYPE_MAPPING = {
     "GPT_VISION": {"class": GPTVision, "schema": GPTVisionInput},
     "TTS_1": {"class": TTS1, "schema": TTS1Input},
 }
+
+SUPERAGENT_TOOL_MAPPING = {"CHITCHAT": {"class": ChitChatTool, "schema": ChitChatArgs}}
 
 
 def create_tool(

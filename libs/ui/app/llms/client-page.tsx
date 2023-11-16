@@ -92,7 +92,7 @@ export default function LLMClientPage({
   }
 
   return (
-    <div className="grid grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-4 2xl:grid-cols-5">
       {siteConfig.llms.map((llm) => (
         <div key={llm.id}>
           <Card>

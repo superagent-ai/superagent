@@ -16,7 +16,7 @@ class ToolRunner:
         except json.JSONDecodeError:
             return self.json_input
 
-    def run(self) -> dict:
+    async def run(self) -> dict:
         data = self.parse_json()
         print(f"Invoking Tool: {data}")
         function_name = data.get("function", "")
@@ -32,7 +32,7 @@ class ToolRunner:
             # Validate args with Pydantic.
             validated_args = tool_class.args_model(**params)
             tool_instance = tool_class()
-            result = tool_instance.execute(validated_args)
+            result = tool_instance.execute(validated_args)  # Removed 'await'
             return result
         except ValidationError as e:
             return {"type": "error", "content": f"Validation Error: {str(e)}"}

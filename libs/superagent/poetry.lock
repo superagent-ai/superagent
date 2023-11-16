@@ -1841,13 +1841,13 @@ requests = ">=2,<3"
 
 [[package]]
 name = "litellm"
-version = "0.14.1"
+version = "1.0.3"
 description = "Library to easily interface with LLM API providers"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "litellm-0.14.1-py3-none-any.whl", hash = "sha256:d2c9114495bb2a6a8a9d1992b0c259379a0811d9fc0bade9e759aaaa1e528199"},
-    {file = "litellm-0.14.1.tar.gz", hash = "sha256:4d6d9a3745c9a1f194c2952b092fe86c741b00b47f92a853c84f0171543f4e9d"},
+    {file = "litellm-1.0.3-py3-none-any.whl", hash = "sha256:6d0aa91e1c80eddb08833e903061f8897e0b7953fd4f83b2bacf653debb24730"},
+    {file = "litellm-1.0.3.tar.gz", hash = "sha256:4ced31134cca1014bed685c0e330297c1a71f716bc85b09ea98bee5b1056bd4f"},
 ]
 
 [package.dependencies]
@@ -1857,7 +1857,7 @@ certifi = ">=2023.7.22,<2024.0.0"
 click = "*"
 importlib-metadata = ">=6.8.0"
 jinja2 = ">=3.1.2,<4.0.0"
-openai = "*"
+openai = ">=1.0.0"
 python-dotenv = ">=0.2.0"
 tiktoken = ">=0.4.0"
 tokenizers = "*"
@@ -5119,4 +5119,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "32374412e4e98923d8d833142c8ecfd359a9c8b225cf08d2b95f26c45ad1fb8e"
+content-hash = "fbb8fd69e140c6f7e7d2fdc03a0dafa507128ff509bd6eb01c799936bca5cd36"
