@@ -101,7 +101,7 @@ export function Message({
               `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`}
           </AvatarFallback>
         </Avatar>
-        <div className="ml-4 mt-1 flex-1 space-y-2 overflow-hidden px-1">
+        <div className="ml-4 mt-1 flex-1 flex-col space-y-2 overflow-hidden px-1">
           {message?.length === 0 && <PulsatingCursor />}
           <MemoizedReactMarkdown
             className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words text-sm"
@@ -194,28 +194,28 @@ export function Message({
           >
             {message}
           </MemoizedReactMarkdown>
+          {type === "ai" && message.length > 0 && (
+            <div className="flex space-x-2 ">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleFeedback(1)}
+                className="rounded-lg"
+              >
+                <GoThumbsup size="15px" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleFeedback(0)}
+                className="rounded-lg"
+              >
+                <GoThumbsdown size="15px" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
-      {type === "ai" && message.length > 0 && (
-        <div className="flex space-x-2 ">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleFeedback(1)}
-            className="rounded-lg"
-          >
-            <GoThumbsup size="15px" />
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleFeedback(0)}
-            className="rounded-lg"
-          >
-            <GoThumbsdown size="15px" />
-          </Button>
-        </div>
-      )}
     </div>
   )
 }
