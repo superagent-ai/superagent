@@ -8,6 +8,7 @@ from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from langfuse.callback import CallbackHandler
+from langsmith import Client
 
 from app.agents.base import AgentBase
 from app.models.request import (
@@ -457,11 +458,17 @@ async def remove_datasource(
 )
 async def list_runs(agent_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for listing agent runs"""
-    try:
-        output = langsmith_client.list_runs(
-            project_id=config("LANGSMITH_PROJECT_ID"),
-            filter=f"has(tags, '{agent_id}')",
-        )
-        return {"success": True, "data": output}
-    except Exception as e:
-        handle_exception(e)
+    is_langsmith_enabled = config("LANGCHAIN_TRACING_V2", False)
+    if is_langsmith_enabled == "True":
+        print(config("LANGCHAIN_TRACING_V2"))
+        langsmith_client = Client()
+        try:
+            output = langsmith_client.list_runs(
+                project_id=config("LANGSMITH_PROJECT_ID"),
+                filter=f"has(tags, '{agent_id}')",
+            )
+            return {"success": True, "data": output}
+        except Exception as e:
+            handle_exception(e)
+
+    return {"success": False, "data": []}

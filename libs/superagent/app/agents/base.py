@@ -1,7 +1,6 @@
 from typing import Any, List
 
 from decouple import config
-from langfuse.callback import CallbackHandler
 from langchain.agents import AgentType, initialize_agent
 from langchain.chains import LLMChain
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
