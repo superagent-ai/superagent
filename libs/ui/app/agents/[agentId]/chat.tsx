@@ -204,7 +204,7 @@ export function Message({
             onClick={() => handleFeedback(1)}
             className="rounded-lg"
           >
-            <GoThumbsup size="20px" />
+            <GoThumbsup size="15px" />
           </Button>
           <Button
             size="sm"
@@ -212,7 +212,7 @@ export function Message({
             onClick={() => handleFeedback(0)}
             className="rounded-lg"
           >
-            <GoThumbsdown size="20px" />
+            <GoThumbsdown size="15px" />
           </Button>
         </div>
       )}
