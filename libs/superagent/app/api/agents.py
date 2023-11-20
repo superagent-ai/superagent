@@ -8,6 +8,8 @@ from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from langfuse.callback import CallbackHandler
+from langfuse import Langfuse
+from langfuse.model import CreateTrace
 from langsmith import Client
 
 from app.agents.base import AgentBase
@@ -175,9 +177,11 @@ async def invoke(
     langfuse_secret_key = config("LANGFUSE_SECRET_KEY", "")
     langfuse_public_key = config("LANGFUSE_PUBLIC_KEY", "")
     if langfuse_public_key and langfuse_secret_key:
-        langfuse_handler = CallbackHandler(
+        langfuse = Langfuse(
             public_key=langfuse_public_key, secret_key=langfuse_secret_key
         )
+        trace = langfuse.trace(CreateTrace(id=agent_id, name=f"Assistant"))
+        langfuse_handler = trace.get_langchain_handler()
 
     async def send_message(
         agent: AgentBase, content: str, callback: CustomAsyncIteratorCallbackHandler
@@ -460,7 +464,6 @@ async def list_runs(agent_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for listing agent runs"""
     is_langsmith_enabled = config("LANGCHAIN_TRACING_V2", False)
     if is_langsmith_enabled == "True":
-        print(config("LANGCHAIN_TRACING_V2"))
         langsmith_client = Client()
         try:
             output = langsmith_client.list_runs(
