@@ -7,7 +7,6 @@ import segment.analytics as analytics
 from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
-from langfuse.callback import CallbackHandler
 from langfuse import Langfuse
 from langfuse.model import CreateTrace
 from langsmith import Client
@@ -180,7 +179,7 @@ async def invoke(
         langfuse = Langfuse(
             public_key=langfuse_public_key, secret_key=langfuse_secret_key
         )
-        trace = langfuse.trace(CreateTrace(id=agent_id, name=f"Assistant"))
+        trace = langfuse.trace(CreateTrace(id=agent_id, name="Assistant"))
         langfuse_handler = trace.get_langchain_handler()
 
     async def send_message(
