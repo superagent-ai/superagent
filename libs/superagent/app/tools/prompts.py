@@ -1,4 +1,4 @@
-from typing import List, Type
+from typing import List, Type, Tuple, Any
 
 from app.tools.tool import Tool
 
@@ -13,10 +13,12 @@ def create_function_calling_prompt(input: str, tools: List[Type[Tool]]) -> str:
     """
 
     prompt = (
-        "As an AI assistant, please select the most suitable function and parameters "
-        "from the list of available functions below, based on the user's input."
-        "Provide your response in JSON format.\n\n"
-        f"Input: {input}\n\n"
+        "Your are a helpful AI Assistant. Answer the user in a conversational manner. "
+        "Occasionally you will have to use a function to answer the users question "
+        "from the list of available functions below in which case you should "
+        "provide your response in JSON format.\n\n"
+        "Do not come up with your own functions.\n\n"
+        f"User: {input}\n\n"
     )
     prompt += "Available functions:\n\n"
     for tool_cls in tools:
@@ -32,7 +34,9 @@ def create_function_calling_prompt(input: str, tools: List[Type[Tool]]) -> str:
     return prompt
 
 
-def create_function_response_prompt(input: str, context: str) -> str:
+def create_function_response_prompt(
+    input: str, context: str, memory: Tuple[str, List[Any]]
+) -> str:
     """
     Create a custom prompt for returning a Tool response.
 
@@ -45,6 +49,23 @@ def create_function_response_prompt(input: str, context: str) -> str:
         "You are an helpful AI Assistant, answer the question by "
         "providing the most suitable response based on the context provided.\n\n"
         f"Input: {input}\n\n"
-        f"Context:\n{context}"
+        f"Context:\n{context}\n\n"
+        f"Chat history:\n{memory[1]}"
+    )
+    return prompt
+
+
+def create_memory_prompt(input: str, memory: Tuple[str, List[Any]]) -> str:
+    """
+    Create a custom prompt for memory.
+
+    :param input: The user's request in natural language.
+    :param memory: The memory tuple with context and history.
+    :system_prompt: A string representing the system prompt.
+    """
+    prompt = (
+        "You are an helpful AI Assistant. Answer the user in a converstaional manner.\n\n"
+        f"Human: {input}\n\n"
+        f"Chat history:\n{memory[1]}"
     )
     return prompt

@@ -1,7 +1,9 @@
-from typing import List
+import litellm
+
+from typing import List, Tuple, Any
 
 from litellm import acompletion
-from prisma.models import AgentLLM
+from prisma.models import AgentLLM, Agent
 
 from app.tools.prompts import (
     create_function_calling_prompt,
@@ -10,13 +12,21 @@ from app.tools.prompts import (
 from app.tools.chitchat import ChitChatTool
 from app.tools.runner import ToolRunner
 from app.completion.types import MODEL_MAPPER
+from app.memory.base import Memory
+
+litellm.huggingface_key = "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"
 
 
 class Completion:
     def __init__(
-        self, prompt: str, llm: AgentLLM, model: str, memory: str, tools: List[str]
+        self,
+        agent: Agent,
+        llm: AgentLLM,
+        model: str,
+        memory: Memory,
+        tools: List[str],
     ):
-        self.prompt = prompt
+        self.agent = agent
         self.llm = llm
         self.memory = memory
         self.tools = tools
@@ -41,17 +51,21 @@ class Completion:
 
     async def acall(self, *args, **kwargs):
         input = kwargs["inputs"]["input"]
-        prompt = create_function_calling_prompt(input=input, tools=[ChitChatTool])
+        chat_memory = await self.memory.init()
+        prompt = create_function_calling_prompt(input=input, tools=[])
         response = await self._run_completion(prompt)
-        runner = ToolRunner(response["choices"][0]["message"]["content"])
+        runner = ToolRunner(response["choices"][0]["message"]["content"], chat_memory)
         prediction = await runner.run()
 
         if prediction["type"] == "function_call":
             prompt = create_function_response_prompt(
                 input=input, context=prediction["content"]
             )
-            print(prompt)
             response = await self._run_completion(prompt)
-            return response["choices"][0]["message"]["content"]
+            output = response["choices"][0]["message"]["content"]
+            self.memory.save_context(input=input, output=output)
+            return output
         else:
-            return prediction["content"]
+            output = prediction["content"]
+            self.memory.save_context(input=input, output=output)
+            return output
