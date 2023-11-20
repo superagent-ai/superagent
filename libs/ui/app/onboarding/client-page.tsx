@@ -94,56 +94,6 @@ export default function OnboardingClientPage() {
     }
   }
 
-  // async function onSubmit(values: z.infer<typeof formSchema>) {
-  //   const { first_name, last_name, company } = values
-  //   const {
-  //     data: { user },
-  //   } = await supabase.auth.getUser()
-  //   if (!user?.email) {
-  //     toast({
-  //       description: `Ooops! User email is missing!`,
-  //       variant: "destructive",
-  //     })
-  //     return
-  //   }
-  //   const {
-  //     data: { token: api_key },
-  //   } = await api.createApiKey(user.email)
-  //   const params: Stripe.CustomerCreateParams = {
-  //     name: company,
-  //   }
-  //   let customer: Stripe.Customer | null = null
-  //   if (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
-  //     customer = await stripe.customers.create(params)
-  //   }
-  //   const { error } = await supabase
-  //     .from("profiles")
-  //     .update({
-  //       api_key,
-  //       first_name,
-  //       last_name,
-  //       company,
-  //       stripe_customer_id: customer?.id,
-  //       is_onboarded: true,
-  //     })
-  //     .eq("user_id", user?.id)
-
-  //   if (error) {
-  //     toast({
-  //       description: `Ooops! ${error?.message}`,
-  //       variant: "destructive",
-  //     })
-
-  //     return
-  //   }
-
-  //   toast({
-  //     description: "Settings updated!",
-  //   })
-
-  //   window.location.href = "/llms"
-  // }
-
   return (
     <div className="flex min-h-screen flex-col justify-center">
       <div className="container max-w-lg">
