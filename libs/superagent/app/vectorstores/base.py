@@ -1,4 +1,3 @@
-import os
 from typing import Any, Literal, Optional
 
 from decouple import config
@@ -6,6 +5,7 @@ from langchain.docstore.document import Document
 
 from app.vectorstores.astra import AstraVectorStore
 from app.vectorstores.pinecone import PineconeVectorStore
+from app.vectorstores.weaviate import WeaviateVectorStore
 
 # NOTE: Need an abstract class for the base vectorstore with defined methods
 
@@ -15,21 +15,23 @@ class VectorStoreBase:
         """
         Determine the vectorstore
         """
-        self.vectorstore = config("VECTORSTORE", default="astra")
-        if self.vectorstore == "pinecone":
-            self.instance = PineconeVectorStore()
-        if self.vectorstore == "astra":
-            self.instance = AstraVectorStore()
+        self.vectorstore = config("VECTORSTORE", default="pinecone")
+        self.instance = self.get_database()
 
     def get_database(self, index_name: Optional[str] = None) -> Any:
-        if self.vectorstore == "pinecone":
-            if index_name is None:
-                index_name = os.getenv("PINECONE_INDEX", "superagent")
-            return PineconeVectorStore(index_name=index_name)
-        if self.vectorstore == "astra":
-            if index_name is None:
-                index_name = os.getenv("COLLECTION_NAME", "superagent")
-            return AstraVectorStore(collection_name=index_name)
+        vectorstore_classes = {
+            "pinecone": PineconeVectorStore,
+            "astra": AstraVectorStore,
+            "weaviate": WeaviateVectorStore,
+        }
+        index_names = {
+            "pinecone": config("PINECONE_INDEX", "superagent"),
+            "astra": config("COLLECTION_NAME", "superagent"),
+            "weaviate": config("WEAVIATE_INDEX", "superagent"),
+        }
+        if index_name is None:
+            index_name = index_names.get(self.vectorstore)
+        return vectorstore_classes.get(self.vectorstore)(index_name=index_name)
 
     def query(
         self,
