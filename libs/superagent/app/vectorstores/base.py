@@ -5,6 +5,7 @@ from langchain.docstore.document import Document
 
 from app.vectorstores.astra import AstraVectorStore
 from app.vectorstores.pinecone import PineconeVectorStore
+from app.vectorstores.qdrant import QdrantVectorStore
 from app.vectorstores.weaviate import WeaviateVectorStore
 
 # NOTE: Need an abstract class for the base vectorstore with defined methods
@@ -23,11 +24,13 @@ class VectorStoreBase:
             "pinecone": PineconeVectorStore,
             "astra": AstraVectorStore,
             "weaviate": WeaviateVectorStore,
+            "qdrant": QdrantVectorStore,
         }
         index_names = {
             "pinecone": config("PINECONE_INDEX", "superagent"),
             "astra": config("COLLECTION_NAME", "superagent"),
             "weaviate": config("WEAVIATE_INDEX", "superagent"),
+            "qdrant": config("QDRANT_INDEX", "superagent"),
         }
         if index_name is None:
             index_name = index_names.get(self.vectorstore)
