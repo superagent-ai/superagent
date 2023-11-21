@@ -1,14 +1,13 @@
 import logging
-import openai
-
 from typing import Literal
+
+import openai
 from decouple import config
-from qdrant_client import QdrantClient, models
-from qdrant_client.http.models import PointStruct
-from qdrant_client.http import models as rest
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
-
+from qdrant_client import QdrantClient, models
+from qdrant_client.http import models as rest
+from qdrant_client.http.models import PointStruct
 
 logger = logging.getLogger(__name__)
 
@@ -70,23 +69,18 @@ class QdrantVectorStore:
             input=prompt, model="text-embedding-ada-002"
         )
         embeddings = response.data[0].embedding
-        try:
-            search_result = self.client.search(
-                collection_name=self.index_name,
-                query_vector=("content", embeddings),
-                limit=top_k,
-                query_filter=models.Filter(
-                    must=[
-                        models.FieldCondition(
-                            key="datasource_id",
-                            match=models.MatchValue(value=datasource_id),
-                        ),
-                    ]
-                ),
-                with_payload=True,
-            )
-            print(search_result)
-            return search_result
-        except Exception as e:
-            print(e)
-            return []
+        search_result = self.client.search(
+            collection_name=self.index_name,
+            query_vector=("content", embeddings),
+            limit=top_k,
+            query_filter=models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="datasource_id",
+                        match=models.MatchValue(value=datasource_id),
+                    ),
+                ]
+            ),
+            with_payload=True,
+        )
+        return search_result
