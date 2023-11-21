@@ -1,4 +1,3 @@
-import os
 from typing import Any, Literal, Optional
 
 from decouple import config

@@ -1,9 +1,9 @@
-import weaviate
 import logging
-import backoff
 import uuid
+from typing import Dict, List, Literal
 
-from typing import Dict, List, Any, Literal
+import backoff
+import weaviate
 from decouple import config
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
