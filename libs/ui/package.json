@@ -41,6 +41,7 @@
     "cmdk": "^0.2.0",
     "dayjs": "^1.11.9",
     "framer-motion": "^10.16.4",
+    "langfuse": "^1.0.31",
     "lucide-react": "0.105.0-alpha.4",
     "next": "^13.5.2",
     "next-themes": "^0.2.1",
