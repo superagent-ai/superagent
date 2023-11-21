@@ -56,6 +56,7 @@ langchain = "^0.0.334"
 algoliasearch = "^3.0.0"
 litellm = "^0.14.1"
 langfuse = "^1.6.0"
+weaviate-client = "^3.25.3"
 
 
 [build-system]
