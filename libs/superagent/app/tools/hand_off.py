@@ -1,7 +1,6 @@
 import json
 
 from langchain.tools import BaseTool
-from langchain.utilities import MetaphorSearchAPIWrapper
 
 
 class HandOff(BaseTool):

@@ -9,6 +9,7 @@ from app.models.tools import (
     ChatGPTInput,
     E2BCodeExecutorInput,
     GPTVisionInput,
+    HandOffInput,
     MetaphorSearchInput,
     OpenapiInput,
     PubMedInput,
@@ -16,7 +17,6 @@ from app.models.tools import (
     TTS1Input,
     WolframInput,
     ZapierInput,
-    HandOffInput,
 )
 from app.tools.agent import Agent
 from app.tools.algolia import Algolia
@@ -25,6 +25,7 @@ from app.tools.browser import Browser
 from app.tools.chatgpt import get_chatpgt_tool
 from app.tools.e2b import E2BCodeExecutor
 from app.tools.gpt_vision import GPTVision
+from app.tools.hand_off import HandOff
 from app.tools.metaphor import MetaphorSearch
 from app.tools.openapi import Openapi
 from app.tools.pubmed import PubMed
@@ -32,7 +33,6 @@ from app.tools.replicate import Replicate
 from app.tools.tts_1 import TTS1
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
-from app.tools.hand_off import HandOff
 
 TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
