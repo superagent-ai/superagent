@@ -176,6 +176,7 @@ async def invoke(
     langfuse_secret_key = config("LANGFUSE_SECRET_KEY", "")
     langfuse_public_key = config("LANGFUSE_PUBLIC_KEY", "")
     langfuse_host = config("LANGFUSE_HOST", "https://cloud.langfuse.com")
+    langfuse_handler = None
     if langfuse_public_key and langfuse_secret_key:
         langfuse = Langfuse(
             public_key=langfuse_public_key,
