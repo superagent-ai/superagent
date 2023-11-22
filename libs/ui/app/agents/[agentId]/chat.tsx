@@ -7,7 +7,7 @@ import relativeTime from "dayjs/plugin/relativeTime"
 import { motion } from "framer-motion"
 import { LangfuseWeb } from "langfuse"
 import { GoThumbsdown, GoThumbsup } from "react-icons/go"
-import { RxChatBubble, RxCode } from "react-icons/rx"
+import { RxChatBubble, RxCode, RxCopy, RxReload } from "react-icons/rx"
 import { useAsyncFn } from "react-use"
 import remarkGfm from "remark-gfm"
 import remarkMath from "remark-math"
@@ -71,11 +71,13 @@ export function Message({
   type,
   message,
   profile,
+  onResubmit,
 }: {
   agent: Agent
   type: string
   message: string
   profile: Profile
+  onResubmit?: () => void
 }) {
   const { toast } = useToast()
   const handleFeedback = async (value: number) => {
@@ -88,6 +90,13 @@ export function Message({
 
     toast({
       description: "Feedback submitted!",
+    })
+  }
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message)
+    toast({
+      description: "Message copied to clipboard!",
     })
   }
 
@@ -212,6 +221,24 @@ export function Message({
               >
                 <GoThumbsdown size="15px" />
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleCopy()}
+                className="rounded-lg"
+              >
+                <RxCopy size="15px" />
+              </Button>
+              {onResubmit && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={onResubmit}
+                  className="rounded-lg"
+                >
+                  <RxReload size="15px" />
+                </Button>
+              )}
             </div>
           )}
         </div>
