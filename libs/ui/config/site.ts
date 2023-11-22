@@ -252,6 +252,11 @@ export const siteConfig = {
       metadata: [],
     },
     {
+      value: "HAND_OFF",
+      title: "Human hand-off (Alpha)",
+      metadata: [],
+    },
+    {
       value: "OPENAPI",
       title: "OpenAPI",
       metadata: [

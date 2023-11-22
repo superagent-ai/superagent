@@ -9,6 +9,7 @@ from app.models.tools import (
     ChatGPTInput,
     E2BCodeExecutorInput,
     GPTVisionInput,
+    HandOffInput,
     MetaphorSearchInput,
     OpenapiInput,
     PubMedInput,
@@ -24,6 +25,7 @@ from app.tools.browser import Browser
 from app.tools.chatgpt import get_chatpgt_tool
 from app.tools.e2b import E2BCodeExecutor
 from app.tools.gpt_vision import GPTVision
+from app.tools.hand_off import HandOff
 from app.tools.metaphor import MetaphorSearch
 from app.tools.openapi import Openapi
 from app.tools.pubmed import PubMed
@@ -56,6 +58,7 @@ TOOL_TYPE_MAPPING = {
     "BROWSER": {"class": Browser, "schema": BrowserInput},
     "GPT_VISION": {"class": GPTVision, "schema": GPTVisionInput},
     "TTS_1": {"class": TTS1, "schema": TTS1Input},
+    "HAND_OFF": {"class": HandOff, "schema": HandOffInput},
 }
 
 
