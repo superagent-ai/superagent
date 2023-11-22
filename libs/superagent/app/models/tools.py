@@ -70,3 +70,7 @@ class TTS1InputModel(BaseModel):
 
 class TTS1Input(BaseModel):
     input: TTS1InputModel
+
+
+class HandOffInput(BaseModel):
+    reason: str

@@ -41,6 +41,7 @@ enum ToolType {
   OPENBB
   GPT_VISION
   TTS_1
+  HAND_OFF
 }
 
 enum DatasourceType {
