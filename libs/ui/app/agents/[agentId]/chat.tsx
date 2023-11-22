@@ -44,9 +44,13 @@ import PromptForm from "./prompt-form"
 
 dayjs.extend(relativeTime)
 
-const langfuseWeb = new LangfuseWeb({
-  publicKey: process.env.NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY || "",
-})
+let langfuseWeb: LangfuseWeb | null = null
+
+if (process.env.NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY) {
+  langfuseWeb = new LangfuseWeb({
+    publicKey: process.env.NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY,
+  })
+}
 
 function PulsatingCursor() {
   return (
@@ -81,6 +85,10 @@ export function Message({
 }) {
   const { toast } = useToast()
   const handleFeedback = async (value: number) => {
+    if (!langfuseWeb) {
+      return
+    }
+
     await langfuseWeb.score({
       traceId: agent.id,
       name: "user-feedback",
@@ -205,22 +213,26 @@ export function Message({
           </MemoizedReactMarkdown>
           {type === "ai" && message.length > 0 && (
             <div className="flex space-x-2 ">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleFeedback(1)}
-                className="rounded-lg"
-              >
-                <GoThumbsup size="15px" />
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleFeedback(0)}
-                className="rounded-lg"
-              >
-                <GoThumbsdown size="15px" />
-              </Button>
+              {langfuseWeb && (
+                <div className="flex space-x-2 ">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleFeedback(1)}
+                    className="rounded-lg"
+                  >
+                    <GoThumbsup size="15px" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleFeedback(0)}
+                    className="rounded-lg"
+                  >
+                    <GoThumbsdown size="15px" />
+                  </Button>
+                </div>
+              )}
               <Button
                 size="sm"
                 variant="outline"
