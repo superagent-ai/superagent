@@ -6,8 +6,9 @@ from app.tools.tool import Tool
 
 
 class ToolRunner:
-    def __init__(self, json_input):
+    def __init__(self, json_input, memory):
         self.json_input = json_input
+        self.memory = memory
 
     def parse_json(self):
         try:
@@ -31,7 +32,7 @@ class ToolRunner:
         try:
             # Validate args with Pydantic.
             validated_args = tool_class.args_model(**params)
-            tool_instance = tool_class()
+            tool_instance = tool_class(memory=self.memory)
             result = tool_instance.execute(validated_args)  # Removed 'await'
             return result
         except ValidationError as e:

@@ -41,20 +41,18 @@ class Memory:
         context = res_data.get("context", "NONE")
         return (context, list(reversed(messages)))
 
-    def save_context(self, inputs: Dict[str, Any], outputs: Dict[str, str]) -> None:
-        input_str, output_str = self._get_input_output(inputs, outputs)
+    def save_context(self, input: str, output: str) -> None:
         requests.post(
             f"{self.url}/sessions/{self.session_id}/memory",
             timeout=self.timeout,
             json={
                 "messages": [
-                    {"role": "Human", "content": f"{input_str}"},
-                    {"role": "AI", "content": f"{output_str}"},
+                    {"role": "Human", "content": f"{input}"},
+                    {"role": "AI", "content": f"{output}"},
                 ]
             },
             headers=self.__get_headers(),
         )
-        super().save_context(inputs, outputs)
 
     def delete_session(self) -> None:
         """Delete a session"""

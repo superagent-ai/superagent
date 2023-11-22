@@ -1,4 +1,4 @@
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Tuple
 
 from app.agents.base import AgentBase
 from app.memory.base import Memory
@@ -18,35 +18,23 @@ class SuperagentAgent(AgentBase):
         tools = [ChitChatTool]
         return tools
 
-    async def _get_prompt(self, agent: Agent) -> str:
-        # Implement the method specific to the Open Source LLM Agent
-        pass
-
-    async def _get_memory(self) -> List:
+    async def _get_memory(self) -> Tuple[str, List[Any]]:
         memory = Memory(
             session_id=f"{self.agent_id}-{self.session_id}"
             if self.session_id
             else f"{self.agent_id}",
             url=config("MEMORY_API_URL"),
         )
-        chat_memory = await memory.init()
-        return chat_memory
-
-    async def _run_completion(self) -> Dict:
-        pass
-
-    async def arun(self) -> None:
-        pass
+        return memory
 
     async def get_agent(self, config: Agent) -> Any:
         memory = await self._get_memory()
         tools = await self._get_tools(
             agent_datasources=config.datasources, agent_tools=config.tools
         )
-        prompt = await self._get_prompt(agent=config)
         return Completion(
+            agent=config,
             memory=memory,
-            prompt=prompt,
             tools=tools,
             llm=config.llms[0],
             model=config.llmModel,
