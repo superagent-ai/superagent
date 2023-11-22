@@ -8,7 +8,7 @@ import relativeTime from "dayjs/plugin/relativeTime"
 import { motion } from "framer-motion"
 import { LangfuseWeb } from "langfuse"
 import { GoThumbsdown, GoThumbsup } from "react-icons/go"
-import { RxChatBubble } from "react-icons/rx"
+import { RxChatBubble, RxCopy } from "react-icons/rx"
 import remarkGfm from "remark-gfm"
 import remarkMath from "remark-math"
 
@@ -81,6 +81,13 @@ export function Message({
 
     toast({
       description: "Feedback submitted!",
+    })
+  }
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message)
+    toast({
+      description: "Message copied to clipboard!",
     })
   }
 
@@ -205,6 +212,14 @@ export function Message({
                 className="rounded-lg"
               >
                 <GoThumbsdown size="15px" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleCopy()}
+                className="rounded-lg"
+              >
+                <RxCopy size="15px" />
               </Button>
             </div>
           )}
