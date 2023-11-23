@@ -1,0 +1,168 @@
+Humans sometimes need to talk to an other human instead of an AI, yeah I know sounds weird right? But turns out this could be quite beneficial for customer satisfaction. Superagent enables this by offering a specific tool we call `Human hand-off`. 
+
+## Step-by-step guide
+
+**Prerequisites:** This tutorial expects you to have configured an LLM and created an Agent
+
+1. Create a `HAND_OFF` tool. This tool will make sure to trigger and ask the user if they want to speak to a human.
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        tool = client.tool.create(request={
+            "name": "Human hand-off", 
+            "description": "Useful when the user wants to speak to a human operator",
+            "type": "HAND_OFF"
+        })
+
+        # Add the tool to your agent
+        client.agent.add_tool(agent_id=agent_id, tool_id=tool.data.id)
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript 
+        const {data: tool} = await client.tool.create({
+            name: "Human hand-off", 
+            description: "Useful when the user wants to speak to a human operator",
+            type: "HAND_OFF"
+        })
+
+        // Add the tool to your agent
+        await client.agent.addTool(agentId, {toolId: tool.id})
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+2. Invoke the Agent to test the hand-off
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        # Write a helper function that checks for human hand-off
+        def check_for_human_handoff(data):
+        for item, _ in data:
+            if item['tool'] == 'human-handoff':
+                return True
+        return False
+
+        prediction = client.agent.invoke(
+            agent_id=agent_id,
+            enable_streaming=False,
+            input="I want to speak to a human",
+            session_id="my_session_id"
+        )
+
+        output = prediction.data.get("output")
+        steps = preduction.data.get("intermediate_steps")
+
+        if check_for_human_handoff(steps):
+            # Run any local code here
+            print("HUMAN HANDOFF DETECTED")    
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript 
+        // Write a helper function that checks for human hand-off
+        function checkForHumanHandoff(data) {
+            for (const [item] of data) {
+                if (item.tool === 'human-handoff') {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        const {data: prediction} = await client.agent.invoke(agentId, {
+            enableStreaming: false,
+            input: "I want to speak to a human",
+            sessionId: "my_session_id"
+        })
+
+        const output = prediction.output
+        const steps = prediction.intermediate_steps
+        const hasHumanHandoff = checkForHumanHandoff(steps)
+
+        // Run any local code here
+        if (hasHumanHandoff) {
+            console.log("HUMAN HANDOFF DETECTED")
+        }
+        ```
+    </CodeBlock>
+</CodeBlocks>
+    
+That's it, you can now run arbitrary code whenever the human hand-off is triggered. 
+
+
+## Full code
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        tool = client.tool.create(request={
+            "name": "Human hand-off", 
+            "description": "Useful when the user wants to speak to a human operator",
+            "type": "HAND_OFF"
+        })
+
+        # Add the tool to your agent
+        client.agent.add_tool(agent_id=agent_id, tool_id=tool.data.id)
+
+        # Write a helper function that checks for human hand-off
+        def check_for_human_handoff(data: list) -> bool:
+            for item, _ in data:
+                if item['tool'] == 'human-handoff':
+                    return True
+            return False
+
+        prediction = client.agent.invoke(
+            agent_id=agent_id,
+            enable_streaming=False,
+            input="I want to speak to a human",
+            session_id="my_session_id"
+        )
+
+        output = prediction.data.get("output")
+        steps = preduction.data.get("intermediate_steps")
+
+        if check_for_human_handoff(steps):
+            # Run any local code here
+            print("HUMAN HANDOFF DETECTED")    
+
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript 
+        const {data: tool} = await client.tool.create({
+            name: "Human hand-off", 
+            description: "Useful when the user wants to speak to a human operator",
+            type: "HAND_OFF"
+        })
+
+        // Add the tool to your agent
+        
+        await client.agent.addTool(agentId, {toolId: tool.id})
+
+        // Write a helper function that checks for human hand-off
+        function checkForHumanHandoff(data) {
+            for (const [item] of data) {
+                if (item.tool === 'human-handoff') {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        const {data: prediction} = await client.agent.invoke(agentId, {
+            enableStreaming: false,
+            input: "I want to speak to a human",
+            sessionId: "my_session_id"
+        })
+
+        const output = prediction.output
+        const steps = prediction.intermediate_steps
+        const hasHumanHandoff = checkForHumanHandoff(steps)
+
+        // Run any local code here
+        if (hasHumanHandoff) {
+            console.log("HUMAN HANDOFF DETECTED")
+        }
+        ```
+    </CodeBlock>
+</CodeBlocks>
