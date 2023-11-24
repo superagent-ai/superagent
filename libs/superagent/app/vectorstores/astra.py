@@ -40,8 +40,8 @@ class AstraVectorStore:
         astra_id: str = config("ASTRA_DB_ID", ""),
         astra_region: str = config("ASTRA_DB_REGION", "us-east1"),
         astra_application_token: str = config("ASTRA_DB_APPLICATION_TOKEN", ""),
-        collection_name: str = config("ASTRA_COLLECTION_NAME", "superagent"),
-        keyspace_name: str = config("ASTRA_KEYSPACE_NAME", ""),
+        collection_name: str = config("ASTRA_DB_COLLECTION_NAME", "superagent"),
+        keyspace_name: str = config("ASTRA_DB_KEYSPACE_NAME", ""),
     ) -> None:
         if not astra_id:
             raise ValueError(
@@ -64,13 +64,13 @@ class AstraVectorStore:
         if not collection_name:
             raise ValueError(
                 "Please provide an Astra collection name via the "
-                "`ASTRA_COLLECTION_NAME` environment variable."
+                "`ASTRA_DB_COLLECTION_NAME` environment variable."
             )
 
         if not keyspace_name:
             raise ValueError(
                 "Please provide an Astra keyspace via the "
-                "`ASTRA_KEYSPACE_NAME` environment variable."
+                "`ASTRA_DB_KEYSPACE_NAME` environment variable."
             )
 
         self.index = AstraClient(
