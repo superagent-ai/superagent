@@ -1,0 +1,24 @@
+This guide shows you how to deploy the Superagent API to [Render.com](https://www.render.com)
+
+1. Create a new `Web service` from within the [Render dashboard](https://dashboard.render.com/create?type=web). 
+
+2. Select `Build and deploy from a Git repository`.
+<img width="958" alt="Screenshot 2023-11-05 at 23 28 24" src="https://user-images.githubusercontent.com/2464556/280559100-f244d173-8ac8-41af-a3ef-89165365fc13.png" />
+
+3. Connect your Superaget fork from the list of repositories.
+
+4. Set the `Root directory` option to `./libs/superagent`.
+<img width="1284" alt="Screenshot 2023-11-05 at 23 38 40" src="https://user-images.githubusercontent.com/2464556/280559182-42441f74-00c8-4953-aa7b-4d20a14cc417.png" />
+
+
+5. Set the `Dockerfile Path` to Dockerfile.
+<img width="1237" alt="Screenshot 2023-11-05 at 23 38 33" src="https://user-images.githubusercontent.com/2464556/280559195-cff4dcdb-49b9-45b4-ada7-60061a2ac0f4.png" />
+
+
+6. Add all required enviornment varialbes. See example [here](https://github.com/homanp/superagent/blob/main/libs/superagent/.env.example).
+
+7. Press `Create service`. 
+
+8. After the Render deployment is ready you can access the Superagent API at `https://<your_domain>.com/api/v1`.
+
+That's it!
