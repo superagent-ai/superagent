@@ -36,9 +36,9 @@ class Response:
 class PineconeVectorStore:
     def __init__(
         self,
-        index_name: str = config("PINECONE_INDEX"),
-        environment: str = config("PINECONE_ENVIRONMENT"),
-        pinecone_api_key: str = config("PINECONE_API_KEY"),
+        index_name: str = config("PINECONE_INDEX", ""),
+        environment: str = config("PINECONE_ENVIRONMENT", ""),
+        pinecone_api_key: str = config("PINECONE_API_KEY", ""),
     ) -> None:
         if not index_name:
             raise ValueError(

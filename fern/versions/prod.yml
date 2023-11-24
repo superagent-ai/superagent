@@ -1,15 +1,24 @@
+
 navigation:
-  - section: Overview
-    contents:
-      - page: Introduction
-        path: ../mdx/intro.mdx
-      - page: Authentication
-        path: ../mdx/authentication.mdx
-      - page: Concepts
-        path: ../mdx/concepts.mdx
-      - page: Platform
-        path: ../mdx/platform.mdx
-  - api-name: prod
-    api: Superagent API
-    snippets: 
-      python: superagent-py
+  - tab: overview
+    layout:
+      - section: Overview
+        contents:
+          - page: Introduction
+            path: ../mdx/intro.mdx
+          - page: Authentication
+            path: ../mdx/authentication.mdx
+          - page: Concepts
+            path: ../mdx/concepts.mdx
+          - page: Platform
+            path: ../mdx/platform.mdx
+  - tab: api
+    layout:
+      - section: Introduction
+        contents:
+          - page: Authentication
+            path: ../mdx/authentication.mdx
+      - api: API Reference
+        api-name: prod 
+        snippets: 
+          python: superagent-py
