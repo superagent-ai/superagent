@@ -38,10 +38,10 @@ Humans sometimes need to talk to an other human instead of an AI, yeah I know so
         ```python 
         # Write a helper function that checks for human hand-off
         def check_for_human_handoff(data):
-        for item, _ in data:
-            if item['tool'] == 'human-handoff':
-                return True
-        return False
+            for item, _ in data:
+                f item['tool'] == 'human-handoff':
+                    return True
+            return False
 
         prediction = client.agent.invoke(
             agent_id=agent_id,
