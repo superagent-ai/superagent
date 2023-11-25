@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  superagent-ui:
+    container_name: superagent-ui
+    network_mode: ${NETWORK_MODE}
+    build:
+      context: ../ui
+      dockerfile: Dockerfile
+    env_file:
+      - ../ui/.env
+    environment:
+      - PORT=3000
+    ports:
+      - 3000:3000

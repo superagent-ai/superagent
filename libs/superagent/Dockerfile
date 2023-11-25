@@ -18,6 +18,10 @@ RUN poetry install --no-root && rm -rf $POETRY_CACHE_DIR
 
 FROM python:3.11 AS runtime
 
+RUN apt-get update && apt-get install -y curl && \
+    curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs
+
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PORT="8080"
 
@@ -28,4 +32,4 @@ COPY . ./
 RUN prisma generate
 
 # Bind the port and refer to the app.py app
-CMD exec gunicorn --bind :$PORT --workers 2 --timeout 0  --worker-class uvicorn.workers.UvicornWorker  --threads 8 app.main:app
+CMD prisma migrate deploy && exec gunicorn --bind :$PORT --workers 2 --timeout 0  --worker-class uvicorn.workers.UvicornWorker  --threads 8 app.main:app

@@ -11,7 +11,12 @@
     "preview": "next build && next start",
     "typecheck": "tsc --noEmit",
     "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
-    "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache"
+    "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache",
+    "supabase:local:start": "supabase start && supabase status",
+    "supabase:local:migrate": "supabase migrations up",
+    "supabase:cloud:login": "supabase login",
+    "supabase:cloud:link": "supabase link",
+    "supabase:cloud:push": "supabase db push"
   },
   "dependencies": {
     "@apideck/file-picker": "^1.0.3",
@@ -80,6 +85,7 @@
     "eslint-plugin-tailwindcss": "^3.13.0",
     "postcss": "^8.4.24",
     "prettier": "^2.8.8",
+    "supabase": "^1.113.2",
     "tailwindcss": "^3.3.2",
     "typescript": "^4.9.5"
   }
