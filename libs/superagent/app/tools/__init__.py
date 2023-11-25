@@ -17,6 +17,7 @@ from app.models.tools import (
     TTS1Input,
     WolframInput,
     ZapierInput,
+    FunctionInput,
 )
 from app.tools.agent import Agent
 from app.tools.algolia import Algolia
@@ -33,6 +34,7 @@ from app.tools.replicate import Replicate
 from app.tools.tts_1 import TTS1
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
+from app.tools.function import Function
 
 TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
@@ -59,6 +61,7 @@ TOOL_TYPE_MAPPING = {
     "GPT_VISION": {"class": GPTVision, "schema": GPTVisionInput},
     "TTS_1": {"class": TTS1, "schema": TTS1Input},
     "HAND_OFF": {"class": HandOff, "schema": HandOffInput},
+    "FUNCTION": {"class": Function, "schema": FunctionInput},
 }
 
 

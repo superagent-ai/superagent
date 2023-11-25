@@ -32,6 +32,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -252,15 +253,27 @@ export function DataTable<TData, TValue>({
                             {metadataField.type === "json" && (
                               <div className="overflow-hidden rounded-lg">
                                 <CodeMirror
-                                  className="rounded-lg text-sm"
-                                  height="200px"
+                                  className="rounded-lg text-xs"
                                   extensions={[json()]}
                                   theme={vscodeDark}
                                   onChange={field.onChange}
+                                  value={
+                                    "json" in metadataField
+                                      ? JSON.stringify(
+                                          metadataField.json,
+                                          null,
+                                          2
+                                        )
+                                      : undefined
+                                  }
                                 />
                               </div>
                             )}
-
+                            {"helpText" in metadataField && (
+                              <FormDescription>
+                                {metadataField.helpText}
+                              </FormDescription>
+                            )}
                             <FormMessage />
                           </FormItem>
                         )}
