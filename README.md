@@ -19,13 +19,13 @@
 -----
 
 <p align="center">
-  <a href="#demo">Demo</a> •
-  <a href="#use-cases">Use cases</a> •
-  <a href="#features">Features</a> •
+  <a href="#-demo">Demo</a> •
+  <a href="#-use-cases">Use cases</a> •
+  <a href="#-features">Features</a> •
   <a href="https://docs.superagent.sh" target="_blank">Docs</a> •
-  <a href="#tutorials" target="_blank">Tutorials</a> •
-  <a href="#sdks" target="_blank">SDKs</a> •
-  <a href="#contributions" target="_blank">Contributions</a>
+  <a href="#-tutorials" target="_blank">Tutorials</a> •
+  <a href="#-sdks" target="_blank">SDKs</a> •
+  <a href="#-contributions" target="_blank">Contributions</a>
 </p>
 
 -----
