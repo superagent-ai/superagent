@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { RxPaperPlane, RxPlus } from "react-icons/rx"
+import { RxArrowUp, RxPlus } from "react-icons/rx"
 import Textarea from "react-textarea-autosize"
 import { v4 as uuid } from "uuid"
 
@@ -69,11 +69,13 @@ export default function PromptFrom({
         <div className="absolute right-0 top-2.5 sm:right-4">
           <Button
             type="submit"
-            size="icon"
-            variant="secondary"
+            className={cn(
+              buttonVariants({ size: "sm", variant: "secondary" }),
+              "mt-1 h-8 w-8 rounded-md p-0"
+            )}
             disabled={isLoading || input === ""}
           >
-            <RxPaperPlane />
+            <RxArrowUp size="18px" />
             <span className="sr-only">Send message</span>
           </Button>
         </div>

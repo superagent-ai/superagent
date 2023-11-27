@@ -115,7 +115,10 @@ export function DataTable<TData, TValue>({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await api.createTool({ ...values })
+      await api.createTool({
+        ...values,
+        returnDirect: values.type === "FUCTION" ? true : false,
+      })
       toast({
         description: "Tool created successfully",
       })

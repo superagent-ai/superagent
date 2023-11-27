@@ -261,7 +261,7 @@ export const siteConfig = {
       title: "Function",
       metadata: [
         {
-          key: "name",
+          key: "function_name",
           type: "input",
           label: "Function name",
           helpText: "Use lowercase letters, ex: get_article",

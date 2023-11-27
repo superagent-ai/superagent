@@ -1,6 +1,8 @@
 import json
 from typing import Any, Dict, Optional, Type
 
+from pydantic import create_model
+
 from app.models.tools import (
     AgentInput,
     AlgoliaInput,
@@ -8,6 +10,7 @@ from app.models.tools import (
     BrowserInput,
     ChatGPTInput,
     E2BCodeExecutorInput,
+    FunctionInput,
     GPTVisionInput,
     HandOffInput,
     MetaphorSearchInput,
@@ -17,7 +20,6 @@ from app.models.tools import (
     TTS1Input,
     WolframInput,
     ZapierInput,
-    FunctionInput,
 )
 from app.tools.agent import Agent
 from app.tools.algolia import Algolia
@@ -25,6 +27,7 @@ from app.tools.bing_search import BingSearch
 from app.tools.browser import Browser
 from app.tools.chatgpt import get_chatpgt_tool
 from app.tools.e2b import E2BCodeExecutor
+from app.tools.function import Function
 from app.tools.gpt_vision import GPTVision
 from app.tools.hand_off import HandOff
 from app.tools.metaphor import MetaphorSearch
@@ -34,7 +37,6 @@ from app.tools.replicate import Replicate
 from app.tools.tts_1 import TTS1
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
-from app.tools.function import Function
 
 TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
@@ -63,6 +65,18 @@ TOOL_TYPE_MAPPING = {
     "HAND_OFF": {"class": HandOff, "schema": HandOffInput},
     "FUNCTION": {"class": Function, "schema": FunctionInput},
 }
+
+
+def create_pydantic_model_from_object(obj: Dict[str, Any]) -> Any:
+    fields = {}
+    type_mapping = {
+        "string": str,
+        "integer": int,
+    }
+    for key, value in obj.items():
+        field_type = type_mapping.get(value["type"], str)
+        fields[key] = (field_type, ...)
+    return create_model("DynamicModel", **fields)
 
 
 def create_tool(
