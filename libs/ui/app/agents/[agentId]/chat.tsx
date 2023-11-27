@@ -323,7 +323,7 @@ export default function Chat({
           }
         },
         async onmessage(event) {
-          if (event.data !== "[END]") {
+          if (event.data !== "[END]" && event.event !== "function_call") {
             message += event.data === "" ? `${event.data} \n` : event.data
             setMessages((previousMessages) => {
               let updatedMessages = [...previousMessages]

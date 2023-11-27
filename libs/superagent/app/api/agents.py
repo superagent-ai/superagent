@@ -209,7 +209,10 @@ async def invoke(
                     function = agent_action_message_log.tool
                     args = agent_action_message_log.tool_input
                     if function and args:
-                        yield f"data: {{'function': {function}, 'args': {args}}}\n\n"
+                        yield (
+                            "event: function_call\n"
+                            f"data: {{'function': {function}, 'args': {args}}}\n\n"
+                        )
         except Exception as e:
             logging.error(f"Error in send_message: {e}")
         finally:
