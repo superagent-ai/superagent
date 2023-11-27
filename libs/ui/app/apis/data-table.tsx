@@ -241,7 +241,6 @@ export function DataTable<TData, TValue>({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>{metadataField.label}</FormLabel>
-
                             {metadataField.type === "input" && (
                               <FormControl>
                                 <Input {...field} type="text" />
