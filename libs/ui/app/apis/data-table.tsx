@@ -117,7 +117,6 @@ export function DataTable<TData, TValue>({
     try {
       await api.createTool({
         ...values,
-        returnDirect: values.type === "FUCTION" ? true : false,
       })
       toast({
         description: "Tool created successfully",
