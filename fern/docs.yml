@@ -33,6 +33,8 @@ navigation:
             path: ./mdx/sdk/structured_outputs.mdx
           - page: Human hand-off
             path: ./mdx/sdk/human_handoff.mdx
+          - page: Custom tools
+            path: ./mdx/sdk/local_tools.mdx
       - section: Deployments
         contents:
           - page: Render
