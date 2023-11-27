@@ -32,6 +32,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -114,7 +115,9 @@ export function DataTable<TData, TValue>({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await api.createTool({ ...values })
+      await api.createTool({
+        ...values,
+      })
       toast({
         description: "Tool created successfully",
       })
@@ -238,7 +241,6 @@ export function DataTable<TData, TValue>({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>{metadataField.label}</FormLabel>
-
                             {metadataField.type === "input" && (
                               <FormControl>
                                 <Input {...field} type="text" />
@@ -252,15 +254,27 @@ export function DataTable<TData, TValue>({
                             {metadataField.type === "json" && (
                               <div className="overflow-hidden rounded-lg">
                                 <CodeMirror
-                                  className="rounded-lg text-sm"
-                                  height="200px"
+                                  className="rounded-lg text-xs"
                                   extensions={[json()]}
                                   theme={vscodeDark}
                                   onChange={field.onChange}
+                                  value={
+                                    "json" in metadataField
+                                      ? JSON.stringify(
+                                          metadataField.json,
+                                          null,
+                                          2
+                                        )
+                                      : undefined
+                                  }
                                 />
                               </div>
                             )}
-
+                            {"helpText" in metadataField && (
+                              <FormDescription>
+                                {metadataField.helpText}
+                              </FormDescription>
+                            )}
                             <FormMessage />
                           </FormItem>
                         )}

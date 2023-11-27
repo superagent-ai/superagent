@@ -74,3 +74,7 @@ class TTS1Input(BaseModel):
 
 class HandOffInput(BaseModel):
     reason: str
+
+
+class FunctionInput(BaseModel):
+    config: dict

@@ -42,6 +42,7 @@ enum ToolType {
   GPT_VISION
   TTS_1
   HAND_OFF
+  FUNCTION
 }
 
 enum DatasourceType {

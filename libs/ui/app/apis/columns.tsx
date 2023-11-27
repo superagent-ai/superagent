@@ -1,8 +1,11 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { json } from "@codemirror/lang-json"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ColumnDef } from "@tanstack/react-table"
+import { vscodeDark } from "@uiw/codemirror-theme-vscode"
+import CodeMirror from "@uiw/react-codemirror"
 import { MoreHorizontal } from "lucide-react"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -31,6 +34,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -186,9 +190,32 @@ export function EditTool({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{metadataField.label}</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
+                      {metadataField.type === "input" && (
+                        <FormControl>
+                          <Input {...field} type="text" />
+                        </FormControl>
+                      )}
+                      {metadataField.type === "password" && (
+                        <FormControl>
+                          <Input {...field} type="password" />
+                        </FormControl>
+                      )}
+                      {metadataField.type === "json" && (
+                        <div className="overflow-hidden rounded-lg">
+                          <CodeMirror
+                            className="rounded-lg text-xs"
+                            extensions={[json()]}
+                            theme={vscodeDark}
+                            onChange={field.onChange}
+                            value={field.value}
+                          />
+                        </div>
+                      )}
+                      {"helpText" in metadataField && (
+                        <FormDescription>
+                          {metadataField.helpText}
+                        </FormDescription>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
