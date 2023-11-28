@@ -211,7 +211,8 @@ async def invoke(
                     if function and args:
                         yield (
                             "event: function_call\n"
-                            f'data: {{"function": "{function}", "args": {args}}}\n\n'
+                            f'data: {{"function": "{function}", '
+                            f'"args": {json.dumps(args)}}}\n\n'
                         )
         except Exception as e:
             logging.error(f"Error in send_message: {e}")
