@@ -7,6 +7,9 @@ tabs:
     icon: "fa-solid fa-code"
   overview:
     display-name: Overview
+    icon: "fa-solid fa-earth-americas"
+  apps:
+    display-name: Apps
     icon: "fa-solid fa-cube"
 navigation:
   - tab: overview
@@ -43,6 +46,12 @@ navigation:
             path: ./mdx/deploy/replit.mdx
           - page: Runnning locally
             path: ./mdx/deploy/local.mdx
+  - tab: apps
+    layout:
+      - section: Assistants
+        contents:
+          - page: Stock Assistant
+            path: ./mdx/apps/stock.mdx 
   - tab: api
     layout:
       - section: Introduction
