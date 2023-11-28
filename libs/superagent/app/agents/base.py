@@ -1,4 +1,5 @@
 import json
+import datetime
 from typing import Any, List
 
 from decouple import config
@@ -133,6 +134,8 @@ class AgentBase:
                     "No other characters allowed.\n\n"
                     "Here is the output schema:\n"
                     f"{self.output_schema}"
+                    "\nCurrent date: "
+                    f"{datetime.datetime.now().strftime('%Y-%m-%d')}"
                 )
             else:
                 content = (
@@ -141,9 +144,12 @@ class AgentBase:
                     "No other characters allowed.\n\n"
                     "Here is the output schema:\n"
                     f"{self.output_schema}"
+                    "\nCurrent date: "
+                    f"{datetime.datetime.now().strftime('%Y-%m-%d')}"
                 )
         else:
             content = agent.prompt or DEFAULT_PROMPT
+            content = f"{content}" f"\n\n{datetime.datetime.now().strftime('%Y-%m-%d')}"
         return SystemMessage(content=content)
 
     async def _get_memory_legacy(self) -> MotorheadMemory:
