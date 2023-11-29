@@ -8,8 +8,8 @@ tabs:
   overview:
     display-name: Overview
     icon: "fa-solid fa-earth-americas"
-  apps:
-    display-name: Apps
+  templates:
+    display-name: Templates
     icon: "fa-solid fa-cube"
 navigation:
   - tab: overview
@@ -46,7 +46,7 @@ navigation:
             path: ./mdx/deploy/replit.mdx
           - page: Runnning locally
             path: ./mdx/deploy/local.mdx
-  - tab: apps
+  - tab: templates
     layout:
       - section: Assistants
         contents:
