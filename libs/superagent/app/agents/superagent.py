@@ -1,14 +1,12 @@
-from typing import Any, List, Dict, Tuple
+from typing import Any, List, Tuple
+
+from decouple import config
 
 from app.agents.base import AgentBase
-from app.memory.base import Memory
-from decouple import config
-from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
-from app.datasource.types import (
-    VALID_UNSTRUCTURED_DATA_TYPES,
-)
-from app.tools.chitchat import ChitChatTool
 from app.completion.base import Completion
+from app.memory.base import Memory
+from app.tools.chitchat import ChitChatTool
+from prisma.models import Agent, AgentDatasource, AgentTool
 
 
 class SuperagentAgent(AgentBase):

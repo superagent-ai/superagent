@@ -9,10 +9,10 @@ from langchain.prompts import MessagesPlaceholder, PromptTemplate
 from langchain.schema import SystemMessage
 from slugify import slugify
 
+from app.agents.base import AgentBase
 from app.datasource.types import (
     VALID_UNSTRUCTURED_DATA_TYPES,
 )
-from app.agents.base import AgentBase
 from app.models.tools import DatasourceInput
 from app.tools import TOOL_TYPE_MAPPING, create_tool
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool

@@ -1,19 +1,17 @@
+from typing import List
+
 import litellm
-
-from typing import List, Tuple, Any
-
 from decouple import config
 from litellm import acompletion
-from prisma.models import AgentLLM, Agent
 
+from app.completion.types import MODEL_MAPPER
+from app.memory.base import Memory
 from app.tools.prompts import (
     create_function_calling_prompt,
     create_function_response_prompt,
 )
-from app.tools.chitchat import ChitChatTool
 from app.tools.runner import ToolRunner
-from app.completion.types import MODEL_MAPPER
-from app.memory.base import Memory
+from prisma.models import Agent, AgentLLM
 
 litellm.huggingface_key = config("HUGGINGFACE_API_KEY")
 
