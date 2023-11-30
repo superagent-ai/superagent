@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The open framework for building AI Assistants
-  version: 0.1.18
+  version: 0.1.37
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -1288,8 +1288,11 @@ components:
       enum:
         - GPT_3_5_TURBO_16K_0613
         - GPT_3_5_TURBO_0613
+        - GPT_3_5_TURBO_1106
         - GPT_4_0613
         - GPT_4_32K_0613
+        - GPT_4_1106_PREVIEW
+        - MISTRAL_7B_INSTRUCT_V01
       type: string
       description: An enumeration.
     LLMProvider:
@@ -1297,6 +1300,7 @@ components:
       enum:
         - OPENAI
         - AZURE_OPENAI
+        - HUGGINGFACE
       type: string
       description: An enumeration.
     ToolList:
@@ -1316,6 +1320,7 @@ components:
     ToolType:
       title: ToolType
       enum:
+        - ALGOLIA
         - BROWSER
         - BING_SEARCH
         - REPLICATE
@@ -1327,6 +1332,11 @@ components:
         - METAPHOR
         - PUBMED
         - CODE_EXECUTOR
+        - OPENBB
+        - GPT_VISION
+        - TTS_1
+        - HAND_OFF
+        - FUNCTION
       type: string
       description: An enumeration.
     ValidationError:
