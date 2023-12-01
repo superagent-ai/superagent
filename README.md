@@ -1,6 +1,6 @@
 <div align="center">
-
-# Superagent 🥷
+![Frame 27 (2)](https://github.com/homanp/superagent/assets/2464556/eb51fa38-4a2a-4c41-b348-d3c1abc04234)
+# Superagent
 
 ### The open framework for building AI Assistants
 
