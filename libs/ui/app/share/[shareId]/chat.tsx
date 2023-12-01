@@ -44,6 +44,8 @@ let langfuseWeb: LangfuseWeb | null = null
 if (process.env.NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY) {
   langfuseWeb = new LangfuseWeb({
     publicKey: process.env.NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY,
+    baseUrl:
+      process.env.NEXT_PUBLIC_LANGFUSE_BASE_URL || "https://cloud.langfuse.com",
   })
 }
 
