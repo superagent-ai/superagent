@@ -1,3 +1,5 @@
+import json
+
 from typing import Any, List
 
 from decouple import config
@@ -14,7 +16,7 @@ from app.datasource.types import (
     VALID_UNSTRUCTURED_DATA_TYPES,
 )
 from app.models.tools import DatasourceInput
-from app.tools import TOOL_TYPE_MAPPING, create_tool
+from app.tools import TOOL_TYPE_MAPPING, create_pydantic_model_from_object, create_tool
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
 from app.utils.llm import LLM_MAPPING
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
@@ -23,6 +25,19 @@ DEFAULT_PROMPT = (
     "You are a helpful AI Assistant, anwer the users questions to "
     "the best of your ability."
 )
+
+
+def recursive_json_loads(data):
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except json.JSONDecodeError:
+            return data
+    if isinstance(data, dict):
+        return {k: recursive_json_loads(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [recursive_json_loads(v) for v in data]
+    return data
 
 
 class LangchainAgent(AgentBase):
@@ -51,7 +66,19 @@ class LangchainAgent(AgentBase):
             tools.append(tool)
         for agent_tool in agent_tools:
             tool_info = TOOL_TYPE_MAPPING.get(agent_tool.tool.type)
-            if tool_info:
+            if agent_tool.tool.type == "FUNCTION":
+                metadata = recursive_json_loads(agent_tool.tool.metadata)
+                args = metadata.get("args", {})
+                PydanticModel = create_pydantic_model_from_object(args)
+                tool = create_tool(
+                    tool_class=tool_info["class"],
+                    name=metadata.get("functionName"),
+                    description=agent_tool.tool.description,
+                    metadata=agent_tool.tool.metadata,
+                    args_schema=PydanticModel,
+                    return_direct=agent_tool.tool.returnDirect,
+                )
+            else:
                 tool = create_tool(
                     tool_class=tool_info["class"],
                     name=slugify(agent_tool.tool.name),
