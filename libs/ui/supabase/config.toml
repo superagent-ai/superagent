@@ -81,33 +81,33 @@ enable_confirmations = true
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
 
-[auth.sms]
+# [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
-enable_signup = true
+# enable_signup = true
 # If enabled, users need to confirm their phone number before signing in.
-enable_confirmations = false
+# enable_confirmations = false
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
-[auth.sms.twilio]
-enabled = false
-account_sid = ""
-message_service_sid = ""
+# [auth.sms.twilio]
+# enabled = false
+# account_sid = ""
+# message_service_sid = ""
 # DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
-auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
+# auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 
 # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin`, `notion`, `twitch`,
 # `twitter`, `slack`, `spotify`, `workos`, `zoom`.
-[auth.external.github]
-enabled = true
-client_id = "env(GITHUB_CLIENT_ID)"
+# [auth.external.github]
+# enabled = true
+# client_id = "env(GITHUB_CLIENT_ID)"
 # DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
-secret = "env(GITHUB_CLIENT_SECRET)"
+# secret = "env(GITHUB_CLIENT_SECRET)"
 # Overrides the default auth redirectUrl.
-redirect_uri = "http://localhost:54321/auth/v1/callback"
+# redirect_uri = "http://localhost:54321/auth/v1/callback"
 # Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
 # or any other third-party OIDC providers.
-url = ""
+# url = ""
 
 [analytics]
 enabled = false

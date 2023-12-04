@@ -1,0 +1,45 @@
+{
+    "$schema": "https://railway.app/railway.schema.json",
+    "build": {
+        "builder": "NIXPACKS",
+        "buildCommand": "npm run build"
+    },
+    "deploy": {
+        "numReplicas": 1,
+        "startCommand": "npm run start",
+        "healthcheckTimeout": 60,
+        "sleepApplication": true,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+    },
+    "environments": {
+        "pr": {
+            "build": {
+                "builder": "NIXPACKS",
+                "buildCommand": "npm run build"
+            },
+            "deploy": {
+                "numReplicas": 1,
+                "startCommand": "npm run start",
+                "healthcheckTimeout": 60,
+                "sleepApplication": true,
+                "restartPolicyType": "ON_FAILURE",
+                "restartPolicyMaxRetries": 10
+            }
+        },
+        "production": {
+            "build": {
+                "builder": "NIXPACKS",
+                "buildCommand": "npx supabase link --project-ref $SUPABASE_PROJECT_ID && npx supabase db push && npm run build"
+            },
+            "deploy": {
+                "numReplicas": 1,
+                "startCommand": "npm run start",
+                "healthcheckTimeout": 60,
+                "sleepApplication": true,
+                "restartPolicyType": "ALWAYS",
+                "restartPolicyMaxRetries": null
+            }
+        }
+    }
+}

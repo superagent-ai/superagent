@@ -36,7 +36,7 @@ app = FastAPI(
     docs_url="/",
     description="The open framework for building AI Assistants",
     version="0.1.37",
-    servers=[{"url": "https://api.beta.superagent.sh"}],
+    servers=[{"url": "https://api.sup.omniagent.ai"}],
 )
 
 app.add_middleware(

@@ -1,0 +1,39 @@
+{
+    "$schema": "https://railway.app/railway.schema.json",
+    "build": {
+        "builder": "DOCKERFILE"
+    },
+    "deploy": {
+        "numReplicas": 1,
+        "healthcheckTimeout": 60,
+        "sleepApplication": true,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+    },
+    "environments": {
+        "pr": {
+            "build": {
+                "builder": "DOCKERFILE"
+            },
+            "deploy": {
+                "numReplicas": 1,
+                "healthcheckTimeout": 60,
+                "sleepApplication": true,
+                "restartPolicyType": "ON_FAILURE",
+                "restartPolicyMaxRetries": 10
+            }
+        },
+        "production": {
+            "build": {
+                "builder": "DOCKERFILE"
+            },
+            "deploy": {
+                "numReplicas": 2,
+                "healthcheckTimeout": 60,
+                "sleepApplication": false,
+                "restartPolicyType": "ALWAYS",
+                "restartPolicyMaxRetries": null
+            }
+        }
+    }
+}

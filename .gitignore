@@ -50,3 +50,8 @@ next-env.d.ts
 
 # supabase
 v2.code-workspace
+
+
+## IDE IGNORE
+
+.idea

@@ -120,7 +120,7 @@ export default function IndexPage() {
           </Button>
         </form>
       </Form>
-      <Separator />
+      {/* <Separator />
       <Button
         variant="secondary"
         size="sm"
@@ -129,7 +129,7 @@ export default function IndexPage() {
       >
         <RxGithubLogo size={20} />
         <p>Sign in with Github</p>
-      </Button>
+      </Button> */}
       <Toaster />
     </section>
   )

@@ -4,7 +4,7 @@ info:
   description: The open framework for building AI Assistants
   version: 0.1.37
 servers:
-  - url: https://api.beta.superagent.sh
+  - url: https://api.sup.omniagent.ai
 paths:
   /api/v1/agents:
     get:
