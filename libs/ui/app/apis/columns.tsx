@@ -148,7 +148,7 @@ export function EditTool({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="w-full space-y-4"
+          className="w-full space-y-4 overflow-hidden"
         >
           <DialogHeader>
             <DialogTitle>Update API connection</DialogTitle>
