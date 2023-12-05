@@ -206,7 +206,20 @@ export function EditTool({
                             className="rounded-lg text-xs"
                             extensions={[json()]}
                             theme={vscodeDark}
-                            onChange={field.onChange}
+                            onChange={(value) => {
+                              try {
+                                JSON.parse(value)
+                                field.onChange(value)
+                                form.clearErrors(
+                                  `metadata.${metadataField.key}`
+                                )
+                              } catch (error) {
+                                form.setError(`metadata.${metadataField.key}`, {
+                                  type: "manual",
+                                  message: "Invalid JSON",
+                                })
+                              }
+                            }}
                             value={field.value}
                           />
                         </div>
