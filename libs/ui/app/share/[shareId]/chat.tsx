@@ -250,14 +250,33 @@ export default function Chat({
   agent: Agent
   apiKey: string
 }) {
+  const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [messages, setMessages] = React.useState<
     { type: string; message: string }[]
   >(agent.initialMessage ? [{ type: "ai", message: agent.initialMessage }] : [])
   const [session, setSession] = React.useState<string | null>(null)
   const { toast } = useToast()
 
+  const abortControllerRef = React.useRef<AbortController | null>(null)
+
+  const abortStream = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      setIsLoading(false)
+    }
+  }
+
   async function onSubmit(value: string) {
     let message = ""
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+
+    // Create a new AbortController for the new request
+    abortControllerRef.current = new AbortController()
+
+    setIsLoading(true)
 
     setMessages((previousMessages: any) => [
       ...previousMessages,
@@ -269,7 +288,6 @@ export default function Chat({
       { type: "ai", message },
     ])
 
-    const ctrl = new AbortController()
     try {
       await fetchEventSource(
         `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agent?.id}/invoke`,
@@ -285,7 +303,10 @@ export default function Chat({
             sessionId: session,
           }),
           openWhenHidden: true,
-          signal: ctrl.signal,
+          signal: abortControllerRef.current.signal,
+          async onclose() {
+            setIsLoading(false)
+          },
           async onmessage(event) {
             if (event.data !== "[END]" && event.event !== "function_call") {
               message += event.data === "" ? `${event.data} \n` : event.data
@@ -309,6 +330,7 @@ export default function Chat({
         }
       )
     } catch {
+      setIsLoading(false)
       setMessages((previousMessages) => {
         let updatedMessages = [...previousMessages]
 
@@ -375,6 +397,7 @@ export default function Chat({
       <div className="from-background absolute inset-x-0 bottom-0 z-50 h-20 bg-gradient-to-t from-50% to-transparent to-100%">
         <div className="relative mx-auto mb-6 max-w-2xl px-8">
           <PromptForm
+            onStop={() => abortStream()}
             onSubmit={async (value) => {
               onSubmit(value)
             }}
@@ -385,7 +408,7 @@ export default function Chat({
                 description: "New session created",
               })
             }}
-            isLoading={false}
+            isLoading={isLoading}
           />
         </div>
       </div>
