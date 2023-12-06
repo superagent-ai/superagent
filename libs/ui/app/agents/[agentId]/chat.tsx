@@ -269,6 +269,7 @@ export default function Chat({
   profile: Profile
 }) {
   const api = new Api(profile.api_key)
+  const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [selectedView, setSelectedView] = React.useState<"chat" | "trace">(
     "chat"
   )
@@ -286,8 +287,30 @@ export default function Chat({
       return runs
     }, [agent])
 
+  const abortControllerRef = React.useRef<AbortController | null>(null)
+
+  const abortStream = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      setIsLoading(false)
+      setTimer(0)
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+      }
+    }
+  }
+
   async function onSubmit(value: string) {
     let message = ""
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+
+    // Create a new AbortController for the new request
+    abortControllerRef.current = new AbortController()
+
+    setIsLoading(true)
 
     setTimer(0)
     timerRef.current = setInterval(() => {
@@ -304,7 +327,6 @@ export default function Chat({
       { type: "ai", message },
     ])
 
-    const ctrl = new AbortController()
     try {
       await fetchEventSource(
         `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agent.id}/invoke`,
@@ -320,8 +342,9 @@ export default function Chat({
             sessionId: session,
           }),
           openWhenHidden: true,
-          signal: ctrl.signal,
+          signal: abortControllerRef.current.signal,
           async onclose() {
+            setIsLoading(false)
             setTimer(0)
             if (timerRef.current) {
               clearInterval(timerRef.current)
@@ -350,6 +373,7 @@ export default function Chat({
         }
       )
     } catch {
+      setIsLoading(false)
       setTimer(0)
       if (timerRef.current) {
         clearInterval(timerRef.current)
@@ -391,7 +415,7 @@ export default function Chat({
         >
           {timer.toFixed(1)}s
         </p>
-        <div className="self-end">
+        {/*<div className="self-end">
           <Select
             value={selectedView}
             onValueChange={(value) =>
@@ -406,7 +430,7 @@ export default function Chat({
               <SelectItem value="trace">Trace</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+          </div>*/}
       </div>
       <ScrollArea className="relative flex grow flex-col px-4">
         <div className="from-background absolute inset-x-0 top-0 z-20 h-20 bg-gradient-to-b from-0% to-transparent to-50%" />
@@ -495,6 +519,7 @@ export default function Chat({
         <div className="from-background absolute inset-x-0 bottom-0 z-50 h-20 bg-gradient-to-t from-50% to-transparent to-100%">
           <div className="relative mx-auto mb-6 max-w-2xl px-8">
             <PromptForm
+              onStop={() => abortStream()}
               onSubmit={async (value) => {
                 onSubmit(value)
               }}
@@ -505,7 +530,7 @@ export default function Chat({
                   description: "New session created",
                 })
               }}
-              isLoading={false}
+              isLoading={isLoading}
             />
           </div>
         </div>
