@@ -1,5 +1,4 @@
 import json
-
 from typing import Any, List
 
 from decouple import config
