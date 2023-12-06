@@ -11,7 +11,6 @@ import { RxChatBubble, RxCode, RxCopy, RxReload } from "react-icons/rx"
 import { useAsyncFn } from "react-use"
 import remarkGfm from "remark-gfm"
 import remarkMath from "remark-math"
-import { boolean } from "zod"
 
 import { Agent } from "@/types/agent"
 import { Profile } from "@/types/profile"
