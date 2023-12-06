@@ -42,7 +42,9 @@ def recursive_json_loads(data):
 
 class LangchainAgent(AgentBase):
     async def _get_tools(
-        self, agent_datasources: List[AgentDatasource], agent_tools: List[AgentTool]
+        self,
+        agent_datasources: List[AgentDatasource],
+        agent_tools: List[AgentTool],
     ) -> List:
         tools = []
         for agent_datasource in agent_datasources:
@@ -85,6 +87,9 @@ class LangchainAgent(AgentBase):
                     description=agent_tool.tool.description,
                     metadata=agent_tool.tool.metadata,
                     args_schema=tool_info["schema"],
+                    session_id=f"{self.agent_id}-{self.session_id}"
+                    if self.session_id
+                    else f"{self.agent_id}",
                     return_direct=agent_tool.tool.returnDirect,
                 )
             tools.append(tool)
