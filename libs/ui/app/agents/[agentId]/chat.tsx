@@ -304,45 +304,70 @@ export default function Chat({
       { type: "ai", message },
     ])
 
-    await fetchEventSource(
-      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agent.id}/invoke`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${profile.api_key}`,
-        },
-        body: JSON.stringify({
-          input: value,
-          enableStreaming: true,
-          sessionId: session,
-        }),
-        openWhenHidden: true,
-        async onclose() {
-          setTimer(0)
-          if (timerRef.current) {
-            clearInterval(timerRef.current)
-          }
-        },
-        async onmessage(event) {
-          if (event.data !== "[END]" && event.event !== "function_call") {
-            message += event.data === "" ? `${event.data} \n` : event.data
-            setMessages((previousMessages) => {
-              let updatedMessages = [...previousMessages]
+    const ctrl = new AbortController()
+    try {
+      await fetchEventSource(
+        `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agent.id}/invoke`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${profile.api_key}`,
+          },
+          body: JSON.stringify({
+            input: value,
+            enableStreaming: true,
+            sessionId: session,
+          }),
+          openWhenHidden: true,
+          signal: ctrl.signal,
+          async onclose() {
+            setTimer(0)
+            if (timerRef.current) {
+              clearInterval(timerRef.current)
+            }
+          },
+          async onmessage(event) {
+            if (event.data !== "[END]" && event.event !== "function_call") {
+              message += event.data === "" ? `${event.data} \n` : event.data
+              setMessages((previousMessages) => {
+                let updatedMessages = [...previousMessages]
 
-              for (let i = updatedMessages.length - 1; i >= 0; i--) {
-                if (updatedMessages[i].type === "ai") {
-                  updatedMessages[i].message = message
-                  break
+                for (let i = updatedMessages.length - 1; i >= 0; i--) {
+                  if (updatedMessages[i].type === "ai") {
+                    updatedMessages[i].message = message
+                    break
+                  }
                 }
-              }
 
-              return updatedMessages
-            })
-          }
-        },
+                return updatedMessages
+              })
+            }
+          },
+          onerror(error) {
+            throw error
+          },
+        }
+      )
+    } catch {
+      setTimer(0)
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
       }
-    )
+      setMessages((previousMessages) => {
+        let updatedMessages = [...previousMessages]
+
+        for (let i = updatedMessages.length - 1; i >= 0; i--) {
+          if (updatedMessages[i].type === "ai") {
+            updatedMessages[i].message =
+              "An error occured with your agent, please contact support."
+            break
+          }
+        }
+
+        return updatedMessages
+      })
+    }
   }
 
   const calculateRunDuration = (start_date: string, end_date: string) => {
