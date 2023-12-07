@@ -17,6 +17,7 @@ import { useAsync } from "react-use"
 import * as z from "zod"
 
 import { Profile } from "@/types/profile"
+import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -134,8 +135,10 @@ export function DataTable<TData, TValue>({
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const { tools, datasources } = values
-      const { data: agent } = await api.createAgent({ ...values })
-      await api.createAgentLLM(agent.id, llms[0]?.id)
+      const { data: agent } = await api.createAgent({
+        ...values,
+        llmModel: siteConfig.defaultLLM,
+      })
 
       for (const toolId of tools) {
         await api.createAgentTool(agent.id, toolId)
