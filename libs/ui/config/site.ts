@@ -83,6 +83,7 @@ export const siteConfig = {
       disabled: true,
     },
   ],
+  defaultLLM: "GPT_3_5_TURBO_16K_0613",
   llms: [
     {
       id: "OPENAI",
