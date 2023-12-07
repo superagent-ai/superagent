@@ -53,7 +53,10 @@ class LangchainAgent(AgentBase):
                 else StructuredDatasourceTool
             )
             metadata = (
-                {"datasource_id": agent_datasource.datasource.id, "query_type": "all"}
+                {
+                    "datasource_id": agent_datasource.datasource.id,
+                    "query_type": "document",
+                }
                 if tool_type == DatasourceTool
                 else {"datasource": agent_datasource.datasource}
             )

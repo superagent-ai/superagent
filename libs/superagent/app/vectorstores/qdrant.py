@@ -84,3 +84,9 @@ class QdrantVectorStore:
             with_payload=True,
         )
         return search_result
+
+    def delete(self, datasource_id: str) -> None:
+        try:
+            pass
+        except Exception as e:
+            logger.error(f"Failed to delete {datasource_id}. Error: {e}")

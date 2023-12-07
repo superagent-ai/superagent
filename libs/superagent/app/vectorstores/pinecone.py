@@ -175,7 +175,6 @@ class PineconeVectorStore:
     ) -> list[str]:
         if top_k is None:
             top_k = 5
-
         logger.info(f"Executing query with document id in namespace {datasource_id}")
         documents_in_namespace = self.query(
             prompt=prompt,
@@ -202,34 +201,9 @@ class PineconeVectorStore:
         return [str(response) for response in documents_in_namespace]
 
     def delete(self, datasource_id: str):
-        vector_dimensionality = 1536
-        arbitrary_vector = [1.0] * vector_dimensionality
-
         try:
-            documents_in_namespace = self.index.query(
-                arbitrary_vector,
-                namespace=datasource_id,
-                top_k=9999,
-                include_metadata=False,
-                include_values=False,
-            )
-
-            vector_ids = [match["id"] for match in documents_in_namespace["matches"]]
-
-            if len(vector_ids) == 0:
-                logger.info(
-                    f"No vectors found in namespace `{datasource_id}`. "
-                    f"Deleting `{datasource_id}` using default namespace."
-                )
-                self.index.delete(
-                    filter={"datasource_id": datasource_id}, delete_all=False
-                )
-
-            else:
-                logger.info(
-                    f"Deleting {len(vector_ids)} documents in namespace {datasource_id}"
-                )
-                self.index.delete(ids=vector_ids, delete_all=False)
+            logger.info(f"Deleting vectors for datasource with id: {datasource_id}")
+            self.index.delete(filter={"datasource_id": datasource_id})
 
         except Exception as e:
             logger.error(f"Failed to delete {datasource_id}. Error: {e}")
