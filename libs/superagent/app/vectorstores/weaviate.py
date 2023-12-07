@@ -148,3 +148,6 @@ class WeaviateVectorStore:
             embedding=vector, k=top_k, datasource_id=datasource_id
         )
         return results
+
+    def delete(self, datasource_id: str) -> None:
+        pass

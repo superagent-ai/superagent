@@ -84,3 +84,6 @@ class QdrantVectorStore:
             with_payload=True,
         )
         return search_result
+
+    def delete(self, datasource_id: str) -> None:
+        pass
