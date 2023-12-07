@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { MultiSelect } from "@/components/ui/multi-select"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Select,
   SelectContent,
@@ -158,7 +159,7 @@ export default function Settings({
   )
 
   return (
-    <div className="relative flex max-w-md flex-1 flex-col p-4 overflow-y-scroll">
+    <ScrollArea className="relative flex grow max-w-lg flex-1 p-4">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -357,7 +358,7 @@ export default function Settings({
               </FormItem>
             )}
           />
-          <div className="inset-x-0 bottom-0 flex p-4">
+          <div className="inset-x-0 bottom-0 flex py-4">
             <Button
               type="submit"
               size="sm"
@@ -374,6 +375,6 @@ export default function Settings({
         </form>
       </Form>
       <Toaster />
-    </div>
+    </ScrollArea>
   )
 }
