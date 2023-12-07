@@ -5,7 +5,7 @@ import segment.analytics as analytics
 from decouple import config
 from fastapi import APIRouter, Depends
 
-from app.datasource.flow import vectorize_datasource, delete_datasource
+from app.datasource.flow import delete_datasource, vectorize_datasource
 from app.models.request import Datasource as DatasourceRequest
 from app.models.response import (
     Datasource as DatasourceResponse,

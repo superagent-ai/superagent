@@ -220,8 +220,6 @@ class AstraVectorStore:
         return responses
 
     def delete(self, datasource_id: str):
-        vector_dimensionality = 1536
-        arbitrary_vector = [1.0] * vector_dimensionality
         try:
             pass
         except Exception as e:

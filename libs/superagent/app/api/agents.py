@@ -44,9 +44,9 @@ from app.models.response import (
     AgentToolList as AgentToolListResponse,
 )
 from app.utils.api import get_current_api_user, handle_exception
+from app.utils.llm import LLM_PROVIDER_MAPPING
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
-from app.utils.llm import LLM_PROVIDER_MAPPING
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
