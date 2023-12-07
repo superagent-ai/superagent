@@ -5,7 +5,7 @@ import segment.analytics as analytics
 from decouple import config
 from fastapi import APIRouter, Depends
 
-from app.datasource.flow import vectorize_datasource
+from app.datasource.flow import delete_datasource, vectorize_datasource
 from app.models.request import Datasource as DatasourceRequest
 from app.models.response import (
     Datasource as DatasourceResponse,
@@ -124,6 +124,16 @@ async def delete(datasource_id: str, api_user=Depends(get_current_api_user)):
             analytics.track(api_user.id, "Deleted Datasource")
         await prisma.agentdatasource.delete_many(where={"datasourceId": datasource_id})
         await prisma.datasource.delete(where={"id": datasource_id})
+
+        async def run_delete_datasource_flow(datasource_id: str) -> None:
+            try:
+                await delete_datasource(
+                    datasource_id=datasource_id,
+                )
+            except Exception as flow_exception:
+                handle_exception(flow_exception)
+
+        asyncio.create_task(run_delete_datasource_flow(datasource_id=datasource_id))
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
