@@ -183,7 +183,15 @@ async def invoke(
             secret_key=langfuse_secret_key,
             host=langfuse_host,
         )
-        trace = langfuse.trace(CreateTrace(id=agent_id, name="Assistant"))
+        session_id = f"{agent_id}-{body.sessionId}" if body.sessionId else f"{agent_id}"
+        trace = langfuse.trace(
+            CreateTrace(
+                id=session_id,
+                name="Assistant",
+                userId=api_user.id,
+                metadata={"agentId": agent_id},
+            )
+        )
         langfuse_handler = trace.get_langchain_handler()
 
     async def send_message(
