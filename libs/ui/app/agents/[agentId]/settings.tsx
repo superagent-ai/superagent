@@ -158,7 +158,7 @@ export default function Settings({
   )
 
   return (
-    <div className="relative flex max-w-md flex-1 flex-col p-4">
+    <div className="relative flex max-w-md flex-1 flex-col p-4 overflow-y-scroll">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -357,7 +357,7 @@ export default function Settings({
               </FormItem>
             )}
           />
-          <div className="absolute inset-x-0 bottom-0 flex p-4">
+          <div className="inset-x-0 bottom-0 flex p-4">
             <Button
               type="submit"
               size="sm"
