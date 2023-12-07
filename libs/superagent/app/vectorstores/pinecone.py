@@ -175,7 +175,6 @@ class PineconeVectorStore:
     ) -> list[str]:
         if top_k is None:
             top_k = 5
-
         logger.info(f"Executing query with document id in namespace {datasource_id}")
         documents_in_namespace = self.query(
             prompt=prompt,
