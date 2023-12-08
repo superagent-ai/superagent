@@ -67,7 +67,7 @@ class WeaviateVectorStore:
         self.embeddings = OpenAIEmbeddings(
             model="text-embedding-ada-002", openai_api_key=config("OPENAI_API_KEY")
         )
-
+        print(self.client.schema.get())
         logger.info(f"Initialized Weaviate Client with: {index_name}")  # type: ignore
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=3)
@@ -79,14 +79,27 @@ class WeaviateVectorStore:
     ) -> List[Document]:
         """Look up similar documents by embedding vector in Weaviate."""
         vector = {"vector": embedding}
-        query_obj = self.client.query.get(
-            self.index_name, ["text", "datasource_id", "source"]
+        print(vector)
+        result = (
+            self.client.query.get(
+                self.index_name.capitalize(),
+                ["text", "datasource_id", "source", "page"],
+            )
+            .with_near_vector(vector)
+            .with_where(
+                {
+                    "path": ["datasource_id"],
+                    "operator": "Equal",
+                    "valueText": datasource_id,
+                }
+            )
+            .with_limit(k)
+            .do()
         )
-        result = query_obj.with_near_vector(vector).with_limit(k).do()
         docs = []
         for res in result["data"]["Get"][self.index_name.capitalize()]:
             text = res.pop("text")
-            if text is None or res.get("datasource_id") != datasource_id:
+            if text is None:
                 continue
             docs.append(Document(page_content=text, metadata=res))
         return docs
@@ -152,20 +165,13 @@ class WeaviateVectorStore:
 
     def delete(self, datasource_id: str) -> None:
         try:
-            query_result = (
-                self.client.query.get(
-                    class_name=self.index_name, properties=["_additional {id}"]
-                )
-                .with_where(
-                    f'{{path: ["datasource_id"], operator: Equal, valueString: "{datasource_id}"}}'
-                )
-                .do()
+            self.client.batch.delete_objects(
+                class_name=self.index_name.capitalize(),
+                where={
+                    "path": ["datasource_id"],
+                    "operator": "Equal",
+                    "valueText": datasource_id,
+                },
             )
-            uuids_to_delete = [
-                obj["_additional"]["id"]
-                for obj in query_result["data"]["Get"][self.index_name]
-            ]
-            for uuid in uuids_to_delete:
-                self.client.data_object.delete(uuid, self.index_name)
         except Exception as e:
             logger.error(f"Failed to delete {datasource_id}. Error: {e}")
