@@ -79,7 +79,6 @@ class WeaviateVectorStore:
     ) -> List[Document]:
         """Look up similar documents by embedding vector in Weaviate."""
         vector = {"vector": embedding}
-        print(vector)
         result = (
             self.client.query.get(
                 self.index_name.capitalize(),
