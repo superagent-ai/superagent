@@ -526,6 +526,10 @@ export default function Chat({
               }}
               onCreateSession={async (uuid) => {
                 setSession(uuid)
+                setTimer(0)
+                if (timerRef.current) {
+                  clearInterval(timerRef.current)
+                }
                 setMessages([])
                 toast({
                   description: "New session created",
