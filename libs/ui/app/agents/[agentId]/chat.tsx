@@ -11,6 +11,7 @@ import { RxChatBubble, RxCode, RxCopy, RxReload } from "react-icons/rx"
 import { useAsyncFn } from "react-use"
 import remarkGfm from "remark-gfm"
 import remarkMath from "remark-math"
+import { v4 as uuidv4 } from "uuid"
 
 import { Agent } from "@/types/agent"
 import { Profile } from "@/types/profile"
@@ -277,7 +278,7 @@ export default function Chat({
     { type: string; message: string }[]
   >(agent.initialMessage ? [{ type: "ai", message: agent.initialMessage }] : [])
   const [timer, setTimer] = React.useState<number>(0)
-  const [session, setSession] = React.useState<string | null>(null)
+  const [session, setSession] = React.useState<string | null>(uuidv4())
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
   const { toast } = useToast()
 
