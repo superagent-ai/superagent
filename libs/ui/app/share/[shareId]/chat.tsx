@@ -11,6 +11,7 @@ import { GoThumbsdown, GoThumbsup } from "react-icons/go"
 import { RxChatBubble, RxCopy } from "react-icons/rx"
 import remarkGfm from "remark-gfm"
 import remarkMath from "remark-math"
+import { v4 as uuidv4 } from "uuid"
 
 import { Agent } from "@/types/agent"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -254,7 +255,7 @@ export default function Chat({
   const [messages, setMessages] = React.useState<
     { type: string; message: string }[]
   >(agent.initialMessage ? [{ type: "ai", message: agent.initialMessage }] : [])
-  const [session, setSession] = React.useState<string | null>(null)
+  const [session, setSession] = React.useState<string | null>(uuidv4())
   const { toast } = useToast()
 
   const abortControllerRef = React.useRef<AbortController | null>(null)
