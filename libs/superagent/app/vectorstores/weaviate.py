@@ -151,6 +151,20 @@ class WeaviateVectorStore:
 
     def delete(self, datasource_id: str) -> None:
         try:
-            pass
+            query_result = (
+                self.client.query.get(
+                    class_name=self.index_name, properties=["_additional {id}"]
+                )
+                .with_where(
+                    f'{{path: ["datasource_id"], operator: Equal, valueString: "{datasource_id}"}}'
+                )
+                .do()
+            )
+            uuids_to_delete = [
+                obj["_additional"]["id"]
+                for obj in query_result["data"]["Get"][self.index_name]
+            ]
+            for uuid in uuids_to_delete:
+                self.client.data_object.delete(uuid, self.index_name)
         except Exception as e:
             logger.error(f"Failed to delete {datasource_id}. Error: {e}")
