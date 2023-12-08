@@ -67,7 +67,7 @@ class WeaviateVectorStore:
         self.embeddings = OpenAIEmbeddings(
             model="text-embedding-ada-002", openai_api_key=config("OPENAI_API_KEY")
         )
-        print(self.client.schema.get())
+
         logger.info(f"Initialized Weaviate Client with: {index_name}")  # type: ignore
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=3)
