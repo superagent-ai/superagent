@@ -51,7 +51,9 @@ navigation:
       - section: Assistants
         contents:
           - page: Stock Assistant
-            path: ./mdx/apps/stock.mdx 
+            path: ./mdx/apps/stock.mdx
+          - page: Chat & image generation 
+            path: ./mdx/apps/image-gen.mdx 
   - tab: api
     layout:
       - section: Introduction
