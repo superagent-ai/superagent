@@ -24,3 +24,23 @@ class Browser(BaseTool):
                 soup = BeautifulSoup(html_content, "html.parser")
                 text = soup.get_text()
                 return text
+
+
+async def browser(url: str) -> dict:
+    """Use for getting real-time information about a website or url.
+    Parameters
+    ----------
+    url : str
+        The url input by user
+
+    Returns
+    -------
+    dict
+        The search results and context
+    """
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            html_content = await response.text()
+            soup = BeautifulSoup(html_content, "html.parser")
+            text = soup.get_text()
+            return {"type": "function_call", "content": text}

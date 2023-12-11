@@ -124,7 +124,7 @@ export const siteConfig = {
       options: [],
     },
     {
-      disabled: true,
+      disabled: false,
       id: "HUGGINGFACE",
       description: "Use Open Source models on HuggingFace.",
       name: "HuggingFace",

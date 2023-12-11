@@ -1,4 +1,7 @@
 import json
+import logging
+import importlib
+from inspect import signature, iscoroutinefunction
 from typing import Any, Dict, Optional, Type
 
 from pydantic import create_model
@@ -66,6 +69,8 @@ TOOL_TYPE_MAPPING = {
     "FUNCTION": {"class": Function, "schema": FunctionInput},
 }
 
+logging.basicConfig(level=logging.INFO)
+
 
 def create_pydantic_model_from_object(obj: Dict[str, Any]) -> Any:
     fields = {}
@@ -98,3 +103,40 @@ def create_tool(
         metadata=metadata,
         return_direct=return_direct,
     )
+
+
+class ToolRunner:
+    def __init__(self, function_call: dict):
+        self.function_call = function_call
+
+    async def run(self) -> dict:
+        data = self.function_call
+        logging.info(f"Invoking Tool: {data}")
+        function_name = data.get("name", "")
+        params = data.get("parameters", {})
+        module_name = f"app.tools.{function_name.lower()}"
+
+        try:
+            tool_module = importlib.import_module(module_name)
+            tool_function = getattr(tool_module, function_name)
+            func_signature = signature(tool_function)
+            func_params = func_signature.parameters
+
+            if all(param in params for param in func_params):
+                if iscoroutinefunction(tool_function):
+                    result = await tool_function(**params)
+                else:
+                    result = tool_function(**params)
+                return result
+
+            else:
+                return {
+                    "type": "error",
+                    "content": "Incorrect arguments provided for the function",
+                }
+
+        except Exception as e:
+            return {
+                "type": "error",
+                "content": f"Error in executing the function: {str(e)}",
+            }

@@ -1,19 +1,21 @@
-from typing import Any, List, Tuple
-
-from decouple import config
+from typing import Any, List, Callable, Tuple
 
 from app.agents.base import AgentBase
-from app.completion.base import Completion
 from app.memory.base import Memory
-from app.tools.chitchat import ChitChatTool
-from prisma.models import Agent, AgentDatasource, AgentTool
+from decouple import config
+from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
+from app.agents import Superagent
+from app.datasource.types import (
+    VALID_UNSTRUCTURED_DATA_TYPES,
+)
+from app.tools.browser import browser
 
 
 class SuperagentAgent(AgentBase):
     async def _get_tools(
         self, agent_datasources: List[AgentDatasource], agent_tools: List[AgentTool]
-    ) -> List:
-        tools = [ChitChatTool]
+    ) -> List[Callable]:
+        tools = [browser]
         return tools
 
     async def _get_memory(self) -> Tuple[str, List[Any]]:
@@ -30,10 +32,5 @@ class SuperagentAgent(AgentBase):
         tools = await self._get_tools(
             agent_datasources=config.datasources, agent_tools=config.tools
         )
-        return Completion(
-            agent=config,
-            memory=memory,
-            tools=tools,
-            llm=config.llms[0],
-            model=config.llmModel,
-        )
+        agent = Superagent(tools=tools)
+        return agent
