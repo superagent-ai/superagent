@@ -92,7 +92,7 @@ export default function LLMClientPage({
   }
 
   return (
-    <div className="2xl:grid-col grid grid-cols-5 gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-5 gap-4 lg:grid-cols-4 2xl:grid-cols-5">
       {siteConfig.llms.map((llm) => (
         <div key={llm.id}>
           <Card>
@@ -193,6 +193,24 @@ export default function LLMClientPage({
                                       <FormControl>
                                         <Input
                                           placeholder="Enter your api key"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="options.api_base"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>
+                                        Hugging Face inference endpoint
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Enter an optional HF inference endpoint"
                                           {...field}
                                         />
                                       </FormControl>

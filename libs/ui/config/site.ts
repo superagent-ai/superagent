@@ -127,7 +127,7 @@ export const siteConfig = {
       disabled: false,
       id: "HUGGINGFACE",
       description: "Use Open Source models on HuggingFace.",
-      name: "HuggingFace",
+      name: "Hugging Face",
       logo: "/hf-logo.png",
       options: [
         {

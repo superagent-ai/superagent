@@ -32,7 +32,7 @@ class SuperagentAgent(AgentBase):
         if agent_llm.llm.provider == "HUGGINGFACE":
             return {
                 "model": HUGGINGFACE_MODEL_MAPPING[model],
-                "api_base": agent_llm.llm.options.get("apiBase"),
+                "api_base": agent_llm.llm.options.get("api_base"),
                 "api_key": agent_llm.llm.apiKey,
             }
 
