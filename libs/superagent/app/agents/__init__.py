@@ -17,13 +17,17 @@ logging.basicConfig(level=logging.INFO)
 class Superagent:
     def __init__(
         self,
-        model: str = "huggingface/mistralai/Mistral-7B-Instruct-v0.1",
+        api_key: str,
+        model: str,
+        api_base: str = None,
         tools: List[Callable] = [],
         memory: Tuple[str, List[Any]] = None,
         temperature: float = 0.5,
         max_tokens: int = 2000,
         callback: Optional[Callable[[str], Coroutine]] = None,
     ) -> None:
+        self.api_key = api_key
+        self.api_base = api_base
         self.model = model
         self.temperature = temperature
         self.max_tokens = max_tokens
@@ -53,7 +57,9 @@ class Superagent:
         messages = self.create_messages(system_prompt, prompt)
 
         if stream:
-            return await self.stream_completion(messages)
+            return await self.stream_completion(
+                messages,
+            )
         else:
             return await self.single_completion(messages)
 
@@ -65,6 +71,8 @@ class Superagent:
             model=self.model,
             messages=messages,
             stream=True,
+            api_base=self.api_base,
+            api_key=self.api_key,
         ):
             content = self.extract_content(chunk)
             response_content += content
@@ -79,6 +87,8 @@ class Superagent:
             model=self.model,
             messages=messages,
             stream=False,
+            api_base=self.api_base,
+            api_key=self.api_key,
         )
         return content.choices[0].message.content
 
@@ -103,7 +113,6 @@ class Superagent:
         match = self.extract_function_calls(response)
         prediction = {"content": response}
         if match:
-            print(match)
             runner = ToolRunner(match)
             prediction = await runner.run()
         prompt = create_function_response_prompt(

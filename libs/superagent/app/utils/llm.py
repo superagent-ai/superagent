@@ -17,3 +17,7 @@ LLM_PROVIDER_MAPPING = {
         "GPT_4_1106_PREVIEW",
     ]
 }
+
+HUGGINGFACE_MODEL_MAPPING = {
+    "MISTRAL_7B_INSTRUCT_V01": "huggingface/mistralai/Mistral-7B-Instruct-v0.1"
+}
