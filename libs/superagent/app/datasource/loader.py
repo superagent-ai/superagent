@@ -18,6 +18,7 @@ from langchain.document_loaders import (
     YoutubeLoader,
 )
 from langchain.document_loaders.airbyte import AirbyteStripeLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from pyairtable import Api
 
 from prisma.models import Datasource
@@ -64,7 +65,11 @@ class DataLoader:
             temp_file.write(file_response.encode())
             temp_file.flush()
             loader = TextLoader(file_path=temp_file.name)
-            return loader.load_and_split()
+            return loader.load_and_split(
+                text_splitter=RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+                    chunk_size=250, chunk_overlap=0
+                )
+            )
 
     def load_pdf(self):
         if self.datasource.url:
@@ -73,9 +78,17 @@ class DataLoader:
             with NamedTemporaryFile(suffix=".pdf", delete=True) as temp_file:
                 temp_file.write(self.datasource.content)
                 temp_file.flush()
-                loader = UnstructuredWordDocumentLoader(file_path=temp_file.name)
-                return loader.load_and_split()
-        return loader.load_and_split()
+                loader = PyPDFLoader(file_path=temp_file.name)
+                return loader.load_and_split(
+                    text_splitter=RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+                        chunk_size=250, chunk_overlap=0
+                    )
+                )
+        return loader.load_and_split(
+            text_splitter=RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+                chunk_size=250, chunk_overlap=0
+            )
+        )
 
     def load_google_doc(self):
         pass
@@ -108,7 +121,11 @@ class DataLoader:
             temp_file.write(file_response)
             temp_file.flush()
             loader = UnstructuredWordDocumentLoader(file_path=temp_file.name)
-            return loader.load_and_split()
+            return loader.load_and_split(
+                text_splitter=RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+                    chunk_size=250, chunk_overlap=0
+                )
+            )
 
     def load_markdown(self):
         with NamedTemporaryFile(suffix=".md", delete=True) as temp_file:
@@ -119,7 +136,11 @@ class DataLoader:
             temp_file.write(file_response.encode())
             temp_file.flush()
             loader = UnstructuredMarkdownLoader(file_path=temp_file.name)
-            return loader.load()
+            return loader.load(
+                text_splitter=RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+                    chunk_size=250, chunk_overlap=0
+                )
+            )
 
     def load_github(self):
         parsed_url = urlparse(self.datasource.url)
@@ -134,7 +155,11 @@ class DataLoader:
                 repo_path=repo_path,
                 branch=metadata["branch"],  # type: ignore
             )
-            return loader.load_and_split()
+            return loader.load_and_split(
+                text_splitter=RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+                    chunk_size=250, chunk_overlap=0
+                )
+            )
 
     def load_webpage(self):
         loader = RecursiveUrlLoader(
@@ -142,7 +167,11 @@ class DataLoader:
             max_depth=2,
             extractor=lambda x: Soup(x, "html.parser").text,
         )
-        chunks = loader.load_and_split()
+        chunks = loader.load_and_split(
+            text_splitter=RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+                chunk_size=250, chunk_overlap=0
+            )
+        )
         for chunk in chunks:
             if "language" in chunk.metadata:
                 del chunk.metadata["language"]
@@ -151,12 +180,20 @@ class DataLoader:
     def load_youtube(self):
         video_id = self.datasource.url.split("youtube.com/watch?v=")[-1]
         loader = YoutubeLoader(video_id=video_id)
-        return loader.load_and_split()
+        return loader.load_and_split(
+            text_splitter=RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+                chunk_size=250, chunk_overlap=0
+            )
+        )
 
     def load_url(self):
         url_list = self.datasource.url.split(",")
         loader = WebBaseLoader(url_list)
-        return loader.load_and_split()
+        return loader.load_and_split(
+            text_splitter=RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+                chunk_size=250, chunk_overlap=0
+            )
+        )
 
     def load_airtable(self):
         metadata = json.loads(self.datasource.metadata)
@@ -187,5 +224,9 @@ class DataLoader:
             record_handler=handle_record,
             stream_name=stream_name,
         )
-        data = loader.load()
+        data = loader.load(
+            text_splitter=RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+                chunk_size=250, chunk_overlap=0
+            )
+        )
         return data

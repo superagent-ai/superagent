@@ -1,12 +1,11 @@
 import json
-import litellm
 import logging
 import re
-from typing import Optional, List, Dict, Any, Tuple, Coroutine, Callable
 
+from typing import Any, Callable, Coroutine, Dict, List, Optional, Tuple
 from litellm import acompletion
-from app.tools import ToolRunner
-from app.tools.prompt import (
+from app.tools.base import BaseTool
+from app.utils.prompts import (
     create_function_calling_prompt,
     create_function_response_prompt,
 )
@@ -20,10 +19,10 @@ class Superagent:
         api_key: str,
         model: str,
         api_base: str = None,
-        tools: List[Callable] = [],
+        tools: List[BaseTool] = [],
         memory: Tuple[str, List[Any]] = None,
         temperature: float = 0.5,
-        max_tokens: int = 2000,
+        max_tokens: int = 500,
         callback: Optional[Callable[[str], Coroutine]] = None,
     ) -> None:
         self.api_key = api_key
@@ -38,18 +37,22 @@ class Superagent:
     def extract_content(self, chunk: Dict[str, Any]) -> str:
         return chunk.get("choices", [{}])[0].get("delta", {}).get("content", "")
 
-    def extract_function_calls(self, completion: str) -> Optional[str]:
+    def extract_function_calls(
+        self, completion: str
+    ) -> Optional[Tuple[BaseTool, dict]]:
         pattern = r"(<function_call>(.*?)</function_call>)"
         match = re.search(pattern, completion.strip(), re.DOTALL)
         if not match:
             return None
         function_call = json.loads(match.group(2).strip())
-        if function_call.get("name") in self.get_tool_names():
-            return function_call
+        tool_name = function_call.get("name")
+        for tool in self.tools:
+            if tool.name == tool_name:
+                return (tool, function_call.get("parameters"))
         return None
 
     def get_tool_names(self) -> List[str]:
-        return [tool.__name__ for tool in self.tools]
+        return [tool.name for tool in self.tools]
 
     async def run_completion(
         self, system_prompt: Optional[str], prompt: str, stream: bool = False
@@ -102,9 +105,8 @@ class Superagent:
         return messages
 
     async def create_and_run_prompt(self, input: str, stream: bool = False) -> str:
-        prompt = create_function_calling_prompt(
-            tools=[litellm.utils.function_to_dict(tool) for tool in self.tools]
-        )
+        tool_dicts = [tool.get_function_metadata() for tool in self.tools]
+        prompt = create_function_calling_prompt(tools=tool_dicts)
         return await self.run_completion(
             system_prompt=prompt, prompt=input, stream=stream
         )
@@ -113,8 +115,9 @@ class Superagent:
         match = self.extract_function_calls(response)
         prediction = {"content": response}
         if match:
-            runner = ToolRunner(match)
-            prediction = await runner.run()
+            logging.info(f"Invoking tool `{match[0].name}` with `{match[1]}`")
+            prediction = await match[0].arun(args=match[1])
+
         prompt = create_function_response_prompt(
             input=input, context=prediction["content"]
         )

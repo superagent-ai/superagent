@@ -1,5 +1,6 @@
+# flake8: noqa
 from datetime import datetime
-from typing import List, Dict
+from typing import Dict, List
 
 
 def get_current_date_str() -> str:
@@ -23,7 +24,7 @@ def create_function_calling_prompt(tools: List[Dict]) -> str:
     fn = '{"name": "function_name", "parameters": {"arg_1": "value_1", "arg_2": "value_2", ...}}'
     tool_prompt = create_tool_prompt(tools)
     prompt = (
-        f"Your name is Nagato. You are a helpful assistant with access to the following functions:\n\n"
+        f"You are a helpful assistant with access to the following functions:\n\n"
         f"{tool_prompt}\n"
         "To use these functions respond with:\n"
         f"<function_call> {fn} </function_call>\n\n"

@@ -1,7 +1,7 @@
+import importlib
 import json
 import logging
-import importlib
-from inspect import signature, iscoroutinefunction
+from inspect import iscoroutinefunction, signature
 from typing import Any, Dict, Optional, Type
 
 from pydantic import create_model
@@ -26,8 +26,8 @@ from app.models.tools import (
 )
 from app.tools.agent import Agent
 from app.tools.algolia import Algolia
-from app.tools.bing_search import BingSearch
-from app.tools.browser import Browser
+from app.tools.bing_search import LCBingSearch, BingSearch
+from app.tools.browser import LCBrowser, Browser
 from app.tools.chatgpt import get_chatpgt_tool
 from app.tools.e2b import E2BCodeExecutor
 from app.tools.function import Function
@@ -45,7 +45,7 @@ TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
     "ALGOLIA": {"class": Algolia, "schema": AlgoliaInput},
     "BING_SEARCH": {
-        "class": BingSearch,
+        "class": LCBingSearch,
         "schema": BingSearchInput,
     },
     "METAPHOR": {
@@ -62,12 +62,14 @@ TOOL_TYPE_MAPPING = {
     "REPLICATE": {"class": Replicate, "schema": ReplicateInput},
     "WOLFRAM_ALPHA": {"class": WolframAlpha, "schema": WolframInput},
     "CODE_EXECUTOR": {"class": E2BCodeExecutor, "schema": E2BCodeExecutorInput},
-    "BROWSER": {"class": Browser, "schema": BrowserInput},
+    "BROWSER": {"class": LCBrowser, "schema": BrowserInput},
     "GPT_VISION": {"class": GPTVision, "schema": GPTVisionInput},
     "TTS_1": {"class": TTS1, "schema": TTS1Input},
     "HAND_OFF": {"class": HandOff, "schema": HandOffInput},
     "FUNCTION": {"class": Function, "schema": FunctionInput},
 }
+
+OSS_TOOL_TYPE_MAPPING = {"BROWSER": Browser, "BING_SEARCH": BingSearch}
 
 logging.basicConfig(level=logging.INFO)
 
@@ -103,40 +105,3 @@ def create_tool(
         metadata=metadata,
         return_direct=return_direct,
     )
-
-
-class ToolRunner:
-    def __init__(self, function_call: dict):
-        self.function_call = function_call
-
-    async def run(self) -> dict:
-        data = self.function_call
-        logging.info(f"Invoking Tool: {data}")
-        function_name = data.get("name", "")
-        params = data.get("parameters", {})
-        module_name = f"app.tools.{function_name.lower()}"
-
-        try:
-            tool_module = importlib.import_module(module_name)
-            tool_function = getattr(tool_module, function_name)
-            func_signature = signature(tool_function)
-            func_params = func_signature.parameters
-
-            if all(param in params for param in func_params):
-                if iscoroutinefunction(tool_function):
-                    result = await tool_function(**params)
-                else:
-                    result = tool_function(**params)
-                return result
-
-            else:
-                return {
-                    "type": "error",
-                    "content": "Incorrect arguments provided for the function",
-                }
-
-        except Exception as e:
-            return {
-                "type": "error",
-                "content": f"Error in executing the function: {str(e)}",
-            }

@@ -1,22 +1,54 @@
-from typing import Any, List, Callable, Tuple
+import json
+from typing import Any, Callable, List, Tuple
 
+from decouple import config
+from slugify import slugify
+
+from app.agents import Superagent
 from app.agents.base import AgentBase
 from app.memory.base import Memory
+from app.tools import OSS_TOOL_TYPE_MAPPING
+from app.tools.unstructured_datasource import UnstructuredDataSourceTool
 from app.utils.llm import HUGGINGFACE_MODEL_MAPPING
-from decouple import config
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
-from app.agents import Superagent
-from app.datasource.types import (
-    VALID_UNSTRUCTURED_DATA_TYPES,
-)
-from app.tools.browser import browser
+
+
+def recursive_json_loads(data):
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except json.JSONDecodeError:
+            return data
+    if isinstance(data, dict):
+        return {k: recursive_json_loads(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [recursive_json_loads(v) for v in data]
+    return data
 
 
 class SuperagentAgent(AgentBase):
     async def _get_tools(
         self, agent_datasources: List[AgentDatasource], agent_tools: List[AgentTool]
     ) -> List[Callable]:
-        tools = [browser]
+        tools = []
+        for agent_datasource in agent_datasources:
+            metadata = {
+                "datasource_id": agent_datasource.datasource.id,
+            }
+            tool = UnstructuredDataSourceTool(
+                name=slugify(agent_datasource.datasource.name),
+                description=agent_datasource.datasource.description,
+                metadata=metadata,
+            )
+            tools.append(tool)
+        for agent_tool in agent_tools:
+            metadata = recursive_json_loads(agent_tool.tool.metadata)
+            tool = OSS_TOOL_TYPE_MAPPING[agent_tool.tool.type](
+                name=slugify(agent_tool.tool.name),
+                description=agent_tool.tool.description,
+                metadata=metadata,
+            )
+            tools.append(tool)
         return tools
 
     async def _get_memory(self) -> Tuple[str, List[Any]]:
