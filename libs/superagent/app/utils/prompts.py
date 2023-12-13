@@ -1,6 +1,6 @@
 # flake8: noqa
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Tuple, Any
 
 
 def get_current_date_str() -> str:
@@ -10,7 +10,7 @@ def get_current_date_str() -> str:
 def create_tool_prompt(tools: List[Dict]) -> str:
     tool_prompt = "Available functions:\n\n"
     for tool in tools:
-        tool_prompt += f"{tool}\n"
+        tool_prompt += f"{tool}\n\n"
     return tool_prompt
 
 
@@ -29,9 +29,8 @@ def create_function_calling_prompt(tools: List[Dict]) -> str:
         "To use these functions respond with:\n"
         f"<function_call> {fn} </function_call>\n\n"
         "Edge cases you must handle:\n"
-        "- If there are no functions that match the user request, answer the user's question in a conversational manner.\n"
         "- If a function matches the user's request only respond with the <function_call> {fn} </function_call>, no other tokens allowed.\n\n"
-        f"Current date: {get_current_date_str()}"
+        f"Current date: {get_current_date_str()}\n\n"
     )
     return prompt
 

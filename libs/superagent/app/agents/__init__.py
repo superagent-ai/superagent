@@ -5,10 +5,16 @@ import re
 from typing import Any, Callable, Coroutine, Dict, List, Optional, Tuple
 from litellm import acompletion
 from app.tools.base import BaseTool
+from app.memory.base import Memory
 from app.utils.prompts import (
     create_function_calling_prompt,
     create_function_response_prompt,
 )
+
+ROLE_SYSTEM = "system"
+ROLE_USER = "user"
+ROLE_ASSISTANT = "assistant"
+FUNCTION_CALL_PATTERN = r"(<function_call>(.*?)</function_call>)"
 
 logging.basicConfig(level=logging.INFO)
 
@@ -18,20 +24,20 @@ class Superagent:
         self,
         api_key: str,
         model: str,
-        api_base: str = None,
-        tools: List[BaseTool] = [],
-        memory: Tuple[str, List[Any]] = None,
+        memory: Memory,
+        api_base: Optional[str] = None,
+        tools: Optional[List[BaseTool]] = None,
         temperature: float = 0.5,
         max_tokens: int = 500,
         callback: Optional[Callable[[str], Coroutine]] = None,
     ) -> None:
         self.api_key = api_key
-        self.api_base = api_base
+        self.api_base = api_base or "default_api_base"
         self.model = model
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.callback = callback
-        self.tools = tools
+        self.tools = tools or []
         self.memory = memory
 
     def extract_content(self, chunk: Dict[str, Any]) -> str:
@@ -40,8 +46,9 @@ class Superagent:
     def extract_function_calls(
         self, completion: str
     ) -> Optional[Tuple[BaseTool, dict]]:
-        pattern = r"(<function_call>(.*?)</function_call>)"
-        match = re.search(pattern, completion.strip(), re.DOTALL)
+        if not completion:
+            return None
+        match = re.search(FUNCTION_CALL_PATTERN, completion.strip(), re.DOTALL)
         if not match:
             return None
         function_call = json.loads(match.group(2).strip())
@@ -99,9 +106,11 @@ class Superagent:
         self, system_prompt: Optional[str], prompt: str
     ) -> List[Dict[str, str]]:
         messages = (
-            [{"role": "system", "content": system_prompt}] if system_prompt else []
+            [{ROLE_SYSTEM: ROLE_SYSTEM, "content": system_prompt}]
+            if system_prompt
+            else []
         )
-        messages.append({"content": prompt, "role": "user"})
+        messages.append({"content": prompt, "role": ROLE_USER})
         return messages
 
     async def create_and_run_prompt(self, input: str, stream: bool = False) -> str:
@@ -117,7 +126,7 @@ class Superagent:
         if match:
             logging.info(f"Invoking tool `{match[0].name}` with `{match[1]}`")
             prediction = await match[0].arun(args=match[1])
-
+        print(prediction["content"])
         prompt = create_function_response_prompt(
             input=input, context=prediction["content"]
         )
@@ -127,5 +136,7 @@ class Superagent:
 
     async def acall(self, inputs: dict, *args, **kwargs) -> str:
         input = inputs["input"]
-        response = await self.create_and_run_prompt(input)
-        return await self.process_response(response, input)
+        response = await self.create_and_run_prompt(input=input)
+        output = await self.process_response(response=response, input=input)
+        # self.memory.save_context(input=input, output=output)
+        return output

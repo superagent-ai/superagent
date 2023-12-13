@@ -9,6 +9,7 @@ from app.agents.base import AgentBase
 from app.memory.base import Memory
 from app.tools import OSS_TOOL_TYPE_MAPPING
 from app.tools.unstructured_datasource import UnstructuredDataSourceTool
+from app.tools.noop import NoopTool
 from app.utils.llm import HUGGINGFACE_MODEL_MAPPING
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
 
@@ -51,7 +52,7 @@ class SuperagentAgent(AgentBase):
             tools.append(tool)
         return tools
 
-    async def _get_memory(self) -> Tuple[str, List[Any]]:
+    async def _get_memory(self) -> Memory:
         memory = Memory(
             session_id=f"{self.agent_id}-{self.session_id}"
             if self.session_id
@@ -64,7 +65,9 @@ class SuperagentAgent(AgentBase):
         if agent_llm.llm.provider == "HUGGINGFACE":
             return {
                 "model": HUGGINGFACE_MODEL_MAPPING[model],
-                "api_base": agent_llm.llm.options.get("api_base"),
+                "api_base": agent_llm.llm.options.get("api_base")
+                if agent_llm.llm.options
+                else None,
                 "api_key": agent_llm.llm.apiKey,
             }
 
