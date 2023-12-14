@@ -14,7 +14,9 @@ from app.models.request import (
     WorkflowStep as WorkflowStepRequest,
 )
 from app.models.response import Workflow as WorkflowResponse
+from app.models.response import WorkflowStep as WorkflowStepResponse
 from app.models.response import WorkflowList as WorkflowListResponse
+from app.models.response import WorkflowStepList as WorkflowStepListResponse
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 from app.workflows.base import WorkflowBase
@@ -149,7 +151,7 @@ async def invoke(
     "/workflows/{workflow_id}/steps",
     name="add_step",
     description="Create a new workflow step",
-    response_model=WorkflowResponse,
+    response_model=WorkflowStepResponse,
 )
 async def add_step(
     workflow_id: str, body: WorkflowStepRequest, api_user=Depends(get_current_api_user)
@@ -174,7 +176,7 @@ async def add_step(
     "/workflows/{workflow_id}/steps",
     name="list_steps",
     description="List all steps of a workflow",
-    response_model=WorkflowListResponse,
+    response_model=WorkflowStepListResponse,
 )
 async def list_steps(workflow_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for listing all steps of a workflow"""
