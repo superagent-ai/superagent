@@ -115,28 +115,30 @@ class Superagent:
 
     async def create_and_run_prompt(self, input: str, stream: bool = False) -> str:
         tool_dicts = [tool.get_function_metadata() for tool in self.tools]
-        prompt = create_function_calling_prompt(tools=tool_dicts)
+        memory = await self.memory.init()
+        prompt = create_function_calling_prompt(tools=tool_dicts, memory=memory)
+        print(prompt)
         return await self.run_completion(
             system_prompt=prompt, prompt=input, stream=stream
         )
 
     async def process_response(self, response: str, input: str) -> str:
         match = self.extract_function_calls(response)
-        prediction = {"content": response}
+        prediction = response
         if match:
             logging.info(f"Invoking tool `{match[0].name}` with `{match[1]}`")
             prediction = await match[0].arun(args=match[1])
-        print(prediction["content"])
-        prompt = create_function_response_prompt(
-            input=input, context=prediction["content"]
-        )
-        return await self.run_completion(
-            prompt=prompt, system_prompt=None, stream=False
-        )
+            prompt = create_function_response_prompt(
+                input=input, context=prediction["content"]
+            )
+            return await self.run_completion(
+                prompt=prompt, system_prompt=None, stream=False
+            )
+        return prediction
 
     async def acall(self, inputs: dict, *args, **kwargs) -> str:
         input = inputs["input"]
         response = await self.create_and_run_prompt(input=input)
         output = await self.process_response(response=response, input=input)
-        # self.memory.save_context(input=input, output=output)
+        self.memory.save_context(input=input, output=output)
         return output

@@ -14,7 +14,16 @@ def create_tool_prompt(tools: List[Dict]) -> str:
     return tool_prompt
 
 
-def create_function_calling_prompt(tools: List[Dict]) -> str:
+def create_history_prompt(messages: List[Dict[str, Any]]) -> str:
+    return "\n".join(
+        f"- {'User' if m['role'] == 'Human' else m['role']}: {m['content']}"
+        for m in messages
+    )
+
+
+def create_function_calling_prompt(
+    tools: List[Dict], memory: Tuple[str, List[Any]]
+) -> str:
     """
     Create a custom prompt for selecting the most suitable function and parameters.
 
@@ -23,14 +32,18 @@ def create_function_calling_prompt(tools: List[Dict]) -> str:
     """
     fn = '{"name": "function_name", "parameters": {"arg_1": "value_1", "arg_2": "value_2", ...}}'
     tool_prompt = create_tool_prompt(tools)
+    chat_history = create_history_prompt(memory[1])
     prompt = (
         f"You are a helpful assistant with access to the following functions:\n\n"
         f"{tool_prompt}\n"
         "To use these functions respond with:\n"
         f"<function_call> {fn} </function_call>\n\n"
         "Edge cases you must handle:\n"
-        "- If a function matches the user's request only respond with the <function_call> {fn} </function_call>, no other tokens allowed.\n\n"
+        "- Answer in a conversational manner if the user is chit chatting.\n"
+        "- If a function matches the user's request only respond with the "
+        "<function_call> {fn} </function_call>, no other tokens allowed\n\n"
         f"Current date: {get_current_date_str()}\n\n"
+        f"History\n{chat_history}\n\n"
     )
     return prompt
 
@@ -48,7 +61,7 @@ def create_function_response_prompt(input: str, context: str) -> str:
         "If the context is an answer to the task/question disregard the context and sources.\n"
         "Answer as a human having a conversation.\n\n"
         f"Current date: {get_current_date_str()}\n"
-        f"Task/Question: {input}\n\n"
+        f"Task/Question: {input}.\n\n"
         f"Context:\n{context}\n\n"
     )
     return prompt

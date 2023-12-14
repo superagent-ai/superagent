@@ -9,7 +9,6 @@ from app.agents.base import AgentBase
 from app.memory.base import Memory
 from app.tools import OSS_TOOL_TYPE_MAPPING
 from app.tools.unstructured_datasource import UnstructuredDataSourceTool
-from app.tools.noop import NoopTool
 from app.utils.llm import HUGGINGFACE_MODEL_MAPPING
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
 
