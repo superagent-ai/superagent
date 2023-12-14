@@ -1,22 +1,11 @@
 "use client"
 
-import React, { useCallback, useMemo, useRef, useState } from "react"
+import React, { useCallback, useMemo, useState } from "react"
 import { Agent } from "@/models/Agent"
 import update from "immutability-helper"
-import { DndProvider, useDrag, useDrop } from "react-dnd"
+import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import { v4 as uuid } from "uuid"
-
-import { cn } from "@/lib/utils"
-import { buttonVariants } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 
 import Step, { type Step as StepType } from "./Step"
 
