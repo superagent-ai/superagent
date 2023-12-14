@@ -49,7 +49,7 @@ class AgentBase:
             },
         )
 
-        if agent_config.llms[0].llm.provider == "OPENAI":
+        if agent_config.llms[0].llm.provider in ["OPENAI", "AZURE_OPENAI"]:
             from app.agents.langchain import LangchainAgent
 
             agent = LangchainAgent(
