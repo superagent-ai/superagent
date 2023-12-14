@@ -1,4 +1,5 @@
 import { useRef, useState } from "react"
+import Link from "next/link"
 import { Agent } from "@/models/Agent"
 import type { Identifier } from "dnd-core"
 import { Check, ChevronsUpDown } from "lucide-react"
@@ -23,25 +24,6 @@ export const ItemTypes = {
   STEP: "step",
 }
 
-const VerticalLine = () => (
-  <svg className="h-8 w-4">
-    <path
-      d="M 8,0 L 8,32"
-      fill="none"
-      className="stroke-gray-300 dark:stroke-gray-700"
-    />
-  </svg>
-)
-const ArrowDown = () => (
-  <svg className="mb-4 h-8 w-4">
-    <path
-      d="M 8,0 L 8,32 L 4,28 M 8,32 L 12,28"
-      fill="none"
-      className="stroke-gray-300 dark:stroke-gray-700"
-    />
-  </svg>
-)
-
 export interface Step {
   id: string
   agent?: Agent
@@ -64,6 +46,24 @@ interface DragItem {
   type: string
 }
 
+const VerticalLine = () => (
+  <svg className="h-8 w-4">
+    <path
+      d="M 8,0 L 8,32"
+      fill="none"
+      className="stroke-gray-300 dark:stroke-gray-700"
+    />
+  </svg>
+)
+const ArrowDown = () => (
+  <svg className="mb-4 h-8 w-4">
+    <path
+      d="M 8,0 L 8,32 L 4,28 M 8,32 L 12,28"
+      fill="none"
+      className="stroke-gray-300 dark:stroke-gray-700"
+    />
+  </svg>
+)
 const SelectAgentButton: React.FC<SelectAgentButtonProps> = ({
   agents,
   step,
@@ -138,29 +138,40 @@ const SelectAgentButton: React.FC<SelectAgentButtonProps> = ({
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0">
           <Command>
-            <CommandInput placeholder="Search framework..." />
-            <CommandEmpty>No agents found.</CommandEmpty>
-            <CommandGroup>
-              {agents.map((agent) => (
-                <CommandItem
-                  key={agent.id}
-                  value={agent.name}
-                  onSelect={(currentValue) => {
-                    selectAgent(agent, stepIndex)
-                    setValue(currentValue === value ? "" : currentValue)
-                    setOpen(false)
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === agent.name ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {agent.name}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            {agents?.length ? (
+              <div>
+                <CommandInput placeholder="Search framework..." />
+                <CommandEmpty>No agents found.</CommandEmpty>
+                <CommandGroup>
+                  {agents.map((agent) => (
+                    <CommandItem
+                      key={agent.id}
+                      value={agent.name}
+                      onSelect={(currentValue) => {
+                        selectAgent(agent, stepIndex)
+                        setValue(currentValue === value ? "" : currentValue)
+                        setOpen(false)
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          value === agent.name ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {agent.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center p-2">
+                <p className="mb-2">No agents found.</p>
+                <Link href="/agents?addNewAgentModal=true">
+                  <Button variant="active">Create a new agent</Button>
+                </Link>
+              </div>
+            )}
           </Command>
         </PopoverContent>
       </Popover>
