@@ -78,12 +78,14 @@ export function Message({
   type,
   message,
   profile,
+  session,
   onResubmit,
 }: {
   agent: Agent
   type: string
   message: string
   profile: Profile
+  session: string | null
   onResubmit?: () => void
 }) {
   const { toast } = useToast()
@@ -93,7 +95,7 @@ export function Message({
     }
 
     await langfuseWeb.score({
-      traceId: agent.id,
+      traceId: session ? `${agent.id}-${session}` : agent.id,
       name: "user-feedback",
       value,
       comment: "I like how personalized the response is",
@@ -444,6 +446,7 @@ export default function Chat({
                   type={type}
                   message={message}
                   profile={profile}
+                  session={session}
                 />
               ))}
             </div>
@@ -474,6 +477,7 @@ export default function Chat({
                         type="ai"
                         message={run.outputs?.output}
                         profile={profile}
+                        session={session}
                       />
                     </ScrollArea>
                     <div className="mt-2 flex flex-col space-y-2">
