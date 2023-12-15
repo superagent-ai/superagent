@@ -47,6 +47,8 @@ from app.utils.api import get_current_api_user, handle_exception
 from app.utils.llm import LLM_PROVIDER_MAPPING
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
+from langchain.agents import AgentExecutor
+from langchain.chains import LLMChain
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
@@ -205,7 +207,7 @@ async def invoke(
         langfuse_handler = trace.get_langchain_handler()
 
     async def send_message(
-        agent: AgentBase, content: str, callback: CustomAsyncIteratorCallbackHandler
+        agent: LLMChain | AgentExecutor, content: str, callback: CustomAsyncIteratorCallbackHandler
     ) -> AsyncIterable[str]:
         try:
             task = asyncio.ensure_future(

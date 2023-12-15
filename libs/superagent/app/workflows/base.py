@@ -9,7 +9,7 @@ class WorkflowBase:
         self.workflow_id = workflow_id
         self.enable_streaming = enable_streaming
 
-    async def arun(self, input: Any) -> Any:
+    async def arun(self, input: Any):
         workflow = await prisma.workflow.find_unique(
             where={"id": self.workflow_id},
             include={"steps": True},

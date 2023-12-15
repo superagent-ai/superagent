@@ -157,7 +157,7 @@ class LangchainAgent(AgentBase):
         await memory.init()
         return memory
 
-    async def get_agent(self, config: Agent) -> Any:
+    async def get_agent(self, config: Agent):
         llm = await self._get_llm(agent_llm=config.llms[0], model=config.llmModel)
         tools = await self._get_tools(
             agent_datasources=config.datasources, agent_tools=config.tools
