@@ -25,7 +25,7 @@ class SuperagentAgent(AgentBase):
         )
         return memory
 
-    async def get_agent(self, config: Agent):
+    async def get_agent(self, config: Agent) -> Any:
         memory = await self._get_memory()
         tools = await self._get_tools(
             agent_datasources=config.datasources, agent_tools=config.tools

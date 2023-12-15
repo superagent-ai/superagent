@@ -39,7 +39,7 @@ class AgentBase:
     async def _get_memory(self) -> List:
         raise NotImplementedError
 
-    async def get_agent(self):
+    async def get_agent(self) -> Any:
         agent_config = await prisma.agent.find_unique_or_raise(
             where={"id": self.agent_id},
             include={
