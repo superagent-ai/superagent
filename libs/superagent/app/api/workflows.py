@@ -54,11 +54,14 @@ async def create(body: WorkflowRequest, api_user=Depends(get_current_api_user)):
     description="List all workflows",
     response_model=WorkflowListResponse,
 )
-async def list(api_user=Depends(get_current_api_user)):
+async def list(api_user=Depends(get_current_api_user), skip: int = 0, limit: int = 100):
     """Endpoint for listing all workflows"""
     try:
         data = await prisma.workflow.find_many(
-            where={"apiUserId": api_user.id}, order={"createdAt": "desc"}
+            where={"apiUserId": api_user.id},
+            order={"createdAt": "desc"},
+            skip=skip,
+            take=limit,
         )
         return {"success": True, "data": data}
     except Exception as e:
