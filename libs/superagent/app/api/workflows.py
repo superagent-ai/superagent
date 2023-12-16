@@ -21,6 +21,13 @@ from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 from app.workflows.base import WorkflowBase
 
+from fastapi.responses import StreamingResponse
+from app.utils.streaming import CustomAsyncIteratorCallbackHandler
+
+from typing import AsyncIterable
+import asyncio
+import json
+
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
 router = APIRouter()
@@ -139,10 +146,66 @@ async def invoke(
     """Endpoint for invoking a specific workflow"""
     if SEGMENT_WRITE_KEY:
         analytics.track(api_user.id, "Invoked Workflow")
+
+    workflow = await prisma.workflow.find_unique(
+                where={"id": workflow_id},
+                include={"steps": True},
+            )
+
+    if not workflow:
+        return {"success": False, "data": None, "message": "Workflow not found"}
+    callbacks = [CustomAsyncIteratorCallbackHandler() for i in range(len(workflow.steps))]
+    
+
     workflow = WorkflowBase(
-        workflow_id=workflow_id, enable_streaming=body.enableStreaming
+        workflow=workflow, enable_streaming=body.enableStreaming, callbacks=callbacks
     )
 
+    if body.enableStreaming:
+        logging.info("Streaming enabled. Preparing streaming response...")
+        
+        async def send_message(
+        ) -> AsyncIterable[str]:
+            try:
+                task = asyncio.ensure_future(workflow.arun(body.input))
+
+                for callback in callbacks:
+                    async for token in callback.aiter():
+                        yield f"data: {token}\n\n"
+                await task
+                workflow_result = task.result()
+
+                for i in range(len(callbacks)):
+                    result = workflow_result.steps[i]
+                    if "intermediate_steps" in result:
+                        for step in result["intermediate_steps"]:
+                            agent_action_message_log = step[0]
+                            function = agent_action_message_log.tool
+                            args = agent_action_message_log.tool_input
+                            if function and args:
+                                yield (
+                                    "event: function_call\n"
+                                    f'data: {{"function": "{function}", '
+                                    f'"args": {json.dumps(args)}}}\n\n'
+                                )
+
+
+            except Exception as e:
+                logging.error(f"Error in send_message: {e}")
+            finally:
+                callback.done.set()
+
+
+        generator = send_message()
+        return StreamingResponse(generator, media_type="text/event-stream")
+
+
+    logging.info("Streaming not enabled. Invoking workflow synchronously...")
+    output = await workflow.arun(
+        body.input,
+    )
+
+    return {"success": True, "data": output}
 
 # Workflow steps
 @router.post(
