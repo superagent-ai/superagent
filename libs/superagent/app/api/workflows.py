@@ -142,8 +142,6 @@ async def invoke(
     workflow = WorkflowBase(
         workflow_id=workflow_id, enable_streaming=body.enableStreaming
     )
-    output = await workflow.arun(body.input)
-    return {"success": True, "data": output}
 
 
 # Workflow steps
@@ -203,5 +201,32 @@ async def delete_step(
             analytics.track(api_user.id, "Deleted Workflow Step")
         await prisma.workflowstep.delete(where={"id": step_id})
         return {"success": True, "data": None}
+    except Exception as e:
+        handle_exception(e)
+
+
+@router.patch(
+    "/workflows/{workflow_id}/steps/{step_id}",
+    name="update",
+    description="Patch a workflow step",
+    response_model=WorkflowStepResponse,
+)
+async def update(
+    workflow_id: str, step_id:str, body: WorkflowStepRequest, api_user=Depends(get_current_api_user)
+):
+    """Endpoint for patching a workflow step"""
+    try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Updated Workflow Step")
+
+        data = await prisma.workflowstep.update(
+            where={"id": step_id},
+            data={
+                **body.dict(),
+                "workflowId": workflow_id,
+            },
+        )
+
+        return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
