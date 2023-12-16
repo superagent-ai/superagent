@@ -197,8 +197,8 @@ model WorkflowStep {
   workflow   Workflow @relation(fields: [workflowId], references: [id])
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  input      String   @db.Text
-  output     String   @db.Text
+  input      String?  @db.Text
+  output     String?  @db.Text
   agentId    String
   agent      Agent    @relation(fields: [agentId], references: [id])
 }
