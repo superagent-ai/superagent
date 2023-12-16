@@ -176,8 +176,8 @@ export class Api {
     return this.fetchFromApi(`/workflows/${id}/steps`)
   }
 
-  async createWorkflowStep(workflowId: string, stepId: string, payload: any) {
-    return this.fetchFromApi(`/workflows/${workflowId}/steps/${stepId}`, {
+  async createWorkflowStep(workflowId: string, payload: any) {
+    return this.fetchFromApi(`/workflows/${workflowId}/steps`, {
       method: "POST",
       body: JSON.stringify(payload),
     })

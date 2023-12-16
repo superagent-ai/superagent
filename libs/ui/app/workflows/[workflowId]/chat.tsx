@@ -42,7 +42,7 @@ export default function Chat({
   const [messages, setMessages] = React.useState<
     { type: string; message: string }[]
   >(
-    workflowSteps[0].agent.initialMessage
+    workflowSteps[0]?.agent?.initialMessage
       ? [{ type: "ai", message: workflowSteps[0].agent.initialMessage }]
       : []
   )
