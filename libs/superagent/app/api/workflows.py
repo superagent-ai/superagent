@@ -180,7 +180,8 @@ async def list_steps(workflow_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for listing all steps of a workflow"""
     try:
         data = await prisma.workflowstep.find_many(
-            where={"workflowId": workflow_id}, order={"order": "asc"}
+            where={"workflowId": workflow_id}, order={"order": "asc"},
+            include={"agent": True},
         )
         return {"success": True, "data": data}
     except Exception as e:
