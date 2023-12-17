@@ -4,6 +4,7 @@ import { Agent } from "@/models/models"
 import type { Identifier } from "dnd-core"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { useDrag, useDrop } from "react-dnd"
+import { RxPlus } from "react-icons/rx"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -30,6 +31,7 @@ export interface Step {
 }
 
 interface StepProps {
+  isLast?: boolean
   agents: Agent[]
   stepIndex: number
   step: Step
@@ -182,20 +184,21 @@ const SelectAgentButton: React.FC<SelectAgentButtonProps> = ({
   )
 }
 
-const Step: React.FC<StepProps> = (props) => {
+const Step: React.FC<StepProps> = ({ isLast, ...props }) => {
   return (
     <>
       <SelectAgentButton {...props} />
       <div className="flex flex-col items-center">
         <VerticalLine />
         <Button
-          variant="ghost"
+          variant="outline"
+          size="sm"
           title="Add a new agent"
           onClick={() => props.addNewItem(props.stepIndex + 1)}
         >
-          +
+          <RxPlus />
         </Button>
-        <ArrowDown />
+        {!isLast && <VerticalLine />}
       </div>
     </>
   )

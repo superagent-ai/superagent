@@ -10,6 +10,7 @@ import { v4 as uuid } from "uuid"
 import { Api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Spinner } from "@/components/ui/spinner"
 import { useToast } from "@/components/ui/use-toast"
 
 import Step, { type Step as StepType } from "./workflow-step"
@@ -33,6 +34,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
   workflowData,
   workflowStepsData,
 }) => {
+  const [isSaving, setIsSaving] = useState<boolean>(false)
   const api = new Api(api_key)
   const workflow = new Workflow(workflowData)
 
@@ -48,7 +50,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
 
   const initialStepsState = useMemo(
     () => (workflowSteps?.length ? workflowSteps : [initialItem]),
-    []
+    [workflowSteps]
   )
 
   const [steps, setSteps] = useState<StepType[]>(initialStepsState)
@@ -115,6 +117,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
   const { toast } = useToast()
 
   const saveWorkflow = async () => {
+    setIsSaving(true)
     const { data: currentWorkflowStepsData }: { data: any[] } =
       await api.getWorkflowSteps(workflow.id)
     const currentWorkflowSteps = currentWorkflowStepsData.map(
@@ -125,6 +128,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
     const filteredSteps = steps.filter((step) => step?.agent?.id)
 
     if (filteredSteps?.length < 2) {
+      setIsSaving(false)
       return toast({
         description: "You need at least 2 steps",
         variant: "destructive",
@@ -153,37 +157,40 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
     }
 
     setSavedSteps(steps)
+    setIsSaving(false)
     toast({
       description: "Saved workflow",
     })
   }
 
   return (
-    <ScrollArea className="flex-1 p-2">
+    <ScrollArea className="flex-1 border-r p-2 ">
       <DndProvider backend={HTML5Backend}>
-        <div className="flex flex-col items-center">
-          <div className="flex w-full items-center">
+        <div className="flex flex-col items-center space-y-10 px-3">
+          <div className="flex w-full items-center justify-between">
             <p className="mr-3">{workflow?.name}</p>
             <Button
               disabled={JSON.stringify(steps) === JSON.stringify(savedSteps)}
               onClick={saveWorkflow}
-              variant="active"
             >
-              Save
+              {isSaving ? <Spinner /> : "Save"}
             </Button>
           </div>
-          {steps?.map((step, stepIndex: number) => (
-            <Step
-              key={`workflow-step-${step.id}`}
-              agents={agents}
-              selectAgent={selectAgent}
-              unselectAgent={unselectAgent}
-              addNewItem={addNewItem}
-              moveCard={moveCard}
-              stepIndex={stepIndex}
-              step={step}
-            />
-          ))}
+          <div>
+            {steps?.map((step, stepIndex: number) => (
+              <Step
+                key={`workflow-step-${step.id}`}
+                agents={agents}
+                selectAgent={selectAgent}
+                unselectAgent={unselectAgent}
+                addNewItem={addNewItem}
+                moveCard={moveCard}
+                stepIndex={stepIndex}
+                step={step}
+                isLast={stepIndex === steps.length - 1}
+              />
+            ))}
+          </div>
         </div>
       </DndProvider>
     </ScrollArea>
