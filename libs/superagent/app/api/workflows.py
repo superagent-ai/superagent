@@ -1,8 +1,12 @@
+import asyncio
+import json
 import logging
+from typing import AsyncIterable
 
 import segment.analytics as analytics
 from decouple import config
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
 
 from app.models.request import (
     Workflow as WorkflowRequest,
@@ -14,19 +18,13 @@ from app.models.request import (
     WorkflowStep as WorkflowStepRequest,
 )
 from app.models.response import Workflow as WorkflowResponse
-from app.models.response import WorkflowStep as WorkflowStepResponse
 from app.models.response import WorkflowList as WorkflowListResponse
+from app.models.response import WorkflowStep as WorkflowStepResponse
 from app.models.response import WorkflowStepList as WorkflowStepListResponse
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
-from app.workflows.base import WorkflowBase
-
-from fastapi.responses import StreamingResponse
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
-
-from typing import AsyncIterable
-import asyncio
-import json
+from app.workflows.base import WorkflowBase
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
@@ -97,7 +95,7 @@ async def get(workflow_id: str, api_user=Depends(get_current_api_user)):
     description="Patch a workflow",
     response_model=WorkflowResponse,
 )
-async def update(
+async def workflow_update(
     workflow_id: str, body: WorkflowRequest, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for patching a workflow"""
@@ -148,14 +146,15 @@ async def invoke(
         analytics.track(api_user.id, "Invoked Workflow")
 
     workflow = await prisma.workflow.find_unique(
-                where={"id": workflow_id},
-                include={"steps": True},
-            )
+        where={"id": workflow_id},
+        include={"steps": True},
+    )
 
     if not workflow:
         return {"success": False, "data": None, "message": "Workflow not found"}
-    callbacks = [CustomAsyncIteratorCallbackHandler() for i in range(len(workflow.steps))]
-    
+    callbacks = [
+        CustomAsyncIteratorCallbackHandler() for i in range(len(workflow.steps))
+    ]
 
     workflow = WorkflowBase(
         workflow=workflow, enable_streaming=body.enableStreaming, callbacks=callbacks
@@ -163,9 +162,8 @@ async def invoke(
 
     if body.enableStreaming:
         logging.info("Streaming enabled. Preparing streaming response...")
-        
-        async def send_message(
-        ) -> AsyncIterable[str]:
+
+        async def send_message() -> AsyncIterable[str]:
             try:
                 task = asyncio.ensure_future(workflow.arun(body.input))
 
@@ -189,16 +187,13 @@ async def invoke(
                                     f'"args": {json.dumps(args)}}}\n\n'
                                 )
 
-
             except Exception as e:
                 logging.error(f"Error in send_message: {e}")
             finally:
                 callback.done.set()
 
-
         generator = send_message()
         return StreamingResponse(generator, media_type="text/event-stream")
-
 
     logging.info("Streaming not enabled. Invoking workflow synchronously...")
     output = await workflow.arun(
@@ -206,6 +201,7 @@ async def invoke(
     )
 
     return {"success": True, "data": output}
+
 
 # Workflow steps
 @router.post(
@@ -243,7 +239,8 @@ async def list_steps(workflow_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for listing all steps of a workflow"""
     try:
         data = await prisma.workflowstep.find_many(
-            where={"workflowId": workflow_id}, order={"order": "asc"},
+            where={"workflowId": workflow_id},
+            order={"order": "asc"},
             include={"agent": True},
         )
         return {"success": True, "data": data}
@@ -275,8 +272,11 @@ async def delete_step(
     description="Patch a workflow step",
     response_model=WorkflowStepResponse,
 )
-async def update(
-    workflow_id: str, step_id:str, body: WorkflowStepRequest, api_user=Depends(get_current_api_user)
+async def workflow_step_update(
+    workflow_id: str,
+    step_id: str,
+    body: WorkflowStepRequest,
+    api_user=Depends(get_current_api_user),
 ):
     """Endpoint for patching a workflow step"""
     try:

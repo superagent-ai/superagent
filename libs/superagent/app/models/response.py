@@ -120,10 +120,7 @@ class WorkflowList(BaseModel):
     success: bool
     data: Optional[List[WorkflowModel]]
 
+
 class WorkflowStepList(BaseModel):
     success: bool
     data: Optional[List[WorkflowStepModel]]
-
-
-
-
