@@ -26,7 +26,7 @@ export const ItemTypes = {
 
 export interface Step {
   id: string
-  agent?: Agent
+  agent?: Agent | null
 }
 
 interface StepProps {
@@ -34,6 +34,7 @@ interface StepProps {
   stepIndex: number
   step: Step
   selectAgent: (agent: Agent, stepIndex: number) => void
+  unselectAgent: (stepIndex: number) => void
   addNewItem: (indexToAdd: number) => void
   moveCard: (dragIndex: number, hoverIndex: number) => void
 }
@@ -70,6 +71,7 @@ const SelectAgentButton: React.FC<SelectAgentButtonProps> = ({
   stepIndex,
   moveCard,
   selectAgent,
+  unselectAgent,
 }) => {
   const [open, setOpen] = useState(false)
   const [value, setValue] = useState("")
@@ -148,13 +150,16 @@ const SelectAgentButton: React.FC<SelectAgentButtonProps> = ({
                       onSelect={(currentValue) => {
                         selectAgent(agent, stepIndex)
                         setValue(currentValue === value ? "" : currentValue)
+                        if (currentValue === value) unselectAgent(stepIndex)
                         setOpen(false)
                       }}
                     >
                       <Check
                         className={cn(
                           "mr-2 h-4 w-4",
-                          value === agent.name ? "opacity-100" : "opacity-0"
+                          step?.agent?.name === agent?.name
+                            ? "opacity-100"
+                            : "opacity-0"
                         )}
                       />
                       {agent.name}

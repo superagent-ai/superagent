@@ -24,6 +24,7 @@ interface WorkflowEditorProps {
 const initialItem = {
   // initalizing steps with one empty step
   id: uuid(),
+  agent: null,
 }
 
 const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
@@ -80,6 +81,19 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
         prevSteps[stepIndex] = {
           ...steps[stepIndex],
           agent,
+        }
+        return [...prevSteps]
+      })
+    },
+    [steps]
+  )
+
+  const unselectAgent = useCallback(
+    (stepIndex: number) => {
+      setSteps((prevSteps) => {
+        prevSteps[stepIndex] = {
+          ...steps[stepIndex],
+          agent: null,
         }
         return [...prevSteps]
       })
@@ -146,6 +160,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
 
   return (
     <DndProvider backend={HTML5Backend}>
+      {JSON.stringify(steps)}
       <div className="flex w-full items-center">
         <p className="mr-3">{workflow?.name}</p>
         <Button
@@ -161,6 +176,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
           key={`workflow-step-${step.id}`}
           agents={agents}
           selectAgent={selectAgent}
+          unselectAgent={unselectAgent}
           addNewItem={addNewItem}
           moveCard={moveCard}
           stepIndex={stepIndex}
