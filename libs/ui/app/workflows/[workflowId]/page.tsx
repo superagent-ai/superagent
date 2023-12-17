@@ -3,10 +3,11 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { Api } from "@/lib/api"
 
+import WorkflowEditor from "./WorkflowEditor"
 import Chat from "./chat"
 
 export const dynamic = "force-dynamic"
-export default async function AgentPage({ params }: { params: any }) {
+export default async function Workflow({ params }: { params: any }) {
   const { workflowId } = params
   const supabase = createRouteHandlerClient({ cookies })
   const {
@@ -18,19 +19,27 @@ export default async function AgentPage({ params }: { params: any }) {
     .eq("user_id", user?.id)
     .single()
   const api = new Api(profile.api_key)
-  const { data: workflowData } = await api.getWorkflowById(workflowId)
 
-  const { data: workflowStepsData }: { data: any[] } =
-    await api.getWorkflowSteps(workflowId)
+  const [
+    { data: workflowData },
+    { data: workflowStepsData },
+    { data: agentsData },
+  ] = await Promise.all([
+    api.getWorkflowById(workflowId),
+    api.getWorkflowSteps(workflowId),
+    api.getAgents(),
+  ])
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
-      {/* <div className="flex space-x-4">
-        <p className="text-lg">{workflow?.name}</p>
-      </div> */}
       <div className="flex grow overflow-auto">
-        <div className="flex flex-1 flex-col items-center justify-center">
-          Workflow UI
+        <div className="flex flex-1 flex-col items-center p-2">
+          <WorkflowEditor
+            api_key={profile?.api_key}
+            agentsData={agentsData}
+            workflowData={workflowData}
+            workflowStepsData={workflowStepsData}
+          />
         </div>
         <Chat
           profile={profile}
