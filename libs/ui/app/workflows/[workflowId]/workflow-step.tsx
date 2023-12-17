@@ -1,6 +1,6 @@
 import { useRef, useState } from "react"
 import Link from "next/link"
-import { Agent } from "@/models/Agent"
+import { Agent } from "@/models/models"
 import type { Identifier } from "dnd-core"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { useDrag, useDrop } from "react-dnd"

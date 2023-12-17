@@ -1,8 +1,7 @@
 "use client"
 
 import React, { useCallback, useMemo, useState } from "react"
-import { Agent } from "@/models/Agent"
-import { Workflow, WorkflowStep } from "@/models/models"
+import { Agent, Workflow, WorkflowStep } from "@/models/models"
 import update from "immutability-helper"
 import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
@@ -13,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToast } from "@/components/ui/use-toast"
 
-import Step, { type Step as StepType } from "./Step"
+import Step, { type Step as StepType } from "./workflow-step"
 
 interface WorkflowEditorProps {
   agentsData: any[]

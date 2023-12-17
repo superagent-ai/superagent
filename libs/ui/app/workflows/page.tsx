@@ -3,7 +3,7 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { Api } from "@/lib/api"
 
-import WorkflowEditor from "./[workflowId]/WorkflowEditor"
+import WorkflowEditor from "./[workflowId]/workflow-editor"
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
 

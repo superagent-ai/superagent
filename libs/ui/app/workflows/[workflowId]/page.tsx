@@ -3,8 +3,8 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { Api } from "@/lib/api"
 
-import WorkflowEditor from "./WorkflowEditor"
 import Chat from "./chat"
+import WorkflowEditor from "./workflow-editor"
 
 export const dynamic = "force-dynamic"
 export default async function Workflow({ params }: { params: any }) {
@@ -33,12 +33,12 @@ export default async function Workflow({ params }: { params: any }) {
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <div className="flex grow overflow-auto">
-          <WorkflowEditor
-            api_key={profile?.api_key}
-            agentsData={agentsData}
-            workflowData={workflowData}
-            workflowStepsData={workflowStepsData}
-          />
+        <WorkflowEditor
+          api_key={profile?.api_key}
+          agentsData={agentsData}
+          workflowData={workflowData}
+          workflowStepsData={workflowStepsData}
+        />
         <Chat
           profile={profile}
           workflowData={workflowData}

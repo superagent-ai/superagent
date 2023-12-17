@@ -12,7 +12,7 @@ import { Api } from "@/lib/api"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
-import { Message } from "@/components/chat/Message"
+import { Message } from "@/components/chat/message"
 
 import PromptForm from "./prompt-form"
 
