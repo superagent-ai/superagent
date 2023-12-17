@@ -21,6 +21,11 @@ interface WorkflowEditorProps {
   api_key: string
 }
 
+const initialItem = {
+  // initalizing steps with one empty step
+  id: uuid(),
+}
+
 const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
   api_key,
   agentsData,
@@ -40,15 +45,15 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
     [workflowStepsData]
   )
 
-  const [steps, setSteps] = useState<StepType[]>(
-    workflowSteps?.length
-      ? workflowSteps
-      : [
-          {
-            // initalizing steps with one empty step
-            id: uuid(),
-          },
-        ]
+  const initialStepsState = useMemo(
+    () => (workflowSteps?.length ? workflowSteps : [initialItem]),
+    []
+  )
+
+  const [steps, setSteps] = useState<StepType[]>(initialStepsState)
+
+  const [savedSteps, setSavedSteps] = useState<StepType[]>(
+    workflowSteps?.length ? workflowSteps : [initialItem]
   )
 
   const addNewItem = useCallback(
@@ -101,19 +106,22 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
     const currentWorkflowSteps = currentWorkflowStepsData.map(
       (item: any) => new WorkflowStep(item)
     )
-    if (steps?.length < 2) {
+
+    // filter steps if they dont have agent id
+    const filteredSteps = steps.filter((step) => step?.agent?.id)
+
+    if (filteredSteps?.length < 2) {
       return toast({
         description: "You need at least 2 steps",
         variant: "destructive",
       })
-      return
     }
 
-    for (const step of steps) {
+    for (const step of filteredSteps) {
       const currentStepInDb = currentWorkflowSteps.find(
         (s) => s?.agent?.id === step?.agent?.id
       )
-      const currentStepIndex = steps.findIndex(
+      const currentStepIndex = filteredSteps.findIndex(
         (s) => s?.agent?.id === step?.agent?.id
       )
 
@@ -130,6 +138,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
       }
     }
 
+    setSavedSteps(steps)
     toast({
       description: "Saved workflow",
     })
@@ -139,7 +148,11 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
     <DndProvider backend={HTML5Backend}>
       <div className="flex w-full items-center">
         <p className="mr-3">{workflow?.name}</p>
-        <Button onClick={saveWorkflow} variant="active">
+        <Button
+          disabled={JSON.stringify(steps) === JSON.stringify(savedSteps)}
+          onClick={saveWorkflow}
+          variant="active"
+        >
           Save
         </Button>
       </div>
