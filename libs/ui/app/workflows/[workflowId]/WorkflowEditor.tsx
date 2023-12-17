@@ -101,6 +101,13 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
     const currentWorkflowSteps = currentWorkflowStepsData.map(
       (item: any) => new WorkflowStep(item)
     )
+    if (steps?.length < 2) {
+      return toast({
+        description: "You need at least 2 steps",
+        variant: "destructive",
+      })
+      return
+    }
 
     for (const step of steps) {
       const currentStepInDb = currentWorkflowSteps.find(
