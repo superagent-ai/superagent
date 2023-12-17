@@ -158,8 +158,6 @@ async def invoke(
     workflow = WorkflowBase(
         workflow=workflow, enable_streaming=body.enableStreaming, callbacks=callbacks
     )
-    output = await workflow.arun(body.input)
-    return {"success": True, "data": output}
 
     if body.enableStreaming:
         logging.info("Streaming enabled. Preparing streaming response...")
