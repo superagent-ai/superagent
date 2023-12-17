@@ -97,11 +97,14 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     description="List all agents",
     response_model=AgentListResponse,
 )
-async def list(api_user=Depends(get_current_api_user)):
+async def list(api_user=Depends(get_current_api_user), skip: int = 0, limit: int = 100):
     """Endpoint for listing all agents"""
     try:
         data = await prisma.agent.find_many(
-            take=100, where={"apiUserId": api_user.id}, include={"llms": True}
+            skip=skip,
+            take=limit,
+            where={"apiUserId": api_user.id},
+            include={"llms": True},
         )
         return {"success": True, "data": data}
     except Exception as e:

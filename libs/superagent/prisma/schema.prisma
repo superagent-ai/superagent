@@ -143,6 +143,7 @@ model Tool {
   apiUserId    String
   apiUser      ApiUser     @relation(fields: [apiUserId], references: [id])
   tools        AgentTool[]
+  toolConfig   Json?
 }
 
 model AgentTool {

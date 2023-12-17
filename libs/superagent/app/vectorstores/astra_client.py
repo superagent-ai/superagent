@@ -160,35 +160,33 @@ class AstraClient:
         return QueryResponse(final_res)
 
     def _query(self, vector, top_k, filters=None):
-        score_query = {
-            "find": {
-                "sort": {"$vector": vector},
-                "projection": {"$similarity": 1},
-                "options": {"limit": top_k},
-            }
+        query = {
+            "sort": {"$vector": vector},
+            "options": {"limit": top_k, "includeSimilarity": True},
         }
-        query = {"find": {"sort": {"$vector": vector}, "options": {"limit": top_k}}}
         if filters is not None:
-            score_query["find"]["filter"] = filters
-            query["find"]["filter"] = filters
-        similarity_score = requests.request(
+            query["filter"] = filters
+        result = self.find_documents(query)
+        return result
+
+    def find_documents(self, find_query):
+        query = json.dumps({"find": find_query})
+        response = requests.request(
             "POST",
             self.request_url,
             headers=self.request_header,
-            data=json.dumps(score_query),
-        ).json()["data"]["documents"]
-        result = requests.request(
-            "POST",
-            self.request_url,
-            headers=self.request_header,
-            data=json.dumps(query),
-        ).json()["data"]["documents"]
-        response = []
-        for elt1 in similarity_score:
-            for elt2 in result:
-                if elt1["_id"] == elt2["_id"]:
-                    response.append(elt1 | elt2)
-        return response
+            data=query,
+        )
+        response_dict = json.loads(response.text)
+        if response.status_code == 200:
+            if "data" in response_dict and "documents" in response_dict["data"]:
+                return response_dict["data"]["documents"]
+            else:
+                print("[WARNING] No documents found", response_dict)
+        else:
+            raise Exception(
+                f"Astra DB request error - status code: {response.status_code} response {response.text}"
+            )
 
     def upsert(self, to_upsert):
         to_insert = []

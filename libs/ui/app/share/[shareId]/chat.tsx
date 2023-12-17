@@ -72,10 +72,12 @@ export function Message({
   type,
   message,
   agent,
+  session,
 }: {
   type: string
   message: string
   agent: Agent
+  session: string | null
 }) {
   const { toast } = useToast()
   const handleFeedback = async (value: number) => {
@@ -84,7 +86,7 @@ export function Message({
     }
 
     await langfuseWeb.score({
-      traceId: agent.id,
+      traceId: session ? `${agent.id}-${session}` : agent.id,
       name: "user-feedback",
       value,
       comment: "I like how personalized the response is",
@@ -390,6 +392,7 @@ export default function Chat({
                 type={type}
                 message={message}
                 agent={agent}
+                session={session}
               />
             ))}
           </div>

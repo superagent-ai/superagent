@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
-import { Message } from "@/components/chat/message"
+import { Message } from "@/components/chat/Message"
 
 import PromptForm from "./prompt-form"
 
@@ -200,7 +200,7 @@ export default function Chat({
             <div className="container mx-auto flex max-w-4xl flex-col">
               {messages.map(({ type, message }) => (
                 <Message
-                  traceId={agent?.id}
+                  traceId={session ? `${agent.id}-${session}` : agent.id}
                   type={type}
                   message={message}
                   profile={profile}
@@ -230,7 +230,7 @@ export default function Chat({
                   <CardContent>
                     <ScrollArea className="relative flex max-h-40 grow flex-col rounded-lg border p-3">
                       <Message
-                        traceId={agent?.id}
+                        traceId={session ? `${agent.id}-${session}` : agent.id}
                         type="ai"
                         message={run.outputs?.output}
                         profile={profile}

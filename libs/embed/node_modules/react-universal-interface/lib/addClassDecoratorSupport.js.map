@@ -1,1 +1,0 @@
-{"version":3,"file":"addClassDecoratorSupport.js","sourceRoot":"","sources":["../src/addClassDecoratorSupport.ts"],"names":[],"mappings":";;;AAAA,8FAAgE;AAEhE,IAAM,wBAAwB,GAAG,UAAC,IAAI;IAClC,IAAM,KAAK,GAAG,CAAC,IAAI,CAAC,SAAS,CAAC;IAC9B,OAAO,CAAC,KAAK,CAAC,CAAC,CAAC,IAAI,CAAC,CAAC,CAAC,iCAAuB,CAAC,IAAI,CAAC,CAAC;AACzD,CAAC,CAAC;AAEF,kBAAe,wBAAwB,CAAC"}
