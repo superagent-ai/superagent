@@ -33,14 +33,12 @@ export default async function Workflow({ params }: { params: any }) {
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <div className="flex grow overflow-auto">
-        <div className="flex flex-1 flex-col items-center p-2">
           <WorkflowEditor
             api_key={profile?.api_key}
             agentsData={agentsData}
             workflowData={workflowData}
             workflowStepsData={workflowStepsData}
           />
-        </div>
         <Chat
           profile={profile}
           workflowData={workflowData}

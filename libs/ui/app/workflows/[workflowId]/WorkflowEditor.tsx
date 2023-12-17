@@ -10,6 +10,7 @@ import { v4 as uuid } from "uuid"
 
 import { Api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToast } from "@/components/ui/use-toast"
 
 import Step, { type Step as StepType } from "./Step"
@@ -159,31 +160,34 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
   }
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      {JSON.stringify(steps)}
-      <div className="flex w-full items-center">
-        <p className="mr-3">{workflow?.name}</p>
-        <Button
-          disabled={JSON.stringify(steps) === JSON.stringify(savedSteps)}
-          onClick={saveWorkflow}
-          variant="active"
-        >
-          Save
-        </Button>
-      </div>
-      {steps?.map((step, stepIndex: number) => (
-        <Step
-          key={`workflow-step-${step.id}`}
-          agents={agents}
-          selectAgent={selectAgent}
-          unselectAgent={unselectAgent}
-          addNewItem={addNewItem}
-          moveCard={moveCard}
-          stepIndex={stepIndex}
-          step={step}
-        />
-      ))}
-    </DndProvider>
+    <ScrollArea className="flex-1 p-2">
+      <DndProvider backend={HTML5Backend}>
+        <div className="flex flex-col items-center">
+          <div className="flex w-full items-center">
+            <p className="mr-3">{workflow?.name}</p>
+            <Button
+              disabled={JSON.stringify(steps) === JSON.stringify(savedSteps)}
+              onClick={saveWorkflow}
+              variant="active"
+            >
+              Save
+            </Button>
+          </div>
+          {steps?.map((step, stepIndex: number) => (
+            <Step
+              key={`workflow-step-${step.id}`}
+              agents={agents}
+              selectAgent={selectAgent}
+              unselectAgent={unselectAgent}
+              addNewItem={addNewItem}
+              moveCard={moveCard}
+              stepIndex={stepIndex}
+              step={step}
+            />
+          ))}
+        </div>
+      </DndProvider>
+    </ScrollArea>
   )
 }
 
