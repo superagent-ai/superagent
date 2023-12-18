@@ -207,7 +207,7 @@ async def invoke(
         input,
     )
 
-    return {"success": True, "data": "output"}
+    return {"success": True, "data": output}
 
 
 # Workflow steps
