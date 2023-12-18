@@ -28,6 +28,8 @@ import { useToast } from "@/components/ui/use-toast"
 import { CodeBlock } from "@/components/codeblock"
 import { MemoizedReactMarkdown } from "@/components/markdown"
 
+import { Badge } from "./ui/badge"
+
 let langfuseWeb: LangfuseWeb | null = null
 
 if (process.env.NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY) {
@@ -109,14 +111,20 @@ export default function Message({
         <div className="ml-4 mt-1 flex-1 flex-col space-y-2 overflow-hidden px-1">
           {message?.length === 0 && !steps && <PulsatingCursor />}
           {steps
-            ? Object.entries(steps).map(([key, value]) => (
+            ? Object.entries(steps).map(([key, value], index) => (
                 <Accordion
                   defaultValue={Object.keys(steps)[0]}
                   type="single"
                   collapsible
                 >
                   <AccordionItem value={key}>
-                    <AccordionTrigger>{key}</AccordionTrigger>
+                    <AccordionTrigger
+                      className={`mb-4 py-0 text-sm hover:no-underline ${
+                        index > 0 && "mt-2"
+                      }`}
+                    >
+                      <p className="font-semibold">{key}</p>
+                    </AccordionTrigger>
                     <AccordionContent>
                       <CustomMarkdown message={value} />
                     </AccordionContent>
