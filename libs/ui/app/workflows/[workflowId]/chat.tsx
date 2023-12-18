@@ -40,7 +40,7 @@ export default function Chat({
   )
 
   const [messages, setMessages] = React.useState<
-    { type: string; message: string }[]
+    { type: string; message: string; steps?: Record<string, string> }[]
   >(
     workflowSteps[0]?.agent?.initialMessage
       ? [{ type: "ai", message: workflowSteps[0].agent.initialMessage }]
@@ -65,7 +65,7 @@ export default function Chat({
   }
 
   async function onSubmit(value: string) {
-    let message = ""
+    let messageByEventIds: Record<string, string> = {}
 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
@@ -88,7 +88,7 @@ export default function Chat({
 
     setMessages((previousMessages) => [
       ...previousMessages,
-      { type: "ai", message },
+      { type: "ai", message: "" },
     ])
 
     try {
@@ -115,15 +115,24 @@ export default function Chat({
             }
           },
           async onmessage(event) {
-            console.log("event", event)
-            if (event.data !== "[END]" && event.event !== "function_call") {
-              message += event.data === "" ? `${event.data} \n` : event.data
+            if (
+              event.data !== "[END]" &&
+              event.event !== "function_call" &&
+              event.id
+            ) {
+              if (!messageByEventIds[event.id]) {
+                messageByEventIds[event.id] = ""
+              }
+              if (event.id) {
+                messageByEventIds[event.id] +=
+                  event.data === "" ? `${event.data} \n` : event.data
+              }
               setMessages((previousMessages) => {
                 let updatedMessages = [...previousMessages]
 
                 for (let i = updatedMessages.length - 1; i >= 0; i--) {
                   if (updatedMessages[i].type === "ai") {
-                    updatedMessages[i].message = message
+                    updatedMessages[i].steps = messageByEventIds
                     break
                   }
                 }
@@ -174,11 +183,12 @@ export default function Chat({
         <div className="from-background absolute inset-x-0 top-0 z-20 h-20 bg-gradient-to-b from-0% to-transparent to-50%" />
         <div className="mb-20 mt-10 flex flex-col space-y-5 py-5">
           <div className="container mx-auto flex max-w-4xl flex-col">
-            {messages.map(({ type, message }) => (
+            {messages.map(({ type, message, steps }) => (
               <Message
                 traceId={workflow?.id}
                 type={type}
                 message={message}
+                steps={steps}
                 profile={profile}
               />
             ))}
