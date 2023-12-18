@@ -7,6 +7,8 @@ import segment.analytics as analytics
 from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
+from langchain.agents import AgentExecutor
+from langchain.chains import LLMChain
 from langfuse import Langfuse
 from langfuse.model import CreateTrace
 from langsmith import Client
@@ -208,7 +210,9 @@ async def invoke(
         langfuse_handler = trace.get_langchain_handler()
 
     async def send_message(
-        agent: AgentBase, content: str, callback: CustomAsyncIteratorCallbackHandler
+        agent: LLMChain | AgentExecutor,
+        content: str,
+        callback: CustomAsyncIteratorCallbackHandler,
     ) -> AsyncIterable[str]:
         try:
             task = asyncio.ensure_future(

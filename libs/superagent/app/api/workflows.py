@@ -19,6 +19,8 @@ from app.models.request import (
 )
 from app.models.response import Workflow as WorkflowResponse
 from app.models.response import WorkflowList as WorkflowListResponse
+from app.models.response import WorkflowStep as WorkflowStepResponse
+from app.models.response import WorkflowStepList as WorkflowStepListResponse
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
@@ -96,7 +98,7 @@ async def get(workflow_id: str, api_user=Depends(get_current_api_user)):
     description="Patch a workflow",
     response_model=WorkflowResponse,
 )
-async def update(
+async def workflow_update(
     workflow_id: str, body: WorkflowRequest, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for patching a workflow"""
@@ -209,7 +211,7 @@ async def invoke(
     "/workflows/{workflow_id}/steps",
     name="add_step",
     description="Create a new workflow step",
-    response_model=WorkflowResponse,
+    response_model=WorkflowStepResponse,
 )
 async def add_step(
     workflow_id: str, body: WorkflowStepRequest, api_user=Depends(get_current_api_user)
@@ -234,13 +236,15 @@ async def add_step(
     "/workflows/{workflow_id}/steps",
     name="list_steps",
     description="List all steps of a workflow",
-    response_model=WorkflowListResponse,
+    response_model=WorkflowStepListResponse,
 )
 async def list_steps(workflow_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for listing all steps of a workflow"""
     try:
         data = await prisma.workflowstep.find_many(
-            where={"workflowId": workflow_id}, order={"order": "asc"}
+            where={"workflowId": workflow_id},
+            order={"order": "asc"},
+            include={"agent": True},
         )
         return {"success": True, "data": data}
     except Exception as e:
@@ -261,5 +265,35 @@ async def delete_step(
             analytics.track(api_user.id, "Deleted Workflow Step")
         await prisma.workflowstep.delete(where={"id": step_id})
         return {"success": True, "data": None}
+    except Exception as e:
+        handle_exception(e)
+
+
+@router.patch(
+    "/workflows/{workflow_id}/steps/{step_id}",
+    name="update",
+    description="Patch a workflow step",
+    response_model=WorkflowStepResponse,
+)
+async def workflow_step_update(
+    workflow_id: str,
+    step_id: str,
+    body: WorkflowStepRequest,
+    api_user=Depends(get_current_api_user),
+):
+    """Endpoint for patching a workflow step"""
+    try:
+        if SEGMENT_WRITE_KEY:
+            analytics.track(api_user.id, "Updated Workflow Step")
+
+        data = await prisma.workflowstep.update(
+            where={"id": step_id},
+            data={
+                **body.dict(),
+                "workflowId": workflow_id,
+            },
+        )
+
+        return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   ColumnDef,
@@ -160,6 +160,9 @@ export function DataTable<TData, TValue>({
       })
     }
   }
+  const searchParams = useSearchParams()
+
+  const isAddNewAgentModalOpen = Boolean(searchParams.get("addNewAgentModal"))
 
   return (
     <div>
@@ -172,7 +175,7 @@ export function DataTable<TData, TValue>({
           }
           className="max-w-md"
         />
-        <Dialog>
+        <Dialog defaultOpen={isAddNewAgentModalOpen}>
           <DialogTrigger
             className={cn(buttonVariants({ variant: "default", size: "sm" }))}
           >
