@@ -107,20 +107,22 @@ export default function Message({
           </AvatarFallback>
         </Avatar>
         <div className="ml-4 mt-1 flex-1 flex-col space-y-2 overflow-hidden px-1">
-          {message?.length === 0 && <PulsatingCursor />}
+          {message?.length === 0 && !steps && <PulsatingCursor />}
           {steps
-            ? Object.entries(steps).map(([key, value]) => {
-                return (
-                  <Accordion type="single" collapsible>
-                    <AccordionItem value="item-1">
-                      <AccordionTrigger>{key}</AccordionTrigger>
-                      <AccordionContent>
-                        <CustomMarkdown message={value} />
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                )
-              })
+            ? Object.entries(steps).map(([key, value]) => (
+                <Accordion
+                  defaultValue={Object.keys(steps)[0]}
+                  type="single"
+                  collapsible
+                >
+                  <AccordionItem value={key}>
+                    <AccordionTrigger>{key}</AccordionTrigger>
+                    <AccordionContent>
+                      <CustomMarkdown message={value} />
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              ))
             : message && <CustomMarkdown message={message} />}
           {type === "ai" && message.length > 0 && (
             <div className="flex space-x-2 ">

@@ -120,13 +120,9 @@ export default function Chat({
               event.event !== "function_call" &&
               event.id
             ) {
-              if (!messageByEventIds[event.id]) {
-                messageByEventIds[event.id] = ""
-              }
-              if (event.id) {
-                messageByEventIds[event.id] +=
-                  event.data === "" ? `${event.data} \n` : event.data
-              }
+              if (!messageByEventIds[event.id]) messageByEventIds[event.id] = ""
+              messageByEventIds[event.id] +=
+                event.data === "" ? `${event.data} \n\n` : event.data
               setMessages((previousMessages) => {
                 let updatedMessages = [...previousMessages]
 
