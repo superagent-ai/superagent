@@ -153,18 +153,24 @@ async def invoke(
         include={"steps": {"include": {"agent": True}}},
     )
 
-
-    workflowSteps = [{"callback":CustomAsyncIteratorCallbackHandler(), "agentName": workflowStep.agent.name} for workflowStep in workflowData.steps]
+    workflowSteps = [
+        {
+            "callback": CustomAsyncIteratorCallbackHandler(),
+            "agentName": workflowStep.agent.name,
+        }
+        for workflowStep in workflowData.steps
+    ]
 
     session_id = body.sessionId
     input = body.input
     enable_streaming = body.enableStreaming
- 
 
     workflow = WorkflowBase(
-        workflow=workflowData, enable_streaming=enable_streaming, workflowSteps=workflowSteps, session_id=session_id
+        workflow=workflowData,
+        enable_streaming=enable_streaming,
+        workflowSteps=workflowSteps,
+        session_id=session_id,
     )
-
 
     if enable_streaming:
         logging.info("Streaming enabled. Preparing streaming response...")
@@ -174,8 +180,8 @@ async def invoke(
                 task = asyncio.ensure_future(workflow.arun(input))
 
                 for workflowStep in workflowSteps:
-                    async for token in workflowStep['callback'].aiter():
-                            yield f"id: {workflowStep['agentName']}\ndata: {token}\n\n"
+                    async for token in workflowStep["callback"].aiter():
+                        yield f"id: {workflowStep['agentName']}\ndata: {token}\n\n"
                 await task
                 workflow_result = task.result()
 
@@ -197,7 +203,7 @@ async def invoke(
             except Exception as e:
                 logging.error(f"Error in send_message: {e}")
             finally:
-                workflowStep['callback'].done.set()
+                workflowStep["callback"].done.set()
 
         generator = send_message()
         return StreamingResponse(generator, media_type="text/event-stream")

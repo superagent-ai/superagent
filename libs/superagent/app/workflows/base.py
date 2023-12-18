@@ -1,12 +1,17 @@
+import asyncio
 from typing import Any
 
 from app.agents.base import AgentBase
 from prisma.models import Workflow
-import asyncio
+
 
 class WorkflowBase:
     def __init__(
-        self, workflow: Workflow, workflowSteps: any, session_id: str, enable_streaming: bool = False
+        self,
+        workflow: Workflow,
+        workflowSteps: any,
+        session_id: str,
+        enable_streaming: bool = False,
     ):
         self.workflow = workflow
         self.enable_streaming = enable_streaming
@@ -24,7 +29,7 @@ class WorkflowBase:
                 agent_id=step.agentId,
                 session_id=self.session_id,
                 enable_streaming=True,
-                callback=self.workflowSteps[stepIndex]['callback'],
+                callback=self.workflowSteps[stepIndex]["callback"],
             ).get_agent()
 
             task = asyncio.ensure_future(
@@ -38,4 +43,3 @@ class WorkflowBase:
             previous_output = agent_response.get("output")
             steps_output[step.order] = agent_response
         return {"steps": steps_output, "output": previous_output}
-    
