@@ -55,9 +55,9 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
 
   const [steps, setSteps] = useState<StepType[]>(initialStepsState)
 
-  const [savedSteps, setSavedSteps] = useState<StepType[]>(
-    workflowSteps?.length ? workflowSteps : [initialItem]
-  )
+  const [savedSteps, setSavedSteps] = useState<StepType[]>([
+    ...initialStepsState,
+  ])
 
   const addNewItem = useCallback(
     (indexToAdd: number) =>
@@ -72,6 +72,16 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
               },
             ],
           ],
+        })
+      ),
+    []
+  )
+
+  const removeItem = useCallback(
+    (indexToRemove: number) =>
+      setSteps((prevSteps) =>
+        update(prevSteps, {
+          $splice: [[indexToRemove, 1]],
         })
       ),
     []
@@ -135,24 +145,31 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
       })
     }
 
-    for (const step of filteredSteps) {
-      const currentStepInDb = currentWorkflowSteps.find(
-        (s) => s?.agent?.id === step?.agent?.id
-      )
-      const currentStepIndex = filteredSteps.findIndex(
-        (s) => s?.agent?.id === step?.agent?.id
-      )
+    const stepsCount = Math.max(
+      filteredSteps?.length,
+      currentWorkflowSteps?.length
+    )
 
-      if (!currentStepInDb) {
+    for (let stepIdx = 0; stepIdx < stepsCount; stepIdx++) {
+      const currentStepInDb = currentWorkflowSteps[stepIdx]
+      const currentStep = filteredSteps[stepIdx]
+
+      if (!currentStepInDb && currentStep) {
         await api.createWorkflowStep(workflow.id, {
-          order: currentStepIndex,
-          agentId: step?.agent?.id,
+          order: stepIdx,
+          agentId: currentStep?.agent?.id,
         })
-      } else if (currentStepInDb.order != currentStepIndex) {
-        await api.patchWorkflowStep(workflow.id, step?.id, {
-          order: currentStepIndex,
-          agentId: step?.agent?.id,
+      } else if (
+        currentStepInDb &&
+        currentStep &&
+        JSON.stringify(currentStep) !== JSON.stringify(currentStepInDb)
+      ) {
+        await api.patchWorkflowStep(workflow.id, currentStepInDb?.id, {
+          order: stepIdx,
+          agentId: currentStep?.agent?.id,
         })
+      } else if (currentStepInDb && !currentStep) {
+        await api.deleteWorkflowStep(workflow.id, currentStepInDb?.id)
       }
     }
 
@@ -184,6 +201,7 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
                 selectAgent={selectAgent}
                 unselectAgent={unselectAgent}
                 addNewItem={addNewItem}
+                removeItem={removeItem}
                 moveCard={moveCard}
                 stepIndex={stepIndex}
                 step={step}

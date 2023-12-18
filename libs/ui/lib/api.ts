@@ -189,4 +189,10 @@ export class Api {
       body: JSON.stringify(payload),
     })
   }
+
+  async deleteWorkflowStep(workflowId: string, stepId: string) {
+    return this.fetchFromApi(`/workflows/${workflowId}/steps/${stepId}`, {
+      method: "DELETE",
+    })
+  }
 }

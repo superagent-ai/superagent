@@ -4,7 +4,7 @@ import { Agent } from "@/models/models"
 import type { Identifier } from "dnd-core"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { useDrag, useDrop } from "react-dnd"
-import { RxPlus } from "react-icons/rx"
+import { RxPlus, RxTrash } from "react-icons/rx"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -38,6 +38,7 @@ interface StepProps {
   selectAgent: (agent: Agent, stepIndex: number) => void
   unselectAgent: (stepIndex: number) => void
   addNewItem: (indexToAdd: number) => void
+  removeItem: (indexToRemove: number) => void
   moveCard: (dragIndex: number, hoverIndex: number) => void
 }
 
@@ -73,6 +74,7 @@ const SelectAgentButton: React.FC<SelectAgentButtonProps> = ({
   stepIndex,
   moveCard,
   selectAgent,
+  removeItem,
   unselectAgent,
 }) => {
   const [open, setOpen] = useState(false)
@@ -180,6 +182,15 @@ const SelectAgentButton: React.FC<SelectAgentButtonProps> = ({
           </Command>
         </PopoverContent>
       </Popover>
+
+      <Button
+        className="ml-2"
+        variant="outline"
+        size="icon"
+        onClick={() => removeItem(stepIndex)}
+      >
+        <RxTrash />
+      </Button>
     </div>
   )
 }
