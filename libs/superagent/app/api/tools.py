@@ -65,6 +65,9 @@ async def list(api_user=Depends(get_current_api_user)):
         data = await prisma.tool.find_many(
             where={"apiUserId": api_user.id}, order={"createdAt": "desc"}
         )
+        for tool in data:
+            if isinstance(tool.toolConfig, dict):
+                tool.toolConfig = json.dumps(tool.toolConfig)
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)

@@ -22,7 +22,7 @@ export default async function API() {
   const { data: tools } = await api.getTools()
 
   return (
-    <div className="flex min-h-full flex-col space-y-4 px-4 py-6">
+    <div className="flex flex-col space-y-4 px-4 py-6">
       <p className="text-lg">APIs</p>
       <DataTable columns={columns} data={tools} profile={profile} />
     </div>

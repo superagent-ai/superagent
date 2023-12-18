@@ -50,7 +50,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           )}
         >
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <div className="relative flex min-h-screen flex-col">
+            <div className="relative flex min-h-screen flex-col overflow-hidden">
               <div className="flex-1">
                 <Container session={session}>{children}</Container>
               </div>
