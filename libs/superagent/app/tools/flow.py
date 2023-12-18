@@ -1,16 +1,15 @@
 import json
 import re
-
-from pydantic import BaseModel
-from decouple import config
-from prefect import flow, task
-from prisma.models import Tool
 from typing import Any, Dict
-from litellm import acompletion
-from decouple import config
-from app.tools import TOOL_TYPE_MAPPING
 
+from decouple import config
+from litellm import acompletion
+from prefect import flow
+from pydantic import BaseModel
+
+from app.tools import TOOL_TYPE_MAPPING
 from app.utils.prisma import prisma
+from prisma.models import Tool
 
 
 def get_function_schema(
