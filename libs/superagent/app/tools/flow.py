@@ -107,11 +107,11 @@ async def generate_route(function_schema: Dict[str, Any]) -> str:
     retries=0,
 )
 async def generate_tool_config(tool: Tool) -> None:
-    # Run completion to generate config
     tool_instance = TOOL_TYPE_MAPPING[tool.type]
-    model = tool_instance.get("schema")
-    function_schema = get_function_schema(
-        name=tool.name, description=tool.description, model=model
-    )
-    route = await generate_route(function_schema=function_schema)
-    await prisma.tool.update(where={"id": tool.id}, data={"toolConfig": route})
+    if tool_instance:
+        model = tool_instance.get("schema")
+        function_schema = get_function_schema(
+            name=tool.name, description=tool.description, model=model
+        )
+        route = await generate_route(function_schema=function_schema)
+        await prisma.tool.update(where={"id": tool.id}, data={"toolConfig": route})
