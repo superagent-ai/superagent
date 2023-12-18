@@ -23,7 +23,7 @@ from app.models.tools import (
 )
 from app.tools.agent import Agent
 from app.tools.algolia import Algolia
-from app.tools.bing_search import BingSearch
+from app.tools.bing_search import LCBingSearch, BingSearch
 from app.tools.browser import Browser, LCBrowser
 from app.tools.chatgpt import get_chatpgt_tool
 from app.tools.e2b import E2BCodeExecutor
@@ -42,7 +42,7 @@ TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
     "ALGOLIA": {"class": Algolia, "schema": AlgoliaInput},
     "BING_SEARCH": {
-        "class": BingSearch,
+        "class": LCBingSearch,
         "schema": BingSearchInput,
     },
     "METAPHOR": {
@@ -66,7 +66,7 @@ TOOL_TYPE_MAPPING = {
     "FUNCTION": {"class": Function, "schema": FunctionInput},
 }
 
-OSS_TOOL_TYPE_MAPPING = {"BROWSER": Browser}
+OSS_TOOL_TYPE_MAPPING = {"BROWSER": Browser, "BING_SEARCH": BingSearch}
 
 
 def create_pydantic_model_from_object(obj: Dict[str, Any]) -> Any:
