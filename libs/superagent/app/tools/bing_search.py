@@ -1,7 +1,9 @@
 import asyncio
-from pydantic import BaseModel, Field
+
 from langchain.tools import BaseTool as LCBaseTool
 from langchain.utilities import BingSearchAPIWrapper
+from pydantic import BaseModel, Field
+
 from app.tools.base import BaseTool
 
 
@@ -42,7 +44,7 @@ class BingSearch(BaseTool):
     async def arun(self, args: BingSearchArgs) -> dict:
         bing_search_url = self.metadata["bingSearchUrl"]
         bing_subscription_key = self.metadata["bingSubscriptionKey"]
-        search_query = args["search_query"]
+        search_query = args.search_query
         search = BingSearchAPIWrapper(
             bing_search_url=bing_search_url,
             bing_subscription_key=bing_subscription_key,

@@ -37,7 +37,7 @@ class Browser(BaseTool):
     args_schema = BrowserArgs
 
     async def arun(self, args: BrowserArgs) -> dict:
-        url = args["url"]
+        url = args.url
 
         if not url.startswith(("http://", "https://")):
             url = "http://" + url

@@ -23,7 +23,7 @@ from app.models.tools import (
 )
 from app.tools.agent import Agent
 from app.tools.algolia import Algolia
-from app.tools.bing_search import LCBingSearch, BingSearch
+from app.tools.bing_search import BingSearch, LCBingSearch
 from app.tools.browser import Browser, LCBrowser
 from app.tools.chatgpt import get_chatpgt_tool
 from app.tools.e2b import E2BCodeExecutor
