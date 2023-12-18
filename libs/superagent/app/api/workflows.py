@@ -168,7 +168,7 @@ async def invoke(
     workflow = WorkflowBase(
         workflow=workflowData,
         enable_streaming=enable_streaming,
-        workflowSteps=workflowSteps,
+        callbacks=[workflowStep["callback"] for workflowStep in workflowSteps],
         session_id=session_id,
     )
 
@@ -178,7 +178,6 @@ async def invoke(
         async def send_message() -> AsyncIterable[str]:
             try:
                 task = asyncio.ensure_future(workflow.arun(input))
-
                 for workflowStep in workflowSteps:
                     async for token in workflowStep["callback"].aiter():
                         yield f"id: {workflowStep['agentName']}\ndata: {token}\n\n"
