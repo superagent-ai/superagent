@@ -24,7 +24,7 @@ from app.models.tools import (
 from app.tools.agent import Agent
 from app.tools.algolia import Algolia
 from app.tools.bing_search import BingSearch
-from app.tools.browser import Browser
+from app.tools.browser import Browser, LCBrowser
 from app.tools.chatgpt import get_chatpgt_tool
 from app.tools.e2b import E2BCodeExecutor
 from app.tools.function import Function
@@ -59,12 +59,14 @@ TOOL_TYPE_MAPPING = {
     "REPLICATE": {"class": Replicate, "schema": ReplicateInput},
     "WOLFRAM_ALPHA": {"class": WolframAlpha, "schema": WolframInput},
     "CODE_EXECUTOR": {"class": E2BCodeExecutor, "schema": E2BCodeExecutorInput},
-    "BROWSER": {"class": Browser, "schema": BrowserInput},
+    "BROWSER": {"class": LCBrowser, "schema": BrowserInput},
     "GPT_VISION": {"class": GPTVision, "schema": GPTVisionInput},
     "TTS_1": {"class": TTS1, "schema": TTS1Input},
     "HAND_OFF": {"class": HandOff, "schema": HandOffInput},
     "FUNCTION": {"class": Function, "schema": FunctionInput},
 }
+
+OSS_TOOL_TYPE_MAPPING = {"BROWSER": Browser}
 
 
 def create_pydantic_model_from_object(obj: Dict[str, Any]) -> Any:
