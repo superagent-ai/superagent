@@ -128,69 +128,71 @@ const SelectAgentButton: React.FC<SelectAgentButtonProps> = ({
   drag(drop(ref))
   return (
     <div ref={ref} style={{ opacity }} data-handler-id={handlerId}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-[200px] justify-between"
-          >
-            {step?.agent?.name || "Select an agent"}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0">
-          <Command>
-            {agents?.length ? (
-              <div>
-                <CommandInput placeholder="Search framework..." />
-                <CommandEmpty>No agents found.</CommandEmpty>
-                <CommandGroup>
-                  {agents.map((agent) => (
-                    <CommandItem
-                      key={agent.id}
-                      value={agent.name}
-                      onSelect={(currentValue) => {
-                        selectAgent(agent, stepIndex)
-                        setValue(currentValue === value ? "" : currentValue)
-                        if (currentValue === value) unselectAgent(stepIndex)
-                        setOpen(false)
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          step?.agent?.name === agent?.name
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
-                      />
-                      {agent.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center p-2">
-                <p className="mb-2">No agents found.</p>
-                <Link href="/agents?addNewAgentModal=true">
-                  <Button variant="active">Create a new agent</Button>
-                </Link>
-              </div>
-            )}
-          </Command>
-        </PopoverContent>
-      </Popover>
+      <div className="flex">
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-[200px] justify-between"
+            >
+              {step?.agent?.name || "Select an agent"}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              {agents?.length ? (
+                <div>
+                  <CommandInput placeholder="Search framework..." />
+                  <CommandEmpty>No agents found.</CommandEmpty>
+                  <CommandGroup>
+                    {agents.map((agent) => (
+                      <CommandItem
+                        key={agent.id}
+                        value={agent.name}
+                        onSelect={(currentValue) => {
+                          selectAgent(agent, stepIndex)
+                          setValue(currentValue === value ? "" : currentValue)
+                          if (currentValue === value) unselectAgent(stepIndex)
+                          setOpen(false)
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            step?.agent?.name === agent?.name
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        {agent.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center p-2">
+                  <p className="mb-2">No agents found.</p>
+                  <Link href="/agents?addNewAgentModal=true">
+                    <Button variant="active">Create a new agent</Button>
+                  </Link>
+                </div>
+              )}
+            </Command>
+          </PopoverContent>
+        </Popover>
 
-      <Button
-        className="ml-2"
-        variant="outline"
-        size="icon"
-        onClick={() => removeItem(stepIndex)}
-      >
-        <RxTrash />
-      </Button>
+        <Button
+          className="ml-2"
+          variant="secondary"
+          size="icon"
+          onClick={() => removeItem(stepIndex)}
+        >
+          <RxTrash size="20px" />
+        </Button>
+      </div>
     </div>
   )
 }
