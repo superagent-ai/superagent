@@ -2,7 +2,7 @@ groups:
   publish:
     generators:
       - name: fernapi/fern-python-sdk
-        version: 0.6.2
+        version: 0.6.6
         output:
           location: pypi
           package-name: superagent-py
@@ -12,7 +12,7 @@ groups:
         config:
           client_class_name: Superagent
       - name: fernapi/fern-typescript-node-sdk
-        version: 0.7.1
+        version: 0.8.8
         output:
           location: npm
           package-name: superagentai-js
@@ -21,7 +21,3 @@ groups:
           repository: homanp/superagent-js
         config:
           namespaceExport: SuperAgent
-  prod-docs:
-    docs:
-      domain: superagent.docs.buildwithfern.com
-    generators: []

@@ -69,11 +69,16 @@ export default function LLMClientPage({
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    const payload = {
+      ...values,
+      options:
+        Object.keys(values.options).length === 0 ? undefined : values.options,
+    }
     try {
       if (llms.length === 0) {
-        await api.createLLM({ ...values, provider: open })
+        await api.createLLM({ ...payload, provider: open })
       } else {
-        await api.patchLLM(llms[0].id, { ...values, provider: open })
+        await api.patchLLM(llms[0].id, { ...payload, provider: open })
       }
       toast({
         description: "LLM configuration saved",

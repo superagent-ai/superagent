@@ -1,6 +1,8 @@
 import json
 from typing import Any, Dict, Optional, Type
 
+from pydantic import create_model
+
 from app.models.tools import (
     AgentInput,
     AlgoliaInput,
@@ -8,6 +10,7 @@ from app.models.tools import (
     BrowserInput,
     ChatGPTInput,
     E2BCodeExecutorInput,
+    FunctionInput,
     GPTVisionInput,
     HandOffInput,
     MetaphorSearchInput,
@@ -20,10 +23,11 @@ from app.models.tools import (
 )
 from app.tools.agent import Agent
 from app.tools.algolia import Algolia
-from app.tools.bing_search import BingSearch
-from app.tools.browser import Browser
+from app.tools.bing_search import BingSearch, LCBingSearch
+from app.tools.browser import Browser, LCBrowser
 from app.tools.chatgpt import get_chatpgt_tool
 from app.tools.e2b import E2BCodeExecutor
+from app.tools.function import Function
 from app.tools.gpt_vision import GPTVision
 from app.tools.hand_off import HandOff
 from app.tools.metaphor import MetaphorSearch
@@ -38,7 +42,7 @@ TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
     "ALGOLIA": {"class": Algolia, "schema": AlgoliaInput},
     "BING_SEARCH": {
-        "class": BingSearch,
+        "class": LCBingSearch,
         "schema": BingSearchInput,
     },
     "METAPHOR": {
@@ -55,11 +59,26 @@ TOOL_TYPE_MAPPING = {
     "REPLICATE": {"class": Replicate, "schema": ReplicateInput},
     "WOLFRAM_ALPHA": {"class": WolframAlpha, "schema": WolframInput},
     "CODE_EXECUTOR": {"class": E2BCodeExecutor, "schema": E2BCodeExecutorInput},
-    "BROWSER": {"class": Browser, "schema": BrowserInput},
+    "BROWSER": {"class": LCBrowser, "schema": BrowserInput},
     "GPT_VISION": {"class": GPTVision, "schema": GPTVisionInput},
     "TTS_1": {"class": TTS1, "schema": TTS1Input},
     "HAND_OFF": {"class": HandOff, "schema": HandOffInput},
+    "FUNCTION": {"class": Function, "schema": FunctionInput},
 }
+
+OSS_TOOL_TYPE_MAPPING = {"BROWSER": Browser, "BING_SEARCH": BingSearch}
+
+
+def create_pydantic_model_from_object(obj: Dict[str, Any]) -> Any:
+    fields = {}
+    type_mapping = {
+        "string": str,
+        "integer": int,
+    }
+    for key, value in obj.items():
+        field_type = type_mapping.get(value["type"], str)
+        fields[key] = (field_type, ...)
+    return create_model("DynamicModel", **fields)
 
 
 def create_tool(
@@ -69,11 +88,15 @@ def create_tool(
     args_schema: Any,
     metadata: Optional[Dict[str, Any]],
     return_direct: Optional[bool],
+    session_id: str = None,
 ) -> Any:
+    if metadata:
+        metadata = json.loads(metadata)
+        metadata["sessionId"] = session_id
     return tool_class(
         name=name,
         description=description,
         args_schema=args_schema,
-        metadata=json.loads(metadata) if metadata else None,
+        metadata=metadata,
         return_direct=return_direct,
     )

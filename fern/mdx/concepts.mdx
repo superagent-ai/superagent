@@ -68,6 +68,7 @@ Below is an overview of all available tools and their corresponding metadata:
 | `GPT_VISION`                  | `openaiApiKey`                        |
 | `TTS_1`                       | `openaiApiKey`                        |
 | `HAND_OFF`                    | N/A                                   |
+| `FUNCTION`                    | `functionName`, `args`                |
 
 ### Workflows
 
@@ -84,16 +85,25 @@ They are trained on vast amounts of text data and learn to predict the likelihoo
 In the context of Superagent, language models are used to understand and generate human-like text based on the user's input and the context provided by the Agent's memory, datasources, and tools. 
 These models are the driving force behind the Agent's ability to engage in meaningful and contextually relevant interactions with the user.
 
-### Tracing
+### Vector databases
 
-Superagent employs a powerful tool called [LangSmith](https://docs.smith.langchain.com/) for tracing and debugging Agent runs. 
-LangSmith is a state-of-the-art tracing system that provides detailed insights into the execution of an Agent. 
-It records the sequence of operations performed by the Agent, including the interaction with datasources and tools, and the decisions made based on user input. 
-This allows developers to track the flow of data and the decision-making process of the Agent, making it easier to identify and fix issues.
+Superagent ships with support for the following vector databases:
 
-LangSmith also provides debugging capabilities. It allows developers to pause the execution of an Agent at any point and inspect the current state of the Agent. 
-This includes the Agent's memory, the data it has retrieved from datasources, and the output from any tools it has used. 
-By providing a detailed view of the Agent's state at any point in its execution, LangSmith makes it easier to understand the behavior of the Agent and to identify any problems or inefficiencies.
+| Name            | .env                                                                                    | ID                                    |
+| --------------- | ----------------------------------------------------------------------------------------|---------------------------------------|
+| Pinecone        | `PINECONE_ENVIRONMENT`, `PINECONE_API_KEY`, `PINECONE_INDEX`                                                    | `pinecone`    |   
+| Astra DB        | `ASTRA_DB_ID`, `ASTRA_DB_REGION, `ASTRA_DB_APPLICATION_TOKEN`, `ASTRA_COLLECTION_NAME`, `ASTRA_KEYSPACE_NAME`   | `astra`       |
+| Weaviate        | `WEAVIATE_API_KEY`, `WEAVIATE_INDEX`, `WEAVIATE_URL`                                                            | `weaviate`    |
+| Qdrant          | `QDRANT_API_KEY`, `QDRANT_HOST`, `QDRANT_INDEX`                                                                 | `qdrant`      |
 
-In addition to tracing and debugging, LangSmith also provides performance profiling capabilities. 
-It can measure the time taken by each operation, helping to identify bottlenecks and optimize the performance of the Agent. 
+You can set the default vectorstore by setting the `VECTORSTORE` .env variable to one of th `ID` in the table above, ex: `VECTORSTORE=qdrant`. 
+
+### Tracing and Observability
+
+Superagent allows you to add observability to your Assistants by integration with either [Langfuse](https://www.langfuse.com) (Open Source) or [LangSmith](https://www.langchain.com/langsmith). 
+We will be supporting multiple other Open Source alternatives as well.
+
+| Name                          | .env                                                                                        |
+| ----------------------------- | --------------------------------------------------------------------------------------------|
+| Langfuse (Open source)        | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST`                               |
+| LangSmith                     | `LANGCHAIN_TRACING_V2`, `LANGCHAIN_ENDPOINT`, `LANGSMITH_PROJECT_ID`, `LANGCHAIN_API_KEY`   |

@@ -1,0 +1,282 @@
+Multi-modality is something we have seen more. AI Assistants that are able to generate text, video, images and audio can be super powerful. This tempplate aims to show how you can build an AI Assistant that can both generate text and images. We will be using the newly released [Playground v2](https://huggingface.co/collections/playgroundai/playground-v2-65703156dd58e86f24380142).  
+
+## Prerequisites
+- A [Superagent](https://superagent.sh) account and API key
+- A [Replicate](https://replicate.com) account and API key.
+
+## Demo
+
+<video
+  controls
+  autoplay
+  width="100%"
+  height="500px"
+  src="https://superagentai.s3.eu-north-1.amazonaws.com/playground-ai.mp4"
+></video>
+
+## Setup 
+
+We will start by installing the Superagent SDK inside of your project. 
+
+<CodeBlocks>
+    <CodeBlock title="Python"> 
+        ```bash
+        poetry add superagent-py
+        # or 
+        pip install superagent-py
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript"> 
+        ```bash
+        npm i superagentai-js
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+Next, we will instantiate a new client.
+
+<CodeBlocks>
+    <CodeBlock title="Python"> 
+        ```python
+        import os
+
+        from superagent.client import Superagent
+
+        client = Superagent(
+            token=os.environ["SUPERAGENT_API_KEY"], # replace with your Superagent API
+            base_url="https://api.beta.superagent.sh" # or your local environment
+        )
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript"> 
+        ```javascript
+        import {SuperAgentClient} from "superagentai-js"
+
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh", // or your local environment
+            token: process.env.SUPERAGENT_API_KEY
+        })
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+With our client setup we can now go ahead and create a `Replicate` tool and corresponding agent. 
+
+<CodeBlocks>
+    <CodeBlock title="Python"> 
+        ```python
+        promt = """You are an helpful AI Assistant that can use Playground AI API to generate images.
+
+        Follow these steps:
+
+        1. Ask the user what image they want to create
+        2. Create a generative ai prompt scene based on the user input. Ask if the prompt is OK before proceeding.
+        3. Use the prompt to generate an image with Playground AI.
+        """
+        tool = client.tool.create(request={
+            "name": "Playground AI API", 
+            "description": "Useful for generating an image", 
+            "type": "REPLICATE",
+            "metadata": {
+                "model": "playgroundai/playground-v2-1024px-aesthetic:42fe626e41cc811eaf02c94b892774839268ce1994ea778eba97103fe1ef51b8",
+                "apiKey": os.environ["REPLICATE_API_KEY"],
+                "arguments": {"width": 1024, "height": 1024}
+            }
+        })
+
+        agent = client.agent.create(request={
+            "name": "Playground AI Assistant",
+            "description": "An assistant that can generate images",
+            "isActive": True,
+            "avatar": "" # Optional avatar url jpg/png
+            "prompt": prompt,
+            "llmModel": "GPT_4_0613"
+        })
+
+        # Connect the tool to the agent
+        client.agent.addTool(agent_id=agent.data.id, tool_id: tool.data.id)
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript"> 
+        ```javascript
+        prompt = `
+        You are an helpful AI Assistant that can use Playground AI API to generate images.
+
+        Follow these steps:
+
+        1. Ask the user what image they want to create
+        2. Create a generative ai prompt scene based on the user input. Ask if the prompt is OK before proceeding.
+        3. Use the prompt to generate an image with Playground AI.
+        `
+
+        const {data: tool} = await client.tool.create({
+            name: "Playground AI API", 
+            description: "Useful for generating an image", 
+            type: "REPLICATE",
+            metadata: {
+                model: "playgroundai/playground-v2-1024px-aesthetic:42fe626e41cc811eaf02c94b892774839268ce1994ea778eba97103fe1ef51b8",
+                apiKey: process.env.REPLICATE_API_KEY,
+                arguments: {width: 1024, height: 1024}
+            } 
+        })
+
+        const {data: agent} = await client.agent.create({
+            name: "Playground AI Assistant",
+            description: "An assistant that can generate images",
+            isActive: true,
+            avatar: "" // Optional avatar url jpg/png
+            prompt: prompt,
+            llmModel: "GPT_4_0613"
+        })
+
+        // Connect the tool to the agent
+        await client.agent.addTool(agent.id, {
+            toolId: tool.id
+        })
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+If you log in to your Superagent agent account you should see an Agent created. Clicking on it should render an agent similar to the image below:
+
+<img src="https://superagentai.s3.eu-north-1.amazonaws.com/Screenshot+2023-12-08+at+15.52.43.png" alt="Playground Assistant" />
+
+You now have the option to use the SDKs to invoke the agent or use the Superagent UI to start a chat.
+
+<CodeBlocks>
+    <CodeBlock title="Python"> 
+        ```python
+        output = client.agent.invoke(
+            agent_id=agent.data.id,
+            input="Generate an image of a cat",
+            enable_streaming=False,
+            session_id="my_session_id"
+        )
+
+        print(output)
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript"> 
+        ```javascript
+        const {data: {output}} = await client.agent.invoke(agent.id, {
+            input: "Generate an image of a cat",
+            enableStreaming: true,
+            sessionId: "my_session_id"
+        })
+
+        console.log(output)
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+## Full code
+
+Below you will find the full code for this assistant. You can optionaly use the following [NextJS template](https://github.com/homanp/super-stocks) adapt it.
+
+<CodeBlocks>
+    <CodeBlock title="Python"> 
+        ```python
+        import os
+
+        from superagent.client import Superagent
+
+        client = Superagent(
+            token=os.environ["SUPERAGENT_API_KEY"], # replace with your Superagent API
+            base_url="https://api.beta.superagent.sh" # or your local environment
+        )
+
+        promt = """You are an helpful AI Assistant that can use Playground AI API to generate images.
+
+        Follow these steps:
+
+        1. Ask the user what image they want to create
+        2. Create a generative ai prompt scene based on the user input. Ask if the prompt is OK before proceeding.
+        3. Use the prompt to generate an image with Playground AI.
+        """
+        tool = client.tool.create(request={
+            "name": "Playground AI API", 
+            "description": "Useful for generating an image", 
+            "type": "REPLICATE",
+            "metadata": {
+                "model": "playgroundai/playground-v2-1024px-aesthetic:42fe626e41cc811eaf02c94b892774839268ce1994ea778eba97103fe1ef51b8",
+                "apiKey": os.environ["REPLICATE_API_KEY"],
+                "arguments": {"width": 1024, "height": 1024}
+            }
+        })
+
+        agent = client.agent.create(request={
+            "name": "Playground AI Assistant",
+            "description": "An assistant that can generate images",
+            "isActive": True,
+            "avatar": "" # Optional avatar url jpg/png
+            "prompt": prompt,
+            "llmModel": "GPT_4_0613"
+        })
+
+        # Connect the tool to the agent
+        client.agent.addTool(agent_id=agent.data.id, tool_id: tool.data.id)
+
+        output = client.agent.invoke(
+            agent_id=agent.data.id,
+            input="Generate an image of a cat",
+            enable_streaming=False,
+            session_id="my_session_id"
+        )
+
+        print(output)
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript"> 
+        ```javascript
+        import {SuperAgentClient} from "superagentai-js"
+
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh", // or your local environment
+            token: process.env.SUPERAGENT_API_KEY
+        })
+
+        prompt = `
+        You are an helpful AI Assistant that can use Playground AI API to generate images.
+
+        Follow these steps:
+
+        1. Ask the user what image they want to create
+        2. Create a generative ai prompt scene based on the user input. Ask if the prompt is OK before proceeding.
+        3. Use the prompt to generate an image with Playground AI.
+        `
+
+        const {data: tool} = await client.tool.create({
+            name: "Playground AI API", 
+            description: "Useful for generating an image", 
+            type: "REPLICATE",
+            metadata: {
+                model: "playgroundai/playground-v2-1024px-aesthetic:42fe626e41cc811eaf02c94b892774839268ce1994ea778eba97103fe1ef51b8",
+                apiKey: process.env.REPLICATE_API_KEY,
+                arguments: {width: 1024, height: 1024}
+            } 
+        })
+
+        const {data: agent} = await client.agent.create({
+            name: "Playground AI Assistant",
+            description: "An assistant that can generate images",
+            isActive: true,
+            avatar: "" // Optional avatar url jpg/png
+            prompt: prompt,
+            llmModel: "GPT_4_0613"
+        })
+
+        // Connect the tool to the agent
+        await client.agent.addTool(agent.id, {
+            toolId: tool.id
+        })
+
+        const {data: {output}} = await client.agent.invoke(agent.id, {
+            input: "Generate an image of a cat",
+            enableStreaming: true,
+            sessionId: "my_session_id"
+        })
+
+        console.log(output)
+        ```
+    </CodeBlock>
+</CodeBlocks>

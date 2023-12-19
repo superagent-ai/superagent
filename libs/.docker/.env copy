@@ -1,0 +1,177 @@
+# use superbase ui network
+NETWORK_MODE=superagent
+
+#######################################
+# SUPERAGENT API POSTGRES DB SETTINGS #
+#######################################
+# postgres db login details, use in connection string e.g DATABASE_URL=postgresql://admin:password@pgdb:5432/superagent, http://pgdb:5432, or postgresql://admin:password@localhost:5432/superagent
+DBUSER=admin_db
+DBPASS=local123
+DBNAME=superagent
+
+# Login details for pgadmin, http://localhost:5050 / http://pgadmin:5050
+PGADMIN_DEFAULT_EMAIL=admin@admin.com
+PGADMIN_DEFAULT_PASSWORD=local123
+
+#######################################
+# SUPERAGENT API SETTINGS             #
+#######################################
+# Base (mandatory)
+OPENAI_API_KEY=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
+# DATABASE_URL=https://mseqjefwkyeqhjjxejtg.supabase.co
+# DATABASE_MIGRATION_URL=https://mseqjefwkyeqhjjxejtg.supabase.co
+DATABASE_URL=postgresql://postgres:Iq1wWY5Nv8pRDHD1@db.mseqjefwkyeqhjjxejtg.supabase.co:5432/postgres
+# DATABASE_MIGRATION_URL=postgresql://admin:password@pgdb:5432/superagent
+# DATABASE_SHADOW_URL=
+JWT_SECRET=da799ec3389e5755c3a7bd38315f67dc6c8aa18f8c19bccd79a3730446f5fd47
+# Memory (mandatory)
+MEMORY_API_URL=https://memory.superagent.sh
+# NOTE: Vectorstores (one is mandatory if you plan on loading datasources)
+## TODO: AA - Add VECTORSTORE CONFIG TO EXAMPLE
+VECTORSTORE=weaviate
+# Qdrant vars
+QDRANT_API_KEY=
+QDRANT_HOST=
+QDRANT_INDEX=superagent
+# Weaviate vars
+WEAVIATE_API_KEY=testing
+WEAVIATE_INDEX=superagent
+WEAVIATE_URL=https://weaviate.systems.kubernetes.testing.aws.zen.co.uk
+# Pinecone vars
+PINECONE_ENVIRONMENT=
+PINECONE_API_KEY=
+PINECONE_INDEX=
+# PINECONE_ENVIRONMENT=us-west1-gcp
+# PINECONE_API_KEY=22fb99ae-2cff-4d60-9b14-7483a3689a54
+# PINECONE_INDEX=superagent-index
+# Astra vars
+ASTRA_DB_ID=
+ASTRA_DB_REGION=
+ASTRA_DB_APPLICATION_TOKEN=
+COLLECTION_NAME=
+KEYSPACE_NAME=
+# E2B (code execution)
+E2B_API_KEY=e2b_21b611cdf96fad06a6a819708734be20cfe8b777
+# Replicate LLM/tool
+REPLICATE_API_TOKEN=
+# Langfuse tracing
+LANGFUSE_PUBLIC_KEY=pk-lf-d77d7858-858d-4218-9987-9498da4cb249
+LANGFUSE_SECRET_KEY=sk-lf-975f1ab5-d576-441f-91d9-f74eaea04e56
+LANGFUSE_HOST=https://cloud.langfuse.com
+# Langsmith tracing
+LANGCHAIN_TRACING_V2=False
+LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
+LANGCHAIN_API_KEY=
+LANGSMITH_PROJECT_ID=
+# Finetunes
+LAMINI_API_KEY=
+# Tracking
+SEGMENT_WRITE_KEY=
+
+##########################
+# SUPERAGENT UI SETTINGS #
+##########################
+############
+# Secrets
+# YOU MUST CHANGE THESE BEFORE GOING INTO PRODUCTION
+############
+
+POSTGRES_PASSWORD=postgres-password
+JWT_SECRET=ksw9toxa0so0mz2lyaudrb8g2q3dp38dcm5znxv7
+ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzAwOTU2ODAwLAogICJleHAiOiAxODU4ODA5NjAwCn0.pDb5AEqK2KN5ItaveoB2gl-t1nXJ6MGN0wMSZtvEc1o
+SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogInNlcnZpY2Vfcm9sZSIsCiAgImlzcyI6ICJzdXBhYmFzZSIsCiAgImlhdCI6IDE3MDA5NTY4MDAsCiAgImV4cCI6IDE4NTg4MDk2MDAKfQ.DeQH3SVla0Thh0lUH-vmHmGWE7rnsv60duxD2xXI4w0
+DASHBOARD_USERNAME=supabase
+DASHBOARD_PASSWORD=this_password_is_insecure_and_should_be_updated
+
+############
+# Database - You can change these to any PostgreSQL database that has logical replication enabled.
+############
+
+POSTGRES_HOST=db
+POSTGRES_DB=postgres
+POSTGRES_PORT=5432
+# default user is postgres
+
+############
+# API Proxy - Configuration for the Kong Reverse proxy.
+############
+
+KONG_HTTP_PORT=8000
+KONG_HTTPS_PORT=8443
+
+
+############
+# API - Configuration for PostgREST.
+############
+
+PGRST_DB_SCHEMAS=public,storage,graphql_public
+
+
+############
+# Auth - Configuration for the GoTrue authentication server.
+############
+
+## General
+SITE_URL=http://localhost:3000
+ADDITIONAL_REDIRECT_URLS=
+JWT_EXPIRY=3600
+DISABLE_SIGNUP=false
+API_EXTERNAL_URL=http://localhost:8000
+
+## Mailer Config
+MAILER_URLPATHS_CONFIRMATION="/auth/v1/verify"
+MAILER_URLPATHS_INVITE="/auth/v1/verify"
+MAILER_URLPATHS_RECOVERY="/auth/v1/verify"
+MAILER_URLPATHS_EMAIL_CHANGE="/auth/v1/verify"
+
+## Email auth
+ENABLE_EMAIL_SIGNUP=true
+ENABLE_EMAIL_AUTOCONFIRM=false
+SMTP_ADMIN_EMAIL=admin@example.com
+SMTP_HOST=supabase-mail
+SMTP_PORT=2500
+SMTP_USER=fake_mail_user
+SMTP_PASS=fake_mail_password
+SMTP_SENDER_NAME=fake_sender
+
+## Phone auth
+ENABLE_PHONE_SIGNUP=true
+ENABLE_PHONE_AUTOCONFIRM=true
+
+
+############
+# Studio - Configuration for the Dashboard
+############
+
+STUDIO_DEFAULT_ORGANIZATION=Superagent
+STUDIO_DEFAULT_PROJECT=superagent-ui
+
+STUDIO_PORT=3000
+# replace if you intend to use Studio outside of localhost
+SUPABASE_PUBLIC_URL=http://localhost:8000
+
+# Enable webp support
+IMGPROXY_ENABLE_WEBP_DETECTION=true
+
+############
+# Functions - Configuration for Functions
+############
+# NOTE: VERIFY_JWT applies to all functions. Per-function VERIFY_JWT is not supported yet.
+FUNCTIONS_VERIFY_JWT=false
+
+############
+# Logs - Configuration for Logflare
+# Please refer to https://supabase.com/docs/reference/self-hosting-analytics/introduction
+############
+
+LOGFLARE_LOGGER_BACKEND_API_KEY=your-super-secret-and-long-logflare-key
+
+# Change vector.toml sinks to reflect this change
+LOGFLARE_API_KEY=your-super-secret-and-long-logflare-key
+
+# Docker socket location - this value will differ depending on your OS
+DOCKER_SOCKET_LOCATION=/var/run/docker.sock
+
+# Google Cloud Project details
+GOOGLE_PROJECT_ID=GOOGLE_PROJECT_ID
+GOOGLE_PROJECT_NUMBER=GOOGLE_PROJECT_NUMBER

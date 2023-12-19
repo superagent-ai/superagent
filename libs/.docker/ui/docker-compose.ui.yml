@@ -5,11 +5,13 @@ services:
     container_name: superagent-ui
     network_mode: ${NETWORK_MODE}
     build:
-      context: ../ui
+      context: ../../ui
       dockerfile: Dockerfile
     env_file:
-      - ../ui/.env
+      - .env
     environment:
       - PORT=3000
+      - SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - SUPABASE_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     ports:
       - 3000:3000

@@ -6,6 +6,7 @@ generator client {
 datasource db {
   provider          = "postgresql"
   url               = env("DATABASE_URL")
+  directUrl         = env("DATABASE_MIGRATION_URL")
   shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
@@ -42,6 +43,7 @@ enum ToolType {
   GPT_VISION
   TTS_1
   HAND_OFF
+  FUNCTION
 }
 
 enum DatasourceType {
@@ -141,6 +143,7 @@ model Tool {
   apiUserId    String
   apiUser      ApiUser     @relation(fields: [apiUserId], references: [id])
   tools        AgentTool[]
+  toolConfig   Json?
 }
 
 model AgentTool {
@@ -195,8 +198,8 @@ model WorkflowStep {
   workflow   Workflow @relation(fields: [workflowId], references: [id])
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  input      String   @db.Text
-  output     String   @db.Text
+  input      String?  @db.Text
+  output     String?  @db.Text
   agentId    String
   agent      Agent    @relation(fields: [agentId], references: [id])
 }

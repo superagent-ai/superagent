@@ -1,3 +1,4 @@
+# flake8: noqa
 import logging
 import uuid
 from typing import Dict, List, Literal
@@ -78,14 +79,26 @@ class WeaviateVectorStore:
     ) -> List[Document]:
         """Look up similar documents by embedding vector in Weaviate."""
         vector = {"vector": embedding}
-        query_obj = self.client.query.get(
-            self.index_name, ["text", "datasource_id", "source"]
+        result = (
+            self.client.query.get(
+                self.index_name.capitalize(),
+                ["text", "datasource_id", "source", "page"],
+            )
+            .with_near_vector(vector)
+            .with_where(
+                {
+                    "path": ["datasource_id"],
+                    "operator": "Equal",
+                    "valueText": datasource_id,
+                }
+            )
+            .with_limit(k)
+            .do()
         )
-        result = query_obj.with_near_vector(vector).with_limit(k).do()
         docs = []
         for res in result["data"]["Get"][self.index_name.capitalize()]:
             text = res.pop("text")
-            if text is None or res.get("datasource_id") != datasource_id:
+            if text is None:
                 continue
             docs.append(Document(page_content=text, metadata=res))
         return docs
@@ -148,3 +161,16 @@ class WeaviateVectorStore:
             embedding=vector, k=top_k, datasource_id=datasource_id
         )
         return results
+
+    def delete(self, datasource_id: str) -> None:
+        try:
+            self.client.batch.delete_objects(
+                class_name=self.index_name.capitalize(),
+                where={
+                    "path": ["datasource_id"],
+                    "operator": "Equal",
+                    "valueText": datasource_id,
+                },
+            )
+        except Exception as e:
+            logger.error(f"Failed to delete {datasource_id}. Error: {e}")

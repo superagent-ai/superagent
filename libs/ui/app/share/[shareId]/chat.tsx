@@ -11,6 +11,7 @@ import { GoThumbsdown, GoThumbsup } from "react-icons/go"
 import { RxChatBubble, RxCopy } from "react-icons/rx"
 import remarkGfm from "remark-gfm"
 import remarkMath from "remark-math"
+import { v4 as uuidv4 } from "uuid"
 
 import { Agent } from "@/types/agent"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -39,9 +40,15 @@ import PromptForm from "@/app/agents/[agentId]/prompt-form"
 
 dayjs.extend(relativeTime)
 
-const langfuseWeb = new LangfuseWeb({
-  publicKey: process.env.NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY || "",
-})
+let langfuseWeb: LangfuseWeb | null = null
+
+if (process.env.NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY) {
+  langfuseWeb = new LangfuseWeb({
+    publicKey: process.env.NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY,
+    baseUrl:
+      process.env.NEXT_PUBLIC_LANGFUSE_BASE_URL || "https://cloud.langfuse.com",
+  })
+}
 
 function PulsatingCursor() {
   return (
@@ -65,15 +72,21 @@ export function Message({
   type,
   message,
   agent,
+  session,
 }: {
   type: string
   message: string
   agent: Agent
+  session: string | null
 }) {
   const { toast } = useToast()
   const handleFeedback = async (value: number) => {
+    if (!langfuseWeb) {
+      return
+    }
+
     await langfuseWeb.score({
-      traceId: agent.id,
+      traceId: session ? `${agent.id}-${session}` : agent.id,
       name: "user-feedback",
       value,
       comment: "I like how personalized the response is",
@@ -197,22 +210,26 @@ export function Message({
           </MemoizedReactMarkdown>
           {type === "ai" && message.length > 0 && (
             <div className="flex space-x-2 ">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleFeedback(1)}
-                className="rounded-lg"
-              >
-                <GoThumbsup size="15px" />
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleFeedback(0)}
-                className="rounded-lg"
-              >
-                <GoThumbsdown size="15px" />
-              </Button>
+              {langfuseWeb && (
+                <div className="flex space-x-2 ">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleFeedback(1)}
+                    className="rounded-lg"
+                  >
+                    <GoThumbsup size="15px" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleFeedback(0)}
+                    className="rounded-lg"
+                  >
+                    <GoThumbsdown size="15px" />
+                  </Button>
+                </div>
+              )}
               <Button
                 size="sm"
                 variant="outline"
@@ -236,14 +253,33 @@ export default function Chat({
   agent: Agent
   apiKey: string
 }) {
+  const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [messages, setMessages] = React.useState<
     { type: string; message: string }[]
   >(agent.initialMessage ? [{ type: "ai", message: agent.initialMessage }] : [])
-  const [session, setSession] = React.useState<string | null>(null)
+  const [session, setSession] = React.useState<string | null>(uuidv4())
   const { toast } = useToast()
+
+  const abortControllerRef = React.useRef<AbortController | null>(null)
+
+  const abortStream = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      setIsLoading(false)
+    }
+  }
 
   async function onSubmit(value: string) {
     let message = ""
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+
+    // Create a new AbortController for the new request
+    abortControllerRef.current = new AbortController()
+
+    setIsLoading(true)
 
     setMessages((previousMessages: any) => [
       ...previousMessages,
@@ -255,39 +291,63 @@ export default function Chat({
       { type: "ai", message },
     ])
 
-    await fetchEventSource(
-      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agent?.id}/invoke`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          input: value,
-          enableStreaming: true,
-          sessionId: session,
-        }),
-        openWhenHidden: true,
-        async onmessage(event) {
-          if (event.data !== "[END]") {
-            message += event.data === "" ? `${event.data} \n` : event.data
-            setMessages((previousMessages) => {
-              let updatedMessages = [...previousMessages]
+    try {
+      await fetchEventSource(
+        `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agent?.id}/invoke`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            input: value,
+            enableStreaming: true,
+            sessionId: session,
+          }),
+          openWhenHidden: true,
+          signal: abortControllerRef.current.signal,
+          async onclose() {
+            setIsLoading(false)
+          },
+          async onmessage(event) {
+            if (event.data !== "[END]" && event.event !== "function_call") {
+              message += event.data === "" ? `${event.data} \n` : event.data
+              setMessages((previousMessages) => {
+                let updatedMessages = [...previousMessages]
 
-              for (let i = updatedMessages.length - 1; i >= 0; i--) {
-                if (updatedMessages[i].type === "ai") {
-                  updatedMessages[i].message = message
-                  break
+                for (let i = updatedMessages.length - 1; i >= 0; i--) {
+                  if (updatedMessages[i].type === "ai") {
+                    updatedMessages[i].message = message
+                    break
+                  }
                 }
-              }
 
-              return updatedMessages
-            })
+                return updatedMessages
+              })
+            }
+          },
+          onerror(error) {
+            throw error
+          },
+        }
+      )
+    } catch {
+      setIsLoading(false)
+      setMessages((previousMessages) => {
+        let updatedMessages = [...previousMessages]
+
+        for (let i = updatedMessages.length - 1; i >= 0; i--) {
+          if (updatedMessages[i].type === "ai") {
+            updatedMessages[i].message =
+              "An error occured with your agent, please contact support."
+            break
           }
-        },
-      }
-    )
+        }
+
+        return updatedMessages
+      })
+    }
   }
 
   return (
@@ -332,6 +392,7 @@ export default function Chat({
                 type={type}
                 message={message}
                 agent={agent}
+                session={session}
               />
             ))}
           </div>
@@ -340,6 +401,7 @@ export default function Chat({
       <div className="from-background absolute inset-x-0 bottom-0 z-50 h-20 bg-gradient-to-t from-50% to-transparent to-100%">
         <div className="relative mx-auto mb-6 max-w-2xl px-8">
           <PromptForm
+            onStop={() => abortStream()}
             onSubmit={async (value) => {
               onSubmit(value)
             }}
@@ -350,7 +412,7 @@ export default function Chat({
                 description: "New session created",
               })
             }}
-            isLoading={false}
+            isLoading={isLoading}
           />
         </div>
       </div>

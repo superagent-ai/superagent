@@ -47,6 +47,12 @@ async def vectorize(datasource: Datasource) -> None:
     vector_store.embed_documents(documents=newDocuments)
 
 
+@task
+async def handle_delete_datasource(datasource_id: str) -> None:
+    vector_store = VectorStoreBase()
+    vector_store.delete(datasource_id=datasource_id)
+
+
 @flow(name="process_datasource", description="Process new agent datasource", retries=0)
 async def process_datasource(datasource_id: str, agent_id: str):
     await prisma.agentdatasource.create(
@@ -75,3 +81,8 @@ async def revalidate_datasource(agent_id: str):
         where={"agentId": agent_id}, include={"datasource": True}
     )
     await handle_datasources(agent_datasources=agent_datasources, agent_id=agent_id)
+
+
+@flow(name="delete_datasource", description="Delete datasource", retries=0)
+async def delete_datasource(datasource_id: str) -> None:
+    await handle_delete_datasource(datasource_id=datasource_id)

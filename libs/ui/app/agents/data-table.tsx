@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   ColumnDef,
@@ -17,6 +17,7 @@ import { useAsync } from "react-use"
 import * as z from "zod"
 
 import { Profile } from "@/types/profile"
+import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -134,8 +135,10 @@ export function DataTable<TData, TValue>({
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const { tools, datasources } = values
-      const { data: agent } = await api.createAgent({ ...values })
-      await api.createAgentLLM(agent.id, llms[0]?.id)
+      const { data: agent } = await api.createAgent({
+        ...values,
+        llmModel: siteConfig.defaultLLM,
+      })
 
       for (const toolId of tools) {
         await api.createAgentTool(agent.id, toolId)
@@ -157,6 +160,9 @@ export function DataTable<TData, TValue>({
       })
     }
   }
+  const searchParams = useSearchParams()
+
+  const isAddNewAgentModalOpen = Boolean(searchParams.get("addNewAgentModal"))
 
   return (
     <div>
@@ -169,7 +175,7 @@ export function DataTable<TData, TValue>({
           }
           className="max-w-md"
         />
-        <Dialog>
+        <Dialog defaultOpen={isAddNewAgentModalOpen}>
           <DialogTrigger
             className={cn(buttonVariants({ variant: "default", size: "sm" }))}
           >

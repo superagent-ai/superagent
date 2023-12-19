@@ -40,8 +40,8 @@ class AstraVectorStore:
         astra_id: str = config("ASTRA_DB_ID", ""),
         astra_region: str = config("ASTRA_DB_REGION", "us-east1"),
         astra_application_token: str = config("ASTRA_DB_APPLICATION_TOKEN", ""),
-        collection_name: str = config("COLLECTION_NAME", "superagent"),
-        keyspace_name: str = config("KEYSPACE_NAME", ""),
+        collection_name: str = config("ASTRA_DB_COLLECTION_NAME", "superagent"),
+        keyspace_name: str = config("ASTRA_DB_KEYSPACE_NAME", ""),
     ) -> None:
         if not astra_id:
             raise ValueError(
@@ -64,13 +64,13 @@ class AstraVectorStore:
         if not collection_name:
             raise ValueError(
                 "Please provide an Astra collection name via the "
-                "`COLLECTION_NAME` environment variable."
+                "`ASTRA_DB_COLLECTION_NAME` environment variable."
             )
 
         if not keyspace_name:
             raise ValueError(
                 "Please provide an Astra keyspace via the "
-                "`KEYSPACE_NAME` environment variable."
+                "`ASTRA_DB_KEYSPACE_NAME` environment variable."
             )
 
         self.index = AstraClient(
@@ -220,31 +220,8 @@ class AstraVectorStore:
         return responses
 
     def delete(self, datasource_id: str):
-        vector_dimensionality = 1536
-        arbitrary_vector = [1.0] * vector_dimensionality
         try:
-            documents_in_namespace = self.index.query(
-                arbitrary_vector,
-                filter={"datasource_id", datasource_id},
-                top_k=1000,
-                include_metadata=False,
-                include_values=False,
-            )
-            vector_ids = [match.id for match in documents_in_namespace.get("matches")]
-            if len(vector_ids) == 0:
-                logger.info(
-                    f"No vectors found in namespace `{datasource_id}`. "
-                    f"Deleting `{datasource_id}` using default namespace."
-                )
-
-                self.index.delete(
-                    filter={"datasource_id": datasource_id}, delete_all=False
-                )
-            else:
-                logger.info(
-                    f"Deleting {len(vector_ids)} documents in namespace {datasource_id}"
-                )
-                self.index.delete(ids=vector_ids, delete_all=False)
+            pass
         except Exception as e:
             logger.error(f"Failed to delete {datasource_id}. Error: {e}")
 

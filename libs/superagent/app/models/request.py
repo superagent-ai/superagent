@@ -67,10 +67,9 @@ class Workflow(BaseModel):
 class WorkflowStep(BaseModel):
     order: int
     agentId: str
-    input: str
-    output: str
 
 
 class WorkflowInvoke(BaseModel):
     input: str
     enableStreaming: bool
+    sessionId: Optional[str]

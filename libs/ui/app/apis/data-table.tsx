@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
+import { json } from "@codemirror/lang-json"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   ColumnDef,
@@ -11,14 +12,15 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table"
+import { vscodeDark } from "@uiw/codemirror-theme-vscode"
+import CodeMirror from "@uiw/react-codemirror"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 
 import { Profile } from "@/types/profile"
 import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
-import { cn } from "@/lib/utils"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -26,11 +28,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -113,7 +115,9 @@ export function DataTable<TData, TValue>({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await api.createTool({ ...values })
+      await api.createTool({
+        ...values,
+      })
       toast({
         description: "Tool created successfully",
       })
@@ -237,16 +241,40 @@ export function DataTable<TData, TValue>({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>{metadataField.label}</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type={
-                                  metadataField.type === "password"
-                                    ? "password"
-                                    : "text"
-                                }
-                              />
-                            </FormControl>
+                            {metadataField.type === "input" && (
+                              <FormControl>
+                                <Input {...field} type="text" />
+                              </FormControl>
+                            )}
+                            {metadataField.type === "password" && (
+                              <FormControl>
+                                <Input {...field} type="password" />
+                              </FormControl>
+                            )}
+                            {metadataField.type === "json" && (
+                              <div className="overflow-hidden rounded-lg">
+                                <CodeMirror
+                                  className="rounded-lg text-xs"
+                                  extensions={[json()]}
+                                  theme={vscodeDark}
+                                  onChange={field.onChange}
+                                  value={
+                                    "json" in metadataField
+                                      ? JSON.stringify(
+                                          metadataField.json,
+                                          null,
+                                          2
+                                        )
+                                      : undefined
+                                  }
+                                />
+                              </div>
+                            )}
+                            {"helpText" in metadataField && (
+                              <FormDescription>
+                                {metadataField.helpText}
+                              </FormDescription>
+                            )}
                             <FormMessage />
                           </FormItem>
                         )}

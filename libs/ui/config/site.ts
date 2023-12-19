@@ -83,6 +83,7 @@ export const siteConfig = {
       disabled: true,
     },
   ],
+  defaultLLM: "GPT_3_5_TURBO_16K_0613",
   llms: [
     {
       id: "OPENAI",
@@ -255,6 +256,28 @@ export const siteConfig = {
       value: "HAND_OFF",
       title: "Human hand-off (Alpha)",
       metadata: [],
+    },
+    {
+      value: "FUNCTION",
+      title: "Function",
+      metadata: [
+        {
+          key: "functionName",
+          type: "input",
+          label: "Function name",
+          helpText: "Use lowercase letters, ex: get_article",
+        },
+        {
+          key: "args",
+          type: "json",
+          label: "Arguments",
+          helpText: "Add function arguments in the following format",
+          json: {
+            title: { type: "string", description: "Article title" },
+            url: { type: "string", description: "The url of the article" },
+          },
+        },
+      ],
     },
     {
       value: "OPENAPI",

@@ -1,0 +1,60 @@
+The Superagent SDKs allows you easilly create, deploy and monitor your AI Assistants in a production environment. The Python SDK supports both synchronous and asynchronous concurrency. The Javascript SDK can be run in any environment, in the browser or on the server.
+
+## Install the SDK
+
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python
+        poetry add superagent-py 
+        # or
+        pip install superagent-py
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        npm i superagentai-js
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+### Sync
+
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python
+        import os 
+        from superagent.client import Superagent
+
+        client = Superagent(
+            token=os.environ["SUPERAGENT_API_KEY"], # replace with your Superagent API
+            base_url="https://api.beta.superagent.sh" # or your local environment
+        )
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        import {SuperAgentClient} from "superagentai-js"
+
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh",
+            token: process.env.SUPERAGENT_API_KEY
+        })
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+### Async
+
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        import os
+        from superagent.client import AsyncSuperagent
+
+        client = AsyncSuperagent(
+            token=os.environ["SUPERAGENT_API_KEY"], # replace with your Superagent API key    
+            base_url="https://api.beta.superagent.sh" # or you local environment
+        ) 
+        ```
+    </CodeBlock>
+</CodeBlocks>

@@ -84,3 +84,21 @@ class QdrantVectorStore:
             with_payload=True,
         )
         return search_result
+
+    def delete(self, datasource_id: str) -> None:
+        try:
+            self.client.delete(
+                collection_name=self.index_name,
+                points_selector=models.FilterSelector(
+                    filter=models.Filter(
+                        must=[
+                            models.FieldCondition(
+                                key="datasource_id",
+                                match=models.MatchValue(value=datasource_id),
+                            ),
+                        ],
+                    )
+                ),
+            )
+        except Exception as e:
+            logger.error(f"Failed to delete {datasource_id}. Error: {e}")

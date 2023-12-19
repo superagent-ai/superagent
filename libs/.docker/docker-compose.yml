@@ -1,28 +1,50 @@
-version: "3"
-
+name: superagent
+version: "3.8"
 services:
   superagent-api:
     container_name: superagent-api
-    network_mode: ${NETWORK_MODE}
+    networks:
+      - superagent_network
     build:
       context: ../superagent
       dockerfile: Dockerfile
-    command: ["/bin/bash", "setup.docker.sh"]
+    env_file:
+      - superagent/.env
+    # command: ["/bin/bash", "setup.docker.sh"]
     environment:
       - PORT=8080
     ports:
       - 8080:8080
-    env_file:
-      - ../superagent/.env
     depends_on:
       pgdb:
         condition: service_healthy
     restart: unless-stopped
 
+  superagent-ui:
+    container_name: superagent-ui
+    networks:
+      - superagent_network
+    build:
+      context: ../ui
+      dockerfile: Dockerfile
+      args:
+        ENV_FILE: .env.docker # Specify the path to your docker .env file
+    env_file:
+      - ../ui/.env.docker
+    environment:
+      - PORT=3000
+      # - SUPABASE_URL=${SUPABASE_URL}
+      # - SUPABASE_KEY=${SUPABASE_KEY}
+      - DATABASE_URL=${DATABASE_URL}
+    ports:
+      - 3000:3000
+
   pgdb:
     container_name: pgdb
-    network_mode: ${NETWORK_MODE}
+    networks:
+      - superagent_network
     image: postgres:12
+    pull_policy: missing
     restart: unless-stopped
     volumes:
       - type: volume
@@ -33,7 +55,7 @@ services:
       POSTGRES_USER: ${DBUSER}
       POSTGRES_PASSWORD: ${DBPASS}
     ports:
-      - 5432:5432
+      - 5433:5432
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DBUSER}"]
       interval: 30s
@@ -42,8 +64,10 @@ services:
 
   pgadmin:
     container_name: pgadmin
-    network_mode: ${NETWORK_MODE}
+    networks:
+      - superagent_network
     image: dpage/pgadmin4
+    pull_policy: missing
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
@@ -60,3 +84,7 @@ services:
 volumes:
   pgdb-data:
   pgadmin-data:
+
+networks:
+  superagent_network:
+    external: true

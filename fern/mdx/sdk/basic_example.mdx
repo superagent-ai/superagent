@@ -1,0 +1,212 @@
+Creating your first assistant is straight forward. You start but configuring the Language Model (LLM) you want to use, then you create your agent and connect the language model to that agent. 
+This is a necessary step due to the fact that Superagent doesn't proxy any calls to model providers such as `OpenAI`. 
+
+## Step by step guide
+
+1. Start by configuring a Language Model, in the example below we will configure `OpenAI`.
+
+<Callout intent="warn">
+Note that you usually only need to create the `llm` object once and re-use it for subsequent agents you create.
+</Callout>
+<br/>
+
+<CodeBlocks>
+    <CodeBlock title="Python"> 
+        ```python 
+        import os
+
+        from superagent.client import Superagent
+
+
+        client = Superagent(
+            base_url="https://api.beta.superagent.sh",
+            token=os.environ["SUPERAGENT_API_KEY"]
+        )
+
+        llm = client.llm.create(request={
+            "provider": "OPENAI",
+            "apiKey": os.environ["OPENAI_API_KEY"]
+        }) 
+
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript"> 
+        ```javascript
+        import { SuperAgentClient } from "superagentai-js"
+
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh",
+            token: process.env.SUPERAGENT_API_KEY
+        })
+
+        const {data: llm} = await client.llm.create({
+            provider: "OPENAI",
+            apiKey: process.env.OPENAI_API_KEY
+        })
+    
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+2. Create an Assistant.
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        agent = client.agent.create(request={
+            "name": "Chat Assistant",
+            "description": "My first Assistant",
+            "avatar": "https://myavatar.com/homanp.png",
+            "isActive": True,
+            "initialMessage": "Hi there! How can I help you?",
+            "llmModel": "GPT_3_5_TURBO_16K_0613",
+            "prompt": "You are an helpful AI Assistant", 
+        })
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        const {data: agent} = await client.agent.create({
+            name: "Chat Assistant",
+            description: "My first Assistant",
+            avatar: "https://myavatar.com/homanp.png",
+            isActive: true,
+            initialMessage: "Hi there! How can I help you?",
+            llmModel: "GPT_3_5_TURBO_16K_0613",
+            prompt: "You are an helpful AI Assistant", 
+        })
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+3. Attach the LLM to the Assistant and invoke it.
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        client.agent.add_llm(agent_id=agent.data.id, llm_id=llm.data.id)
+
+        prediction = client.agent.invoke(
+            agent_id=agent.data.id,
+            input="Hi there!",
+            enable_streaming=False,
+            session_id="my_session" # Best practice is to create a unique session per user
+        )
+
+        print(prediction.data.get("output"))
+
+        # Hello there, how can I help you?
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript 
+        await client.agent.addLlm(agent.id, {
+            llmId: llm.id
+        })
+
+        const {data: prediction} = await client.agent.invoke(agent.id, {
+            input: "Hi there!",
+            enableStreaming: false,
+            sessionId: "my_session" # Best practice is to create a unique session per user
+        })
+
+        console.log(prediction.output)
+
+        // Hello there, how can I help you?
+        ```
+    </CodeBlock>
+</CodeBlocks>
+By seperating the creation of each object you can reuse, LLMs, Agents or any other object such as Tools and Datasources multiple times without having to re-create them. 
+
+
+## Full code
+
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        import os
+
+        from superagent.client import Superagent
+
+
+        client = Superagent(
+            base_url="https://api.beta.superagent.sh",
+            token=os.environ["SUPERAGENT_API_KEY"]
+        )
+
+        llm = client.llm.create(request={
+            "provider": "OPENAI",
+            "apiKey": os.environ["OPENAI_API_KEY"]
+        })
+
+        agent = client.agent.create(request={
+            "name": "Chat Assistant",
+            "description": "My first Assistant",
+            "avatar": "https://myavatar.com/homanp.png", # A valid image URL (jpg or png)
+            "isActive": True,
+            "initialMessage": "Hi there! How can I help you?",
+            "llmModel": "GPT_3_5_TURBO_16K_0613",
+            "prompt": "You are an helpful AI Assistant", 
+        })
+
+        client.agent.add_llm(agent_id=agent.data.id, llm_id=llm.data.id)
+
+        prediction = client.agent.invoke(
+            agent_id=agent.data.id,
+            input="Hi there!",
+            enable_streaming=False,
+            session_id="my_session" # Best practice is to create a unique session per user
+        )
+
+        print(prediction.data.get("output"))
+
+        # Hello there, how can I help you?
+
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript 
+        import { SuperAgentClient } from "superagentai-js"
+
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh",
+            token: process.env.SUPERAGENT_API_KEY
+        })
+
+        const {data: llm} = await client.llm.create({
+            provider: "OPENAI",
+            apiKey: process.env.OPENAI_API_KEY
+        })
+
+        const {data: agent} = await client.agent.create({
+            name: "Chat Assistant",
+            description: "My first Assistant",
+            avatar: "https://myavatar.com/homanp.png",
+            isActive: true,
+            initialMessage: "Hi there! How can I help you?",
+            llmModel: "GPT_3_5_TURBO_16K_0613",
+            prompt: "You are an helpful AI Assistant", 
+        })
+
+
+        await client.agent.addLlm(agent.id, {
+            llmId: llm.id
+        })
+
+        const {data: prediction} = await client.agent.invoke(agent.id, {
+            input: "Hi there!",
+            enableStreaming: false,
+            sessionId: "my_session" # Best practice is to create a unique session per user
+        })
+
+        console.log(prediction.output)
+
+        // Hello there, how can I help you?
+
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+In just a couple of lines of code we have created a production ready chat Assistant using one of the GPT models. Checkout the other examples on how to add datasources and tools to your Assistants.
+
+## Replit template
+
+We've created a Replit template for this which you can run [here](https://replit.com/@homanp/Basic-example-py#main.py).

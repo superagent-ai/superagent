@@ -156,4 +156,43 @@ export class Api {
       body: JSON.stringify(payload),
     })
   }
+
+  async getWorkflows() {
+    return this.fetchFromApi("/workflows")
+  }
+
+  async getWorkflowById(id: string) {
+    return this.fetchFromApi(`/workflows/${id}`)
+  }
+
+  async createWorkflow(payload: any) {
+    return this.fetchFromApi("/workflows", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async getWorkflowSteps(id: string) {
+    return this.fetchFromApi(`/workflows/${id}/steps`)
+  }
+
+  async createWorkflowStep(workflowId: string, payload: any) {
+    return this.fetchFromApi(`/workflows/${workflowId}/steps`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async patchWorkflowStep(workflowId: string, stepId: string, payload: any) {
+    return this.fetchFromApi(`/workflows/${workflowId}/steps/${stepId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async deleteWorkflowStep(workflowId: string, stepId: string) {
+    return this.fetchFromApi(`/workflows/${workflowId}/steps/${stepId}`, {
+      method: "DELETE",
+    })
+  }
 }
