@@ -11,7 +11,16 @@
     "preview": "next build && next start",
     "typecheck": "tsc --noEmit",
     "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
-    "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache"
+    "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache",
+    "supabase:local:start": "supabase start && supabase status",
+    "supabase:local:migrate": "supabase migrations up",
+    "supabase:cloud:login": "supabase login",
+    "supabase:cloud:link": "supabase link",
+    "supabase:cloud:push": "supabase db push",
+    "supabase:docker:push": "supabase db push --db-url ${DATABASE_URL}",
+    "supabase:docker:reset": "supabase db reset --db-url ${DATABASE_URL}",
+    "supabase:docker:commit": "supabase db commit --db-url ${DATABASE_URL}",
+    "supabase:init": "supabase init"
   },
   "dependencies": {
     "@apideck/file-picker": "^1.0.3",
@@ -67,6 +76,7 @@
     "remark-math": "^5.1.1",
     "sharp": "^0.31.3",
     "stripe": "^13.7.0",
+    "supabase": "^1.113.3",
     "tailwind-merge": "^1.13.2",
     "tailwindcss-animate": "^1.0.6",
     "uuid": "^9.0.0",
