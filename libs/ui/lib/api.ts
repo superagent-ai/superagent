@@ -195,4 +195,17 @@ export class Api {
       method: "DELETE",
     })
   }
+
+  async patchWorkflow(workflowId: string, payload: any) {
+    return this.fetchFromApi(`/workflows/${workflowId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async deleteWorkflow(workflowId: string) {
+    return this.fetchFromApi(`/workflows/${workflowId}`, {
+      method: "DELETE",
+    })
+  }
 }

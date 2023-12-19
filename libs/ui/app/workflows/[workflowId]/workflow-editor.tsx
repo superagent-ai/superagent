@@ -1,10 +1,12 @@
 "use client"
 
 import React, { useCallback, useMemo, useState } from "react"
+import Link from "next/link"
 import { Agent, Workflow, WorkflowStep } from "@/models/models"
 import update from "immutability-helper"
 import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
+import { RxGear } from "react-icons/rx"
 import { v4 as uuid } from "uuid"
 
 import { Api } from "@/lib/api"
@@ -185,6 +187,9 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
       <DndProvider backend={HTML5Backend}>
         <div className="flex flex-col items-center space-y-10 px-3">
           <div className="flex w-full items-center justify-between">
+            <Link href={`/workflows/${workflow?.id}/settings`}>
+              <RxGear />
+            </Link>
             <p className="mr-3">{workflow?.name}</p>
             <Button
               disabled={JSON.stringify(steps) === JSON.stringify(savedSteps)}
