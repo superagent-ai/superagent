@@ -66,6 +66,7 @@ export default function Chat({
 
   async function onSubmit(value: string) {
     let messageByEventIds: Record<string, string> = {}
+    let currentEventId = ""
 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
@@ -115,14 +116,19 @@ export default function Chat({
             }
           },
           async onmessage(event) {
+            if (event.id) currentEventId = event.id
+
             if (
               event.data !== "[END]" &&
               event.event !== "function_call" &&
-              event.id
+              currentEventId
             ) {
-              if (!messageByEventIds[event.id]) messageByEventIds[event.id] = ""
-              messageByEventIds[event.id] +=
-                event.data === "" ? `${event.data} \n\n` : event.data
+              if (!messageByEventIds[currentEventId])
+                messageByEventIds[currentEventId] = ""
+
+              messageByEventIds[currentEventId] +=
+                event.data === "" ? `${event.data} \n` : event.data
+
               setMessages((previousMessages) => {
                 let updatedMessages = [...previousMessages]
 
