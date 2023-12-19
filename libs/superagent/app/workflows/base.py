@@ -1,17 +1,22 @@
 import asyncio
-from typing import Any
+from typing import Any, List
 
 from app.agents.base import AgentBase
+from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.models import Workflow
 
 
 class WorkflowBase:
     def __init__(
-        self, workflow: Workflow, callbacks: any, enable_streaming: bool = False
+        self,
+        workflow: Workflow,
+        callbacks: List[CustomAsyncIteratorCallbackHandler],
+        session_id: str,
+        enable_streaming: bool = False,
     ):
         self.workflow = workflow
         self.enable_streaming = enable_streaming
-
+        self.session_id = session_id
         self.callbacks = callbacks
 
     async def arun(self, input: Any):
@@ -25,6 +30,7 @@ class WorkflowBase:
                 agent_id=step.agentId,
                 enable_streaming=True,
                 callback=self.callbacks[stepIndex],
+                session_id=self.session_id,
             ).get_agent()
 
             task = asyncio.ensure_future(

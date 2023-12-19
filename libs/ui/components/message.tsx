@@ -8,6 +8,12 @@ import remarkGfm from "remark-gfm"
 import remarkMath from "remark-math"
 
 import { Profile } from "@/types/profile"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,6 +27,8 @@ import {
 import { useToast } from "@/components/ui/use-toast"
 import { CodeBlock } from "@/components/codeblock"
 import { MemoizedReactMarkdown } from "@/components/markdown"
+
+import { Badge } from "./ui/badge"
 
 let langfuseWeb: LangfuseWeb | null = null
 
@@ -54,12 +62,14 @@ export default function Message({
   traceId,
   type,
   message,
+  steps,
   profile,
   onResubmit,
 }: {
   traceId: string
   type: string
   message: string
+  steps?: Record<string, string>
   profile: Profile
   onResubmit?: () => void
 }) {
@@ -99,98 +109,29 @@ export default function Message({
           </AvatarFallback>
         </Avatar>
         <div className="ml-4 mt-1 flex-1 flex-col space-y-2 overflow-hidden px-1">
-          {message?.length === 0 && <PulsatingCursor />}
-          <MemoizedReactMarkdown
-            className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words text-sm"
-            remarkPlugins={[remarkGfm, remarkMath]}
-            components={{
-              table({ children }) {
-                return (
-                  <div className="mb-2 rounded-md border">
-                    <Table>{children}</Table>
-                  </div>
-                )
-              },
-              thead({ children }) {
-                return <TableHeader>{children}</TableHeader>
-              },
-              tbody({ children }) {
-                return <TableBody>{children}</TableBody>
-              },
-              tr({ children }) {
-                return <TableRow>{children}</TableRow>
-              },
-              th({ children }) {
-                return <TableHead className="py-2">{children}</TableHead>
-              },
-              td({ children }) {
-                return <TableCell className="py-2">{children}</TableCell>
-              },
-              p({ children }) {
-                return <p className="mb-5">{children}</p>
-              },
-              a({ children, href }) {
-                return (
-                  <a
-                    href={href}
-                    className="text-primary underline"
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    {children}
-                  </a>
-                )
-              },
-              ol({ children }) {
-                return (
-                  <ol className="mb-5 list-decimal pl-[30px]">{children}</ol>
-                )
-              },
-              ul({ children }) {
-                return <ul className="mb-5 list-disc pl-[30px]">{children}</ul>
-              },
-              li({ children }) {
-                return <li className="pb-1">{children}</li>
-              },
-              code({ node, inline, className, children, ...props }) {
-                if (children.length) {
-                  if (children[0] == "▍") {
-                    return (
-                      <span className="mt-1 animate-pulse cursor-default">
-                        ▍
-                      </span>
-                    )
-                  }
-
-                  children[0] = (children[0] as string).replace("`▍`", "▍")
-                }
-
-                const match = /language-(\w+)/.exec(className || "")
-
-                if (inline) {
-                  return (
-                    <code
-                      className="light:bg-slate-200 px-1 text-sm dark:bg-slate-800"
-                      {...props}
+          {message?.length === 0 && !steps && <PulsatingCursor />}
+          {steps
+            ? Object.entries(steps).map(([key, value], index) => (
+                <Accordion
+                  defaultValue={Object.keys(steps)[0]}
+                  type="single"
+                  collapsible
+                >
+                  <AccordionItem value={key}>
+                    <AccordionTrigger
+                      className={`mb-4 py-0 text-sm hover:no-underline ${
+                        index > 0 && "mt-2"
+                      }`}
                     >
-                      {children}
-                    </code>
-                  )
-                }
-
-                return (
-                  <CodeBlock
-                    key={Math.random()}
-                    language={(match && match[1]) || ""}
-                    value={String(children).replace(/\n$/, "")}
-                    {...props}
-                  />
-                )
-              },
-            }}
-          >
-            {message}
-          </MemoizedReactMarkdown>
+                      <p className="font-semibold">{key}</p>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <CustomMarkdown message={value} />
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              ))
+            : message && <CustomMarkdown message={message} />}
           {type === "ai" && message.length > 0 && (
             <div className="flex space-x-2 ">
               {langfuseWeb && (
@@ -236,5 +177,101 @@ export default function Message({
         </div>
       </div>
     </div>
+  )
+}
+
+interface CustomMarkdownProps {
+  message: string
+}
+
+const CustomMarkdown = ({ message }: CustomMarkdownProps) => {
+  return (
+    <MemoizedReactMarkdown
+      className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words text-sm"
+      remarkPlugins={[remarkGfm, remarkMath]}
+      components={{
+        table({ children }) {
+          return (
+            <div className="mb-2 rounded-md border">
+              <Table>{children}</Table>
+            </div>
+          )
+        },
+        thead({ children }) {
+          return <TableHeader>{children}</TableHeader>
+        },
+        tbody({ children }) {
+          return <TableBody>{children}</TableBody>
+        },
+        tr({ children }) {
+          return <TableRow>{children}</TableRow>
+        },
+        th({ children }) {
+          return <TableHead className="py-2">{children}</TableHead>
+        },
+        td({ children }) {
+          return <TableCell className="py-2">{children}</TableCell>
+        },
+        p({ children }) {
+          return <p className="mb-5">{children}</p>
+        },
+        a({ children, href }) {
+          return (
+            <a
+              href={href}
+              className="text-primary underline"
+              rel="noreferrer"
+              target="_blank"
+            >
+              {children}
+            </a>
+          )
+        },
+        ol({ children }) {
+          return <ol className="mb-5 list-decimal pl-[30px]">{children}</ol>
+        },
+        ul({ children }) {
+          return <ul className="mb-5 list-disc pl-[30px]">{children}</ul>
+        },
+        li({ children }) {
+          return <li className="pb-1">{children}</li>
+        },
+        code({ node, inline, className, children, ...props }) {
+          if (children.length) {
+            if (children[0] == "▍") {
+              return (
+                <span className="mt-1 animate-pulse cursor-default">▍</span>
+              )
+            }
+
+            children[0] = (children[0] as string).replace("`▍`", "▍")
+          }
+
+          const match = /language-(\w+)/.exec(className || "")
+
+          if (inline) {
+            return (
+              <code
+                className="light:bg-slate-200 px-1 text-sm dark:bg-slate-800"
+                {...props}
+              >
+                {children}
+              </code>
+            )
+          }
+
+          return (
+            <CodeBlock
+              key={Math.random()}
+              language={(match && match[1]) || ""}
+              value={String(children).replace(/\n$/, "")}
+              {...props}
+            />
+          )
+        },
+      }}
+    >
+      {message}
+    </MemoizedReactMarkdown>
   )
 }

@@ -72,3 +72,4 @@ class WorkflowStep(BaseModel):
 class WorkflowInvoke(BaseModel):
     input: str
     enableStreaming: bool
+    sessionId: Optional[str]
