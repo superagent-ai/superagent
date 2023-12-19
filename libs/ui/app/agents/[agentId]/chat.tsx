@@ -198,8 +198,9 @@ export default function Chat({
         {selectedView === "chat" ? (
           <div className="mb-20 mt-10 flex flex-col space-y-5 py-5">
             <div className="container mx-auto flex max-w-4xl flex-col">
-              {messages.map(({ type, message }) => (
+              {messages.map(({ type, message }, index) => (
                 <Message
+                  key={index}
                   traceId={session ? `${agent.id}-${session}` : agent.id}
                   type={type}
                   message={message}
