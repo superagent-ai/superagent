@@ -110,6 +110,9 @@ async def update(
             "apiUserId": api_user.id,
         },
     )
+
+    if isinstance(data.toolConfig, dict):
+        data.toolConfig = json.dumps(data.toolConfig)
     return {"success": True, "data": data}
 
 
