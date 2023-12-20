@@ -1,5 +1,7 @@
 import datetime
 import json
+import litellm
+
 from typing import Any, List
 
 from decouple import config
@@ -20,6 +22,8 @@ from app.tools import TOOL_TYPE_MAPPING, create_pydantic_model_from_object, crea
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
 from app.utils.llm import LLM_MAPPING
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
+from langchain.tools import format_tool_to_openai_function
+
 
 DEFAULT_PROMPT = (
     "You are a helpful AI Assistant, anwer the users questions to "
@@ -46,7 +50,7 @@ class LangchainAgent(AgentBase):
         agent_datasources: List[AgentDatasource],
         agent_tools: List[AgentTool],
     ) -> List:
-        tools = []
+        tools = {}
         for agent_datasource in agent_datasources:
             tool_type = (
                 DatasourceTool
@@ -68,7 +72,8 @@ class LangchainAgent(AgentBase):
                 description=agent_datasource.datasource.description,
                 return_direct=False,
             )
-            tools.append(tool)
+            tools[agent_datasource.datasource.id] = tool
+            # tools.append(tool)
         for agent_tool in agent_tools:
             tool_info = TOOL_TYPE_MAPPING.get(agent_tool.tool.type)
             if agent_tool.tool.type == "FUNCTION":
@@ -95,7 +100,7 @@ class LangchainAgent(AgentBase):
                     else f"{self.agent_id}",
                     return_direct=agent_tool.tool.returnDirect,
                 )
-            tools.append(tool)
+            tools[agent_tool.tool.type] = tool
         return tools
 
     async def _get_llm(self, agent_llm: AgentLLM, model: str) -> Any:
@@ -142,7 +147,7 @@ class LangchainAgent(AgentBase):
         else:
             content = agent.prompt or DEFAULT_PROMPT
             content = f"{content}" f"\n\n{datetime.datetime.now().strftime('%Y-%m-%d')}"
-        return SystemMessage(content=content)
+        return content
 
     async def _get_memory(self) -> List:
         memory = MotorheadMemory(
@@ -199,3 +204,88 @@ class LangchainAgent(AgentBase):
                 prompt=PromptTemplate.from_template(prompt),
             )
         return agent
+
+    async def _get_functions(self, tools) -> List:
+        functions = []
+        # get the functions from tools object
+        for name, tool in tools.items():
+            functions.append(
+                    {    
+                    "type": "function",
+                    "function": {
+                        **format_tool_to_openai_function(tool) ,
+                        "name": name,
+                    }
+                    }
+                )
+
+        return functions
+    
+       
+
+    async def get_agent_litellm(self, config: Agent, input: str = None):
+        llm = await self._get_llm(agent_llm=config.llms[0], model=config.llmModel)
+        tools = await self._get_tools(
+            agent_datasources=config.datasources, agent_tools=config.tools
+        )
+        functions = await self._get_functions(tools)
+        prompt = await self._get_prompt(agent=config)
+        memory = await self._get_memory()
+
+        messages = [
+                {"role": "system", "content": prompt},
+                {
+                    "role": "user",
+                    "content": input,
+                },
+            ]
+
+        response = await litellm.acompletion(
+            model="gpt-3.5-turbo", 
+            messages=messages,
+            tools=functions,
+        )
+
+        response_message = response.choices[0].message
+
+        tool_calls = response_message.tool_calls
+
+
+        # check if the model wanted to call a function
+        if tool_calls:
+            messages.append(response_message)  # extend conversation with assistant's reply
+
+            for tool_call in tool_calls:
+                function_name = tool_call.function.name
+                function_args = json.loads(tool_call.function.arguments)
+                function_to_call = tools[function_name]
+                function_response = await function_to_call._arun(**function_args)
+                messages.append(
+                    {
+                        "tool_call_id": tool_call.id,
+                        "role": "tool",
+                        "name": function_name,
+                        "content": function_response,
+                    }
+                )  # extend conversation with function response
+            
+
+            response = litellm.acreate(
+                    model="gpt-3.5-turbo-1106",
+                    messages=messages,
+                    stream=self.enable_streaming,
+            )  # get a new response from the model where it can see the function response
+        def run():
+            if self.enable_streaming:
+                return response
+            return response
+
+        return run
+
+        # if self.enable_streaming:
+        #     return response 
+
+        
+
+        # return response["choices"][0]["message"]["content"]
+     

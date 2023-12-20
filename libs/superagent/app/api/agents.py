@@ -210,39 +210,28 @@ async def invoke(
         langfuse_handler = trace.get_langchain_handler()
 
     async def send_message(
-        agent: LLMChain | AgentExecutor,
-        content: str,
-        callback: CustomAsyncIteratorCallbackHandler,
+        run,
     ) -> AsyncIterable[str]:
         try:
-            task = asyncio.ensure_future(
-                agent.acall(
-                    inputs={"input": content},
-                    tags=[agent_id],
-                    callbacks=[langfuse_handler] if langfuse_handler else None,
-                )
-            )
-
-            async for token in callback.aiter():
+            async for chunk in await run():
+                token = chunk.choices[0].delta.content
                 yield f"data: {token}\n\n"
 
-            await task
-            result = task.result()
-            if "intermediate_steps" in result:
-                for step in result["intermediate_steps"]:
-                    agent_action_message_log = step[0]
-                    function = agent_action_message_log.tool
-                    args = agent_action_message_log.tool_input
-                    if function and args:
-                        yield (
-                            "event: function_call\n"
-                            f'data: {{"function": "{function}", '
-                            f'"args": {json.dumps(args)}}}\n\n'
-                        )
+            # await task
+            # result = task.result()
+            # if "intermediate_steps" in result:
+            #     for step in result["intermediate_steps"]:
+            #         agent_action_message_log = step[0]
+            #         function = agent_action_message_log.tool
+            #         args = agent_action_message_log.tool_input
+            #         if function and args:
+            #             yield (
+            #                 "event: function_call\n"
+            #                 f'data: {{"function": "{function}", '
+            #                 f'"args": {json.dumps(args)}}}\n\n'
+            #             )
         except Exception as e:
             logging.error(f"Error in send_message: {e}")
-        finally:
-            callback.done.set()
 
     if SEGMENT_WRITE_KEY:
         analytics.track(api_user.id, "Invoked Agent")
@@ -253,32 +242,26 @@ async def invoke(
     enable_streaming = body.enableStreaming
     output_schema = body.outputSchema
     callback = CustomAsyncIteratorCallbackHandler()
-    agent = await AgentBase(
+    run = await AgentBase(
         agent_id=agent_id,
         session_id=session_id,
         enable_streaming=enable_streaming,
         output_schema=output_schema,
         callback=callback,
-    ).get_agent()
+    ).get_agent(input=input)
 
     if enable_streaming:
         logging.info("Streaming enabled. Preparing streaming response...")
 
-        generator = send_message(agent, content=input, callback=callback)
+        generator =  send_message(run)
+
         return StreamingResponse(generator, media_type="text/event-stream")
 
     logging.info("Streaming not enabled. Invoking agent synchronously...")
-    output = await agent.acall(
-        inputs={"input": input},
-        tags=[agent_id],
-        callbacks=[langfuse_handler] if langfuse_handler else None,
-    )
-    if output_schema:
-        try:
-            output = json.loads(output.get("output"))
-        except Exception as e:
-            logging.error(f"Error parsing output: {e}")
-            output = None
+
+    response = await run()
+    output = response["choices"][0]["message"]["content"]
+  
     return {"success": True, "data": output}
 
 
