@@ -3,6 +3,7 @@ from typing import Any, List
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
+from app.agents.agent_executor import AgentExecutor
 
 DEFAULT_PROMPT = (
     "You are a helpful AI Assistant, anwer the users questions to "
@@ -39,7 +40,7 @@ class AgentBase:
     async def _get_memory(self) -> List:
         raise NotImplementedError
 
-    async def get_agent(self,input: str = None):
+    async def get_agent(self, input: str = None) -> AgentExecutor:
         agent_config = await prisma.agent.find_unique_or_raise(
             where={"id": self.agent_id},
             include={
@@ -50,14 +51,13 @@ class AgentBase:
         )
 
         if agent_config.llms[0].llm.provider in ["OPENAI", "AZURE_OPENAI"]:
-            from app.agents.langchain import LangchainAgent
+            from app.agents.openai import OpenAiAgent
 
-            agent = LangchainAgent(
+            agent = OpenAiAgent(
                 agent_id=self.agent_id,
                 session_id=self.session_id,
                 enable_streaming=self.enable_streaming,
                 output_schema=self.output_schema,
-                callback=self.callback,
             )
         else:
             from app.agents.superagent import SuperagentAgent
@@ -70,4 +70,4 @@ class AgentBase:
                 callback=self.callback,
             )
 
-        return await agent.get_agent_litellm(config=agent_config, input=input)
+        return await agent.get_agent(config=agent_config)

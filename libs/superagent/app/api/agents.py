@@ -2,15 +2,16 @@ import asyncio
 import json
 import logging
 from typing import AsyncIterable
+from app.agents.agent_executor import AgentExecutor
 
 import segment.analytics as analytics
 from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
-from langchain.agents import AgentExecutor
-from langchain.chains import LLMChain
-from langfuse import Langfuse
-from langfuse.model import CreateTrace
+
+# from langchain.chains import LLMChain
+# from langfuse import Langfuse
+# from langfuse.model import CreateTrace
 from langsmith import Client
 
 from app.agents.base import AgentBase
@@ -188,34 +189,37 @@ async def invoke(
 ):
     """Endpoint for invoking an agent"""
 
-    langfuse_secret_key = config("LANGFUSE_SECRET_KEY", "")
-    langfuse_public_key = config("LANGFUSE_PUBLIC_KEY", "")
-    langfuse_host = config("LANGFUSE_HOST", "https://cloud.langfuse.com")
-    langfuse_handler = None
-    if langfuse_public_key and langfuse_secret_key:
-        langfuse = Langfuse(
-            public_key=langfuse_public_key,
-            secret_key=langfuse_secret_key,
-            host=langfuse_host,
-        )
-        session_id = f"{agent_id}-{body.sessionId}" if body.sessionId else f"{agent_id}"
-        trace = langfuse.trace(
-            CreateTrace(
-                id=session_id,
-                name="Assistant",
-                userId=api_user.id,
-                metadata={"agentId": agent_id},
-            )
-        )
-        langfuse_handler = trace.get_langchain_handler()
+    # langfuse_secret_key = config("LANGFUSE_SECRET_KEY", "")
+    # langfuse_public_key = config("LANGFUSE_PUBLIC_KEY", "")
+    # langfuse_host = config("LANGFUSE_HOST", "https://cloud.langfuse.com")
+    # # langfuse_handler = None
+    # # if langfuse_public_key and langfuse_secret_key:
+    # #     langfuse = Langfuse(
+    # #         public_key=langfuse_public_key,
+    # #         secret_key=langfuse_secret_key,
+    # #         host=langfuse_host,
+    # #     )
+    # #     session_id = f"{agent_id}-{body.sessionId}" if body.sessionId else f"{agent_id}"
+    # #     trace = langfuse.trace(
+    # #         CreateTrace(
+    # #             id=session_id,
+    # #             name="Assistant",
+    # #             userId=api_user.id,
+    # #             metadata={"agentId": agent_id},
+    # #         )
+    # #     )
+    # #     langfuse_handler = trace.get_langchain_handler()
 
     async def send_message(
-        run,
+        agent: AgentExecutor,
+        content: str,
     ) -> AsyncIterable[str]:
         try:
-            async for chunk in await run():
+            iterator = await agent.acall(input=content)
+            for chunk in iterator:
                 token = chunk.choices[0].delta.content
-                yield f"data: {token}\n\n"
+                if token:
+                    yield f"data: {token}\n\n"
 
             # await task
             # result = task.result()
@@ -242,7 +246,7 @@ async def invoke(
     enable_streaming = body.enableStreaming
     output_schema = body.outputSchema
     callback = CustomAsyncIteratorCallbackHandler()
-    run = await AgentBase(
+    agent = await AgentBase(
         agent_id=agent_id,
         session_id=session_id,
         enable_streaming=enable_streaming,
@@ -253,15 +257,14 @@ async def invoke(
     if enable_streaming:
         logging.info("Streaming enabled. Preparing streaming response...")
 
-        generator =  send_message(run)
+        generator = send_message(agent, content=input)
 
         return StreamingResponse(generator, media_type="text/event-stream")
 
     logging.info("Streaming not enabled. Invoking agent synchronously...")
 
-    response = await run()
+    response = await agent.acall(input=input)
     output = response["choices"][0]["message"]["content"]
-  
     return {"success": True, "data": output}
 
 
