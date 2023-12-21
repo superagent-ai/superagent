@@ -75,7 +75,7 @@ class OpenAiAgent(AgentBase):
                 return_direct=False,
             )
             # tools[agent_datasource.datasource.id] = tool
-            tools["facebook_memcache_paper_reader"] = tool
+            tools[agent_datasource.datasource.id] = tool
             # tools.append(tool)
         for agent_tool in agent_tools:
             tool_info = TOOL_TYPE_MAPPING.get(agent_tool.tool.type)

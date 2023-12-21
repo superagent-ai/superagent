@@ -74,7 +74,7 @@ class AgentExecutor():
                         "tool_call_id": tool_call.id,
                         "role": "tool",
                         "name": function_name,
-                        "content": function_response,
+                        "content": str(function_response),
                     }
                 )  # extend conversation with function response
 
