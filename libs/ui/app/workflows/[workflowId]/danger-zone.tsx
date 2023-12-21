@@ -47,7 +47,7 @@ export default function DangerZone({ workflowData, api_key }: DangerZoneProps) {
 
   return (
     <div>
-      <h2 className="text-lg font-bold">Danger Zone</h2>
+      <h2 className="mb-4 text-lg font-bold">Danger Zone</h2>
       <div className="border-destructive/50 rounded-md border p-4">
         <div className="flex">
           <div>
@@ -58,7 +58,7 @@ export default function DangerZone({ workflowData, api_key }: DangerZoneProps) {
             </div>
           </div>
 
-          <div className="ml-2 w-48">
+          <div className="ml-2 w-72">
             <AlertDialog>
               <AlertDialogTrigger
                 className={cn(

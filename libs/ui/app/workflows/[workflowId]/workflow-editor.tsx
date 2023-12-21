@@ -15,6 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Spinner } from "@/components/ui/spinner"
 import { useToast } from "@/components/ui/use-toast"
 
+import WorkflowSettingsModal from "./settings"
 import Step, { type Step as StepType } from "./workflow-step"
 
 interface WorkflowEditorProps {
@@ -187,9 +188,11 @@ const WorkflowEditor: React.FC<WorkflowEditorProps> = ({
       <DndProvider backend={HTML5Backend}>
         <div className="flex flex-col items-center space-y-10 px-3">
           <div className="flex w-full items-center justify-between">
-            <Link href={`/workflows/${workflow?.id}/settings`}>
-              <RxGear />
-            </Link>
+            <WorkflowSettingsModal
+              workflowId={workflow.id}
+              workflowData={workflowData}
+              api_key={api_key}
+            />
             <p className="mr-3">{workflow?.name}</p>
             <Button
               disabled={JSON.stringify(steps) === JSON.stringify(savedSteps)}
