@@ -9,9 +9,6 @@ from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
-# from langchain.chains import LLMChain
-# from langfuse import Langfuse
-# from langfuse.model import CreateTrace
 from langsmith import Client
 
 from app.agents.base import AgentBase
@@ -188,28 +185,6 @@ async def invoke(
     agent_id: str, body: AgentInvokeRequest, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for invoking an agent"""
-
-    # langfuse_secret_key = config("LANGFUSE_SECRET_KEY", "")
-    # langfuse_public_key = config("LANGFUSE_PUBLIC_KEY", "")
-    # langfuse_host = config("LANGFUSE_HOST", "https://cloud.langfuse.com")
-    # # langfuse_handler = None
-    # # if langfuse_public_key and langfuse_secret_key:
-    # #     langfuse = Langfuse(
-    # #         public_key=langfuse_public_key,
-    # #         secret_key=langfuse_secret_key,
-    # #         host=langfuse_host,
-    # #     )
-    # #     session_id = f"{agent_id}-{body.sessionId}" if body.sessionId else f"{agent_id}"
-    # #     trace = langfuse.trace(
-    # #         CreateTrace(
-    # #             id=session_id,
-    # #             name="Assistant",
-    # #             userId=api_user.id,
-    # #             metadata={"agentId": agent_id},
-    # #         )
-    # #     )
-    # #     langfuse_handler = trace.get_langchain_handler()
-
     async def send_message(
         agent: AgentExecutor,
         content: str,

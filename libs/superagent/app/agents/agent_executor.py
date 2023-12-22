@@ -3,7 +3,6 @@ from typing import Any, List
 
 import litellm
 from langchain.tools import format_tool_to_openai_function
-
 class AgentExecutor():
     def __init__(self, tools, llmModel: str, prompt: str, memory: Any, enable_streaming: bool = False):
         self.tools = tools
@@ -31,7 +30,9 @@ class AgentExecutor():
 
     async def acall(self, input: str):
         functions = await self._get_functions(self.tools)
+        
 
+        litellm.success_callback = ["langfuse"] 
 
         messages = [
             {"role": "system", "content": self.prompt},
