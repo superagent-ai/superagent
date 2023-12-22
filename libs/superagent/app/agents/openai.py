@@ -151,4 +151,11 @@ class OpenAiAgent(AgentBase):
         prompt = await self._get_prompt(agent=config)
         memory = await self._get_memory()
 
-        return AgentExecutor(tools, llm_model, prompt, memory, self.enable_streaming)
+        return AgentExecutor(
+            tools,
+            llm_model,
+            prompt,
+            memory,
+            self.enable_streaming,
+            agent_id=self.agent_id,
+        )

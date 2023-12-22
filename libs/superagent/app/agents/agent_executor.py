@@ -13,12 +13,14 @@ class AgentExecutor:
         prompt: str,
         memory: Any,
         enable_streaming: bool = False,
+        agent_id: str = None,
     ):
         self.tools = tools
         self.llmModel = llmModel
         self.prompt = prompt
         self.memory = memory
         self.enable_streaming = enable_streaming
+        self.agent_id = agent_id
 
     async def _get_functions(self, tools) -> List:
         functions = []
@@ -54,6 +56,9 @@ class AgentExecutor:
             messages=messages,
             tools=functions if len(functions) > 0 else None,
             stream=self.enable_streaming,
+            metadata={
+                "agentId": self.agent_id,
+            },
         )
         if self.enable_streaming:
             chunks = []
@@ -91,6 +96,9 @@ class AgentExecutor:
                 model="gpt-3.5-turbo-1106",
                 messages=messages,
                 stream=self.enable_streaming,
+                metadata={
+                    "agentId": self.agent_id,
+                },
             )
 
             if self.enable_streaming:
