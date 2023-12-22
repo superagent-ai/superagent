@@ -3,8 +3,17 @@ from typing import Any, List
 
 import litellm
 from langchain.tools import format_tool_to_openai_function
-class AgentExecutor():
-    def __init__(self, tools, llmModel: str, prompt: str, memory: Any, enable_streaming: bool = False):
+
+
+class AgentExecutor:
+    def __init__(
+        self,
+        tools,
+        llmModel: str,
+        prompt: str,
+        memory: Any,
+        enable_streaming: bool = False,
+    ):
         self.tools = tools
         self.llmModel = llmModel
         self.prompt = prompt
@@ -27,12 +36,10 @@ class AgentExecutor():
 
         return functions
 
-
     async def acall(self, input: str):
         functions = await self._get_functions(self.tools)
-        
 
-        litellm.success_callback = ["langfuse"] 
+        litellm.success_callback = ["langfuse"]
 
         messages = [
             {"role": "system", "content": self.prompt},
@@ -48,9 +55,9 @@ class AgentExecutor():
             tools=functions if len(functions) > 0 else None,
             stream=self.enable_streaming,
         )
-        if self.enable_streaming:            
+        if self.enable_streaming:
             chunks = []
-            for chunk in response: 
+            for chunk in response:
                 chunks.append(chunk)
 
             response = litellm.stream_chunk_builder(chunks, messages=messages)
@@ -58,7 +65,7 @@ class AgentExecutor():
         response_message = response.choices[0].message
 
         # check if the model wanted to call a function
-        if hasattr(response_message, 'tool_calls'):
+        if hasattr(response_message, "tool_calls"):
             tool_calls = response_message.tool_calls
             messages.append(
                 response_message
@@ -79,20 +86,18 @@ class AgentExecutor():
                     }
                 )  # extend conversation with function response
 
-            response =  litellm.completion(
+            # get a new response from the model where it can see the function response
+            response = litellm.completion(
                 model="gpt-3.5-turbo-1106",
                 messages=messages,
                 stream=self.enable_streaming,
-            )  # get a new response from the model where it can see the function response
-        
+            )
+
             if self.enable_streaming:
                 chunks = []
-                for chunk in response: 
+                for chunk in response:
                     chunks.append(chunk)
 
-            
         if self.enable_streaming:
             return chunks
         return response
-
-

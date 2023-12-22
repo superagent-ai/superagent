@@ -1,16 +1,14 @@
-import asyncio
 import json
 import logging
 from typing import AsyncIterable
-from app.agents.agent_executor import AgentExecutor
 
 import segment.analytics as analytics
 from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
-
 from langsmith import Client
 
+from app.agents.agent_executor import AgentExecutor
 from app.agents.base import AgentBase
 from app.models.request import (
     Agent as AgentRequest,
@@ -185,6 +183,7 @@ async def invoke(
     agent_id: str, body: AgentInvokeRequest, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for invoking an agent"""
+
     async def send_message(
         agent: AgentExecutor,
         content: str,

@@ -1,19 +1,12 @@
-from app.agents.base import AgentBase
 import datetime
 import json
 from typing import Any, List
 
-import litellm
 from decouple import config
-from langchain.agents import AgentType, initialize_agent
-from langchain.chains import LLMChain
-from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.memory.motorhead_memory import MotorheadMemory
-from langchain.prompts import MessagesPlaceholder, PromptTemplate
-from langchain.schema import SystemMessage
-from langchain.tools import format_tool_to_openai_function
 from slugify import slugify
 
+from app.agents.agent_executor import AgentExecutor
 from app.agents.base import AgentBase
 from app.datasource.types import (
     VALID_UNSTRUCTURED_DATA_TYPES,
@@ -22,9 +15,7 @@ from app.models.tools import DatasourceInput
 from app.tools import TOOL_TYPE_MAPPING, create_pydantic_model_from_object, create_tool
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
 from app.utils.llm import LLM_MAPPING
-from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
-from app.agents.agent_executor import AgentExecutor
-
+from prisma.models import Agent, AgentDatasource, AgentTool
 
 DEFAULT_PROMPT = (
     "You are a helpful AI Assistant, anwer the users questions to "
@@ -43,7 +34,6 @@ def recursive_json_loads(data):
     if isinstance(data, list):
         return [recursive_json_loads(v) for v in data]
     return data
-
 
 
 class OpenAiAgent(AgentBase):
@@ -105,10 +95,10 @@ class OpenAiAgent(AgentBase):
                 )
             tools[agent_tool.tool.type] = tool
         return tools
-    
+
     async def _get_llm_model(self, model: str) -> Any:
         return LLM_MAPPING[model]
-    
+
     async def _get_prompt(self, agent: Agent) -> str:
         if self.output_schema:
             if agent.prompt:
@@ -134,12 +124,12 @@ class OpenAiAgent(AgentBase):
         else:
             content = agent.prompt or DEFAULT_PROMPT
             content = (
-                f"{content}\n\n" 
+                f"{content}\n\n"
                 "Current Date: "
                 f"{datetime.datetime.now().strftime('%Y-%m-%d')}"
             )
         return content
-    
+
     async def _get_memory(self) -> List:
         memory = MotorheadMemory(
             session_id=f"{self.agent_id}-{self.session_id}"
@@ -152,7 +142,7 @@ class OpenAiAgent(AgentBase):
         )
         await memory.init()
         return memory
-    
+
     async def get_agent(self, config: Agent) -> AgentExecutor:
         llm_model = await self._get_llm_model(model=config.llmModel)
         tools = await self._get_tools(
@@ -162,5 +152,3 @@ class OpenAiAgent(AgentBase):
         memory = await self._get_memory()
 
         return AgentExecutor(tools, llm_model, prompt, memory, self.enable_streaming)
-
-
