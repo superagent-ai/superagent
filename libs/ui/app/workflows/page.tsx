@@ -2,8 +2,8 @@ import { cookies } from "next/headers"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { Api } from "@/lib/api"
+import { Badge } from "@/components/ui/badge"
 
-import WorkflowEditor from "./[workflowId]/workflow-editor"
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
 
@@ -24,7 +24,10 @@ export default async function Workflows() {
 
   return (
     <div className="flex flex-col space-y-4 px-4 py-6">
-      <p className="text-lg">Workflows</p>
+      <div className="flex space-x-2">
+        <p className="text-lg">Workflows</p>
+        <Badge variant="secondary">Beta release</Badge>
+      </div>
       <DataTable columns={columns} data={workflows} profile={profile} />
     </div>
   )
