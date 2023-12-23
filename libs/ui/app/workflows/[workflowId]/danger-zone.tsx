@@ -48,7 +48,7 @@ export default function DangerZone({ workflowData, api_key }: DangerZoneProps) {
   return (
     <div>
       <h2 className="mb-4 text-lg font-bold">Danger Zone</h2>
-      <div className="border-destructive/50 rounded-md border p-4">
+      <div className="rounded-md border border-destructive/50 p-4">
         <div className="flex">
           <div>
             <strong>Delete workflow</strong>

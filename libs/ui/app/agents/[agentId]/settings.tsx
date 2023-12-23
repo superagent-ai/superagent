@@ -159,7 +159,7 @@ export default function Settings({
   )
 
   return (
-    <ScrollArea className="relative flex grow max-w-lg flex-1 p-4">
+    <ScrollArea className="relative flex max-w-lg flex-1 grow p-4">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -297,7 +297,7 @@ export default function Settings({
             ) : (
               <div className="flex flex-col space-y-4 rounded-lg border border-red-500 p-4">
                 <p className="text-sm">Heads up!</p>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-sm text-muted-foreground">
                   You need to add an LLM to this agent for it work. This can be
                   done through the SDK or API.
                 </p>

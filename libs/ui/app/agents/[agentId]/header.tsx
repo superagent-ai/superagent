@@ -130,7 +130,7 @@ Superagent({
               <Separator />
               <div className="flex flex-col space-y-2">
                 <p className="font-bold">Embed</p>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-sm text-muted-foreground">
                   Copy the following code and place it before the closing body
                   tag. You can choose between inline or popup as options.
                 </p>

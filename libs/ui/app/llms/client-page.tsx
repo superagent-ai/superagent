@@ -117,7 +117,7 @@ export default function LLMClientPage({
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-muted-foreground flex justify-between text-sm">
+              <div className="flex justify-between text-sm text-muted-foreground">
                 {llms.find((obj: LLM) => obj.provider === llm.id) ? (
                   <div className="flex items-center">
                     <RxCheckCircled className="mr-1 h-3 w-3 text-amber-400" />
