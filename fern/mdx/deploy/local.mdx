@@ -22,8 +22,8 @@ OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
 
 # We use Supabase but you can use any provider.
 # You can setup Supabase locally or via Supabase Cloud
-DATABASE_URL=postgres://<user>:<password>@db.ysmhgwgdbtzkapkqeyfb.supabase.co:6543/postgres?pgbouncer=true 
-DATABASE_MIGRATION_URL=postgresql://<user>:<password>@db.ysmhgwgdbtzkapkqeyfb.supabase.co:5432/postgres
+DATABASE_URL=postgres://<user>:<password>@<db_host_name>:<db_port>/postgres?pgbouncer=true 
+DATABASE_MIGRATION_URL=postgresql://<user>:<password>@<db_host_name>:<db_port>/postgres
 
 # Use a password-like string
 JWT_SECRET=superagent
@@ -66,6 +66,17 @@ source venv/bin/activate
 ### Install dependencies
 ```bash
 poetry install 
+```
+
+### Start Supabase
+```bash
+supabase start
+```
+
+### Get Supabase Info
+Get the hostname and port of your Supabase instance and replace them in the `DATABASE_URL` and `DATABASE_MIGRATION_URL` variable in your `.env` file.
+```bash
+supabase status
 ```
 
 ### Run database migrations
@@ -125,7 +136,12 @@ git clone git@github.com:homanp/superagent.git
 
 3. Install Supabase CLI and create project: https://supabase.com/docs/guides/cli/getting-started
 
-4. Run the database migrations
+4. Start the local Supabase project
+```bash
+supabase start
+```
+
+5. Run the database migrations
 ```bash
 # Local supabase project
 supabase migration up
@@ -134,7 +150,7 @@ supabase migration up
 supabase db push
 ```
 
-5. Create a [Supabase storage](https://supabase.com/docs/guides/storage) with the following `storage.objects` permissions:
+6. Create a [Supabase storage](https://supabase.com/docs/guides/storage) with the following `storage.objects` permissions:
 <img width="2672" alt="Screenshot 2023-09-14 at 23 27 35" src="https://github.com/homanp/superagent/assets/2464556/8d6bde18-528e-4e0a-9840-aabe39ce5e68" />
 
 ### Setup authentication
