@@ -13,6 +13,7 @@ from app.models.tools import (
     FunctionInput,
     GPTVisionInput,
     HandOffInput,
+    HTTPInput,
     MetaphorSearchInput,
     OpenapiInput,
     PubMedInput,
@@ -30,6 +31,7 @@ from app.tools.e2b import E2BCodeExecutor
 from app.tools.function import Function
 from app.tools.gpt_vision import GPTVision
 from app.tools.hand_off import HandOff
+from app.tools.http import LCHttpTool
 from app.tools.metaphor import MetaphorSearch
 from app.tools.openapi import Openapi
 from app.tools.pubmed import PubMed
@@ -64,6 +66,7 @@ TOOL_TYPE_MAPPING = {
     "TTS_1": {"class": TTS1, "schema": TTS1Input},
     "HAND_OFF": {"class": HandOff, "schema": HandOffInput},
     "FUNCTION": {"class": Function, "schema": FunctionInput},
+    "HTTP": {"class": LCHttpTool, "schema": HTTPInput},
 }
 
 OSS_TOOL_TYPE_MAPPING = {"BROWSER": Browser, "BING_SEARCH": BingSearch}

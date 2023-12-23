@@ -238,6 +238,17 @@ export const siteConfig = {
       ],
     },
     {
+      value: "HTTP",
+      title: "API Request",
+      metadata: [
+        {
+          key: "headers",
+          type: "json",
+          label: "Headers",
+        },
+      ],
+    },
+    {
       value: "PUBMED",
       title: "PubMed",
       metadata: [],
