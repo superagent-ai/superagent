@@ -44,6 +44,7 @@ enum ToolType {
   TTS_1
   HAND_OFF
   FUNCTION
+  HTTP
 }
 
 enum DatasourceType {

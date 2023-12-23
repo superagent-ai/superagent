@@ -238,6 +238,32 @@ export const siteConfig = {
       ],
     },
     {
+      value: "HTTP",
+      title: "HTTP",
+      metadata: [
+        {
+          key: "url",
+          type: "input",
+          label: "The URL to send request to."
+        },
+        {
+          key: "method",
+          type: "input",
+          label: "Method",
+        },
+        {
+          key: "headers",
+          type: "json",
+          label: "Headers"
+        },
+        {
+          key: "body",
+          type: "json",
+          label: "Body"
+        }
+      ]
+    },
+    {
       value: "PUBMED",
       title: "PubMed",
       metadata: [],

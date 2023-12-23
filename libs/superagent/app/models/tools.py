@@ -78,3 +78,9 @@ class HandOffInput(BaseModel):
 
 class FunctionInput(BaseModel):
     config: dict
+
+class HTTPInput(BaseModel):
+    url: str
+    method: str = 'GET'
+    headers: dict = {}
+    body: dict = {}
