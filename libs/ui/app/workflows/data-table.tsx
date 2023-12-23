@@ -8,6 +8,7 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table"
 
@@ -23,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Toaster } from "@/components/ui/toaster"
+import { DataTablePagination } from "@/components/data-table-pagination"
 
 import AddNewWorkflow from "./new-workflow"
 
@@ -48,6 +50,7 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     state: {
       columnFilters,
     },
@@ -68,6 +71,8 @@ export function DataTable<TData, TValue>({
         />
         <AddNewWorkflow api={api} />
       </div>
+
+      {/* Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -122,6 +127,9 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination  */}
+      <DataTablePagination className="py-4" table={table} />
       <Toaster />
     </div>
   )
