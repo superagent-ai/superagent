@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint:backend": "cd libs/superagent && make format && make lint",
-    "lint:frontend": "cd libs/ui && npm run typecheck && npm run format:write && npm run format:check && npm lint:fix && npm lint",
+    "lint:frontend": "cd libs/ui && npm run typecheck && npm run format:write && npm run format:check && npm run lint:fix && npm run lint",
     "prepare": "husky install"
   },
   "repository": {
