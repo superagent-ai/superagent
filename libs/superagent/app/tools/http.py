@@ -21,9 +21,13 @@ class HTTP(BaseTool):
 
     async def arun(self, args: HTTPRequestArgs) -> dict:
         async with aiohttp.ClientSession() as session:
-            async with session.request(args.method, args.url, headers=args.headers, json=args.body) as response:
+            async with session.request(
+                args.method, args.url, headers=args.headers, json=args.body
+            ) as response:
                 return await response.json()
 
     def _run(self, args: HTTPRequestArgs) -> dict:
-        response = requests.request(args.method, args.url, headers=args.headers, json=args.body)
+        response = requests.request(
+            args.method, args.url, headers=args.headers, json=args.body
+        )
         return response.json()

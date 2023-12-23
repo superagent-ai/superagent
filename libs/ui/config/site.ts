@@ -244,7 +244,7 @@ export const siteConfig = {
         {
           key: "url",
           type: "input",
-          label: "The URL to send request to."
+          label: "The URL to send request to.",
         },
         {
           key: "method",
@@ -254,14 +254,14 @@ export const siteConfig = {
         {
           key: "headers",
           type: "json",
-          label: "Headers"
+          label: "Headers",
         },
         {
           key: "body",
           type: "json",
-          label: "Body"
-        }
-      ]
+          label: "Body",
+        },
+      ],
     },
     {
       value: "PUBMED",
