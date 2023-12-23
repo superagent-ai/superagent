@@ -1,0 +1,2191 @@
+openapi: 3.0.2
+info:
+  title: Superagent
+  description: The open framework for building AI Assistants
+  version: 0.1.48
+servers:
+  - url: https://api.beta.superagent.sh
+paths:
+  /api/v1/agents:
+    get:
+      tags:
+        - Agent
+      summary: List
+      description: List all agents
+      operationId: list_api_v1_agents_get
+      parameters:
+        - required: false
+          schema:
+            title: Skip
+            type: integer
+            default: 0
+          name: skip
+          in: query
+        - required: false
+          schema:
+            title: Limit
+            type: integer
+            default: 100
+          name: limit
+          in: query
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentList'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - Agent
+      summary: Create
+      description: Create a new agent
+      operationId: create_api_v1_agents_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__Agent'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Agent'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}:
+    get:
+      tags:
+        - Agent
+      summary: Get
+      description: Get a single agent
+      operationId: get_api_v1_agents__agent_id__get
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Agent'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    delete:
+      tags:
+        - Agent
+      summary: Delete
+      description: Delete an agent
+      operationId: delete_api_v1_agents__agent_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    patch:
+      tags:
+        - Agent
+      summary: Update
+      description: Patch an agent
+      operationId: update_api_v1_agents__agent_id__patch
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__Agent'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Agent'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/invoke:
+    post:
+      tags:
+        - Agent
+      summary: Invoke
+      description: Invoke an agent
+      operationId: invoke_api_v1_agents__agent_id__invoke_post
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__AgentInvoke'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__AgentInvoke'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/llms:
+    post:
+      tags:
+        - Agent
+      summary: Add Llm
+      description: Add LLM to agent
+      operationId: add_llm_api_v1_agents__agent_id__llms_post
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__AgentLLM'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Agent'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/llms/{llm_id}:
+    delete:
+      tags:
+        - Agent
+      summary: Remove Llm
+      description: Remove LLM from agent
+      operationId: remove_llm_api_v1_agents__agent_id__llms__llm_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+        - required: true
+          schema:
+            title: Llm Id
+            type: string
+          name: llm_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/tools:
+    get:
+      tags:
+        - Agent
+      summary: List Tools
+      description: List agent tools
+      operationId: list_tools_api_v1_agents__agent_id__tools_get
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentToolList'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - Agent
+      summary: Add Tool
+      description: Add tool to agent
+      operationId: add_tool_api_v1_agents__agent_id__tools_post
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__AgentTool'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Agent'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/tools/{tool_id}:
+    delete:
+      tags:
+        - Agent
+      summary: Remove Tool
+      description: Remove tool from agent
+      operationId: remove_tool_api_v1_agents__agent_id__tools__tool_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+        - required: true
+          schema:
+            title: Tool Id
+            type: string
+          name: tool_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/datasources:
+    get:
+      tags:
+        - Agent
+      summary: List Datasources
+      description: List agent datasources
+      operationId: list_datasources_api_v1_agents__agent_id__datasources_get
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentDatasosurceList'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - Agent
+      summary: Add Datasource
+      description: Add datasource to agent
+      operationId: add_datasource_api_v1_agents__agent_id__datasources_post
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__AgentDatasource'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Agent'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/datasources/{datasource_id}:
+    delete:
+      tags:
+        - Agent
+      summary: Remove Datasource
+      description: Remove datasource from agent
+      operationId: remove_datasource_api_v1_agents__agent_id__datasources__datasource_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+        - required: true
+          schema:
+            title: Datasource Id
+            type: string
+          name: datasource_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/agents/{agent_id}/runs:
+    get:
+      tags:
+        - Agent
+      summary: List Runs
+      description: List agent runs
+      operationId: list_runs_api_v1_agents__agent_id__runs_get
+      parameters:
+        - required: true
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentRunList'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/llms:
+    get:
+      tags:
+        - LLM
+      summary: List
+      description: List all LLMs
+      operationId: list_api_v1_llms_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LLMList'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - LLM
+      summary: Create
+      description: Create a new LLM
+      operationId: create_api_v1_llms_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__LLM'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__LLM'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/llms/{llm_id}:
+    get:
+      tags:
+        - LLM
+      summary: Get
+      description: Get a single LLM
+      operationId: get_api_v1_llms__llm_id__get
+      parameters:
+        - required: true
+          schema:
+            title: Llm Id
+            type: string
+          name: llm_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__LLM'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    patch:
+      tags:
+        - LLM
+      summary: Update
+      description: Patch an LLM
+      operationId: update_api_v1_llms__llm_id__patch
+      parameters:
+        - required: true
+          schema:
+            title: Llm Id
+            type: string
+          name: llm_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__LLM'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__LLM'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/api-users:
+    post:
+      tags:
+        - Api user
+      summary: Create
+      description: Create a new API user
+      operationId: create_api_v1_api_users_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__ApiUser'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__ApiUser'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/api-users/me:
+    get:
+      tags:
+        - Api user
+      summary: Get
+      description: Get a single api user
+      operationId: get_api_v1_api_users_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__ApiUser'
+      security:
+        - HTTPBearer: []
+    delete:
+      tags:
+        - Api user
+      summary: Delete
+      description: Delete an api user
+      operationId: delete_api_v1_api_users_me_delete
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - HTTPBearer: []
+  /api/v1/datasources:
+    get:
+      tags:
+        - Datasource
+      summary: List
+      description: List all datasources
+      operationId: list_api_v1_datasources_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasourceList'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - Datasource
+      summary: Create
+      description: Create a new datasource
+      operationId: create_api_v1_datasources_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__Datasource'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Datasource'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/datasources/{datasource_id}:
+    get:
+      tags:
+        - Datasource
+      summary: Get
+      description: Get a specific datasource
+      operationId: get_api_v1_datasources__datasource_id__get
+      parameters:
+        - required: true
+          schema:
+            title: Datasource Id
+            type: string
+          name: datasource_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Datasource'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    delete:
+      tags:
+        - Datasource
+      summary: Delete
+      description: Delete a specific datasource
+      operationId: delete_api_v1_datasources__datasource_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Datasource Id
+            type: string
+          name: datasource_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    patch:
+      tags:
+        - Datasource
+      summary: Update
+      description: Update a specific datasource
+      operationId: update_api_v1_datasources__datasource_id__patch
+      parameters:
+        - required: true
+          schema:
+            title: Datasource Id
+            type: string
+          name: datasource_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__Datasource'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Datasource'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/tools:
+    get:
+      tags:
+        - Tool
+      summary: List
+      description: List all tools
+      operationId: list_api_v1_tools_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolList'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - Tool
+      summary: Create
+      description: Create a new tool
+      operationId: create_api_v1_tools_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__Tool'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Tool'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/tools/{tool_id}:
+    get:
+      tags:
+        - Tool
+      summary: Get
+      description: Get a specific tool
+      operationId: get_api_v1_tools__tool_id__get
+      parameters:
+        - required: true
+          schema:
+            title: Tool Id
+            type: string
+          name: tool_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Tool'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    delete:
+      tags:
+        - Tool
+      summary: Delete
+      description: Delete a specific tool
+      operationId: delete_api_v1_tools__tool_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Tool Id
+            type: string
+          name: tool_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    patch:
+      tags:
+        - Tool
+      summary: Update
+      description: Update a specific tool
+      operationId: update_api_v1_tools__tool_id__patch
+      parameters:
+        - required: true
+          schema:
+            title: Tool Id
+            type: string
+          name: tool_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__Tool'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Tool'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/workflows:
+    get:
+      tags:
+        - Workflow
+      summary: List
+      description: List all workflows
+      operationId: list_api_v1_workflows_get
+      parameters:
+        - required: false
+          schema:
+            title: Skip
+            type: integer
+            default: 0
+          name: skip
+          in: query
+        - required: false
+          schema:
+            title: Limit
+            type: integer
+            default: 100
+          name: limit
+          in: query
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowList'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - Workflow
+      summary: Create
+      description: Create a new workflow
+      operationId: create_api_v1_workflows_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__Workflow'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Workflow'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/workflows/{workflow_id}:
+    get:
+      tags:
+        - Workflow
+      summary: Get
+      description: Get a single workflow
+      operationId: get_api_v1_workflows__workflow_id__get
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Workflow'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    delete:
+      tags:
+        - Workflow
+      summary: Delete
+      description: Delete a specific workflow
+      operationId: delete_api_v1_workflows__workflow_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    patch:
+      tags:
+        - Workflow
+      summary: Update
+      description: Patch a workflow
+      operationId: update_api_v1_workflows__workflow_id__patch
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__Workflow'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__Workflow'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/workflows/{workflow_id}/invoke:
+    post:
+      tags:
+        - Workflow
+      summary: Invoke
+      description: Invoke a specific workflow
+      operationId: invoke_api_v1_workflows__workflow_id__invoke_post
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowInvoke'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/workflows/{workflow_id}/steps:
+    get:
+      tags:
+        - Workflow
+      summary: List Steps
+      description: List all steps of a workflow
+      operationId: list_steps_api_v1_workflows__workflow_id__steps_get
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowStepList'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - Workflow
+      summary: Add Step
+      description: Create a new workflow step
+      operationId: add_step_api_v1_workflows__workflow_id__steps_post
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__WorkflowStep'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__WorkflowStep'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/workflows/{workflow_id}/steps/{step_id}:
+    delete:
+      tags:
+        - Workflow
+      summary: Delete Step
+      description: Delete a specific workflow step
+      operationId: delete_step_api_v1_workflows__workflow_id__steps__step_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+        - required: true
+          schema:
+            title: Step Id
+            type: string
+          name: step_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    patch:
+      tags:
+        - Workflow
+      summary: Update
+      description: Patch a workflow step
+      operationId: update_api_v1_workflows__workflow_id__steps__step_id__patch
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+        - required: true
+          schema:
+            title: Step Id
+            type: string
+          name: step_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__WorkflowStep'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__WorkflowStep'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+components:
+  schemas:
+    AgentDatasosurceList:
+      title: AgentDatasosurceList
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__AgentDatasource'
+    AgentList:
+      title: AgentList
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__Agent'
+    AgentRunList:
+      title: AgentRunList
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            type: object
+    AgentToolList:
+      title: AgentToolList
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__AgentTool'
+    DatasourceList:
+      title: DatasourceList
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__Datasource'
+    DatasourceStatus:
+      title: DatasourceStatus
+      enum:
+        - IN_PROGRESS
+        - DONE
+        - FAILED
+      type: string
+      description: An enumeration.
+    DatasourceType:
+      title: DatasourceType
+      enum:
+        - TXT
+        - PDF
+        - CSV
+        - PPTX
+        - XLSX
+        - DOCX
+        - GOOGLE_DOC
+        - YOUTUBE
+        - GITHUB_REPOSITORY
+        - MARKDOWN
+        - WEBPAGE
+        - AIRTABLE
+        - STRIPE
+        - NOTION
+        - SITEMAP
+        - URL
+        - FUNCTION
+      type: string
+      description: An enumeration.
+    HTTPValidationError:
+      title: HTTPValidationError
+      type: object
+      properties:
+        detail:
+          title: Detail
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+    LLMList:
+      title: LLMList
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__LLM'
+    LLMModel:
+      title: LLMModel
+      enum:
+        - GPT_3_5_TURBO_16K_0613
+        - GPT_3_5_TURBO_0613
+        - GPT_3_5_TURBO_1106
+        - GPT_4_0613
+        - GPT_4_32K_0613
+        - GPT_4_1106_PREVIEW
+        - MISTRAL_7B_INSTRUCT_V01
+      type: string
+      description: An enumeration.
+    LLMProvider:
+      title: LLMProvider
+      enum:
+        - OPENAI
+        - AZURE_OPENAI
+        - HUGGINGFACE
+      type: string
+      description: An enumeration.
+    ToolList:
+      title: ToolList
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__Tool'
+    ToolType:
+      title: ToolType
+      enum:
+        - ALGOLIA
+        - BROWSER
+        - BING_SEARCH
+        - REPLICATE
+        - WOLFRAM_ALPHA
+        - ZAPIER_NLA
+        - AGENT
+        - OPENAPI
+        - CHATGPT_PLUGIN
+        - METAPHOR
+        - PUBMED
+        - CODE_EXECUTOR
+        - OPENBB
+        - GPT_VISION
+        - TTS_1
+        - HAND_OFF
+        - FUNCTION
+        - HTTP
+      type: string
+      description: An enumeration.
+    ValidationError:
+      title: ValidationError
+      required:
+        - loc
+        - msg
+        - type
+      type: object
+      properties:
+        loc:
+          title: Location
+          type: array
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+    WorkflowInvoke:
+      title: WorkflowInvoke
+      required:
+        - input
+        - enableStreaming
+      type: object
+      properties:
+        input:
+          title: Input
+          type: string
+        enableStreaming:
+          title: Enablestreaming
+          type: boolean
+        sessionId:
+          title: Sessionid
+          type: string
+    WorkflowList:
+      title: WorkflowList
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__Workflow'
+    WorkflowStepList:
+      title: WorkflowStepList
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__WorkflowStep'
+    app__models__request__Agent:
+      title: Agent
+      required:
+        - name
+        - llmModel
+        - description
+      type: object
+      properties:
+        isActive:
+          title: Isactive
+          type: boolean
+          default: true
+        name:
+          title: Name
+          type: string
+        initialMessage:
+          title: Initialmessage
+          type: string
+        prompt:
+          title: Prompt
+          type: string
+        llmModel:
+          title: Llmmodel
+          type: string
+        description:
+          title: Description
+          type: string
+        avatar:
+          title: Avatar
+          type: string
+    app__models__request__AgentDatasource:
+      title: AgentDatasource
+      required:
+        - datasourceId
+      type: object
+      properties:
+        datasourceId:
+          title: Datasourceid
+          type: string
+    app__models__request__AgentInvoke:
+      title: AgentInvoke
+      required:
+        - input
+        - enableStreaming
+      type: object
+      properties:
+        input:
+          title: Input
+          type: string
+        sessionId:
+          title: Sessionid
+          type: string
+        enableStreaming:
+          title: Enablestreaming
+          type: boolean
+        outputSchema:
+          title: Outputschema
+          type: string
+    app__models__request__AgentLLM:
+      title: AgentLLM
+      required:
+        - llmId
+      type: object
+      properties:
+        llmId:
+          title: Llmid
+          type: string
+    app__models__request__AgentTool:
+      title: AgentTool
+      required:
+        - toolId
+      type: object
+      properties:
+        toolId:
+          title: Toolid
+          type: string
+    app__models__request__ApiUser:
+      title: ApiUser
+      required:
+        - email
+      type: object
+      properties:
+        email:
+          title: Email
+          type: string
+    app__models__request__Datasource:
+      title: Datasource
+      required:
+        - name
+        - description
+        - type
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        type:
+          title: Type
+          type: string
+        content:
+          title: Content
+          type: string
+        url:
+          title: Url
+          type: string
+        metadata:
+          title: Metadata
+          type: object
+    app__models__request__LLM:
+      title: LLM
+      required:
+        - provider
+        - apiKey
+      type: object
+      properties:
+        provider:
+          title: Provider
+          type: string
+        apiKey:
+          title: Apikey
+          type: string
+        options:
+          title: Options
+          type: object
+    app__models__request__Tool:
+      title: Tool
+      required:
+        - name
+        - description
+        - type
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        type:
+          title: Type
+          type: string
+        metadata:
+          title: Metadata
+          type: object
+        returnDirect:
+          title: Returndirect
+          type: boolean
+    app__models__request__Workflow:
+      title: Workflow
+      required:
+        - name
+        - description
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+    app__models__request__WorkflowStep:
+      title: WorkflowStep
+      required:
+        - order
+        - agentId
+      type: object
+      properties:
+        order:
+          title: Order
+          type: integer
+        agentId:
+          title: Agentid
+          type: string
+    app__models__response__Agent:
+      title: Agent
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/prisma__models__Agent'
+    app__models__response__AgentInvoke:
+      title: AgentInvoke
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+    app__models__response__ApiUser:
+      title: ApiUser
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+    app__models__response__Datasource:
+      title: Datasource
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/prisma__models__Datasource'
+    app__models__response__LLM:
+      title: LLM
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/prisma__models__LLM'
+    app__models__response__Tool:
+      title: Tool
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/prisma__models__Tool'
+    app__models__response__Workflow:
+      title: Workflow
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/prisma__models__Workflow'
+    app__models__response__WorkflowStep:
+      title: WorkflowStep
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/prisma__models__WorkflowStep'
+    prisma__models__Agent:
+      title: Agent
+      required:
+        - id
+        - name
+        - description
+        - isActive
+        - createdAt
+        - updatedAt
+        - llmModel
+        - apiUserId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        avatar:
+          title: Avatar
+          type: string
+        initialMessage:
+          title: Initialmessage
+          type: string
+        description:
+          title: Description
+          type: string
+        isActive:
+          title: Isactive
+          type: boolean
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        llms:
+          title: Llms
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__AgentLLM'
+        llmModel:
+          $ref: '#/components/schemas/LLMModel'
+        prompt:
+          title: Prompt
+          type: string
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+        datasources:
+          title: Datasources
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__AgentDatasource'
+        tools:
+          title: Tools
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__AgentTool'
+        workflowSteps:
+          title: Workflowsteps
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__WorkflowStep'
+      description: Represents a Agent record
+    prisma__models__AgentDatasource:
+      title: AgentDatasource
+      required:
+        - agentId
+        - datasourceId
+        - createdAt
+        - updatedAt
+      type: object
+      properties:
+        agentId:
+          title: Agentid
+          type: string
+        datasourceId:
+          title: Datasourceid
+          type: string
+        agent:
+          $ref: '#/components/schemas/prisma__models__Agent'
+        datasource:
+          $ref: '#/components/schemas/prisma__models__Datasource'
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+      description: Represents a AgentDatasource record
+    prisma__models__AgentLLM:
+      title: AgentLLM
+      required:
+        - agentId
+        - llmId
+        - createdAt
+        - updatedAt
+      type: object
+      properties:
+        agentId:
+          title: Agentid
+          type: string
+        llmId:
+          title: Llmid
+          type: string
+        agent:
+          $ref: '#/components/schemas/prisma__models__Agent'
+        llm:
+          $ref: '#/components/schemas/prisma__models__LLM'
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+      description: Represents a AgentLLM record
+    prisma__models__AgentTool:
+      title: AgentTool
+      required:
+        - agentId
+        - toolId
+        - createdAt
+        - updatedAt
+      type: object
+      properties:
+        agentId:
+          title: Agentid
+          type: string
+        toolId:
+          title: Toolid
+          type: string
+        agent:
+          $ref: '#/components/schemas/prisma__models__Agent'
+        tool:
+          $ref: '#/components/schemas/prisma__models__Tool'
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+      description: Represents a AgentTool record
+    prisma__models__ApiUser:
+      title: ApiUser
+      required:
+        - id
+        - createdAt
+        - updatedAt
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        token:
+          title: Token
+          type: string
+        email:
+          title: Email
+          type: string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        agents:
+          title: Agents
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__Agent'
+        llms:
+          title: Llms
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__LLM'
+        datasources:
+          title: Datasources
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__Datasource'
+        tools:
+          title: Tools
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__Tool'
+        workflows:
+          title: Workflows
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__Workflow'
+      description: Represents a ApiUser record
+    prisma__models__Datasource:
+      title: Datasource
+      required:
+        - id
+        - name
+        - type
+        - apiUserId
+        - createdAt
+        - updatedAt
+        - status
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        content:
+          title: Content
+          type: string
+        description:
+          title: Description
+          type: string
+        url:
+          title: Url
+          type: string
+        type:
+          $ref: '#/components/schemas/DatasourceType'
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        metadata:
+          title: Metadata
+          type: string
+        status:
+          $ref: '#/components/schemas/DatasourceStatus'
+        datasources:
+          title: Datasources
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__AgentDatasource'
+      description: Represents a Datasource record
+    prisma__models__LLM:
+      title: LLM
+      required:
+        - id
+        - provider
+        - apiKey
+        - createdAt
+        - updatedAt
+        - apiUserId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        provider:
+          $ref: '#/components/schemas/LLMProvider'
+        apiKey:
+          title: Apikey
+          type: string
+        options:
+          title: Options
+          type: string
+          format: json-string
+        agents:
+          title: Agents
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__AgentLLM'
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+      description: Represents a LLM record
+    prisma__models__Tool:
+      title: Tool
+      required:
+        - id
+        - name
+        - description
+        - type
+        - returnDirect
+        - metadata
+        - createdAt
+        - updatedAt
+        - apiUserId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        type:
+          $ref: '#/components/schemas/ToolType'
+        returnDirect:
+          title: Returndirect
+          type: boolean
+        metadata:
+          title: Metadata
+          type: string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+        tools:
+          title: Tools
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__AgentTool'
+        toolConfig:
+          title: Toolconfig
+          type: string
+          format: json-string
+      description: Represents a Tool record
+    prisma__models__Workflow:
+      title: Workflow
+      required:
+        - id
+        - name
+        - createdAt
+        - updatedAt
+        - apiUserId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        steps:
+          title: Steps
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__WorkflowStep'
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+      description: Represents a Workflow record
+    prisma__models__WorkflowStep:
+      title: WorkflowStep
+      required:
+        - id
+        - order
+        - workflowId
+        - createdAt
+        - updatedAt
+        - agentId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        order:
+          title: Order
+          type: integer
+        workflowId:
+          title: Workflowid
+          type: string
+        workflow:
+          $ref: '#/components/schemas/prisma__models__Workflow'
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        input:
+          title: Input
+          type: string
+        output:
+          title: Output
+          type: string
+        agentId:
+          title: Agentid
+          type: string
+        agent:
+          $ref: '#/components/schemas/prisma__models__Agent'
+      description: Represents a WorkflowStep record
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer
