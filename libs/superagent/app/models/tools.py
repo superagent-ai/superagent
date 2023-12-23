@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AlgoliaInput(BaseModel):
@@ -82,6 +82,5 @@ class FunctionInput(BaseModel):
 
 class HTTPInput(BaseModel):
     url: str
-    method: str = "GET"
-    headers: dict = {}
+    method: str = Field("GET", regex="^(GET|POST)$")
     body: dict = {}
