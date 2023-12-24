@@ -114,8 +114,10 @@ export class Api {
     return this.fetchFromApi(`/tools/${id}`, { method: "DELETE" })
   }
 
-  async getAgents() {
-    return this.fetchFromApi("/agents")
+  async getAgents(
+    searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
+  ) {
+    return this.fetchFromApi("/agents", {}, searchParams)
   }
 
   async getAgentById(id: string) {
