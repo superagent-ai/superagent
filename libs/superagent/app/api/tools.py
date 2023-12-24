@@ -1,4 +1,3 @@
-import asyncio
 import json
 
 import segment.analytics as analytics
@@ -12,7 +11,8 @@ from app.models.response import (
 from app.models.response import (
     ToolList as ToolListResponse,
 )
-from app.tools.flow import generate_tool_config
+
+# from app.tools.flow import generate_tool_config
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 
@@ -39,15 +39,15 @@ async def create(
         body.metadata = json.dumps(body.metadata) if body.metadata else ""
         data = await prisma.tool.create({**body.dict(), "apiUserId": api_user.id})
 
-        async def run_generate_tool_config(tool: ToolResponse):
-            try:
-                await generate_tool_config(
-                    tool=data,
-                )
-            except Exception as flow_exception:
-                handle_exception(flow_exception)
+        # async def run_generate_tool_config(tool: ToolResponse):
+        #    try:
+        #        await generate_tool_config(
+        #            tool=data,
+        #        )
+        #    except Exception as flow_exception:
+        #        handle_exception(flow_exception)
 
-        asyncio.create_task(run_generate_tool_config(tool=data))
+        # asyncio.create_task(run_generate_tool_config(tool=data))
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -110,6 +110,9 @@ async def update(
             "apiUserId": api_user.id,
         },
     )
+
+    if isinstance(data.toolConfig, dict):
+        data.toolConfig = json.dumps(data.toolConfig)
     return {"success": True, "data": data}
 
 

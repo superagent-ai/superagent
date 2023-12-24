@@ -139,6 +139,9 @@ async def get(agent_id: str, api_user=Depends(get_current_api_user)):
         )
         for llm in data.llms:
             llm.llm.options = json.dumps(llm.llm.options)
+        for tool in data.tools:
+            if isinstance(tool.tool.toolConfig, dict):
+                tool.tool.toolConfig = json.dumps(tool.tool.toolConfig)
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)

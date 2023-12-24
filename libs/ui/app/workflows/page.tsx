@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { Api } from "@/lib/api"
+import { Badge } from "@/components/ui/badge"
 
 import { columns } from "./columns"
 import { DataTable } from "./data-table"

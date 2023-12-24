@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The open framework for building AI Assistants
-  version: 0.1.37
+  version: 0.1.48
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -13,6 +13,21 @@ paths:
       summary: List
       description: List all agents
       operationId: list_api_v1_agents_get
+      parameters:
+        - required: false
+          schema:
+            title: Skip
+            type: integer
+            default: 0
+          name: skip
+          in: query
+        - required: false
+          schema:
+            title: Limit
+            type: integer
+            default: 100
+          name: limit
+          in: query
       responses:
         '200':
           description: Successful Response
@@ -20,6 +35,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentList'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
     post:
@@ -901,6 +922,21 @@ paths:
       summary: List
       description: List all workflows
       operationId: list_api_v1_workflows_get
+      parameters:
+        - required: false
+          schema:
+            title: Skip
+            type: integer
+            default: 0
+          name: skip
+          in: query
+        - required: false
+          schema:
+            title: Limit
+            type: integer
+            default: 100
+          name: limit
+          in: query
       responses:
         '200':
           description: Successful Response
@@ -908,6 +944,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/WorkflowList'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
     post:
@@ -1081,7 +1123,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WorkflowList'
+                $ref: '#/components/schemas/WorkflowStepList'
         '422':
           description: Validation Error
           content:
@@ -1115,7 +1157,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/app__models__response__Workflow'
+                $ref: '#/components/schemas/app__models__response__WorkflowStep'
         '422':
           description: Validation Error
           content:
@@ -1150,6 +1192,46 @@ paths:
           content:
             application/json:
               schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    patch:
+      tags:
+        - Workflow
+      summary: Update
+      description: Patch a workflow step
+      operationId: update_api_v1_workflows__workflow_id__steps__step_id__patch
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+        - required: true
+          schema:
+            title: Step Id
+            type: string
+          name: step_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__WorkflowStep'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__WorkflowStep'
         '422':
           description: Validation Error
           content:
@@ -1337,6 +1419,7 @@ components:
         - TTS_1
         - HAND_OFF
         - FUNCTION
+        - HTTP
       type: string
       description: An enumeration.
     ValidationError:
@@ -1373,6 +1456,9 @@ components:
         enableStreaming:
           title: Enablestreaming
           type: boolean
+        sessionId:
+          title: Sessionid
+          type: string
     WorkflowList:
       title: WorkflowList
       required:
@@ -1387,6 +1473,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__Workflow'
+    WorkflowStepList:
+      title: WorkflowStepList
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__WorkflowStep'
     app__models__request__Agent:
       title: Agent
       required:
@@ -1555,8 +1655,6 @@ components:
       required:
         - order
         - agentId
-        - input
-        - output
       type: object
       properties:
         order:
@@ -1564,12 +1662,6 @@ components:
           type: integer
         agentId:
           title: Agentid
-          type: string
-        input:
-          title: Input
-          type: string
-        output:
-          title: Output
           type: string
     app__models__response__Agent:
       title: Agent
@@ -1648,6 +1740,17 @@ components:
           type: boolean
         data:
           $ref: '#/components/schemas/prisma__models__Workflow'
+    app__models__response__WorkflowStep:
+      title: WorkflowStep
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/prisma__models__WorkflowStep'
     prisma__models__Agent:
       title: Agent
       required:
@@ -1997,6 +2100,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__AgentTool'
+        toolConfig:
+          title: Toolconfig
+          type: string
+          format: json-string
       description: Represents a Tool record
     prisma__models__Workflow:
       title: Workflow
@@ -2044,8 +2151,6 @@ components:
         - workflowId
         - createdAt
         - updatedAt
-        - input
-        - output
         - agentId
       type: object
       properties:
