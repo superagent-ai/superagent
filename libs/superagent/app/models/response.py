@@ -94,6 +94,7 @@ class ToolList(BaseModel):
 class AgentList(BaseModel):
     success: bool
     data: Optional[List[AgentModel]]
+    total_pages: int
 
 
 class LLM(BaseModel):
