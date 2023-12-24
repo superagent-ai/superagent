@@ -60,6 +60,11 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   profile: Profile
+  pagination: {
+    take: number
+    currentPageNumber: number
+    totalPages: number
+  }
 }
 
 interface Datasource {
@@ -92,6 +97,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   profile,
+  pagination: { currentPageNumber, take, totalPages },
 }: DataTableProps<TData, TValue>) {
   const router = useRouter()
   const { toast } = useToast()
@@ -106,8 +112,14 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+
+    pageCount: totalPages,
     state: {
       columnFilters,
+      pagination: {
+        pageIndex: 0, // we are setting pageIndex to 0 because we have only the current page's data
+        pageSize: take,
+      },
     },
   })
   const { ...form } = useForm<z.infer<typeof formSchema>>({
@@ -311,7 +323,6 @@ export function DataTable<TData, TValue>({
         </Dialog>
       </div>
 
-      {/* Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -367,8 +378,11 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      {/* Pagination  */}
-      <DataTablePagination className="py-4" table={table} />
+      <DataTablePagination
+        className="py-4"
+        table={table}
+        currentPageNumber={currentPageNumber}
+      />
       <Toaster />
     </div>
   )
