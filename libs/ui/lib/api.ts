@@ -5,18 +5,27 @@ export class Api {
     this.apiKey = apiKey
   }
 
-  async fetchFromApi(endpoint: string, options: RequestInit = {}) {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}${endpoint}`,
-      {
-        ...options,
-        headers: {
-          ...options.headers,
-          "Content-Type": "application/json",
-          authorization: `Bearer ${this.apiKey}`,
-        },
-      }
+  async fetchFromApi(
+    endpoint: string,
+    options: RequestInit = {},
+    searchParams: Record<string, any> = {}
+  ) {
+    const url = new URL(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}${endpoint}`
     )
+
+    Object.entries(searchParams).forEach(([key, value]) => {
+      url.searchParams.append(key, value)
+    })
+
+    const response = await fetch(url.toString(), {
+      ...options,
+      headers: {
+        ...options.headers,
+        "Content-Type": "application/json",
+        authorization: `Bearer ${this.apiKey}`,
+      },
+    })
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
