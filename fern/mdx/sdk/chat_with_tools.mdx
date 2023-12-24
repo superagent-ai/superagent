@@ -50,7 +50,7 @@ Note that you usually only need to create the `llm` object once and re-use it f
 
         const {data: llm} = await client.llm.create({
             provider: "OPENAI",
-            apiKey: os.environ["OPENAI_API_KEY"]
+            apiKey: process.env.OPENAI_API_KEY
         })
 
         const {data: agent} = await client.agent.create({
