@@ -168,8 +168,10 @@ export class Api {
     })
   }
 
-  async getWorkflows() {
-    return this.fetchFromApi("/workflows")
+  async getWorkflows(
+    searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
+  ) {
+    return this.fetchFromApi("/workflows", {}, searchParams)
   }
 
   async getWorkflowById(id: string) {
