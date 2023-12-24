@@ -35,8 +35,6 @@ export default async function Workflows({
     take,
   })
 
-  console.log("total_pages workflows", total_pages)
-
   return (
     <div className="flex flex-col space-y-4 px-4 py-6">
       <p className="text-lg">Workflows</p>

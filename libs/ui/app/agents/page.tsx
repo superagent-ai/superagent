@@ -35,7 +35,6 @@ export default async function Agents({
     take,
   })
 
-  console.log(page, take, total_pages)
   return (
     <div className="flex flex-col space-y-4 px-4 py-6">
       <p className="text-lg">Agents</p>
