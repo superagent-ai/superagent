@@ -73,7 +73,6 @@ async def list(api_user=Depends(get_current_api_user), skip: int = 0, take: int 
             take=take,
         )
 
-        
         # Get the total count of agents
         total_count = await prisma.workflow.count(where={"apiUserId": api_user.id})
 
@@ -265,7 +264,7 @@ async def list_steps(workflow_id: str, api_user=Depends(get_current_api_user)):
             order={"order": "asc"},
             include={"agent": True},
         )
-        
+
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)

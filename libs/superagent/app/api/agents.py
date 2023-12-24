@@ -101,6 +101,7 @@ async def list(api_user=Depends(get_current_api_user), skip: int = 0, take: int 
     """Endpoint for listing all agents"""
     try:
         import math
+
         data = await prisma.agent.find_many(
             skip=skip,
             take=take,
