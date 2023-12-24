@@ -110,7 +110,6 @@ async def list(api_user=Depends(get_current_api_user), skip: int = 0, take: int 
 
         # Get the total count of agents
         total_count = await prisma.agent.count(where={"apiUserId": api_user.id})
-        print("total_count",total_count,take)
 
         # Calculate the total number of pages
         total_pages = math.ceil(total_count / take)

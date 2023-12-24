@@ -120,8 +120,8 @@ class WorkflowStep(BaseModel):
 class WorkflowList(BaseModel):
     success: bool
     data: Optional[List[WorkflowModel]]
-
-
+    total_pages: int
+    
 class WorkflowStepList(BaseModel):
     success: bool
     data: Optional[List[WorkflowStepModel]]
