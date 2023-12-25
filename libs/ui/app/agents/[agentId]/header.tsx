@@ -10,6 +10,17 @@ import { Agent } from "@/types/agent"
 import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
 import { cn, encodeToIdentifier } from "@/lib/utils"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Dialog,
@@ -23,6 +34,8 @@ import { FormLabel } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
+
+import DeleteAgentButton from "./delete-agent-button"
 
 const baseUrl =
   process.env.NODE_ENV === "production"
@@ -74,9 +87,7 @@ Superagent({
       <div className="flex items-center justify-between border-b px-4 py-3">
         <p className="text-lg">{agent.name}</p>
         <div className="flex space-x-2">
-          <Button size="sm" variant="secondary" onClick={() => handleDelete()}>
-            <TbTrashX size="18px" />
-          </Button>
+          <DeleteAgentButton handleDelete={handleDelete} />
           <Button
             size="sm"
             variant="secondary"
