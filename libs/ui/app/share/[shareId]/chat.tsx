@@ -353,7 +353,7 @@ export default function Chat({
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden border-r">
       <ScrollArea className="relative flex grow flex-col px-4">
-        <div className="from-background absolute inset-x-0 top-0 z-20 h-20 bg-gradient-to-b from-0% to-transparent to-50%" />
+        <div className="absolute inset-x-0 top-0 z-20 h-20 bg-gradient-to-b from-background from-0% to-transparent to-50%" />
         {messages.length === 0 && (
           <div className="mb-20 mt-10 flex flex-col space-y-5 py-5">
             <div className="container mx-auto flex max-w-lg flex-col space-y-5">
@@ -370,7 +370,7 @@ export default function Chat({
                   <CardDescription>{agent?.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground mt-6 text-xs">
+                  <p className="mt-6 text-xs text-muted-foreground">
                     Powered by{" "}
                     <a
                       href="https://www.superagent.sh"
@@ -398,7 +398,7 @@ export default function Chat({
           </div>
         </div>
       </ScrollArea>
-      <div className="from-background absolute inset-x-0 bottom-0 z-50 h-20 bg-gradient-to-t from-50% to-transparent to-100%">
+      <div className="absolute inset-x-0 bottom-0 z-50 h-20 bg-gradient-to-t from-background from-50% to-transparent to-100%">
         <div className="relative mx-auto mb-6 max-w-2xl px-8">
           <PromptForm
             onStop={() => abortStream()}

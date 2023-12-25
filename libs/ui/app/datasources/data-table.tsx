@@ -496,7 +496,7 @@ export function DataTable<TData, TValue>({
                         <div className="relative flex flex-col items-center justify-between space-y-4 rounded-lg border border-dashed p-4">
                           <div className="flex flex-col items-center justify-center">
                             <p className="text-sm">Select files</p>
-                            <p className="text-muted-foreground text-sm">
+                            <p className="text-sm text-muted-foreground">
                               Upload local files from your device
                             </p>
                           </div>
@@ -530,7 +530,7 @@ export function DataTable<TData, TValue>({
                         <div className="relative flex flex-col items-center justify-between space-y-4 rounded-lg border border-dashed p-4">
                           <div className="flex flex-col items-center justify-center">
                             <p className="text-sm">Connect to your accounts</p>
-                            <p className="text-muted-foreground text-sm">
+                            <p className="text-sm text-muted-foreground">
                               Google Drive, Dropbox, Box etc.
                             </p>
                           </div>

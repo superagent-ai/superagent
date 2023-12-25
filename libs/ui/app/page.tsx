@@ -90,7 +90,7 @@ export default function IndexPage() {
       <Logo width={50} height={50} />
       <div className="flex flex-col space-y-4">
         <p className="text-lg font-bold">Login to Superagent</p>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-sm text-muted-foreground">
           Enter your email to receive a one-time password
         </p>
       </div>

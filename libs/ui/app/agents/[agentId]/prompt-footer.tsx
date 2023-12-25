@@ -9,7 +9,7 @@ export function PromptFooter({
   return (
     <p
       className={cn(
-        "text-muted-foreground px-2 text-center text-xs leading-normal",
+        "px-2 text-center text-xs leading-normal text-muted-foreground",
         className
       )}
       {...props}
