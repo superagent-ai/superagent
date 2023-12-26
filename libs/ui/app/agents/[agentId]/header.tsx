@@ -23,6 +23,7 @@ import { FormLabel } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
+import { AlertDialogDemo } from "@/components/alert-dialog-demo"
 
 const baseUrl =
   process.env.NODE_ENV === "production"
@@ -74,9 +75,12 @@ Superagent({
       <div className="flex items-center justify-between border-b px-4 py-3">
         <p className="text-lg">{agent.name}</p>
         <div className="flex space-x-2">
-          <Button size="sm" variant="secondary" onClick={() => handleDelete()}>
-            <TbTrashX size="18px" />
-          </Button>
+          <AlertDialogDemo alertActionHandler={handleDelete} alertAction="Delete" alertDescription="This action cannot be undone. This will permanently delete the agent
+            and remove your data from our servers." >
+            <Button size="sm" variant="secondary">
+              <TbTrashX size="18px" />
+            </Button>
+          </AlertDialogDemo>
           <Button
             size="sm"
             variant="secondary"
