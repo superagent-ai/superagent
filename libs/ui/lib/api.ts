@@ -5,18 +5,27 @@ export class Api {
     this.apiKey = apiKey
   }
 
-  async fetchFromApi(endpoint: string, options: RequestInit = {}) {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}${endpoint}`,
-      {
-        ...options,
-        headers: {
-          ...options.headers,
-          "Content-Type": "application/json",
-          authorization: `Bearer ${this.apiKey}`,
-        },
-      }
+  async fetchFromApi(
+    endpoint: string,
+    options: RequestInit = {},
+    searchParams: Record<string, any> = {}
+  ) {
+    const url = new URL(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}${endpoint}`
     )
+
+    Object.entries(searchParams).forEach(([key, value]) => {
+      url.searchParams.append(key, value)
+    })
+
+    const response = await fetch(url.toString(), {
+      ...options,
+      headers: {
+        ...options.headers,
+        "Content-Type": "application/json",
+        authorization: `Bearer ${this.apiKey}`,
+      },
+    })
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
@@ -105,8 +114,10 @@ export class Api {
     return this.fetchFromApi(`/tools/${id}`, { method: "DELETE" })
   }
 
-  async getAgents() {
-    return this.fetchFromApi("/agents")
+  async getAgents(
+    searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
+  ) {
+    return this.fetchFromApi("/agents", {}, searchParams)
   }
 
   async getAgentById(id: string) {
@@ -157,8 +168,10 @@ export class Api {
     })
   }
 
-  async getWorkflows() {
-    return this.fetchFromApi("/workflows")
+  async getWorkflows(
+    searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
+  ) {
+    return this.fetchFromApi("/workflows", {}, searchParams)
   }
 
   async getWorkflowById(id: string) {

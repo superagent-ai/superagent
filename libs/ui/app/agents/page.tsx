@@ -8,7 +8,14 @@ import { DataTable } from "./data-table"
 
 export const dynamic = "force-dynamic"
 
-export default async function Agents() {
+export default async function Agents({
+  searchParams,
+}: {
+  searchParams: {
+    page: string
+    take: string
+  }
+}) {
   const supabase = createRouteHandlerClient({ cookies })
   const {
     data: { user },
@@ -19,12 +26,28 @@ export default async function Agents() {
     .eq("user_id", user?.id)
     .single()
   const api = new Api(profile.api_key)
-  const { data: agents } = await api.getAgents()
+  const { take: takeStr, page: pageStr } = searchParams
+  const take = Number(takeStr) || 10,
+    page = Number(pageStr) || 1
+
+  const { data: agents, total_pages } = await api.getAgents({
+    skip: (page - 1) * take,
+    take,
+  })
 
   return (
     <div className="flex flex-col space-y-4 px-4 py-6">
       <p className="text-lg">Agents</p>
-      <DataTable columns={columns} data={agents} profile={profile} />
+      <DataTable
+        columns={columns}
+        data={agents}
+        profile={profile}
+        pagination={{
+          take,
+          currentPageNumber: page,
+          totalPages: total_pages,
+        }}
+      />
     </div>
   )
 }
