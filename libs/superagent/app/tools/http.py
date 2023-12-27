@@ -16,13 +16,17 @@ class LCHttpTool(LCBaseTool):
             if self.metadata.get("headers")
             else {}
         )
+        headers["content-type"] = "application/json"
         try:
             request_kwargs = {"method": method, "url": url, "headers": headers}
             if body is not None:
                 request_kwargs["json"] = body
             response = requests.request(**request_kwargs)
             response.raise_for_status()
-            return response.json()
+            try:
+                return response.json()
+            except Exception:
+                return "Request successful"
         except requests.exceptions.RequestException as e:
             return str(e)
 
@@ -32,12 +36,16 @@ class LCHttpTool(LCBaseTool):
             if self.metadata.get("headers")
             else {}
         )
+        headers["content-type"] = "application/json"
         try:
             async with aiohttp.ClientSession() as session:
                 request_kwargs = {"method": method, "url": url, "headers": headers}
                 if body is not None:
                     request_kwargs["json"] = body
                 async with session.request(**request_kwargs) as response:
-                    return await response.json()
+                    try:
+                        return await response.json()
+                    except Exception:
+                        return "Request successfull"
         except Exception as e:
             return str(e)
