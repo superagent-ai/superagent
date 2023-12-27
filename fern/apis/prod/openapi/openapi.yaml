@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The open framework for building AI Assistants
-  version: 0.1.46
+  version: 0.1.49
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -23,10 +23,10 @@ paths:
           in: query
         - required: false
           schema:
-            title: Limit
+            title: Take
             type: integer
             default: 100
-          name: limit
+          name: take
           in: query
       responses:
         '200':
@@ -932,10 +932,10 @@ paths:
           in: query
         - required: false
           schema:
-            title: Limit
+            title: Take
             type: integer
             default: 100
-          name: limit
+          name: take
           in: query
       responses:
         '200':
@@ -1260,6 +1260,7 @@ components:
       title: AgentList
       required:
         - success
+        - total_pages
       type: object
       properties:
         success:
@@ -1270,6 +1271,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__Agent'
+        total_pages:
+          title: Total Pages
+          type: integer
     AgentRunList:
       title: AgentRunList
       required:
@@ -1419,6 +1423,7 @@ components:
         - TTS_1
         - HAND_OFF
         - FUNCTION
+        - HTTP
       type: string
       description: An enumeration.
     ValidationError:
@@ -1462,6 +1467,7 @@ components:
       title: WorkflowList
       required:
         - success
+        - total_pages
       type: object
       properties:
         success:
@@ -1472,6 +1478,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__Workflow'
+        total_pages:
+          title: Total Pages
+          type: integer
     WorkflowStepList:
       title: WorkflowStepList
       required:
