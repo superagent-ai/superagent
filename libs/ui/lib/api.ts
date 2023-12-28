@@ -128,8 +128,10 @@ export class Api {
     return this.fetchFromApi(`/agents/${id}/runs`)
   }
 
-  async getDatasources() {
-    return this.fetchFromApi(`/datasources`)
+  async getDatasources(
+    searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
+  ) {
+    return this.fetchFromApi(`/datasources`, {}, searchParams)
   }
 
   async getLLMs() {

@@ -79,6 +79,7 @@ class Datasource(BaseModel):
 class DatasourceList(BaseModel):
     success: bool
     data: Optional[List[DatasourceModel]]
+    total_pages: int
 
 
 class Tool(BaseModel):

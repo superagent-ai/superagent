@@ -97,7 +97,7 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     description="List all agents",
     response_model=AgentListResponse,
 )
-async def list(api_user=Depends(get_current_api_user), skip: int = 0, take: int = 100):
+async def list(api_user=Depends(get_current_api_user), skip: int = 0, take: int = 50):
     """Endpoint for listing all agents"""
     try:
         import math
