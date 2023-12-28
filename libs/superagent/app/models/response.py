@@ -90,6 +90,7 @@ class Tool(BaseModel):
 class ToolList(BaseModel):
     success: bool
     data: Optional[List[ToolModel]]
+    total_pages: int
 
 
 class AgentList(BaseModel):
