@@ -62,13 +62,25 @@ async def create(
     description="List all datasources",
     response_model=DatasourceListResponse,
 )
-async def list(api_user=Depends(get_current_api_user)):
+async def list(api_user=Depends(get_current_api_user), skip: int = 0, take: int = 50):
     """Endpoint for listing all datasources"""
     try:
+        import math
+
         data = await prisma.datasource.find_many(
-            where={"apiUserId": api_user.id}, order={"createdAt": "desc"}
+            skip=skip,
+            take=take,
+            where={"apiUserId": api_user.id},
+            order={"createdAt": "desc"},
         )
-        return {"success": True, "data": data}
+
+        # Get the total count of datasources
+        total_count = await prisma.datasource.count(where={"apiUserId": api_user.id})
+
+        # Calculate the total number of pages
+        total_pages = math.ceil(total_count / take)
+
+        return {"success": True, "data": data, "total_pages": total_pages}
     except Exception as e:
         handle_exception(e)
 

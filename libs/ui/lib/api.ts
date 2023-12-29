@@ -128,16 +128,20 @@ export class Api {
     return this.fetchFromApi(`/agents/${id}/runs`)
   }
 
-  async getDatasources() {
-    return this.fetchFromApi(`/datasources`)
+  async getDatasources(
+    searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
+  ) {
+    return this.fetchFromApi(`/datasources`, {}, searchParams)
   }
 
   async getLLMs() {
     return this.fetchFromApi(`/llms`)
   }
 
-  async getTools() {
-    return this.fetchFromApi("/tools")
+  async getTools(
+    searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
+  ) {
+    return this.fetchFromApi("/tools", {}, searchParams)
   }
 
   async patchAgent(id: string, payload: any) {
