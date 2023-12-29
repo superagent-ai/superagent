@@ -38,6 +38,8 @@ navigation:
             path: ./mdx/sdk/human_handoff.mdx
           - page: Custom tools
             path: ./mdx/sdk/local_tools.mdx
+          - page: Assitant workflows
+            path: ./mdx/sdk/workflows.mdx
       - section: Deployments
         contents:
           - page: Render
