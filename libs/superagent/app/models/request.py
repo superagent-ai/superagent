@@ -46,7 +46,7 @@ class Tool(BaseModel):
     description: str
     type: str
     metadata: Optional[Dict[Any, Any]]
-    returnDirect: Optional[bool]
+    returnDirect: bool
 
 
 class AgentTool(BaseModel):
