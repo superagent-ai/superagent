@@ -10,6 +10,13 @@ from app.vectorstores.qdrant import QdrantVectorStore
 from app.vectorstores.weaviate import WeaviateVectorStore
 from prisma.enums import VectorDbProvider
 
+vector_db_mapping = {
+    "pinecone": "PINECONE",
+    "qdrant": "QDRANT",
+    "astra": "ASTRA_DB",
+    "weaviate": "WEAVIATE",
+}
+
 
 # NOTE: Need an abstract class for the base vectorstore with defined methods
 class VectorStoreBase:
@@ -19,7 +26,9 @@ class VectorStoreBase:
         """
         self.options = options
         self.vectorstore = get_first_non_null(
-            config("VECTORSTORE"), vector_db_provider, VectorDbProvider.PINECONE.value
+            vector_db_mapping.get(config("VECTORSTORE")),
+            vector_db_provider,
+            VectorDbProvider.PINECONE.value,
         )
         self.instance = self.get_database()
 
