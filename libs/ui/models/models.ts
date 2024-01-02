@@ -60,6 +60,13 @@ export enum ToolType {
   FUNCTION,
 }
 
+export enum VectorDbProvider {
+  PINECONE,
+  ASTRA_DB,
+  WEAVIATE,
+  QDRANT,
+}
+
 export class ApiUser {
   id: string
   token?: string
