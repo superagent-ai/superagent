@@ -8,6 +8,7 @@ from app.datasource.loader import DataLoader
 from app.datasource.types import VALID_UNSTRUCTURED_DATA_TYPES
 from app.utils.prisma import prisma
 from app.vectorstores.base import VectorStoreBase
+from prisma.enums import DatasourceStatus
 from prisma.models import AgentDatasource, Datasource
 
 
@@ -87,7 +88,9 @@ async def vectorize_datasource(
             options=options,
             vector_db_provider=vector_db_provider,
         )
-    await prisma.datasource.update(where={"id": datasource.id}, data={"status": "DONE"})
+    await prisma.datasource.update(
+        where={"id": datasource.id}, data={"status": DatasourceStatus.DONE}
+    )
 
 
 @flow(name="revalidate_datasource", description="Revalidate datasources", retries=0)

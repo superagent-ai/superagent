@@ -16,7 +16,7 @@ from app.models.response import (
 )
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
-from prisma.enums import VectorDbProvider
+from prisma.enums import DatasourceStatus, VectorDbProvider
 from prisma.models import Datasource
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
@@ -82,6 +82,10 @@ async def create(
                     vector_db_provider=vector_db_provider,
                 )
             except Exception as flow_exception:
+                await prisma.datasource.update(
+                    where={"id": datasource.id},
+                    data={"status": DatasourceStatus.FAILED},
+                )
                 handle_exception(flow_exception)
 
         asyncio.create_task(
