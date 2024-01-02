@@ -9,24 +9,38 @@ from qdrant_client import QdrantClient, models
 from qdrant_client.http import models as rest
 from qdrant_client.http.models import PointStruct
 
+from app.utils.env import get_first_non_null
+
 logger = logging.getLogger(__name__)
 
 
 class QdrantVectorStore:
-    def __init__(self, index_name: str = None) -> None:
-        self.index_name = index_name
+    def __init__(
+        self,
+        options: dict,
+        index_name: str = config("QDRANT_INDEX", None),
+        host: str = config("QDRANT_HOST", None),
+        api_key: str = config("QDRANT_API_KEY", None),
+    ) -> None:
+        self.options = options
+        self.index_name = get_first_non_null(
+            index_name, self.options.get("QDRANT_INDEX")
+        )
+        self.host = get_first_non_null(
+            host,
+            self.options.get("QDRANT_HOST"),
+            "https://xxxxxx-xxxxx-xxxxx-xxxx-xxxxxxxxx.us-east.aws.cloud.qdrant.io:6333",
+        )
+        self.api_key = get_first_non_null(api_key, self.options.get("QDRANT_API_KEY"))
         self.client = QdrantClient(
-            url=config(
-                "QDRANT_HOST",
-                "https://xxxxxx-xxxxx-xxxxx-xxxx-xxxxxxxxx.us-east.aws.cloud.qdrant.io:6333",
-            ),
-            api_key=config("QDRANT_API_KEY", ""),
+            url=self.host,
+            api_key=self.api_key,
         )
         self.embeddings = OpenAIEmbeddings(
             model="text-embedding-ada-002", openai_api_key=config("OPENAI_API_KEY")
         )
 
-        logger.info(f"Initialized Qdrant Client with: {index_name}")  # type: ignore
+        logger.info(f"Initialized Qdrant Client with: {self.index_name}")
 
     def embed_documents(
         self, documents: list[Document], _batch_size: int = 100
