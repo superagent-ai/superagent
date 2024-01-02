@@ -39,41 +39,44 @@ class PineconeVectorStore:
     def __init__(
         self,
         options: dict,
-        index_name: str = config("PINECONE_INDEX", None),
-        environment: str = config("PINECONE_ENVIRONMENT", None),
-        pinecone_api_key: str = config("PINECONE_API_KEY", None),
+        index_name: str = None,
+        environment: str = None,
+        pinecone_api_key: str = None,
     ) -> None:
         self.options = options
-        self.index_name = get_first_non_null(
-            index_name, self.options.get("PINECONE_INDEX")
+
+        variables = {
+            "PINECONE_INDEX": get_first_non_null(
+                index_name,
+                config("PINECONE_INDEX", None),
+                options.get("PINECONE_INDEX"),
+            ),
+            "PINECONE_ENVIRONMENT": get_first_non_null(
+                environment,
+                config("PINECONE_ENVIRONMENT", None),
+                options.get("PINECONE_ENVIRONMENT"),
+            ),
+            "PINECONE_API_KEY": get_first_non_null(
+                pinecone_api_key,
+                config("PINECONE_API_KEY", None),
+                options.get("PINECONE_API_KEY"),
+            ),
+        }
+
+        for var, value in variables.items():
+            if not value:
+                raise ValueError(
+                    f"Please provide a {var} via the "
+                    f"`{var}` environment variable"
+                    "or check the `VectorDb` table in the database."
+                )
+
+        pinecone.init(
+            api_key=variables["PINECONE_API_KEY"],
+            environment=variables["PINECONE_ENVIRONMENT"],
         )
-        self.environment = get_first_non_null(
-            environment, self.options.get("PINECONE_ENVIRONMENT")
-        )
-        self.pinecone_api_key = get_first_non_null(
-            pinecone_api_key, self.options.get("PINECONE_API_KEY")
-        )
 
-        if not self.index_name:
-            raise ValueError(
-                "Please provide a Pinecone Index Name via the "
-                "`PINECONE_INDEX` environment variable."
-            )
-
-        if not self.environment:
-            raise ValueError(
-                "Please provide a Pinecone Environment/Region Name via the "
-                "`PINECONE_ENVIRONMENT` environment variable."
-            )
-
-        if not self.pinecone_api_key:
-            raise ValueError(
-                "Please provide a Pinecone API key via the "
-                "`PINECONE_API_KEY` environment variable."
-            )
-
-        pinecone.init(api_key=self.pinecone_api_key, environment=self.environment)
-
+        self.index_name = variables["PINECONE_INDEX"]
         logger.info(f"Index name: {self.index_name}")
         self.index = pinecone.Index(self.index_name)
         self.embeddings = OpenAIEmbeddings(

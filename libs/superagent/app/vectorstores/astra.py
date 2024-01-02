@@ -39,68 +39,53 @@ class AstraVectorStore:
     def __init__(
         self,
         options: dict,
-        astra_id: str = config("ASTRA_DB_ID", None),
-        astra_region: str = config("ASTRA_DB_REGION", None),
-        astra_application_token: str = config("ASTRA_DB_APPLICATION_TOKEN", None),
-        collection_name: str = config("ASTRA_DB_COLLECTION_NAME", None),
-        keyspace_name: str = config("ASTRA_DB_KEYSPACE_NAME", None),
+        astra_id: str = None,
+        astra_region: str = None,
+        astra_application_token: str = None,
+        collection_name: str = None,
+        keyspace_name: str = None,
     ) -> None:
         self.options = options
-        self.astra_application_token = get_first_non_null(
-            astra_application_token, self.options.get("ASTRA_DB_APPLICATION_TOKEN")
-        )
-        self.astra_id = get_first_non_null(astra_id, self.options.get("ASTRA_DB_ID"))
-        self.astra_region = get_first_non_null(
-            astra_region, self.options.get("ASTRA_DB_REGION"), "us-east1"
-        )
-        self.astra_collection_name = get_first_non_null(
-            collection_name, self.options.get("ASTRA_DB_COLLECTION_NAME"), "superagent"
-        )
-        self.astra_keyspace_name = get_first_non_null(
-            keyspace_name, self.options.get("ASTRA_DB_KEYSPACE_NAME")
-        )
+        variables = {
+            "ASTRA_DB_ID": get_first_non_null(
+                astra_id, config("ASTRA_DB_ID", None), options.get("ASTRA_DB_ID")
+            ),
+            "ASTRA_DB_REGION": get_first_non_null(
+                astra_region,
+                config("ASTRA_DB_REGION", None),
+                options.get("ASTRA_DB_REGION"),
+            ),
+            "ASTRA_DB_APPLICATION_TOKEN": get_first_non_null(
+                astra_application_token,
+                config("ASTRA_DB_APPLICATION_TOKEN", None),
+                options.get("ASTRA_DB_APPLICATION_TOKEN"),
+            ),
+            "ASTRA_DB_COLLECTION_NAME": get_first_non_null(
+                collection_name,
+                config("ASTRA_DB_COLLECTION_NAME", None),
+                options.get("ASTRA_DB_COLLECTION_NAME"),
+            ),
+            "ASTRA_DB_KEYSPACE_NAME": get_first_non_null(
+                keyspace_name,
+                config("ASTRA_DB_KEYSPACE_NAME", None),
+                options.get("ASTRA_DB_KEYSPACE_NAME"),
+            ),
+        }
 
-        if not self.astra_id:
-            raise ValueError(
-                "Please provide an Astra DB ID via the "
-                "`ASTRA_DB_ID` environment variable."
-                "or configure it in the VectorDb table's `options` column."
-            )
-
-        if not self.astra_region:
-            raise ValueError(
-                "Please provide an Astra Region Name via the "
-                "`ASTRA_DB_REGION` environment variable."
-                "or configure it in the VectorDb table's `options` column."
-            )
-
-        if not self.astra_application_token:
-            raise ValueError(
-                "Please provide an Astra token via the "
-                "`ASTRA_DB_APPLICATION_TOKEN` environment variable."
-                "or configure it in the VectorDb table's `options` column."
-            )
-
-        if not self.astra_collection_name:
-            raise ValueError(
-                "Please provide an Astra collection name via the "
-                "`ASTRA_DB_COLLECTION_NAME` environment variable."
-                "or configure it in the VectorDb table's `options` column."
-            )
-
-        if not self.astra_keyspace_name:
-            raise ValueError(
-                "Please provide an Astra keyspace via the "
-                "`ASTRA_DB_KEYSPACE_NAME` environment variable."
-                "or configure it in the VectorDb table's `options` column."
-            )
+        for var, value in variables.items():
+            if not value:
+                raise ValueError(
+                    f"Please provide a {var} via the "
+                    f"`{var}` environment variable" 
+                    "or check the `VectorDb` table in the database."
+                )
 
         self.index = AstraClient(
-            self.astra_id,
-            self.astra_region,
-            self.astra_application_token,
-            self.astra_keyspace_name,
-            self.astra_collection_name,
+            variables["ASTRA_DB_ID"],
+            variables["ASTRA_DB_REGION"],
+            variables["ASTRA_DB_APPLICATION_TOKEN"],
+            variables["ASTRA_DB_KEYSPACE_NAME"],
+            variables["ASTRA_DB_COLLECTION_NAME"],
         )
 
         self.embeddings = OpenAIEmbeddings(
