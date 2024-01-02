@@ -1,7 +1,7 @@
 import logging
 import os
 import uuid
-from typing import Literal, Optional, List
+from typing import List, Literal, Optional
 
 import backoff
 from decouple import config
