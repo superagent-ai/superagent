@@ -172,10 +172,10 @@ async def delete(datasource_id: str, api_user=Depends(get_current_api_user)):
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Deleted Datasource")
         datasource = await prisma.datasource.find_first(
-            where={"id": datasource_id}, include={"VectorDb": True}
+            where={"id": datasource_id}, include={"vectorDb": True}
         )
-        options = datasource.VectorDb.options
-        vector_db_provider = datasource.VectorDb.provider
+        options = datasource.vectorDb.options
+        vector_db_provider = datasource.vectorDb.provider
 
         await prisma.agentdatasource.delete_many(where={"datasourceId": datasource_id})
         await prisma.datasource.delete(where={"id": datasource_id})

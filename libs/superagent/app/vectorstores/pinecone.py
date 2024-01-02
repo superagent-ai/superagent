@@ -10,7 +10,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
 from pinecone.core.client.models import QueryResponse
 from pydantic.dataclasses import dataclass
 
-from app.utils.env import get_first_non_null
+from app.utils.helpers import get_first_non_null
 
 logger = logging.getLogger(__name__)
 

@@ -3,7 +3,7 @@ from typing import Any, Literal, Optional
 from decouple import config
 from langchain.docstore.document import Document
 
-from app.utils.env import get_first_non_null
+from app.utils.helpers import get_first_non_null
 from app.vectorstores.astra import AstraVectorStore
 from app.vectorstores.pinecone import PineconeVectorStore
 from app.vectorstores.qdrant import QdrantVectorStore

@@ -91,7 +91,7 @@ model ApiUser {
   datasources Datasource[]
   tools       Tool[]
   workflows   Workflow[]
-  VectorDb    VectorDb[]
+  vectorDb    VectorDb[]
 }
 
 model Agent {
@@ -127,7 +127,7 @@ model Datasource {
   metadata    String?           @db.Text
   status      DatasourceStatus  @default(IN_PROGRESS)
   datasources AgentDatasource[]
-  VectorDb    VectorDb?         @relation(fields: [vectorDbId], references: [id])
+  vectorDb    VectorDb?         @relation(fields: [vectorDbId], references: [id])
   vectorDbId  String?
 }
 

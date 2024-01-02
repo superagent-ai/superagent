@@ -45,7 +45,7 @@ class AgentBase:
             include={
                 "llms": {"include": {"llm": True}},
                 "datasources": {
-                    "include": {"datasource": {"include": {"VectorDb": True}}}
+                    "include": {"datasource": {"include": {"vectorDb": True}}}
                 },
                 "tools": {"include": {"tool": True}},
             },

@@ -9,7 +9,7 @@ from qdrant_client import QdrantClient, models
 from qdrant_client.http import models as rest
 from qdrant_client.http.models import PointStruct
 
-from app.utils.env import get_first_non_null
+from app.utils.helpers import get_first_non_null
 
 logger = logging.getLogger(__name__)
 
