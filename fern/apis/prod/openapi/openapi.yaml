@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The open framework for building AI Assistants
-  version: 0.1.51
+  version: 0.1.53
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -1282,6 +1282,113 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
+  /api/v1/vector-db:
+    post:
+      tags:
+        - Vector Database
+      summary: Create
+      description: Create a new Vector Database
+      operationId: create_api_v1_vector_db_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__VectorDb'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__VectorDb'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/vector-dbs:
+    get:
+      tags:
+        - Vector Database
+      summary: List
+      description: List all Vector Databases
+      operationId: list_api_v1_vector_dbs_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VectorDbList'
+      security:
+        - HTTPBearer: []
+  /api/v1/vector-dbs/{vector_db_id}:
+    get:
+      tags:
+        - Vector Database
+      summary: Get
+      description: Get a single Vector Database
+      operationId: get_api_v1_vector_dbs__vector_db_id__get
+      parameters:
+        - required: true
+          schema:
+            title: Vector Db Id
+            type: string
+          name: vector_db_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__VectorDb'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    patch:
+      tags:
+        - Vector Database
+      summary: Update
+      description: Patch a Vector Database
+      operationId: update_api_v1_vector_dbs__vector_db_id__patch
+      parameters:
+        - required: true
+          schema:
+            title: Vector Db Id
+            type: string
+          name: vector_db_id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__VectorDb'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__VectorDb'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
 components:
   schemas:
     AgentDatasosurceList:
@@ -1497,6 +1604,29 @@ components:
         type:
           title: Error Type
           type: string
+    VectorDbList:
+      title: VectorDbList
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__VectorDb'
+    VectorDbProvider:
+      title: VectorDbProvider
+      enum:
+        - PINECONE
+        - ASTRA_DB
+        - WEAVIATE
+        - QDRANT
+      type: string
+      description: An enumeration.
     WorkflowInvoke:
       title: WorkflowInvoke
       required:
@@ -1656,6 +1786,9 @@ components:
         metadata:
           title: Metadata
           type: object
+        vectorDbProvider:
+          title: Vectordbprovider
+          type: string
     app__models__request__LLM:
       title: LLM
       required:
@@ -1696,6 +1829,19 @@ components:
         returnDirect:
           title: Returndirect
           type: boolean
+    app__models__request__VectorDb:
+      title: VectorDb
+      required:
+        - provider
+        - options
+      type: object
+      properties:
+        provider:
+          title: Provider
+          type: string
+        options:
+          title: Options
+          type: object
     app__models__request__Workflow:
       title: Workflow
       required:
@@ -1788,6 +1934,17 @@ components:
           type: boolean
         data:
           $ref: '#/components/schemas/prisma__models__Tool'
+    app__models__response__VectorDb:
+      title: VectorDb
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/prisma__models__VectorDb'
     app__models__response__Workflow:
       title: Workflow
       required:
@@ -2014,6 +2171,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__Workflow'
+        vectorDb:
+          title: Vectordb
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__VectorDb'
       description: Represents a ApiUser record
     prisma__models__Datasource:
       title: Datasource
@@ -2067,6 +2229,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__AgentDatasource'
+        vectorDb:
+          $ref: '#/components/schemas/prisma__models__VectorDb'
+        vectorDbId:
+          title: Vectordbid
+          type: string
       description: Represents a Datasource record
     prisma__models__LLM:
       title: LLM
@@ -2164,6 +2331,44 @@ components:
           type: string
           format: json-string
       description: Represents a Tool record
+    prisma__models__VectorDb:
+      title: VectorDb
+      required:
+        - id
+        - provider
+        - createdAt
+        - updatedAt
+        - apiUserId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        provider:
+          $ref: '#/components/schemas/VectorDbProvider'
+        options:
+          title: Options
+          type: string
+          format: json-string
+        datasources:
+          title: Datasources
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__Datasource'
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+      description: Represents a VectorDb record
     prisma__models__Workflow:
       title: Workflow
       required:
