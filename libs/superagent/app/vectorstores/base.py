@@ -28,7 +28,7 @@ class VectorStoreBase:
         }
         index_names = {
             "pinecone": config("PINECONE_INDEX", "superagent"),
-            "astra": config("COLLECTION_NAME", "superagent"),
+            "astra": config("ASTRA_DB_COLLECTION_NAME", "superagent"),
             "weaviate": config("WEAVIATE_INDEX", "superagent"),
             "qdrant": config("QDRANT_INDEX", "superagent"),
         }
