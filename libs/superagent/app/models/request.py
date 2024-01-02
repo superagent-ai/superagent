@@ -73,3 +73,7 @@ class WorkflowInvoke(BaseModel):
     input: str
     enableStreaming: bool
     sessionId: Optional[str]
+
+class VectorDb(BaseModel):
+    provider: str
+    options: Dict

@@ -29,6 +29,9 @@ from prisma.models import (
 from prisma.models import (
     WorkflowStep as WorkflowStepModel,
 )
+from prisma.models import (
+    VectorDb as VectorDbModel,
+)
 
 
 class ApiUser(BaseModel):
@@ -128,3 +131,12 @@ class WorkflowList(BaseModel):
 class WorkflowStepList(BaseModel):
     success: bool
     data: Optional[List[WorkflowStepModel]]
+
+class VectorDb(BaseModel):
+    success: bool
+    data: Optional[VectorDbModel]
+
+
+class VectorDbList(BaseModel):
+    success: bool
+    data: Optional[List[VectorDbModel]]
