@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from decouple import config
 from llama import Context, LLMEngine, Type
@@ -38,7 +38,7 @@ async def handle_datasources(
 
 @task
 async def vectorize(
-    datasource: Datasource, options: dict, vector_db_provider: str
+    datasource: Datasource, options: Optional[dict], vector_db_provider: Optional[str]
 ) -> None:
     data = DataLoader(datasource=datasource).load()
     newDocuments = [
@@ -79,7 +79,7 @@ async def process_datasource(datasource_id: str, agent_id: str):
     retries=0,
 )
 async def vectorize_datasource(
-    datasource: Datasource, options: dict, vector_db_provider: str
+    datasource: Datasource, options: Optional[dict], vector_db_provider: Optional[str]
 ) -> None:
     if datasource.type in VALID_UNSTRUCTURED_DATA_TYPES:
         await vectorize(

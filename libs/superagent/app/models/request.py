@@ -39,7 +39,7 @@ class Datasource(BaseModel):
     content: Optional[str]
     url: Optional[str]
     metadata: Optional[Dict[Any, Any]]
-    vectorDbProvider: str  # vector database provider
+    vectorDbProvider: Optional[str]  # vector database provider
 
 
 class Tool(BaseModel):

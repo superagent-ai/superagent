@@ -1,5 +1,6 @@
 import asyncio
 import json
+from typing import Optional
 
 import segment.analytics as analytics
 from decouple import config
@@ -36,22 +37,22 @@ async def create(
 ):
     """Endpoint for creating an datasource"""
     try:
-        # checking provided vector db provider is valid or not
-        vector_db_provider = None
-        for provider in VectorDbProvider:
-            if provider.value == body.vectorDbProvider:
-                vector_db_provider = provider
-                break
+        vector_db = None
+        if body.vectorDbProvider != None:
+            # checking provided vector db provider is valid or not
+            vector_db_provider = None
+            for provider in VectorDbProvider:
+                if provider.value == body.vectorDbProvider:
+                    vector_db_provider = provider
+                    break
+            if not vector_db_provider:
+                raise HTTPException(
+                    status_code=400, detail="Invalid vector database provider!"
+                )
 
-        if not vector_db_provider:
-            raise HTTPException(
-                status_code=400, detail="Invalid vector database provider!"
+            vector_db = await prisma.vectordb.find_first(
+                where={"provider": vector_db_provider, "apiUserId": api_user.id}
             )
-
-        vector_db = await prisma.vectordb.find_first(
-            where={"provider": vector_db_provider, "apiUserId": api_user.id}
-        )
-
         if body.metadata:
             body.metadata = json.dumps(body.metadata)
 
@@ -64,12 +65,12 @@ async def create(
                 # since datasource table doesn't have that column
                 "apiUserId": api_user.id,
                 **body.dict(exclude={"vectorDbProvider"}),
-                "vectorDbId": vector_db.id,
+                "vectorDbId": vector_db.id if vector_db != None else None,
             }
         )
 
         async def run_vectorize_flow(
-            datasource: Datasource, options: dict, vector_db_provider: str
+            datasource: Datasource, options: Optional[dict], vector_db_provider: Optional[str]
         ):
             try:
                 await vectorize_datasource(
@@ -84,8 +85,8 @@ async def create(
         asyncio.create_task(
             run_vectorize_flow(
                 datasource=data,
-                options=vector_db.options,
-                vector_db_provider=vector_db.provider,
+                options=vector_db.options if vector_db != None else {},
+                vector_db_provider=vector_db.provider if vector_db != None else None,
             )
         )
         return {"success": True, "data": data}

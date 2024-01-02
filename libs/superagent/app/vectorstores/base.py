@@ -20,13 +20,13 @@ vector_db_mapping = {
 
 # NOTE: Need an abstract class for the base vectorstore with defined methods
 class VectorStoreBase:
-    def __init__(self, options: dict, vector_db_provider: str):
+    def __init__(self, options: Optional[dict], vector_db_provider: Optional[str]):
         """
         Determine the vectorstore
         """
         self.options = options
         self.vectorstore = get_first_non_null(
-            vector_db_mapping.get(config("VECTORSTORE")),
+            vector_db_mapping.get(config("VECTORSTORE", None)),
             vector_db_provider,
             VectorDbProvider.PINECONE.value,
         )
