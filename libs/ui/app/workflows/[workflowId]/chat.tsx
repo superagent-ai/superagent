@@ -170,6 +170,16 @@ export default function Chat({
     }
   }
 
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollToMessagesBottom = () => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  React.useEffect(() => {
+    scrollToMessagesBottom();
+  }, [messages]);
+
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden border-r">
       <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between p-4">
@@ -195,6 +205,7 @@ export default function Chat({
                 profile={profile}
               />
             ))}
+            <div ref={messagesEndRef} />
           </div>
         </div>
       </ScrollArea>
