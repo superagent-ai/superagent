@@ -1,7 +1,7 @@
 import logging
 import os
 import uuid
-from typing import Literal
+from typing import Literal, Optional, List
 
 import backoff
 from decouple import config
@@ -28,7 +28,7 @@ class Response:
             "metadata": self.metadata,
         }
 
-    def __init__(self, id: str, text: str, metadata: dict | None = None):
+    def __init__(self, id: str, text: str, metadata: Optional[dict] = None):
         """Core dataclass for single record."""
         self.id = id
         self.text = text
@@ -97,7 +97,7 @@ class AstraVectorStore:
     def _embed_with_retry(self, texts):
         return self.embeddings.embed_documents(texts)
 
-    def embed_documents(self, documents: list[Document], batch_size: int = 100):
+    def embed_documents(self, documents: List[Document], batch_size: int = 100):
         chunks = [
             {
                 "id": str(uuid.uuid4()),
@@ -136,11 +136,11 @@ class AstraVectorStore:
     def query(
         self,
         prompt: str,
-        metadata_filter: dict | None = None,
+        metadata_filter: Optional[dict] = None,
         top_k: int = 3,
-        namespace: str | None = None,
-        min_score: float | None = None,  # new argument for minimum similarity score
-    ) -> list[Response]:
+        namespace: Optional[str] = None,
+        min_score: Optional[float] = None,  # new argument for minimum similarity score
+    ) -> List[Response]:
         """
         Returns results from the vector database.
         """
@@ -168,9 +168,9 @@ class AstraVectorStore:
         self,
         prompt: str,
         datasource_id: str,
-        top_k: int | None,
+        top_k: Optional[int] = None,
         query_type: Literal["document", "all"] = "document",
-    ) -> list[str]:
+    ) -> List[str]:
         if top_k is None:
             top_k = 3
 
@@ -207,7 +207,7 @@ class AstraVectorStore:
         metadata.pop("text")
         return id, text, metadata
 
-    def _format_response(self, response: QueryResponse) -> list[Response]:
+    def _format_response(self, response: QueryResponse) -> List[Response]:
         """
         Formats the response dictionary from the vector database into a list of
         Response objects.
@@ -232,7 +232,7 @@ class AstraVectorStore:
         except Exception as e:
             logger.error(f"Failed to delete {datasource_id}. Error: {e}")
 
-    def clear_cache(self, agent_id: str, datasource_id: str | None = None):
+    def clear_cache(self, agent_id: str, datasource_id: Optional[str] = None):
         try:
             filter_dict = {"agentId": agent_id, "type": "cache"}
             if datasource_id:

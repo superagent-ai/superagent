@@ -46,8 +46,8 @@ class VectorStoreBase:
                 "superagent",
             ),
             "ASTRA_DB": get_first_non_null(
-                config("COLLECTION_NAME", None),
-                self.options.get("COLLECTION_NAME"),
+                config("ASTRA_DB_COLLECTION_NAME", None),
+                self.options.get("ASTRA_DB_COLLECTION_NAME"),
                 "superagent",
             ),
             "WEAVIATE": get_first_non_null(
