@@ -76,7 +76,7 @@ class AstraVectorStore:
             if not value:
                 raise ValueError(
                     f"Please provide a {var} via the "
-                    f"`{var}` environment variable" 
+                    f"`{var}` environment variable"
                     "or check the `VectorDb` table in the database."
                 )
 
