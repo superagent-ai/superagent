@@ -74,7 +74,10 @@ class DatasourceTool(BaseTool):
         question: str,
     ) -> str:
         """Use the tool."""
-        vector_store = VectorStoreBase()
+        vector_store = VectorStoreBase(
+            options=self.metadata["options"],
+            vector_db_provider=self.metadata["provider"],
+        )
         result = vector_store.query_documents(
             prompt=question,
             datasource_id=self.metadata["datasource_id"],
@@ -88,7 +91,10 @@ class DatasourceTool(BaseTool):
         question: str,
     ) -> str:
         """Use the tool asynchronously."""
-        vector_store = VectorStoreBase()
+        vector_store = VectorStoreBase(
+            options=self.metadata["options"],
+            vector_db_provider=self.metadata["provider"],
+        )
         result = vector_store.query_documents(
             prompt=question,
             datasource_id=self.metadata["datasource_id"],

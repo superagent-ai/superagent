@@ -27,7 +27,7 @@ async def create(body: VectorDbRequest, api_user=Depends(get_current_api_user)):
     """Endpoint for creating a Vector Database"""
     if SEGMENT_WRITE_KEY:
         analytics.track(api_user.id, "Created Vector Database")
-  
+
     data = await prisma.vectordb.create(
         {
             **body.dict(),
@@ -83,7 +83,9 @@ async def get(vector_db_id: str, api_user=Depends(get_current_api_user)):
     description="Patch a Vector Database",
     response_model=VectorDbResponse,
 )
-async def update(vector_db_id: str, body: VectorDbRequest, api_user=Depends(get_current_api_user)):
+async def update(
+    vector_db_id: str, body: VectorDbRequest, api_user=Depends(get_current_api_user)
+):
     """Endpoint for patching a Vector Database"""
     try:
         if SEGMENT_WRITE_KEY:

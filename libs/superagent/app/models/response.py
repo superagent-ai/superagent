@@ -24,13 +24,13 @@ from prisma.models import (
     Tool as ToolModel,
 )
 from prisma.models import (
+    VectorDb as VectorDbModel,
+)
+from prisma.models import (
     Workflow as WorkflowModel,
 )
 from prisma.models import (
     WorkflowStep as WorkflowStepModel,
-)
-from prisma.models import (
-    VectorDb as VectorDbModel,
 )
 
 
@@ -131,6 +131,7 @@ class WorkflowList(BaseModel):
 class WorkflowStepList(BaseModel):
     success: bool
     data: Optional[List[WorkflowStepModel]]
+
 
 class VectorDb(BaseModel):
     success: bool

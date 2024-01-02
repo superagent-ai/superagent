@@ -53,9 +53,12 @@ class LangchainAgent(AgentBase):
                 if agent_datasource.datasource.type in VALID_UNSTRUCTURED_DATA_TYPES
                 else StructuredDatasourceTool
             )
+
             metadata = (
                 {
                     "datasource_id": agent_datasource.datasource.id,
+                    "options": agent_datasource.datasource.VectorDb.options,
+                    "provider": agent_datasource.datasource.VectorDb.provider,
                     "query_type": "document",
                 }
                 if tool_type == DatasourceTool

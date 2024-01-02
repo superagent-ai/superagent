@@ -10,6 +10,8 @@ from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
 from pinecone.core.client.models import QueryResponse
 from pydantic.dataclasses import dataclass
 
+from app.utils.env import get_first_non_null
+
 logger = logging.getLogger(__name__)
 
 
@@ -36,32 +38,44 @@ class Response:
 class PineconeVectorStore:
     def __init__(
         self,
-        index_name: str = config("PINECONE_INDEX", ""),
-        environment: str = config("PINECONE_ENVIRONMENT", ""),
-        pinecone_api_key: str = config("PINECONE_API_KEY", ""),
+        options: dict,
+        index_name: str = config("PINECONE_INDEX", None),
+        environment: str = config("PINECONE_ENVIRONMENT", None),
+        pinecone_api_key: str = config("PINECONE_API_KEY", None),
     ) -> None:
-        if not index_name:
+        self.options = options
+        self.index_name = get_first_non_null(
+            index_name, self.options.get("PINECONE_INDEX")
+        )
+        self.environment = get_first_non_null(
+            environment, self.options.get("PINECONE_ENVIRONMENT")
+        )
+        self.pinecone_api_key = get_first_non_null(
+            pinecone_api_key, self.options.get("PINECONE_API_KEY")
+        )
+
+        if not self.index_name:
             raise ValueError(
                 "Please provide a Pinecone Index Name via the "
                 "`PINECONE_INDEX` environment variable."
             )
 
-        if not environment:
+        if not self.environment:
             raise ValueError(
                 "Please provide a Pinecone Environment/Region Name via the "
                 "`PINECONE_ENVIRONMENT` environment variable."
             )
 
-        if not pinecone_api_key:
+        if not self.pinecone_api_key:
             raise ValueError(
                 "Please provide a Pinecone API key via the "
                 "`PINECONE_API_KEY` environment variable."
             )
 
-        pinecone.init(api_key=pinecone_api_key, environment=environment)
+        pinecone.init(api_key=self.pinecone_api_key, environment=self.environment)
 
-        logger.info(f"Index name: {index_name}")
-        self.index = pinecone.Index(index_name)
+        logger.info(f"Index name: {self.index_name}")
+        self.index = pinecone.Index(self.index_name)
         self.embeddings = OpenAIEmbeddings(
             model="text-embedding-ada-002", openai_api_key=config("OPENAI_API_KEY")
         )  # type: ignore

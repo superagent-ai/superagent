@@ -3,38 +3,61 @@ from typing import Any, Literal, Optional
 from decouple import config
 from langchain.docstore.document import Document
 
+from app.utils.env import get_first_non_null
 from app.vectorstores.astra import AstraVectorStore
 from app.vectorstores.pinecone import PineconeVectorStore
 from app.vectorstores.qdrant import QdrantVectorStore
 from app.vectorstores.weaviate import WeaviateVectorStore
+from prisma.enums import VectorDbProvider
+
 
 # NOTE: Need an abstract class for the base vectorstore with defined methods
-
-
 class VectorStoreBase:
-    def __init__(self):
+    def __init__(self, options: dict, vector_db_provider: str):
         """
         Determine the vectorstore
         """
-        self.vectorstore = config("VECTORSTORE", default="pinecone")
+        self.options = options
+        self.vectorstore = get_first_non_null(
+            config("VECTORSTORE"), vector_db_provider, VectorDbProvider.PINECONE.value
+        )
         self.instance = self.get_database()
 
     def get_database(self, index_name: Optional[str] = None) -> Any:
         vectorstore_classes = {
-            "pinecone": PineconeVectorStore,
-            "astra": AstraVectorStore,
-            "weaviate": WeaviateVectorStore,
-            "qdrant": QdrantVectorStore,
+            "PINECONE": PineconeVectorStore,
+            "ASTRA_DB": AstraVectorStore,
+            "WEAVIATE": WeaviateVectorStore,
+            "QDRANT": QdrantVectorStore,
         }
         index_names = {
-            "pinecone": config("PINECONE_INDEX", "superagent"),
-            "astra": config("COLLECTION_NAME", "superagent"),
-            "weaviate": config("WEAVIATE_INDEX", "superagent"),
-            "qdrant": config("QDRANT_INDEX", "superagent"),
+            "PINECONE": get_first_non_null(
+                config("PINECONE_INDEX", None),
+                self.options.get("PINECONE_INDEX"),
+                "superagent",
+            ),
+            "ASTRA_DB": get_first_non_null(
+                config("COLLECTION_NAME", None),
+                self.options.get("COLLECTION_NAME"),
+                "superagent",
+            ),
+            "WEAVIATE": get_first_non_null(
+                config("WEAVIATE_INDEX", None),
+                self.options.get("WEAVIATE_INDEX"),
+                "superagent",
+            ),
+            "QDRANT": get_first_non_null(
+                config("QDRANT_INDEX", None),
+                self.options.get("QDRANT_INDEX"),
+                "superagent",
+            ),
         }
+
         if index_name is None:
             index_name = index_names.get(self.vectorstore)
-        return vectorstore_classes.get(self.vectorstore)(index_name=index_name)
+        return vectorstore_classes.get(self.vectorstore)(
+            index_name=index_name, options=self.options
+        )
 
     def query(
         self,

@@ -39,6 +39,7 @@ class Datasource(BaseModel):
     content: Optional[str]
     url: Optional[str]
     metadata: Optional[Dict[Any, Any]]
+    vectorDbProvider: str  # vector database provider
 
 
 class Tool(BaseModel):
@@ -73,6 +74,7 @@ class WorkflowInvoke(BaseModel):
     input: str
     enableStreaming: bool
     sessionId: Optional[str]
+
 
 class VectorDb(BaseModel):
     provider: str

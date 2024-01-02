@@ -44,7 +44,9 @@ class AgentBase:
             where={"id": self.agent_id},
             include={
                 "llms": {"include": {"llm": True}},
-                "datasources": {"include": {"datasource": True}},
+                "datasources": {
+                    "include": {"datasource": {"include": {"VectorDb": True}}}
+                },
                 "tools": {"include": {"tool": True}},
             },
         )
