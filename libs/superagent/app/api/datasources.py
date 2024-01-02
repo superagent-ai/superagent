@@ -38,7 +38,7 @@ async def create(
     """Endpoint for creating an datasource"""
     try:
         vector_db = None
-        if body.vectorDbProvider != None:
+        if body.vectorDbProvider is not None:
             # checking provided vector db provider is valid or not
             vector_db_provider = None
             for provider in VectorDbProvider:
@@ -65,12 +65,14 @@ async def create(
                 # since datasource table doesn't have that column
                 "apiUserId": api_user.id,
                 **body.dict(exclude={"vectorDbProvider"}),
-                "vectorDbId": vector_db.id if vector_db != None else None,
+                "vectorDbId": vector_db.id if vector_db is not None else None,
             }
         )
 
         async def run_vectorize_flow(
-            datasource: Datasource, options: Optional[dict], vector_db_provider: Optional[str]
+            datasource: Datasource,
+            options: Optional[dict],
+            vector_db_provider: Optional[str],
         ):
             try:
                 await vectorize_datasource(
@@ -85,8 +87,10 @@ async def create(
         asyncio.create_task(
             run_vectorize_flow(
                 datasource=data,
-                options=vector_db.options if vector_db != None else {},
-                vector_db_provider=vector_db.provider if vector_db != None else None,
+                options=vector_db.options if vector_db is not None else {},
+                vector_db_provider=vector_db.provider
+                if vector_db is not None
+                else None,
             )
         )
         return {"success": True, "data": data}
