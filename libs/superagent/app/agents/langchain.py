@@ -57,8 +57,12 @@ class LangchainAgent(AgentBase):
             metadata = (
                 {
                     "datasource_id": agent_datasource.datasource.id,
-                    "options": agent_datasource.datasource.vectorDb.options,
-                    "provider": agent_datasource.datasource.vectorDb.provider,
+                    "options": agent_datasource.datasource.vectorDb.options
+                    if agent_datasource.datasource.vectorDb
+                    else {},
+                    "provider": agent_datasource.datasource.vectorDb.provider
+                    if agent_datasource.datasource.vectorDb
+                    else None,
                     "query_type": "document",
                 }
                 if tool_type == DatasourceTool
