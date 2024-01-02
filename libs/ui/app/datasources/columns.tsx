@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { DatasourceStatus } from "@/models/models"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal } from "lucide-react"
@@ -213,16 +214,7 @@ export const columns = (profile: Profile): ColumnDef<DataType>[] => [
   {
     accessorKey: "status",
     header: "STATUS",
-    cell: ({ row, column }) =>
-      row.getValue(column.id) === "DONE" ? (
-        <Badge variant="secondary">Ready</Badge>
-      ) : (
-        <div className="flex items-center space-x-2">
-          <Badge variant="outline" className="text-primary">
-            In progress
-          </Badge>
-        </div>
-      ),
+    cell: getStatusBadge,
   },
   {
     id: "actions",
@@ -256,3 +248,16 @@ export const columns = (profile: Profile): ColumnDef<DataType>[] => [
     },
   },
 ]
+
+const getStatusBadge = ({ row, column }: any) => {
+  const status = row.getValue(column.id)
+
+  if (status === DatasourceStatus[DatasourceStatus.IN_PROGRESS])
+    return <Badge variant="outline">In progress</Badge>
+  else if (status === DatasourceStatus[DatasourceStatus.DONE])
+    return <Badge variant="secondary">Ready</Badge>
+  else if (status === DatasourceStatus[DatasourceStatus.FAILED])
+    return <Badge variant="destructive">Failed</Badge>
+
+  return <Badge variant="outline">Loading...</Badge>
+}
