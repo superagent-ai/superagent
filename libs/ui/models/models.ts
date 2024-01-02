@@ -316,3 +316,25 @@ export class WorkflowStep {
     this.agent = obj.agent || null
   }
 }
+
+export class VectorDb {
+  id: string
+  provider: string
+  options: JSON
+  datasources: Datasource[]
+  createdAt: Date
+  updatedAt: Date
+  apiUserId: string
+  apiUser: ApiUser
+
+  constructor(obj: any) {
+    this.id = obj.id || ""
+    this.provider = obj.provider || VectorDbProvider[VectorDbProvider.PINECONE]
+    this.options = obj.options || null
+    this.datasources = obj.datasources || []
+    this.createdAt = obj.createdAt || new Date()
+    this.updatedAt = obj.updatedAt || new Date()
+    this.apiUserId = obj.apiUserId || ""
+    this.apiUser = obj.apiUser || null
+  }
+}
