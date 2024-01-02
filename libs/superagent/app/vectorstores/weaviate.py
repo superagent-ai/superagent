@@ -9,6 +9,7 @@ from decouple import config
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
 from pydantic.dataclasses import dataclass
+from app.utils.helpers import get_first_non_null
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +47,28 @@ class Response:
 
 
 class WeaviateVectorStore:
-    def __init__(self, index_name: str = None) -> None:
+    def __init__(
+        self,
+        options: dict,
+        index_name: str = None,
+        api_key: str = None,
+        url: str = None,
+    ) -> None:
+        self.options = options
         variables = {
-            "WEAVIATE_URL": config("WEAVIATE_URL", None),
-            "WEAVIATE_API_KEY": config("WEAVIATE_API_KEY", None),
+            "WEAVIATE_URL": get_first_non_null(
+                url, config("WEAVIATE_URL", None), options.get("WEAVIATE_URL")
+            ),
+            "WEAVIATE_API_KEY": get_first_non_null(
+                api_key,
+                config("WEAVIATE_API_KEY", None),
+                options.get("WEAVIATE_API_KEY"),
+            ),
+            "WEAVIATE_INDEX": get_first_non_null(
+                index_name,
+                config("WEAVIATE_INDEX", None),
+                options.get("WEAVIATE_INDEX"),
+            ),
         }
 
         for var, value in variables.items():
@@ -59,7 +78,6 @@ class WeaviateVectorStore:
                 )
 
         auth = weaviate.auth.AuthApiKey(api_key=variables["WEAVIATE_API_KEY"])
-        self.index_name = config("WEAVIATE_INDEX", "superagent")
         self.client = weaviate.Client(
             url=variables["WEAVIATE_URL"],
             auth_client_secret=auth,
@@ -68,7 +86,8 @@ class WeaviateVectorStore:
             model="text-embedding-ada-002", openai_api_key=config("OPENAI_API_KEY")
         )
 
-        logger.info(f"Initialized Weaviate Client with: {index_name}")  # type: ignore
+        self.index_name = variables["WEAVIATE_INDEX"]
+        logger.info(f"Initialized Weaviate Client with: {self.index_name}")  # type: ignore
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=3)
     def _embed_with_retry(self, texts):

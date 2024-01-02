@@ -9,24 +9,51 @@ from qdrant_client import QdrantClient, models
 from qdrant_client.http import models as rest
 from qdrant_client.http.models import PointStruct
 
+from app.utils.helpers import get_first_non_null
+
 logger = logging.getLogger(__name__)
 
 
 class QdrantVectorStore:
-    def __init__(self, index_name: str = None) -> None:
-        self.index_name = index_name
-        self.client = QdrantClient(
-            url=config(
-                "QDRANT_HOST",
-                "https://xxxxxx-xxxxx-xxxxx-xxxx-xxxxxxxxx.us-east.aws.cloud.qdrant.io:6333",
+    def __init__(
+        self,
+        options: dict,
+        index_name: str = None,
+        host: str = None,
+        api_key: str = None,
+    ) -> None:
+        self.options = options
+
+        variables = {
+            "QDRANT_INDEX": get_first_non_null(
+                index_name, config("QDRANT_INDEX", None), options.get("QDRANT_INDEX")
             ),
-            api_key=config("QDRANT_API_KEY", ""),
+            "QDRANT_HOST": get_first_non_null(
+                host, config("QDRANT_HOST", None), options.get("QDRANT_HOST")
+            ),
+            "QDRANT_API_KEY": get_first_non_null(
+                api_key, config("QDRANT_API_KEY"), options.get("QDRANT_API_KEY")
+            ),
+        }
+
+        for var, value in variables.items():
+            if not value:
+                raise ValueError(
+                    f"Please provide a {var} via the "
+                    f"`{var}` environment variable"
+                    "or check the `VectorDb` table in the database."
+                )
+
+        self.client = QdrantClient(
+            url=variables["QDRANT_HOST"],
+            api_key=variables["QDRANT_API_KEY"],
         )
         self.embeddings = OpenAIEmbeddings(
             model="text-embedding-ada-002", openai_api_key=config("OPENAI_API_KEY")
         )
 
-        logger.info(f"Initialized Qdrant Client with: {index_name}")  # type: ignore
+        self.index_name = variables["QDRANT_INDEX"]
+        logger.info(f"Initialized Qdrant Client with: {self.index_name}")
 
     def embed_documents(
         self, documents: list[Document], _batch_size: int = 100

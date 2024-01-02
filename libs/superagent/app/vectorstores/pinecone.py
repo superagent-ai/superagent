@@ -10,6 +10,8 @@ from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
 from pinecone.core.client.models import QueryResponse
 from pydantic.dataclasses import dataclass
 
+from app.utils.helpers import get_first_non_null
+
 logger = logging.getLogger(__name__)
 
 
@@ -36,32 +38,47 @@ class Response:
 class PineconeVectorStore:
     def __init__(
         self,
-        index_name: str = config("PINECONE_INDEX", ""),
-        environment: str = config("PINECONE_ENVIRONMENT", ""),
-        pinecone_api_key: str = config("PINECONE_API_KEY", ""),
+        options: dict,
+        index_name: str = None,
+        environment: str = None,
+        pinecone_api_key: str = None,
     ) -> None:
-        if not index_name:
-            raise ValueError(
-                "Please provide a Pinecone Index Name via the "
-                "`PINECONE_INDEX` environment variable."
-            )
+        self.options = options
 
-        if not environment:
-            raise ValueError(
-                "Please provide a Pinecone Environment/Region Name via the "
-                "`PINECONE_ENVIRONMENT` environment variable."
-            )
+        variables = {
+            "PINECONE_INDEX": get_first_non_null(
+                index_name,
+                config("PINECONE_INDEX", None),
+                options.get("PINECONE_INDEX"),
+            ),
+            "PINECONE_ENVIRONMENT": get_first_non_null(
+                environment,
+                config("PINECONE_ENVIRONMENT", None),
+                options.get("PINECONE_ENVIRONMENT"),
+            ),
+            "PINECONE_API_KEY": get_first_non_null(
+                pinecone_api_key,
+                config("PINECONE_API_KEY", None),
+                options.get("PINECONE_API_KEY"),
+            ),
+        }
 
-        if not pinecone_api_key:
-            raise ValueError(
-                "Please provide a Pinecone API key via the "
-                "`PINECONE_API_KEY` environment variable."
-            )
+        for var, value in variables.items():
+            if not value:
+                raise ValueError(
+                    f"Please provide a {var} via the "
+                    f"`{var}` environment variable"
+                    "or check the `VectorDb` table in the database."
+                )
 
-        pinecone.init(api_key=pinecone_api_key, environment=environment)
+        pinecone.init(
+            api_key=variables["PINECONE_API_KEY"],
+            environment=variables["PINECONE_ENVIRONMENT"],
+        )
 
-        logger.info(f"Index name: {index_name}")
-        self.index = pinecone.Index(index_name)
+        self.index_name = variables["PINECONE_INDEX"]
+        logger.info(f"Index name: {self.index_name}")
+        self.index = pinecone.Index(self.index_name)
         self.embeddings = OpenAIEmbeddings(
             model="text-embedding-ada-002", openai_api_key=config("OPENAI_API_KEY")
         )  # type: ignore
