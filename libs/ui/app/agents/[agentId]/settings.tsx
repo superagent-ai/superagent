@@ -175,8 +175,6 @@ export default function Settings({
     [form]
   )
 
-  console.log(configuredLLMs)
-
   return (
     <ScrollArea className="relative flex max-w-lg flex-1 grow p-4">
       <Form {...form}>
