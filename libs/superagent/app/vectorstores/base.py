@@ -27,7 +27,8 @@ class VectorStoreBase:
         self.options = options
         self.vectorstore = get_first_non_null(
             vector_db_provider,
-            # config VECTORSTORE returns lowercase vectorstore name (e.g. pinecone, astra)
+            # config VECTORSTORE returns lowercase
+            # vectorstore name (e.g. pinecone, astra)
             vector_db_mapping.get(config("VECTORSTORE", None)),
             VectorDbProvider.PINECONE.value,
         )
