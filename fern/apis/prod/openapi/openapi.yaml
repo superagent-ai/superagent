@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The open framework for building AI Assistants
-  version: 0.1.53
+  version: 0.1.54
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -1786,8 +1786,8 @@ components:
         metadata:
           title: Metadata
           type: object
-        vectorDbProvider:
-          title: Vectordbprovider
+        vectorDbId:
+          title: Vectordbid
           type: string
     app__models__request__LLM:
       title: LLM
@@ -1837,8 +1837,7 @@ components:
       type: object
       properties:
         provider:
-          title: Provider
-          type: string
+          $ref: '#/components/schemas/VectorDbProvider'
         options:
           title: Options
           type: object
