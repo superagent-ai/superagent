@@ -231,4 +231,22 @@ export class Api {
       method: "DELETE",
     })
   }
+
+  async getVectorDbs() {
+    return this.fetchFromApi(`/vector-dbs`)
+  }
+
+  async createVectorDb(payload: any) {
+    return this.fetchFromApi("/vector-db", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async patchVectorDb(id: string, payload: any) {
+    return this.fetchFromApi(`/vector-dbs/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    })
+  }
 }

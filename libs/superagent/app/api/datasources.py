@@ -16,7 +16,7 @@ from app.models.response import (
 )
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
-from prisma.enums import DatasourceStatus, VectorDbProvider
+from prisma.enums import DatasourceStatus
 from prisma.models import Datasource
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
@@ -38,21 +38,17 @@ async def create(
     """Endpoint for creating an datasource"""
     try:
         vector_db = None
-        if body.vectorDbProvider is not None:
-            # checking provided vector db provider is valid or not
-            vector_db_provider = None
-            for provider in VectorDbProvider:
-                if provider.value == body.vectorDbProvider:
-                    vector_db_provider = provider
-                    break
-            if not vector_db_provider:
-                raise HTTPException(
-                    status_code=400, detail="Invalid vector database provider!"
-                )
 
+        if body.vectorDbId is not None:
             vector_db = await prisma.vectordb.find_first(
-                where={"provider": vector_db_provider, "apiUserId": api_user.id}
+                where={"id": body.vectorDbId, "apiUserId": api_user.id}
             )
+
+            if not vector_db:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Couldn't find vector database with given ID!",
+                )
         if body.metadata:
             body.metadata = json.dumps(body.metadata)
 
@@ -61,11 +57,8 @@ async def create(
 
         data = await prisma.datasource.create(
             {
-                # not passing vectorDbProvider
-                # since datasource table doesn't have that column
                 "apiUserId": api_user.id,
-                **body.dict(exclude={"vectorDbProvider"}),
-                "vectorDbId": vector_db.id if vector_db is not None else None,
+                **body.dict(),
             }
         )
 
@@ -183,14 +176,11 @@ async def delete(datasource_id: str, api_user=Depends(get_current_api_user)):
         datasource = await prisma.datasource.find_first(
             where={"id": datasource_id}, include={"vectorDb": True}
         )
-        options = datasource.vectorDb.options
-        vector_db_provider = datasource.vectorDb.provider
-
-        await prisma.agentdatasource.delete_many(where={"datasourceId": datasource_id})
-        await prisma.datasource.delete(where={"id": datasource_id})
 
         async def run_delete_datasource_flow(
-            datasource_id: str, options: dict, vector_db_provider: str
+            datasource_id: str,
+            options: Optional[dict],
+            vector_db_provider: Optional[str],
         ) -> None:
             try:
                 await delete_datasource(
@@ -201,13 +191,19 @@ async def delete(datasource_id: str, api_user=Depends(get_current_api_user)):
             except Exception as flow_exception:
                 handle_exception(flow_exception)
 
-        asyncio.create_task(
+        await asyncio.create_task(
             run_delete_datasource_flow(
                 datasource_id=datasource_id,
-                options=options,
-                vector_db_provider=vector_db_provider,
+                options=datasource.vectorDb.options if datasource.vectorDb else {},
+                vector_db_provider=datasource.vectorDb.provider
+                if datasource.vectorDb
+                else None,
             )
         )
+        # deleting datasources and agentdatasources if there are not any errors
+        await prisma.agentdatasource.delete_many(where={"datasourceId": datasource_id})
+        await prisma.datasource.delete(where={"id": datasource_id})
+
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)

@@ -166,15 +166,15 @@ export default function Chat({
     selectedView === "trace" && getAgentRuns()
   }, [selectedView, getAgentRuns])
 
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+  const messagesEndRef = React.useRef<HTMLDivElement>(null)
 
   const scrollToMessagesBottom = () => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
 
   React.useEffect(() => {
-    scrollToMessagesBottom();
-  }, [messages]);
+    scrollToMessagesBottom()
+  }, [messages])
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden border-r">

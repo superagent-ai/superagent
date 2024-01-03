@@ -1,7 +1,7 @@
 import logging
 import os
 import uuid
-from typing import Literal, Optional, List
+from typing import List, Literal, Optional
 
 import backoff
 from decouple import config
@@ -42,33 +42,35 @@ class AstraVectorStore:
         astra_id: str = None,
         astra_region: str = None,
         astra_application_token: str = None,
-        collection_name: str = None,
+        index_name: str = None,  # collection_name
         keyspace_name: str = None,
     ) -> None:
         self.options = options
         variables = {
             "ASTRA_DB_ID": get_first_non_null(
-                astra_id, config("ASTRA_DB_ID", None), options.get("ASTRA_DB_ID")
+                astra_id,
+                options.get("ASTRA_DB_ID"),
+                config("ASTRA_DB_ID", None),
             ),
             "ASTRA_DB_REGION": get_first_non_null(
                 astra_region,
-                config("ASTRA_DB_REGION", None),
                 options.get("ASTRA_DB_REGION"),
+                config("ASTRA_DB_REGION", None),
             ),
             "ASTRA_DB_APPLICATION_TOKEN": get_first_non_null(
                 astra_application_token,
-                config("ASTRA_DB_APPLICATION_TOKEN", None),
                 options.get("ASTRA_DB_APPLICATION_TOKEN"),
+                config("ASTRA_DB_APPLICATION_TOKEN", None),
             ),
             "ASTRA_DB_COLLECTION_NAME": get_first_non_null(
-                collection_name,
-                config("ASTRA_DB_COLLECTION_NAME", None),
+                index_name,
                 options.get("ASTRA_DB_COLLECTION_NAME"),
+                config("ASTRA_DB_COLLECTION_NAME", None),
             ),
             "ASTRA_DB_KEYSPACE_NAME": get_first_non_null(
                 keyspace_name,
-                config("ASTRA_DB_KEYSPACE_NAME", None),
                 options.get("ASTRA_DB_KEYSPACE_NAME"),
+                config("ASTRA_DB_KEYSPACE_NAME", None),
             ),
         }
 

@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Literal, Optional
 
 from decouple import config
@@ -17,6 +18,8 @@ vector_db_mapping = {
     "weaviate": "WEAVIATE",
 }
 
+logger = logging.getLogger(__name__)
+
 
 # NOTE: Need an abstract class for the base vectorstore with defined methods
 class VectorStoreBase:
@@ -24,10 +27,13 @@ class VectorStoreBase:
         """
         Determine the vectorstore
         """
+        self.DEFAULT_INDEX_NAME = "superagent"
         self.options = options
         self.vectorstore = get_first_non_null(
-            vector_db_mapping.get(config("VECTORSTORE", None)),
             vector_db_provider,
+            # config VECTORSTORE returns lowercase
+            # vectorstore name (e.g. pinecone, astra)
+            vector_db_mapping.get(config("VECTORSTORE", None)),
             VectorDbProvider.PINECONE.value,
         )
         self.instance = self.get_database()
@@ -41,26 +47,28 @@ class VectorStoreBase:
         }
         index_names = {
             "PINECONE": get_first_non_null(
-                config("PINECONE_INDEX", None),
                 self.options.get("PINECONE_INDEX"),
-                "superagent",
+                config("PINECONE_INDEX", None),
+                self.DEFAULT_INDEX_NAME,
             ),
             "ASTRA_DB": get_first_non_null(
-                config("ASTRA_DB_COLLECTION_NAME", None),
                 self.options.get("ASTRA_DB_COLLECTION_NAME"),
-                "superagent",
+                config("ASTRA_DB_COLLECTION_NAME", None),
+                self.DEFAULT_INDEX_NAME,
             ),
             "WEAVIATE": get_first_non_null(
-                config("WEAVIATE_INDEX", None),
                 self.options.get("WEAVIATE_INDEX"),
-                "superagent",
+                config("WEAVIATE_INDEX", None),
+                self.DEFAULT_INDEX_NAME,
             ),
             "QDRANT": get_first_non_null(
-                config("QDRANT_INDEX", None),
                 self.options.get("QDRANT_INDEX"),
-                "superagent",
+                config("QDRANT_INDEX", None),
+                self.DEFAULT_INDEX_NAME,
             ),
         }
+
+        logger.info(f"Using {self.vectorstore} vectorstore")
 
         if index_name is None:
             index_name = index_names.get(self.vectorstore)

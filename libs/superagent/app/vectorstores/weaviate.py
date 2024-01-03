@@ -57,17 +57,19 @@ class WeaviateVectorStore:
         self.options = options
         variables = {
             "WEAVIATE_URL": get_first_non_null(
-                url, config("WEAVIATE_URL", None), options.get("WEAVIATE_URL")
+                url,
+                options.get("WEAVIATE_URL"),
+                config("WEAVIATE_URL", None),
             ),
             "WEAVIATE_API_KEY": get_first_non_null(
                 api_key,
-                config("WEAVIATE_API_KEY", None),
                 options.get("WEAVIATE_API_KEY"),
+                config("WEAVIATE_API_KEY", None),
             ),
             "WEAVIATE_INDEX": get_first_non_null(
                 index_name,
-                config("WEAVIATE_INDEX", None),
                 options.get("WEAVIATE_INDEX"),
+                config("WEAVIATE_INDEX", None),
             ),
         }
 

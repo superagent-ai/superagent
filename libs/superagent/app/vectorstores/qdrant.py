@@ -26,13 +26,19 @@ class QdrantVectorStore:
 
         variables = {
             "QDRANT_INDEX": get_first_non_null(
-                index_name, config("QDRANT_INDEX", None), options.get("QDRANT_INDEX")
+                index_name,
+                options.get("QDRANT_INDEX"),
+                config("QDRANT_INDEX", None),
             ),
             "QDRANT_HOST": get_first_non_null(
-                host, config("QDRANT_HOST", None), options.get("QDRANT_HOST")
+                host,
+                options.get("QDRANT_HOST"),
+                config("QDRANT_HOST", None),
             ),
             "QDRANT_API_KEY": get_first_non_null(
-                api_key, config("QDRANT_API_KEY"), options.get("QDRANT_API_KEY")
+                api_key,
+                options.get("QDRANT_API_KEY"),
+                config("QDRANT_API_KEY", None),
             ),
         }
 

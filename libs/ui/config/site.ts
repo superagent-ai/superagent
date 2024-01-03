@@ -1,5 +1,5 @@
+import { VectorDbProvider } from "@/models/models"
 import { GoWorkflow } from "react-icons/go"
-import { PiDatabase } from "react-icons/pi"
 import {
   RxAvatar,
   RxDiscordLogo,
@@ -7,8 +7,9 @@ import {
   RxGithubLogo,
   RxGlobe,
   RxPlay,
+  RxReader,
 } from "react-icons/rx"
-import { TbBrain } from "react-icons/tb"
+import { TbBrain, TbDatabase } from "react-icons/tb"
 
 export type SiteConfig = typeof siteConfig
 
@@ -29,7 +30,7 @@ export const siteConfig = {
     {
       title: "datasources",
       href: "/datasources",
-      icon: PiDatabase,
+      icon: RxReader,
     },
     {
       title: "apis",
@@ -40,6 +41,11 @@ export const siteConfig = {
       title: "llms",
       href: "/llms",
       icon: TbBrain,
+    },
+    {
+      title: "vector databases",
+      href: "/vector-databases",
+      icon: TbDatabase,
     },
   ],
   footerNav: [
@@ -368,6 +374,115 @@ export const siteConfig = {
           key: "apiKey",
           type: "input",
           label: "Superagent API key",
+        },
+      ],
+    },
+  ],
+
+  vectorDbs: [
+    {
+      provider: VectorDbProvider[VectorDbProvider.PINECONE],
+      name: "Pinecone",
+      description:
+        "Cloud-based database for storing and searching vectors, enabling fast similarity comparisons. Scales well for large datasets.",
+      formDescription: "Please enter your Pinecone credentials.",
+      metadata: [
+        {
+          key: "PINECONE_API_KEY",
+          type: "input",
+          label: "Pinecone API Key",
+        },
+        {
+          key: "PINECONE_ENVIRONMENT",
+          type: "input",
+          label: "Pinecone Environment",
+        },
+        {
+          key: "PINECONE_INDEX",
+          type: "input",
+          label: "Pinecone Index",
+        },
+      ],
+    },
+    {
+      provider: VectorDbProvider[VectorDbProvider.QDRANT],
+      name: "Qdrant",
+      description:
+        "Open-source database optimized for efficient vector search and filtering. Handles large datasets effectively while requiring minimal resources.",
+      formDescription: "Please enter your Qdrant credentials.",
+      metadata: [
+        {
+          key: "QDRANT_API_KEY",
+          type: "input",
+          label: "Qdrant API Key",
+        },
+        {
+          key: "QDRANT_HOST",
+          type: "input",
+          label: "Qdrant Host",
+        },
+        {
+          key: "QDRANT_INDEX",
+          type: "input",
+          label: "Qdrant Index",
+        },
+      ],
+    },
+    {
+      provider: VectorDbProvider[VectorDbProvider.ASTRA_DB],
+      name: "Astra DB",
+      description:
+        "Serverless database built on Cassandra, offering integration with Pinecone for vector similarity search.",
+      formDescription: "Please enter your Astra DB credentials",
+      metadata: [
+        {
+          key: "ASTRA_DB_ID",
+          type: "input",
+          label: "Astra DB ID",
+        },
+        {
+          key: "ASTRA_DB_REGION",
+          type: "input",
+          label: "Astra DB Region",
+        },
+        {
+          key: "ASTRA_DB_APPLICATION_TOKEN",
+          type: "input",
+          label: "Astra DB Application Token",
+        },
+        {
+          key: "ASTRA_DB_COLLECTION_NAME",
+          type: "input",
+          label: "Astra DB Collection Name",
+        },
+        {
+          key: "ASTRA_DB_KEYSPACE_NAME",
+          type: "input",
+          label: "Astra DB Keyspace Name",
+        },
+      ],
+    },
+    {
+      provider: VectorDbProvider[VectorDbProvider.WEAVIATE],
+      name: "Weaviate",
+      description:
+        "Semantic vector database with schema-based organization. Supports both vector search and connections between data points like a graph.",
+      formDescription: "Please enter your Weaviate credentials.",
+      metadata: [
+        {
+          key: "WEAVIATE_API_KEY",
+          type: "input",
+          label: "Weaviate API Key",
+        },
+        {
+          key: "WEAVIATE_URL",
+          type: "input",
+          label: "Weaviate URL",
+        },
+        {
+          key: "WEAVIATE_INDEX",
+          type: "input",
+          label: "Weaviate Index",
         },
       ],
     },
