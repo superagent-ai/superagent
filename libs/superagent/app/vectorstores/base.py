@@ -26,11 +26,13 @@ class VectorStoreBase:
         """
         self.options = options
         self.vectorstore = get_first_non_null(
-            vector_db_mapping.get(config("VECTORSTORE", None)),
             vector_db_provider,
+            # config VECTORSTORE returns lowercase vectorstore name (e.g. pinecone, astra)
+            vector_db_mapping.get(config("VECTORSTORE", None)),
             VectorDbProvider.PINECONE.value,
         )
         self.instance = self.get_database()
+        self.DEFAULT_INDEX_NAME = "superagent"
 
     def get_database(self, index_name: Optional[str] = None) -> Any:
         vectorstore_classes = {
@@ -41,24 +43,24 @@ class VectorStoreBase:
         }
         index_names = {
             "PINECONE": get_first_non_null(
-                config("PINECONE_INDEX", None),
                 self.options.get("PINECONE_INDEX"),
-                "superagent",
+                config("PINECONE_INDEX", None),
+                self.DEFAULT_INDEX_NAME,
             ),
             "ASTRA_DB": get_first_non_null(
-                config("ASTRA_DB_COLLECTION_NAME", None),
                 self.options.get("ASTRA_DB_COLLECTION_NAME"),
-                "superagent",
+                config("ASTRA_DB_COLLECTION_NAME", None),
+                self.DEFAULT_INDEX_NAME,
             ),
             "WEAVIATE": get_first_non_null(
-                config("WEAVIATE_INDEX", None),
                 self.options.get("WEAVIATE_INDEX"),
-                "superagent",
+                config("WEAVIATE_INDEX", None),
+                self.DEFAULT_INDEX_NAME,
             ),
             "QDRANT": get_first_non_null(
-                config("QDRANT_INDEX", None),
                 self.options.get("QDRANT_INDEX"),
-                "superagent",
+                config("QDRANT_INDEX", None),
+                self.DEFAULT_INDEX_NAME,
             ),
         }
 

@@ -48,18 +48,18 @@ class PineconeVectorStore:
         variables = {
             "PINECONE_INDEX": get_first_non_null(
                 index_name,
-                config("PINECONE_INDEX", None),
                 options.get("PINECONE_INDEX"),
+                config("PINECONE_INDEX", None),
             ),
             "PINECONE_ENVIRONMENT": get_first_non_null(
                 environment,
-                config("PINECONE_ENVIRONMENT", None),
                 options.get("PINECONE_ENVIRONMENT"),
+                config("PINECONE_ENVIRONMENT", None),
             ),
             "PINECONE_API_KEY": get_first_non_null(
                 pinecone_api_key,
-                config("PINECONE_API_KEY", None),
                 options.get("PINECONE_API_KEY"),
+                config("PINECONE_API_KEY", None),
             ),
         }
 
