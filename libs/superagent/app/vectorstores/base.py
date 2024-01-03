@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Literal, Optional
 
 from decouple import config
@@ -16,6 +17,8 @@ vector_db_mapping = {
     "astra": "ASTRA_DB",
     "weaviate": "WEAVIATE",
 }
+
+logger = logging.getLogger(__name__)
 
 
 # NOTE: Need an abstract class for the base vectorstore with defined methods
@@ -64,6 +67,8 @@ class VectorStoreBase:
                 self.DEFAULT_INDEX_NAME,
             ),
         }
+
+        logger.info(f"Using {self.vectorstore} vectorstore")
 
         if index_name is None:
             index_name = index_names.get(self.vectorstore)

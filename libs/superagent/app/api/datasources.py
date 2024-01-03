@@ -177,13 +177,10 @@ async def delete(datasource_id: str, api_user=Depends(get_current_api_user)):
             where={"id": datasource_id}, include={"vectorDb": True}
         )
 
-        options = datasource.vectorDb.options if datasource.vectorDb else {}
-        vector_db_provider = (
-            datasource.vectorDb.provider if datasource.vectorDb else None
-        )
-
         async def run_delete_datasource_flow(
-            datasource_id: str, options: dict, vector_db_provider: str
+            datasource_id: str,
+            options: Optional[dict],
+            vector_db_provider: Optional[str],
         ) -> None:
             try:
                 await delete_datasource(
@@ -197,8 +194,10 @@ async def delete(datasource_id: str, api_user=Depends(get_current_api_user)):
         await asyncio.create_task(
             run_delete_datasource_flow(
                 datasource_id=datasource_id,
-                options=options,
-                vector_db_provider=vector_db_provider,
+                options=datasource.vectorDb.options if datasource.vectorDb else {},
+                vector_db_provider=datasource.vectorDb.provider
+                if datasource.vectorDb
+                else None,
             )
         )
         # deleting datasources and agentdatasources if there are not any errors
