@@ -24,6 +24,7 @@ class VectorStoreBase:
         """
         Determine the vectorstore
         """
+        self.DEFAULT_INDEX_NAME = "superagent"
         self.options = options
         self.vectorstore = get_first_non_null(
             vector_db_provider,
@@ -33,7 +34,6 @@ class VectorStoreBase:
             VectorDbProvider.PINECONE.value,
         )
         self.instance = self.get_database()
-        self.DEFAULT_INDEX_NAME = "superagent"
 
     def get_database(self, index_name: Optional[str] = None) -> Any:
         vectorstore_classes = {
