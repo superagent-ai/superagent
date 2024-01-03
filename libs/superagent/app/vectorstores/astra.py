@@ -42,7 +42,7 @@ class AstraVectorStore:
         astra_id: str = None,
         astra_region: str = None,
         astra_application_token: str = None,
-        collection_name: str = None,
+        index_name: str = None,  # collection_name
         keyspace_name: str = None,
     ) -> None:
         self.options = options
@@ -63,7 +63,7 @@ class AstraVectorStore:
                 config("ASTRA_DB_APPLICATION_TOKEN", None),
             ),
             "ASTRA_DB_COLLECTION_NAME": get_first_non_null(
-                collection_name,
+                index_name,
                 options.get("ASTRA_DB_COLLECTION_NAME"),
                 config("ASTRA_DB_COLLECTION_NAME", None),
             ),

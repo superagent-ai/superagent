@@ -2,6 +2,8 @@ from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
 
+from prisma.enums import VectorDbProvider
+
 
 class ApiUser(BaseModel):
     email: str
@@ -39,7 +41,7 @@ class Datasource(BaseModel):
     content: Optional[str]
     url: Optional[str]
     metadata: Optional[Dict[Any, Any]]
-    vectorDbProvider: Optional[str]  # vector database provider
+    vectorDbId: Optional[str]
 
 
 class Tool(BaseModel):
@@ -77,5 +79,5 @@ class WorkflowInvoke(BaseModel):
 
 
 class VectorDb(BaseModel):
-    provider: str
+    provider: VectorDbProvider
     options: Dict

@@ -38,7 +38,7 @@ class QdrantVectorStore:
             "QDRANT_API_KEY": get_first_non_null(
                 api_key,
                 options.get("QDRANT_API_KEY"),
-                config("QDRANT_API_KEY"),
+                config("QDRANT_API_KEY", None),
             ),
         }
 

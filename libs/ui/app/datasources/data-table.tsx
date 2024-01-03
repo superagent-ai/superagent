@@ -132,7 +132,11 @@ export function DataTable<TData, TValue>({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await api.createDatasource(values)
+      const { data: vectorDbs } = await api.getVectorDbs()
+      await api.createDatasource({
+        ...values,
+        vectorDbId: vectorDbs[0]?.id,
+      })
       toast({
         description: "Datasource created successfully",
       })
