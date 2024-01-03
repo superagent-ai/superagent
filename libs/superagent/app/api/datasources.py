@@ -183,11 +183,14 @@ async def delete(datasource_id: str, api_user=Depends(get_current_api_user)):
         datasource = await prisma.datasource.find_first(
             where={"id": datasource_id}, include={"vectorDb": True}
         )
-        options = datasource.vectorDb.options
-        vector_db_provider = datasource.vectorDb.provider
 
         await prisma.agentdatasource.delete_many(where={"datasourceId": datasource_id})
         await prisma.datasource.delete(where={"id": datasource_id})
+
+        options = datasource.vectorDb.options if datasource.vectorDb else {}
+        vector_db_provider = (
+            datasource.vectorDb.provider if datasource.vectorDb else None
+        )
 
         async def run_delete_datasource_flow(
             datasource_id: str, options: dict, vector_db_provider: str
