@@ -83,22 +83,47 @@ export default function VectorDbClientPage({
   vectorDbsData: any[]
   profile: Profile
 }) {
-  const api = new Api(profile.api_key)
+  const vectorDbs = useMemo(
+    () => vectorDbsData.map((vectorDbData: any) => new VectorDb(vectorDbData)),
+    [vectorDbsData]
+  )
+
+  return (
+    <div className="grid grid-cols-5 gap-4">
+      {siteConfig.vectorDbs.map((vectorDb) => (
+        <VectorDbProviderCard
+          api_key={profile?.api_key}
+          vectorDb={vectorDb}
+          vectorDbs={vectorDbs}
+        />
+      ))}
+      <Toaster />
+    </div>
+  )
+}
+
+interface VectorDbProviderCardProps {
+  api_key: string
+  vectorDb: (typeof siteConfig.vectorDbs)[number]
+  vectorDbs: VectorDb[]
+}
+
+const VectorDbProviderCard = ({
+  api_key,
+  vectorDb,
+  vectorDbs,
+}: VectorDbProviderCardProps) => {
+  const api = new Api(api_key)
   const router = useRouter()
   const { toast } = useToast()
   const [open, setOpen] = useState<string | null>(null)
+
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       options: {},
     },
   })
-
-  const vectorDbs = useMemo(
-    () => vectorDbsData.map((vectorDbData: any) => new VectorDb(vectorDbData)),
-    [vectorDbsData]
-  )
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const payload = {
       ...values,
@@ -123,114 +148,108 @@ export default function VectorDbClientPage({
       })
     }
   }
-
   return (
-    <div className="grid grid-cols-5 gap-4">
-      {siteConfig.vectorDbs.map((vectorDb) => (
-        <div key={vectorDb.provider}>
-          <Card>
-            <CardHeader className="flex flex-col">
-              <div className="space-y-4">
-                <CardTitle>
-                  <div className="flex items-center space-x-2">
-                    {/* <Image
-                      src={vectorDb.logo}
-                      width={40}
-                      height={40}
-                      alt={vectorDb.name}
-                    /> */}
-                    <p>{vectorDb.name}</p>
-                  </div>
-                </CardTitle>
-                <CardDescription className="h-[80px]">
-                  {vectorDb.description}
-                </CardDescription>
+    <div key={vectorDb.provider}>
+      <Card>
+        <CardHeader className="flex flex-col">
+          <div className="space-y-4">
+            <CardTitle>
+              <div className="flex items-center space-x-2">
+                {/* <Image
+                src={vectorDb.logo}
+                width={40}
+                height={40}
+                alt={vectorDb.name}
+              /> */}
+                <p>{vectorDb.name}</p>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-between text-sm text-muted-foreground">
-                {vectorDbs.find((obj) => obj.provider === vectorDb.provider) ? (
-                  <div className="flex items-center">
-                    <RxCheckCircled className="mr-1 h-3 w-3 text-amber-400" />
-                    Enabled
-                  </div>
-                ) : (
-                  <div className="flex items-center">
-                    <RxCircle className="mr-1 h-3 w-3" />
-                    Disabled
-                  </div>
-                )}
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={() => setOpen(vectorDb.provider)}
-                >
-                  Configure
-                </Button>
-                <Dialog
-                  open={open === vectorDb.provider}
-                  onOpenChange={(value) => {
-                    setOpen(value ? vectorDb.provider : null)
-                    if (!value) form.reset()
-                  }}
-                >
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Configure {vectorDb.name}</DialogTitle>
-                      <DialogDescription>
-                        {vectorDb.formDescription}
-                      </DialogDescription>
-                    </DialogHeader>
-                    <Form {...form}>
-                      <form
-                        onSubmit={form.handleSubmit(onSubmit)}
-                        className="w-full space-y-4"
-                      >
-                        {vectorDb.metadata.map((metadataField) => (
-                          <FormField
-                            key={metadataField.key}
-                            control={form.control}
-                            // @ts-ignore
-                            name={`options.${metadataField.key}`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>{metadataField.label}</FormLabel>
-                                {metadataField.type === "input" && (
-                                  <FormControl>
-                                    {/* @ts-ignore */}
-                                    <Input {...field} type="text" />
-                                  </FormControl>
-                                )}
-                                {"helpText" in metadataField && (
-                                  <FormDescription>
-                                    {metadataField.helpText as string}
-                                  </FormDescription>
-                                )}
-                                <FormMessage />
-                              </FormItem>
+            </CardTitle>
+            <CardDescription className="h-[80px]">
+              {vectorDb.description}
+            </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between text-sm text-muted-foreground">
+            {vectorDbs.find((obj) => obj.provider === vectorDb.provider) ? (
+              <div className="flex items-center">
+                <RxCheckCircled className="mr-1 h-3 w-3 text-amber-400" />
+                Enabled
+              </div>
+            ) : (
+              <div className="flex items-center">
+                <RxCircle className="mr-1 h-3 w-3" />
+                Disabled
+              </div>
+            )}
+            <Button
+              size="sm"
+              variant="default"
+              onClick={() => setOpen(vectorDb.provider)}
+            >
+              Configure
+            </Button>
+            <Dialog
+              open={open === vectorDb.provider}
+              onOpenChange={(value) => {
+                setOpen(value ? vectorDb.provider : null)
+                if (!value) form.reset()
+              }}
+            >
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Configure {vectorDb.name}</DialogTitle>
+                  <DialogDescription>
+                    {vectorDb.formDescription}
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="w-full space-y-4"
+                  >
+                    {vectorDb.metadata.map((metadataField) => (
+                      <FormField
+                        key={metadataField.key}
+                        control={form.control}
+                        // @ts-ignore
+                        name={`options.${metadataField.key}`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{metadataField.label}</FormLabel>
+                            {metadataField.type === "input" && (
+                              <FormControl>
+                                {/* @ts-ignore */}
+                                <Input {...field} type="text" />
+                              </FormControl>
                             )}
-                          />
-                        ))}
+                            {"helpText" in metadataField && (
+                              <FormDescription>
+                                {metadataField.helpText as string}
+                              </FormDescription>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    ))}
 
-                        <DialogFooter>
-                          <Button type="submit" size="sm" className="w-full">
-                            {form.control._formState.isSubmitting ? (
-                              <Spinner />
-                            ) : (
-                              "Save settings"
-                            )}
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      ))}
-      <Toaster />
+                    <DialogFooter>
+                      <Button type="submit" size="sm" className="w-full">
+                        {form.control._formState.isSubmitting ? (
+                          <Spinner />
+                        ) : (
+                          "Save settings"
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
