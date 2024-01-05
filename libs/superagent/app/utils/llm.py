@@ -15,5 +15,13 @@ LLM_PROVIDER_MAPPING = {
         "GPT_4_0613",
         "GPT_4_32K_0613",
         "GPT_4_1106_PREVIEW",
+    ],
+    "AZURE_OPENAI": [
+        "GPT_3_5_TURBO_16K_0613",
+        "GPT_3_5_TURBO_0613",
+        "GPT_3_5_TURBO_1106",
+        "GPT_4_0613",
+        "GPT_4_32K_0613",
+        "GPT_4_1106_PREVIEW",
     ]
 }

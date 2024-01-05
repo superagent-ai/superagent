@@ -78,13 +78,19 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
             },
         )
         provider = None
+        llm = None
         for key, models in LLM_PROVIDER_MAPPING.items():
             if body.llmModel in models:
                 provider = key
-                break
-        llm = await prisma.llm.find_first(
-            where={"provider": provider, "apiUserId": api_user.id}
-        )
+                #break
+                llm = await prisma.llm.find_first(
+                    where={"provider": provider, "apiUserId": api_user.id}
+                )
+                if llm is not None:
+                    break
+
+        if llm is None:
+            return {"success": False, "error": "LLM not found for the given model and API user"}
         await prisma.agentllm.create({"agentId": agent.id, "llmId": llm.id})
         return {"success": True, "data": agent}
     except Exception as e:
