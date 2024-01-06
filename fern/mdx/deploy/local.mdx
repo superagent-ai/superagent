@@ -22,8 +22,8 @@ OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
 
 # We use Supabase but you can use any provider.
 # You can setup Supabase locally or via Supabase Cloud
-DATABASE_URL=postgres://<user>:<password>@db.ysmhgwgdbtzkapkqeyfb.supabase.co:6543/postgres?pgbouncer=true 
-DATABASE_MIGRATION_URL=postgresql://<user>:<password>@db.ysmhgwgdbtzkapkqeyfb.supabase.co:5432/postgres
+DATABASE_URL=postgres://<user>:<password>@<db_host_name>:<db_port>/postgres?pgbouncer=true 
+DATABASE_MIGRATION_URL=postgresql://<user>:<password>@<db_host_name>:<db_port>/postgres
 
 # Use a password-like string
 JWT_SECRET=superagent
@@ -66,6 +66,17 @@ source venv/bin/activate
 ### Install dependencies
 ```bash
 poetry install 
+```
+
+### Start Supabase
+```bash
+supabase start
+```
+
+### Get Supabase Info
+Get the hostname and port of your Supabase instance and replace them in the `DATABASE_URL` and `DATABASE_MIGRATION_URL` variable in your `.env` file.
+```bash
+supabase status
 ```
 
 ### Run database migrations
@@ -125,34 +136,18 @@ git clone git@github.com:homanp/superagent.git
 
 3. Install Supabase CLI and create project: https://supabase.com/docs/guides/cli/getting-started
 
-4. Run the database migrations
+4. Start the local Supabase project
+```bash
+supabase start
+```
+
+5. Run the database migrations
 ```bash
 # Local supabase project
 supabase migration up
 
 # Supabase Cloud project 
 supabase db push
-```
-
-5. Run the following query to setup authentication:
-```bash 
--- inserts a row into public.profiles
-create function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer set search_path = public
-as $$
-begin
-insert into public.profiles (user_id)
-values (new.id);
-return new;
-end;
-$$;
-
--- trigger the function every time a user is created,
-create trigger on_auth_user_created
-after insert on auth.users
-for each row execute procedure public.handle_new_user();
 ```
 
 6. Create a [Supabase storage](https://supabase.com/docs/guides/storage) with the following `storage.objects` permissions:

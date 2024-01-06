@@ -1,0 +1,25 @@
+{
+  "name": "superagent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint:backend": "cd libs/superagent && make format && make lint",
+    "lint:frontend": "cd libs/ui && npm run typecheck && npm run format:write && npm run format:check && npm run lint:fix && npm run lint",
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/homanp/superagent.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/homanp/superagent/issues"
+  },
+  "homepage": "https://github.com/homanp/superagent#readme",
+  "devDependencies": {
+    "husky": "^8.0.0"
+  }
+}

@@ -220,7 +220,11 @@ export function EditTool({
                                 })
                               }
                             }}
-                            value={field.value}
+                            value={
+                              typeof field.value === "object"
+                                ? JSON.stringify(field.value, null, 2)
+                                : field.value
+                            }
                           />
                         </div>
                       )}

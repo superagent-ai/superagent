@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 
 import { Agent } from "@/types/agent"
+import { LLM } from "@/types/llm"
 import { Profile } from "@/types/profile"
 import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
@@ -67,6 +68,7 @@ interface Tool {
 
 interface SettingsProps {
   tools: Tool[]
+  configuredLLMs: LLM[]
   agent: Agent
   profile: Profile
   datasources: Datasource[]
@@ -75,6 +77,7 @@ interface SettingsProps {
 export default function Settings({
   agent,
   datasources,
+  configuredLLMs,
   tools,
   profile,
 }: SettingsProps) {
@@ -97,6 +100,7 @@ export default function Settings({
     },
   })
   const avatar = form.watch("avatar")
+  const llms = form.watch("llms")
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { tools, datasources } = values
 
@@ -104,7 +108,7 @@ export default function Settings({
       originalIds: string[],
       newIds: string[],
       createResource: (id: string) => Promise<void>,
-      deleteResource: (id: string) => Promise<void>
+      deleteResource?: (id: string) => Promise<void>
     ) => {
       const resourcesToCreate = newIds.filter((id) => !originalIds.includes(id))
       const resourcesToRemove = originalIds.filter((id) => !newIds.includes(id))
@@ -114,7 +118,9 @@ export default function Settings({
       }
 
       for (const resourceId of resourcesToRemove) {
-        await deleteResource(resourceId)
+        if (deleteResource) {
+          await deleteResource(resourceId)
+        }
       }
     }
 
@@ -139,6 +145,17 @@ export default function Settings({
         (datasourceId) => api.deleteAgentDatasource(agent.id, datasourceId)
       )
 
+      if (llms !== agent.llms?.[0]?.llm.provider) {
+        const configuredLLM = configuredLLMs.find(
+          (llm) => llm.provider === llms
+        )
+
+        if (configuredLLM) {
+          await api.deleteAgentLLM(agent.id, agent.llms?.[0]?.llm.id)
+          await api.createAgentLLM(agent.id, configuredLLM.id)
+        }
+      }
+
       toast({
         description: "Agent updated",
       })
@@ -159,7 +176,7 @@ export default function Settings({
   )
 
   return (
-    <ScrollArea className="relative flex grow max-w-lg flex-1 p-4">
+    <ScrollArea className="relative flex max-w-lg flex-1 grow p-4">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -230,7 +247,7 @@ export default function Settings({
             )}
           />
           <div className="flex flex-col space-y-2">
-            <FormLabel>Model</FormLabel>
+            <FormLabel>Language model</FormLabel>
             {agent.llms.length > 0 ? (
               <div className="flex justify-between space-x-2">
                 <FormField
@@ -248,12 +265,15 @@ export default function Settings({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem
-                            key={agent.llms[0]?.llm.provider}
-                            value={agent.llms[0]?.llm.provider}
-                          >
-                            {agent.llms[0]?.llm.provider}
-                          </SelectItem>
+                          {siteConfig.llms
+                            .filter(({ id }) =>
+                              configuredLLMs.some((llm) => llm.provider === id)
+                            )
+                            .map(({ id, name }) => (
+                              <SelectItem key={id} value={id}>
+                                {name}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -276,9 +296,7 @@ export default function Settings({
                         </FormControl>
                         <SelectContent>
                           {siteConfig.llms
-                            .find(
-                              (llm) => llm.id === agent.llms[0].llm.provider
-                            )
+                            .find((llm) => llm.id === llms)
                             ?.options.map((option) => (
                               <SelectItem
                                 key={option.value}
@@ -297,7 +315,7 @@ export default function Settings({
             ) : (
               <div className="flex flex-col space-y-4 rounded-lg border border-red-500 p-4">
                 <p className="text-sm">Heads up!</p>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-sm text-muted-foreground">
                   You need to add an LLM to this agent for it work. This can be
                   done through the SDK or API.
                 </p>

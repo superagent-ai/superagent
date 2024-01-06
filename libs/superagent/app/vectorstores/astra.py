@@ -1,7 +1,7 @@
 import logging
 import os
 import uuid
-from typing import Literal
+from typing import List, Literal, Optional
 
 import backoff
 from decouple import config
@@ -9,6 +9,7 @@ from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
 from pydantic.dataclasses import dataclass
 
+from app.utils.helpers import get_first_non_null
 from app.vectorstores.astra_client import AstraClient, QueryResponse
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ class Response:
             "metadata": self.metadata,
         }
 
-    def __init__(self, id: str, text: str, metadata: dict | None = None):
+    def __init__(self, id: str, text: str, metadata: Optional[dict] = None):
         """Core dataclass for single record."""
         self.id = id
         self.text = text
@@ -37,48 +38,56 @@ class Response:
 class AstraVectorStore:
     def __init__(
         self,
-        astra_id: str = config("ASTRA_DB_ID", ""),
-        astra_region: str = config("ASTRA_DB_REGION", "us-east1"),
-        astra_application_token: str = config("ASTRA_DB_APPLICATION_TOKEN", ""),
-        collection_name: str = config("ASTRA_DB_COLLECTION_NAME", "superagent"),
-        keyspace_name: str = config("ASTRA_DB_KEYSPACE_NAME", ""),
+        options: dict,
+        astra_id: str = None,
+        astra_region: str = None,
+        astra_application_token: str = None,
+        index_name: str = None,  # collection_name
+        keyspace_name: str = None,
     ) -> None:
-        if not astra_id:
-            raise ValueError(
-                "Please provide an Astra DB ID via the "
-                "`ASTRA_DB_ID` environment variable."
-            )
+        self.options = options
+        variables = {
+            "ASTRA_DB_ID": get_first_non_null(
+                astra_id,
+                options.get("ASTRA_DB_ID"),
+                config("ASTRA_DB_ID", None),
+            ),
+            "ASTRA_DB_REGION": get_first_non_null(
+                astra_region,
+                options.get("ASTRA_DB_REGION"),
+                config("ASTRA_DB_REGION", None),
+            ),
+            "ASTRA_DB_APPLICATION_TOKEN": get_first_non_null(
+                astra_application_token,
+                options.get("ASTRA_DB_APPLICATION_TOKEN"),
+                config("ASTRA_DB_APPLICATION_TOKEN", None),
+            ),
+            "ASTRA_DB_COLLECTION_NAME": get_first_non_null(
+                index_name,
+                options.get("ASTRA_DB_COLLECTION_NAME"),
+                config("ASTRA_DB_COLLECTION_NAME", None),
+            ),
+            "ASTRA_DB_KEYSPACE_NAME": get_first_non_null(
+                keyspace_name,
+                options.get("ASTRA_DB_KEYSPACE_NAME"),
+                config("ASTRA_DB_KEYSPACE_NAME", None),
+            ),
+        }
 
-        if not astra_region:
-            raise ValueError(
-                "Please provide an Astra Region Name via the "
-                "`ASTRA_DB_REGION` environment variable."
-            )
-
-        if not astra_application_token:
-            raise ValueError(
-                "Please provide an Astra token via the "
-                "`ASTRA_DB_APPLICATION_TOKEN` environment variable."
-            )
-
-        if not collection_name:
-            raise ValueError(
-                "Please provide an Astra collection name via the "
-                "`ASTRA_DB_COLLECTION_NAME` environment variable."
-            )
-
-        if not keyspace_name:
-            raise ValueError(
-                "Please provide an Astra keyspace via the "
-                "`ASTRA_DB_KEYSPACE_NAME` environment variable."
-            )
+        for var, value in variables.items():
+            if not value:
+                raise ValueError(
+                    f"Please provide a {var} via the "
+                    f"`{var}` environment variable"
+                    "or check the `VectorDb` table in the database."
+                )
 
         self.index = AstraClient(
-            astra_id,
-            astra_region,
-            astra_application_token,
-            keyspace_name,
-            collection_name,
+            variables["ASTRA_DB_ID"],
+            variables["ASTRA_DB_REGION"],
+            variables["ASTRA_DB_APPLICATION_TOKEN"],
+            variables["ASTRA_DB_KEYSPACE_NAME"],
+            variables["ASTRA_DB_COLLECTION_NAME"],
         )
 
         self.embeddings = OpenAIEmbeddings(
@@ -90,7 +99,7 @@ class AstraVectorStore:
     def _embed_with_retry(self, texts):
         return self.embeddings.embed_documents(texts)
 
-    def embed_documents(self, documents: list[Document], batch_size: int = 100):
+    def embed_documents(self, documents: List[Document], batch_size: int = 100):
         chunks = [
             {
                 "id": str(uuid.uuid4()),
@@ -129,11 +138,11 @@ class AstraVectorStore:
     def query(
         self,
         prompt: str,
-        metadata_filter: dict | None = None,
+        metadata_filter: Optional[dict] = None,
         top_k: int = 3,
-        namespace: str | None = None,
-        min_score: float | None = None,  # new argument for minimum similarity score
-    ) -> list[Response]:
+        namespace: Optional[str] = None,
+        min_score: Optional[float] = None,  # new argument for minimum similarity score
+    ) -> List[Response]:
         """
         Returns results from the vector database.
         """
@@ -161,9 +170,9 @@ class AstraVectorStore:
         self,
         prompt: str,
         datasource_id: str,
-        top_k: int | None,
+        top_k: Optional[int] = None,
         query_type: Literal["document", "all"] = "document",
-    ) -> list[str]:
+    ) -> List[str]:
         if top_k is None:
             top_k = 3
 
@@ -200,7 +209,7 @@ class AstraVectorStore:
         metadata.pop("text")
         return id, text, metadata
 
-    def _format_response(self, response: QueryResponse) -> list[Response]:
+    def _format_response(self, response: QueryResponse) -> List[Response]:
         """
         Formats the response dictionary from the vector database into a list of
         Response objects.
@@ -225,7 +234,7 @@ class AstraVectorStore:
         except Exception as e:
             logger.error(f"Failed to delete {datasource_id}. Error: {e}")
 
-    def clear_cache(self, agent_id: str, datasource_id: str | None = None):
+    def clear_cache(self, agent_id: str, datasource_id: Optional[str] = None):
         try:
             filter_dict = {"agentId": agent_id, "type": "cache"}
             if datasource_id:

@@ -58,11 +58,17 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
+import { DataTablePagination } from "@/components/data-table-pagination"
 
 interface DataTableProps<TData, TValue> {
   columns: (profile: Profile) => ColumnDef<TData, TValue>[]
   data: TData[]
   profile: Profile
+  pagination: {
+    take: number
+    currentPageNumber: number
+    totalPages: number
+  }
 }
 
 const formSchema = z.object({
@@ -83,6 +89,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   profile,
+  pagination: { currentPageNumber, take, totalPages },
 }: DataTableProps<TData, TValue>) {
   const router = useRouter()
   const { toast } = useToast()
@@ -97,8 +104,13 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
+    pageCount: totalPages,
     state: {
       columnFilters,
+      pagination: {
+        pageIndex: 0, // we are setting pageIndex to 0 because we have only the current page's data
+        pageSize: take,
+      },
     },
   })
   const { ...form } = useForm<z.infer<typeof formSchema>>({
@@ -342,6 +354,11 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+      <DataTablePagination
+        className="py-4"
+        table={table}
+        currentPageNumber={currentPageNumber}
+      />
       <Toaster />
     </div>
   )

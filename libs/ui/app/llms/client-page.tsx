@@ -69,17 +69,15 @@ export default function LLMClientPage({
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const payload = {
-      ...values,
-      options:
-        Object.keys(values.options).length === 0 ? undefined : values.options,
-    }
     try {
-      if (llms.length === 0) {
-        await api.createLLM({ ...payload, provider: open })
+      const existingLLM = llms.find((llm: any) => llm.provider === open)
+
+      if (existingLLM) {
+        await api.patchLLM(existingLLM.id, { ...values, provider: open })
       } else {
-        await api.patchLLM(llms[0].id, { ...payload, provider: open })
+        await api.createLLM({ ...values, provider: open })
       }
+
       toast({
         description: "LLM configuration saved",
       })
@@ -94,7 +92,7 @@ export default function LLMClientPage({
   }
 
   return (
-    <div className="grid grid-cols-5 gap-4">
+    <div className="grid grid-cols-5 gap-4 lg:grid-cols-4 2xl:grid-cols-5">
       {siteConfig.llms.map((llm) => (
         <div key={llm.id}>
           <Card>
@@ -117,7 +115,7 @@ export default function LLMClientPage({
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-muted-foreground flex justify-between text-sm">
+              <div className="flex justify-between text-sm text-muted-foreground">
                 {llms.find((obj: LLM) => obj.provider === llm.id) ? (
                   <div className="flex items-center">
                     <RxCheckCircled className="mr-1 h-3 w-3 text-amber-400" />
@@ -155,8 +153,8 @@ export default function LLMClientPage({
                         <DialogHeader>
                           <DialogTitle>Configure {llm.name}</DialogTitle>
                           <DialogDescription>
-                            Enter your OpenAI API key below. You can find your
-                            key by logging into your OpenAI account.
+                            Enter your API key below. You can find your key by
+                            logging into your account.
                           </DialogDescription>
                         </DialogHeader>
                         <Form {...form}>
@@ -175,6 +173,44 @@ export default function LLMClientPage({
                                       <FormControl>
                                         <Input
                                           placeholder="Enter your api key"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            )}
+                            {llm.id === "HUGGINGFACE" && (
+                              <div className="flex flex-col space-y-2">
+                                <FormField
+                                  control={form.control}
+                                  name="apiKey"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>API key</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Enter your api key"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="options.api_base"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>
+                                        Hugging Face inference endpoint
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Enter an optional HF inference endpoint"
                                           {...field}
                                         />
                                       </FormControl>
@@ -204,13 +240,13 @@ export default function LLMClientPage({
                                 />
                                 <FormField
                                   control={form.control}
-                                  name="options.openai_api_base"
+                                  name="options.azure_endpoint"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>OpenAI API base</FormLabel>
+                                      <FormLabel>Azure endpoint URL</FormLabel>
                                       <FormControl>
                                         <Input
-                                          placeholder="Enter your openai api base"
+                                          placeholder="Enter your Azure endpoint URL."
                                           {...field}
                                         />
                                       </FormControl>
@@ -223,7 +259,7 @@ export default function LLMClientPage({
                                   name="options.openai_api_version"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>OpenAI API version</FormLabel>
+                                      <FormLabel>API version</FormLabel>
                                       <FormControl>
                                         <Input
                                           placeholder="Enter your openai api version"
@@ -236,15 +272,15 @@ export default function LLMClientPage({
                                 />
                                 <FormField
                                   control={form.control}
-                                  name="options.deployment_name"
+                                  name="options.azure_deployment"
                                   render={({ field }) => (
                                     <FormItem>
                                       <FormLabel>
-                                        OpenAI deployment name
+                                        Azure deployment name
                                       </FormLabel>
                                       <FormControl>
                                         <Input
-                                          placeholder="Enter your openai deployment name"
+                                          placeholder="Enter your Azure deployment name"
                                           {...field}
                                         />
                                       </FormControl>

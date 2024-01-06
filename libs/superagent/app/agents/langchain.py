@@ -53,9 +53,16 @@ class LangchainAgent(AgentBase):
                 if agent_datasource.datasource.type in VALID_UNSTRUCTURED_DATA_TYPES
                 else StructuredDatasourceTool
             )
+
             metadata = (
                 {
                     "datasource_id": agent_datasource.datasource.id,
+                    "options": agent_datasource.datasource.vectorDb.options
+                    if agent_datasource.datasource.vectorDb
+                    else {},
+                    "provider": agent_datasource.datasource.vectorDb.provider
+                    if agent_datasource.datasource.vectorDb
+                    else None,
                     "query_type": "document",
                 }
                 if tool_type == DatasourceTool
@@ -110,8 +117,9 @@ class LangchainAgent(AgentBase):
             )
         if agent_llm.llm.provider == "AZURE_OPENAI":
             return AzureChatOpenAI(
-                openai_api_key=agent_llm.llm.apiKey,
+                api_key=agent_llm.llm.apiKey,
                 temperature=0,
+                openai_api_type="azure",
                 streaming=self.enable_streaming,
                 callbacks=[self.callback] if self.enable_streaming else [],
                 **(agent_llm.llm.options if agent_llm.llm.options else {}),

@@ -24,6 +24,9 @@ from prisma.models import (
     Tool as ToolModel,
 )
 from prisma.models import (
+    VectorDb as VectorDbModel,
+)
+from prisma.models import (
     Workflow as WorkflowModel,
 )
 from prisma.models import (
@@ -79,6 +82,7 @@ class Datasource(BaseModel):
 class DatasourceList(BaseModel):
     success: bool
     data: Optional[List[DatasourceModel]]
+    total_pages: int
 
 
 class Tool(BaseModel):
@@ -89,11 +93,13 @@ class Tool(BaseModel):
 class ToolList(BaseModel):
     success: bool
     data: Optional[List[ToolModel]]
+    total_pages: int
 
 
 class AgentList(BaseModel):
     success: bool
     data: Optional[List[AgentModel]]
+    total_pages: int
 
 
 class LLM(BaseModel):
@@ -119,8 +125,19 @@ class WorkflowStep(BaseModel):
 class WorkflowList(BaseModel):
     success: bool
     data: Optional[List[WorkflowModel]]
+    total_pages: int
 
 
 class WorkflowStepList(BaseModel):
     success: bool
     data: Optional[List[WorkflowStepModel]]
+
+
+class VectorDb(BaseModel):
+    success: bool
+    data: Optional[VectorDbModel]
+
+
+class VectorDbList(BaseModel):
+    success: bool
+    data: Optional[List[VectorDbModel]]

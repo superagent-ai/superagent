@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class AlgoliaInput(BaseModel):
@@ -78,3 +80,9 @@ class HandOffInput(BaseModel):
 
 class FunctionInput(BaseModel):
     config: dict
+
+
+class HTTPInput(BaseModel):
+    url: str
+    method: str = Field("GET", regex="^(GET|POST)$")
+    body: Optional[dict] = {}

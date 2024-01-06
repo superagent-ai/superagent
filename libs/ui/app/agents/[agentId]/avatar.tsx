@@ -66,7 +66,7 @@ export default function Avatar({ accept, onSelect, imageUrl }: AvatarProps) {
         ) : (
           <>
             <img src={imageUrl} width={80} height={80} alt="Avatar" />
-            <div className="bg-background absolute bottom-0 right-0 flex flex-col items-center justify-center rounded-md p-2">
+            <div className="absolute bottom-0 right-0 flex flex-col items-center justify-center rounded-md bg-background p-2">
               <RxImage />
             </div>
           </>

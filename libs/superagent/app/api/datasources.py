@@ -1,9 +1,10 @@
 import asyncio
 import json
+from typing import Optional
 
 import segment.analytics as analytics
 from decouple import config
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.datasource.flow import delete_datasource, vectorize_datasource
 from app.models.request import Datasource as DatasourceRequest
@@ -15,6 +16,7 @@ from app.models.response import (
 )
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
+from prisma.enums import DatasourceStatus
 from prisma.models import Datasource
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
@@ -35,22 +37,59 @@ async def create(
 ):
     """Endpoint for creating an datasource"""
     try:
+        vector_db = None
+
+        if body.vectorDbId is not None:
+            vector_db = await prisma.vectordb.find_first(
+                where={"id": body.vectorDbId, "apiUserId": api_user.id}
+            )
+
+            if not vector_db:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Couldn't find vector database with given ID!",
+                )
         if body.metadata:
             body.metadata = json.dumps(body.metadata)
 
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Created Datasource")
-        data = await prisma.datasource.create({**body.dict(), "apiUserId": api_user.id})
 
-        async def run_vectorize_flow(datasource: Datasource):
+        data = await prisma.datasource.create(
+            {
+                "apiUserId": api_user.id,
+                **body.dict(),
+            }
+        )
+
+        async def run_vectorize_flow(
+            datasource: Datasource,
+            options: Optional[dict],
+            vector_db_provider: Optional[str],
+        ):
             try:
                 await vectorize_datasource(
                     datasource=datasource,
+                    # vector db configurations (api key, index name etc.)
+                    options=options,
+                    vector_db_provider=vector_db_provider,
                 )
             except Exception as flow_exception:
+                await prisma.datasource.update(
+                    where={"id": datasource.id},
+                    data={"status": DatasourceStatus.FAILED},
+                )
                 handle_exception(flow_exception)
 
-        asyncio.create_task(run_vectorize_flow(datasource=data))
+        asyncio.create_task(
+            run_vectorize_flow(
+                datasource=data,
+                options=vector_db.options if vector_db is not None else {},
+                vector_db_provider=vector_db.provider
+                if vector_db is not None
+                else None,
+            )
+        )
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -62,13 +101,25 @@ async def create(
     description="List all datasources",
     response_model=DatasourceListResponse,
 )
-async def list(api_user=Depends(get_current_api_user)):
+async def list(api_user=Depends(get_current_api_user), skip: int = 0, take: int = 50):
     """Endpoint for listing all datasources"""
     try:
+        import math
+
         data = await prisma.datasource.find_many(
-            where={"apiUserId": api_user.id}, order={"createdAt": "desc"}
+            skip=skip,
+            take=take,
+            where={"apiUserId": api_user.id},
+            order={"createdAt": "desc"},
         )
-        return {"success": True, "data": data}
+
+        # Get the total count of datasources
+        total_count = await prisma.datasource.count(where={"apiUserId": api_user.id})
+
+        # Calculate the total number of pages
+        total_pages = math.ceil(total_count / take)
+
+        return {"success": True, "data": data, "total_pages": total_pages}
     except Exception as e:
         handle_exception(e)
 
@@ -122,18 +173,37 @@ async def delete(datasource_id: str, api_user=Depends(get_current_api_user)):
     try:
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Deleted Datasource")
-        await prisma.agentdatasource.delete_many(where={"datasourceId": datasource_id})
-        await prisma.datasource.delete(where={"id": datasource_id})
+        datasource = await prisma.datasource.find_first(
+            where={"id": datasource_id}, include={"vectorDb": True}
+        )
 
-        async def run_delete_datasource_flow(datasource_id: str) -> None:
+        async def run_delete_datasource_flow(
+            datasource_id: str,
+            options: Optional[dict],
+            vector_db_provider: Optional[str],
+        ) -> None:
             try:
                 await delete_datasource(
                     datasource_id=datasource_id,
+                    options=options,
+                    vector_db_provider=vector_db_provider,
                 )
             except Exception as flow_exception:
                 handle_exception(flow_exception)
 
-        asyncio.create_task(run_delete_datasource_flow(datasource_id=datasource_id))
+        await asyncio.create_task(
+            run_delete_datasource_flow(
+                datasource_id=datasource_id,
+                options=datasource.vectorDb.options if datasource.vectorDb else {},
+                vector_db_provider=datasource.vectorDb.provider
+                if datasource.vectorDb
+                else None,
+            )
+        )
+        # deleting datasources and agentdatasources if there are not any errors
+        await prisma.agentdatasource.delete_many(where={"datasourceId": datasource_id})
+        await prisma.datasource.delete(where={"id": datasource_id})
+
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)

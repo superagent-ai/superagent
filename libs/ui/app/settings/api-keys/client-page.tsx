@@ -22,7 +22,7 @@ const ApiKeysClientPage: React.FC<ApiKeysPageProps> = ({ profile }) => {
     <div className="flex flex-col space-y-4">
       <div className="flex flex-col space-y-2">
         <p className="text-sm font-bold">API keys</p>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-sm text-muted-foreground">
           Use the following API key to connect to Superagent via the REST API or
           SDK
         </p>

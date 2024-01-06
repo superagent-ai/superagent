@@ -7,7 +7,7 @@ readme = "../../README.md"
 packages = [{ include = "app" }]
 
 [tool.poetry.dependencies]
-python = "^3.8.1, <=3.12"
+python = "^3.8.1, <3.12"
 fastapi = { extras = ["all"], version = "^0.95.1" }
 uvicorn = { extras = ["standard"], version = "^0.22.0" }
 gunicorn = "^20.1.0"
@@ -51,8 +51,8 @@ youtube-transcript-api = "^0.6.1"
 openai = "^1.1.1"
 langchain-experimental = "^0.0.37"
 pydub = "^0.25.1"
-langsmith = "^0.0.63"
-langchain = "^0.0.334"
+langsmith = "0.0.77"
+langchain = "0.0.354"
 algoliasearch = "^3.0.0"
 litellm = "^1.14.1"
 langfuse = "^1.6.0"

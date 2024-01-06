@@ -50,7 +50,7 @@ Note that you usually only need to create the `llm` object once and re-use it f
 
         const {data: llm} = await client.llm.create({
             provider: "OPENAI",
-            apiKey: os.environ["OPENAI_API_KEY"]
+            apiKey: process.env.OPENAI_API_KEY
         })
 
         const {data: agent} = await client.agent.create({
@@ -79,6 +79,7 @@ Note that you usually only need to create the `llm` object once and re-use it f
             "description": "A portal to the internet, useful for answering questions about websites or urls.",
             "type": "BROWSER",
             # "metadata": {"key": "value"} Optional metadata for the tool. 
+            "returnDirect": false, # returnDirect is required while creating a tool.
         })
 
         client.agent.add_tool(agent_id=agent.data.id, tool_id=tool.data.id)
@@ -90,6 +91,7 @@ Note that you usually only need to create the `llm` object once and re-use it f
             name: "Browser",
             description: "A portal to the internet, useful for answering questions about websites or urls.",
             type: "BROWSER",
+            returnDirect: false, // returnDirect is required for creating a tool.
         })
 
         await client.agent.addTool(agent.id, {
@@ -161,6 +163,7 @@ That's it! Tools are super powerful way ginving your Assistants super powers. We
             "description": "A portal to the internet, useful for answering questions about websites or urls.",
             "type": "BROWSER",
             # "metadata": {"key": "value"} Optional metadata for the tool. 
+            "returnDirect": false,
         })
 
         client.agent.add_llm(agent_id=agent.data.id, llm_id=llm.data.id)
@@ -204,6 +207,7 @@ That's it! Tools are super powerful way ginving your Assistants super powers. We
             name: "Browser",
             description: "A portal to the internet, useful for answering questions about websites or urls.",
             type: "BROWSER",
+            returnDirect: false,
         })
 
         await client.agent.addLlm(agent.id, {

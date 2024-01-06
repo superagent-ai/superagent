@@ -51,12 +51,18 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
+import { DataTablePagination } from "@/components/data-table-pagination"
 import { UploadButton } from "@/components/upload-button"
 
 interface DataTableProps<TData, TValue> {
   columns: (profile: Profile) => ColumnDef<TData, TValue>[]
   data: TData[]
   profile: Profile
+  pagination: {
+    take: number
+    currentPageNumber: number
+    totalPages: number
+  }
 }
 
 const formSchema = z.object({
@@ -75,6 +81,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   profile,
+  pagination: { currentPageNumber, take, totalPages },
 }: DataTableProps<TData, TValue>) {
   const supabase = createClientComponentClient()
   const router = useRouter()
@@ -95,8 +102,13 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
+    pageCount: totalPages,
     state: {
       columnFilters,
+      pagination: {
+        pageIndex: 0, // we are setting pageIndex to 0 because we have only the current page's data
+        pageSize: take,
+      },
     },
   })
   const { ...form } = useForm<z.infer<typeof formSchema>>({
@@ -120,7 +132,11 @@ export function DataTable<TData, TValue>({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await api.createDatasource(values)
+      const { data: vectorDbs } = await api.getVectorDbs()
+      await api.createDatasource({
+        ...values,
+        vectorDbId: vectorDbs[0]?.id,
+      })
       toast({
         description: "Datasource created successfully",
       })
@@ -496,7 +512,7 @@ export function DataTable<TData, TValue>({
                         <div className="relative flex flex-col items-center justify-between space-y-4 rounded-lg border border-dashed p-4">
                           <div className="flex flex-col items-center justify-center">
                             <p className="text-sm">Select files</p>
-                            <p className="text-muted-foreground text-sm">
+                            <p className="text-sm text-muted-foreground">
                               Upload local files from your device
                             </p>
                           </div>
@@ -530,7 +546,7 @@ export function DataTable<TData, TValue>({
                         <div className="relative flex flex-col items-center justify-between space-y-4 rounded-lg border border-dashed p-4">
                           <div className="flex flex-col items-center justify-center">
                             <p className="text-sm">Connect to your accounts</p>
-                            <p className="text-muted-foreground text-sm">
+                            <p className="text-sm text-muted-foreground">
                               Google Drive, Dropbox, Box etc.
                             </p>
                           </div>
@@ -622,6 +638,11 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+      <DataTablePagination
+        className="py-4"
+        table={table}
+        currentPageNumber={currentPageNumber}
+      />
       <Toaster />
     </div>
   )
