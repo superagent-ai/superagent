@@ -94,6 +94,7 @@ model Agent {
   isActive       Boolean           @default(false)
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
+  provider       String?
   llms           AgentLLM[]
   llmModel       LLMModel          @default(GPT_3_5_TURBO_16K_0613)
   prompt         String?

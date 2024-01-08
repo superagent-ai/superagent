@@ -75,11 +75,7 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
                 "llms": {"include": {"llm": True}},
             },
         )
-        provider = None
-        for key, models in LLM_PROVIDER_MAPPING.items():
-            if body.llmModel in models:
-                provider = key
-                break
+        provider = body.provider
         llm = await prisma.llm.find_first(
             where={"provider": provider, "apiUserId": api_user.id}
         )

@@ -12,6 +12,7 @@ class Agent(BaseModel):
     name: str
     initialMessage: Optional[str]
     prompt: Optional[str]
+    provider: Optional[str]
     llmModel: str
     description: str
     avatar: Optional[str]
