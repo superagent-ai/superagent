@@ -32,11 +32,21 @@ from prisma.models import (
 from prisma.models import (
     WorkflowStep as WorkflowStepModel,
 )
-
+from prisma.models import (
+    Token as ApiTokenModel,
+)
 
 class ApiUser(BaseModel):
     success: bool
     data: Optional[ApiUserModel]
+
+class ApiToken(BaseModel):
+    success: bool
+    message: str
+
+class GetToken(BaseModel):
+    success: bool
+    data: Optional[ApiTokenModel]
 
 
 class Agent(BaseModel):

@@ -1,3 +1,5 @@
+import { ApiToken } from "@/types/token"
+
 export class Api {
   private apiKey?: string
 
@@ -134,6 +136,10 @@ export class Api {
     return this.fetchFromApi(`/agents/${id}/runs`)
   }
 
+  async getToken() {
+    return this.fetchFromApi("/token")
+  }
+
   async getDatasources(
     searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
   ) {
@@ -249,4 +255,26 @@ export class Api {
       body: JSON.stringify(payload),
     })
   }
+
+    //Token
+    async createToken(payload: ApiToken) {
+      const response = await this.fetchFromApi("/token", {
+        method: "POST",
+        body: JSON.stringify({
+          apiUserChatwoot: payload.apiUserChatwoot,
+          agentToken: payload.agentToken,
+          userToken: payload.userToken,
+        }),
+      })
+      return response;
+    }
+
+    async patchToken(payload: ApiToken) {
+      return this.fetchFromApi(`/token`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          userToken: payload.userToken,
+        }),
+      })
+    }
 }

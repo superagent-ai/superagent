@@ -92,6 +92,7 @@ model ApiUser {
   tools       Tool[]
   workflows   Workflow[]
   vectorDb    VectorDb[]
+  tokens Token[]
 }
 
 model Agent {
@@ -111,6 +112,7 @@ model Agent {
   datasources    AgentDatasource[]
   tools          AgentTool[]
   workflowSteps  WorkflowStep[]
+  count Count?
 }
 
 model Datasource {
@@ -224,4 +226,27 @@ model VectorDb {
   updatedAt   DateTime         @updatedAt
   apiUserId   String
   apiUser     ApiUser          @relation(fields: [apiUserId], references: [id])
+}
+
+model Count {
+  id        String   @id @default(uuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id])
+  queryCount Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([agentId])
+}
+
+model Token {
+  id            String   @id @default(uuid())
+  agentToken    String   @unique
+  userToken     String   @unique
+  apiUserChatwoot String @unique
+  apiUserId     String
+  apiUser       ApiUser? @relation(fields: [apiUserId], references: [id])
+  isAgentActive Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

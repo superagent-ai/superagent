@@ -8,6 +8,14 @@ from prisma.enums import VectorDbProvider
 class ApiUser(BaseModel):
     email: str
 
+class ApiToken(BaseModel):
+    agentToken: str
+    userToken: str
+    apiUserChatwoot: str
+    isAgentActive: bool = True
+
+class ApiTokenUpdate(BaseModel):
+    userToken: str
 
 class Agent(BaseModel):
     isActive: bool = True

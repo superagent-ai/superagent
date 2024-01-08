@@ -2,6 +2,7 @@ import { VectorDbProvider } from "@/models/models"
 import { GoWorkflow } from "react-icons/go"
 import {
   RxAvatar,
+  RxDesktop,
   RxDiscordLogo,
   RxFileText,
   RxGithubLogo,
@@ -17,6 +18,11 @@ export const siteConfig = {
   name: "Superagent Cloud",
   description: "The agent framework for large language models",
   mainNav: [
+    {
+      title: "Dashboard",
+      href: "/dashboard",
+      icon: RxDesktop,
+    },
     {
       title: "Agents",
       href: "/agents",

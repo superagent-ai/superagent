@@ -3,9 +3,14 @@ import json
 import logging
 from typing import AsyncIterable
 
+from app.utils.token import obtener_token_supabase, modificar_estado_agente
+from app.utils.chatwoot import enviar_respuesta_chatwoot
+
+
 import segment.analytics as analytics
 from decouple import config
-from fastapi import APIRouter, Depends
+from fastapi import HTTPException
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from langchain.agents import AgentExecutor
 from langchain.chains import LLMChain
@@ -199,6 +204,23 @@ async def invoke(
     agent_id: str, body: AgentInvokeRequest, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for invoking an agent"""
+    try:
+        count_entry = await prisma.count.find_unique(where={"agentId": agent_id})
+        if count_entry:
+            new_count = count_entry.queryCount + 1
+            if new_count > 40:
+                raise HTTPException(status_code=429, detail="Se ha alcanzado el límite de consultas.")
+            await prisma.count.update(
+                where={"agentId": agent_id},
+                data={"queryCount": new_count}
+            )
+        else:
+            new_count = 1
+            await prisma.count.create(
+                data={"agentId": agent_id, "queryCount": new_count}
+            )
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
     langfuse_secret_key = config("LANGFUSE_SECRET_KEY", "")
     langfuse_public_key = config("LANGFUSE_PUBLIC_KEY", "")
@@ -304,12 +326,20 @@ async def invoke(
 async def add_llm(
     agent_id: str, body: AgentLLMRequest, api_user=Depends(get_current_api_user)
 ):
-    """Endpoint for adding an LLM to an agent"""
+  # Verificar si ya existe la combinación agentId y llmId
+    existing_record = await prisma.agentllm.find_first(
+        where={"agentId": agent_id, "llmId": body.llmId}
+    )
+    if existing_record:
+        return {"success": False, "message": "Este agente ya tiene asignado este LLM."}
+
     try:
         await prisma.agentllm.create({**body.dict(), "agentId": agent_id})
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
+    finally:
+        await prisma.disconnect()
 
 
 @router.delete(
@@ -527,3 +557,59 @@ async def list_runs(agent_id: str, api_user=Depends(get_current_api_user)):
             handle_exception(e)
 
     return {"success": False, "data": []}
+
+# Agent Bot with Chatwoot
+@router.post("/webhook/{agent_id}/chatwoot")
+async def chatwoot_webhook(agent_id: str, request: Request):
+    body = await request.json()
+    user_id = body.get("sender", {}).get("account", {}).get("id")
+    account_id = body.get("account", {}).get("id")
+    content = body.get("content")
+    conversation_id = body.get("conversation", {}).get("id")
+    message_type = body.get("message_type")
+    # Process only incoming messages (messages from clients)
+    if message_type != "incoming":
+        logging.info("Ignoring non-client message")
+        return {"message": "Non-client message ignored", "agent_id": agent_id, "ignored": True}
+    # Check if the client wants to speak with a human
+    try:
+        token = await obtener_token_supabase(user_id=user_id)
+        if not token:
+            raise HTTPException(status_code=404, detail="Token not found")
+
+        valor_token = token['data'].agentToken
+        ia_assistant_active = token['data'].isAgentActive
+
+        agent = await prisma.agent.find_unique(where={"id": agent_id})
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+
+        agent_base = await AgentBase(agent_id=agent_id).get_agent()
+        if ia_assistant_active:
+            if content.lower() == "quiero hablar con una persona":
+                await modificar_estado_agente(user_id=user_id, es_respuesta_de_bot=False)
+                await enviar_respuesta_chatwoot(conversation_id, "Ya te derivamos con un agente...", valor_token, account_id, es_respuesta_de_bot=True)
+                return {"message": "Request to speak with a human agent received", "agent_id": agent_id}
+            # Function to send message to superagent for processing
+            async def send_message(agent: AgentBase, content: str) -> str:
+                try:
+                    result = await agent.acall(
+                        inputs={"input": content},
+                        tags=[agent_id],
+                        callbacks=None,
+                    )
+                    return result.get("output", "")
+                except Exception as e:
+                    logging.error(f"Error in send_message: {e}")
+                    raise
+
+            response = await send_message(agent_base, content)
+
+            if not response:
+                raise HTTPException(status_code=500, detail="Failed to generate a response")
+
+            await enviar_respuesta_chatwoot(conversation_id, response, valor_token, account_id, es_respuesta_de_bot=True)
+            return {"message": "Data received and processed by the Superagent bot", "agent_id": agent_id, "response": response}
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        return {"message": "An error occurred while processing the data", "agent_id": agent_id}
