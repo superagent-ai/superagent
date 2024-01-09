@@ -7,19 +7,24 @@ import { IoEyeSharp } from "react-icons/io5"
 import { useAsync, useSetState } from "react-use"
 
 import { Profile } from "@/types/profile"
+import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
-
+import { ApiChatwootPlatform } from "@/lib/api_chatwoot"
 import { Toaster } from "@/components/ui/toaster"
 import { toast } from "@/components/ui/use-toast"
 import { useChatwoot } from "@/app/context/ChatwootContext"
 
 import { FormUserChatwoot } from "./FormUserChatwoot"
 import { ProfileChatwoot } from "./ProfileChatwoot"
-import { ApiChatwootPlatform } from "@/lib/api_chatwoot"
-import { siteConfig } from "@/config/site"
 
 export const CardTable = ({ profile }: { profile: Profile }) => {
-  const { token, handleChangeToken, userProfileChatwoot, tokenActive, handleChangeActiveToken } = useChatwoot()
+  const {
+    token,
+    handleChangeToken,
+    userProfileChatwoot,
+    tokenActive,
+    handleChangeActiveToken,
+  } = useChatwoot()
   console.log(tokenActive)
   const [modal, setModal] = useState(() => {
     return tokenActive ? true : false
@@ -51,7 +56,6 @@ export const CardTable = ({ profile }: { profile: Profile }) => {
     return data
   }, [])
 
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -78,22 +82,33 @@ export const CardTable = ({ profile }: { profile: Profile }) => {
       name: user.name,
       email: user.email,
       password: user.password,
-      type: 'SuperAdmin',
-      custom_attributes: {}
+      type: "SuperAdmin",
+      custom_attributes: {},
     }
 
     try {
-      let userCreatedInChatwoot = false;
-
       if (!tokenActive) {
         const response = await apiChatwoot.createUser(mock)
 
         if (response.confirmed) {
-          userCreatedInChatwoot = true;
-
           //Create Agent SuperAgent
-          const { data: agent } = await api.createAgent({ ...form })
-          await api.createAgentLLM(agent.id, llms[0]?.id)
+          let agent
+          try {
+            const agentResponse = await api.createAgent({ ...form })
+            agent = agentResponse.data
+            if (agent && llms.length > 0) {
+              await api.createAgentLLM(agent.id, llms[0]?.id)
+            }
+          } catch (error: any) {
+            if (error.response && error.response.status === 500) {
+              console.error(
+                "Agent creation encountered an error but may still have been created:",
+                error
+              )
+            } else {
+              throw error
+            }
+          }
           const apiAgent = agent.id
           const initial_signal_apiAgent = agent.id.slice(0, 3)
 
@@ -101,7 +116,8 @@ export const CardTable = ({ profile }: { profile: Profile }) => {
           const accountDetails = {
             name: `Account for ${initial_signal_apiAgent}`,
           }
-          const accountResponse = await apiChatwoot.createAccount(accountDetails)
+          const accountResponse =
+            await apiChatwoot.createAccount(accountDetails)
 
           if (accountResponse && accountResponse.id) {
             // Send the created user as an administrator to the new account
@@ -109,7 +125,10 @@ export const CardTable = ({ profile }: { profile: Profile }) => {
               user_id: response.id,
               role: "administrator",
             }
-            await apiChatwoot.createAccountUser(accountResponse.id, adminUserDetails)
+            await apiChatwoot.createAccountUser(
+              accountResponse.id,
+              adminUserDetails
+            )
 
             //Agent Bot Details
             const agent_bot_name = `t-${initial_signal_apiAgent}-bot`
@@ -123,9 +142,10 @@ export const CardTable = ({ profile }: { profile: Profile }) => {
               outgoing_url: agent_bot_url,
               account_id: accountResponse.id,
             }
-            let agentBotResponse;
+            let agentBotResponse
             try {
-              agentBotResponse = await apiChatwoot.createAgentBot(agentBotDetails)
+              agentBotResponse =
+                await apiChatwoot.createAgentBot(agentBotDetails)
             } catch (error) {
               console.error("Failed to create agent bot:", error)
             }
@@ -151,15 +171,8 @@ export const CardTable = ({ profile }: { profile: Profile }) => {
             }
           }
         } else {
-          throw new Error('Failed to create user in Chatwoot');
+          throw new Error("Failed to create user in Chatwoot")
         }
-      }
-
-      if (!userCreatedInChatwoot) {
-        toast({
-          color: "red",
-          description: "Failed to create user in Chatwoot",
-        })
       }
     } catch (error) {
       console.error("Failed to create user or agent:", error)
@@ -171,7 +184,6 @@ export const CardTable = ({ profile }: { profile: Profile }) => {
       setLoading(false)
     }
   }
-
 
   return (
     <div className="flex flex-col space-y-4 px-4 py-6">
@@ -329,15 +341,21 @@ export const CardTable = ({ profile }: { profile: Profile }) => {
             <button
               disabled={tokenActive}
               onClick={() => setModal(() => !modal)}
-              className={`w-[170px] rounded-md p-2 transition-all${tokenActive ? 'opacity-50' : 'bg-green-600 hover:bg-green-700'}`}
+              className={`w-[170px] rounded-md p-2 transition-all${
+                tokenActive ? "opacity-50" : "bg-green-600 hover:bg-green-700"
+              }`}
             >
-              {tokenActive ? "Ya estas conectado a un operador de Chatwoot" : "Conecta"}
+              {tokenActive
+                ? "Ya estas conectado a un operador de Chatwoot"
+                : "Conecta"}
             </button>
           </div>
         )}
       </div>
       <div className="flex justify-center">
-        {userProfileChatwoot && <ProfileChatwoot profile={userProfileChatwoot} />}
+        {userProfileChatwoot && (
+          <ProfileChatwoot profile={userProfileChatwoot} />
+        )}
       </div>
       <Toaster />
     </div>
