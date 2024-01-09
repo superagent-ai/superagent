@@ -91,6 +91,24 @@ export const CardTable = ({ profile }: { profile: Profile }) => {
         const response = await apiChatwoot.createUser(mock)
 
         if (response.confirmed) {
+          // Create an account for the agent in Chatwoot
+          const accountDetails = {
+            name: `Account for ${response.name}`,
+          }
+          const accountResponse =
+            await apiChatwoot.createAccount(accountDetails)
+
+          if (accountResponse && accountResponse.id) {
+            // Send the created user as an administrator to the new account
+            const adminUserDetails = {
+              user_id: response.id,
+              role: "administrator",
+            }
+            await apiChatwoot.createAccountUser(
+              accountResponse.id,
+              adminUserDetails
+            )
+
           //Create Agent SuperAgent
           let agent
           try {
@@ -112,26 +130,8 @@ export const CardTable = ({ profile }: { profile: Profile }) => {
           const apiAgent = agent.id
           const initial_signal_apiAgent = agent.id.slice(0, 3)
 
-          // Create an account for the agent in Chatwoot
-          const accountDetails = {
-            name: `Account for ${initial_signal_apiAgent}`,
-          }
-          const accountResponse =
-            await apiChatwoot.createAccount(accountDetails)
-
-          if (accountResponse && accountResponse.id) {
-            // Send the created user as an administrator to the new account
-            const adminUserDetails = {
-              user_id: response.id,
-              role: "administrator",
-            }
-            await apiChatwoot.createAccountUser(
-              accountResponse.id,
-              adminUserDetails
-            )
-
             //Agent Bot Details
-            const agent_bot_name = `t-${initial_signal_apiAgent}-bot`
+            const agent_bot_name = `t-${response.name}-bot`
             const agent_bot_description = "Agent Bot By SuperAgent"
             const agent_bot_url = `${process.env.NEXT_PUBLIC_CHATWOOT_API_URL}/webhook/${apiAgent}/chatwoot`
 
