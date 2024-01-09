@@ -1,17 +1,41 @@
 # Build stage
-FROM node:18-alpine AS build
+FROM node:18-buster AS build
 
 # Accept the path to the environment file as a build argument
-ARG ENV_FILE
+# Accept NEXT_PUBLIC_* variables as build arguments
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG NEXT_PUBLIC_SUPERAGENT_API_URL
+ARG NEXT_PUBLIC_SUPABASE_STORAGE_NAME
+ARG NEXT_PUBLIC_APIDECK_API_KEY
+ARG NEXT_PUBLIC_APIDECK_API_ID
+ARG NEXT_PUBLIC_STRIPE_SECRET_KEY
+ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+ARG NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY
+ARG NEXT_PUBLIC_LANGFUSE_BASE_URL
+
+# Set the environment variables
+ENV NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+ENV NEXT_PUBLIC_SUPERAGENT_API_URL=${NEXT_PUBLIC_SUPERAGENT_API_URL}
+ENV NEXT_PUBLIC_SUPABASE_STORAGE_NAME=${NEXT_PUBLIC_SUPABASE_STORAGE_NAME}
+ENV NEXT_PUBLIC_APIDECK_API_KEY=${NEXT_PUBLIC_APIDECK_API_KEY}
+ENV NEXT_PUBLIC_APIDECK_API_ID=${NEXT_PUBLIC_APIDECK_API_ID}
+ENV NEXT_PUBLIC_STRIPE_SECRET_KEY=${NEXT_PUBLIC_STRIPE_SECRET_KEY}
+ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+ENV NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY=${NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY}
+ENV NEXT_PUBLIC_LANGFUSE_BASE_URL=${NEXT_PUBLIC_LANGFUSE_BASE_URL}
 
 # Install dependencies only when needed
-RUN apk add --no-cache libc6-compat
+RUN apt-get update && apt-get install -y \
+    libc6-dev \
+    libvips-dev \
+    libfftw3-dev \
+    build-essential \
+    python3
 
 # Set working directory
 WORKDIR /app
-
-# Copy the specified .env file to the current directory
-COPY $ENV_FILE ./.env
 
 # Copy and install the dependencies for the project
 COPY package.json package-lock.json ./
@@ -24,10 +48,10 @@ COPY . .
 RUN npm run build
 
 # Runner stage
-FROM node:18-alpine AS runner
+FROM node:18-buster AS runner
 
-# Install bash in the runner stage
-RUN apk add --no-cache bash
+# Install bash and netcat in the runner stage
+RUN apt-get update && apt-get install -y bash netcat-openbsd libvips-dev libfftw3-dev build-essential python3
 
 # Set environment variables
 ENV NODE_ENV production
@@ -45,10 +69,6 @@ COPY --from=build /app/public ./public
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/package-lock.json ./package-lock.json
 COPY --from=build /app/supabase ./supabase
-# RUN cp ./supabase/config.docker.toml ./supabase/config.toml
-# RUN rm ./supabase/config.toml
-# COPY --from=build /app/override-env.sh ./override-env.sh
-# RUN chmod +x override-env.sh
 
 # Install production dependencies only
 RUN npm ci --only=production

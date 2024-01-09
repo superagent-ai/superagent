@@ -17,9 +17,9 @@
     "supabase:cloud:login": "supabase login",
     "supabase:cloud:link": "supabase link",
     "supabase:cloud:push": "supabase db push",
-    "supabase:docker:push": "supabase db push --db-url ${DATABASE_URL}",
-    "supabase:docker:reset": "supabase db reset --db-url ${DATABASE_URL}",
-    "supabase:docker:commit": "supabase db commit --db-url ${DATABASE_URL}",
+    "supabase:docker:push": "supabase db push --db-url ${SUPABASE_DB_URL}",
+    "supabase:docker:reset": "supabase db reset --db-url ${SUPABASE_DB_URL}",
+    "supabase:docker:commit": "supabase db commit --db-url ${SUPABASE_DB_URL}",
     "supabase:init": "supabase init"
   },
   "dependencies": {
