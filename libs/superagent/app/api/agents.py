@@ -74,7 +74,7 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     try:
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Created Agent", {**body.dict()})
-        agent = await prisma.agent.create(
+        data = await prisma.agent.create(
             {**body.dict(), "apiUserId": api_user.id},
             include={
                 "tools": {"include": {"tool": True}},
@@ -82,16 +82,7 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
                 "llms": {"include": {"llm": True}},
             },
         )
-        provider = None
-        for key, models in LLM_PROVIDER_MAPPING.items():
-            if body.llmModel in models:
-                provider = key
-                break
-        llm = await prisma.llm.find_first(
-            where={"provider": provider, "apiUserId": api_user.id}
-        )
-        await prisma.agentllm.create({"agentId": agent.id, "llmId": llm.id})
-        return {"success": True, "data": agent}
+        return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
 
