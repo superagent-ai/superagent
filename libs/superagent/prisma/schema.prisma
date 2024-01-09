@@ -87,7 +87,6 @@ model ApiUser {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   agents      Agent[]
-  llms        LLM[]
   datasources Datasource[]
   tools       Tool[]
   workflows   Workflow[]
