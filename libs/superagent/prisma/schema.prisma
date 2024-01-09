@@ -177,8 +177,6 @@ model LLM {
   agents    AgentLLM[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  apiUserId String
-  apiUser   ApiUser     @relation(fields: [apiUserId], references: [id])
 }
 
 model AgentLLM {
