@@ -10,7 +10,6 @@ from fastapi.responses import StreamingResponse
 from langchain.agents import AgentExecutor
 from langchain.chains import LLMChain
 from langfuse import Langfuse
-from langfuse.model import CreateTrace
 from langsmith import Client
 
 from app.agents.base import AgentBase
@@ -215,13 +214,12 @@ async def invoke(
         )
         session_id = f"{agent_id}-{body.sessionId}" if body.sessionId else f"{agent_id}"
         trace = langfuse.trace(
-            CreateTrace(
-                id=session_id,
-                name="Assistant",
-                userId=api_user.id,
-                metadata={"agentId": agent_id},
-            )
+            id=session_id,
+            name="Assistant",
+            user_id=api_user.id,
+            metadata={"agentId": agent_id},
         )
+
         langfuse_handler = trace.get_langchain_handler()
 
     async def send_message(

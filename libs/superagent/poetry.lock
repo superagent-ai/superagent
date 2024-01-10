@@ -707,6 +707,17 @@ files = [
 ]
 
 [[package]]
+name = "chevron"
+version = "0.14.0"
+description = "Mustache templating language renderer"
+optional = false
+python-versions = "*"
+files = [
+    {file = "chevron-0.14.0-py3-none-any.whl", hash = "sha256:fbf996a709f8da2e745ef763f482ce2d311aa817d287593a5b990d6d6e4f0443"},
+    {file = "chevron-0.14.0.tar.gz", hash = "sha256:87613aafdf6d77b6a90ff073165a61ae5086e21ad49057aa0e53681601800ebf"},
+]
+
+[[package]]
 name = "click"
 version = "8.1.7"
 description = "Composable command line interface toolkit"
@@ -2108,18 +2119,19 @@ six = "*"
 
 [[package]]
 name = "langfuse"
-version = "1.14.0"
+version = "2.6.0"
 description = "A client library for accessing langfuse"
 optional = false
 python-versions = ">=3.8.1,<4.0"
 files = [
-    {file = "langfuse-1.14.0-py3-none-any.whl", hash = "sha256:f5af266bbc26223acf69928836d21026611d8a31ad3e54082c0ee364f05e0e50"},
-    {file = "langfuse-1.14.0.tar.gz", hash = "sha256:7d76cec5e60e4e603753edf6ade95d360c9e8e373aa069f103aad32059dd82f0"},
+    {file = "langfuse-2.6.0-py3-none-any.whl", hash = "sha256:325b4a0c53c523f790e496321a712a9b7c8c1803dfa4880272a678c69abb2d0a"},
+    {file = "langfuse-2.6.0.tar.gz", hash = "sha256:242c6fb4be793896da61da868d3ef63b7b7346d8923fda20212a78665da123e9"},
 ]
 
 [package.dependencies]
 attrs = ">=21.3.0"
 backoff = ">=2.2.1,<3.0.0"
+chevron = ">=0.14.0,<0.15.0"
 httpx = ">=0.15.4,<0.26.0"
 monotonic = ">=1.6,<2.0"
 openai = ">=0.27.8"
@@ -2863,8 +2875,8 @@ files = [
 [package.dependencies]
 numpy = [
     {version = ">=1.20.3", markers = "python_version < \"3.10\""},
-    {version = ">=1.21.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
     {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
+    {version = ">=1.21.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -5589,4 +5601,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1, <3.12"
-content-hash = "a634dc6d55a6bbf0d84762e066859235908aed11be567e42f3b151f821a1cb92"
+content-hash = "e292d9559b88d0747bfddec93958dfa3237c69518c3ea1441174a8e7017f3b01"
