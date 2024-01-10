@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from typing import Any, AsyncIterator, Dict, List, Literal, Union, cast
 
 from langchain.callbacks.base import AsyncCallbackHandler
@@ -86,3 +87,17 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
 
             # Otherwise, the extracted value is a token, which we yield
             yield token_or_done
+
+
+def get_intermediate_steps_event(result: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if "intermediate_steps" in result:
+        for step in result["intermediate_steps"]:
+            agent_action_message_log = step[0]
+            function = agent_action_message_log.tool
+            args = agent_action_message_log.tool_input
+            if function and args:
+                return (
+                    "event: function_call\n"
+                    f'data: {{"function": "{function}", '
+                    f'"args": {json.dumps(args)}}}\n\n'
+                )

@@ -4,6 +4,10 @@ from abc import ABC, abstractmethod
 from typing import Any, List
 
 from decouple import config
+from langchain.agents import (
+    AgentExecutor,
+)
+from langchain.chains import LLMChain
 from langchain.memory.motorhead_memory import MotorheadMemory
 from langchain.schema import SystemMessage
 from slugify import slugify
@@ -171,7 +175,7 @@ class AgentBase:
         await memory.init()
         return memory
 
-    async def get_agent(self):
+    async def get_agent(self) -> tuple[bool, LLMChain | AgentExecutor]:
         agent_config = await prisma.agent.find_unique_or_raise(
             where={"id": self.agent_id},
             include={
@@ -203,7 +207,7 @@ class AgentBase:
                 output_schema=self.output_schema,
             )
 
-        return [agent.can_stream(), await agent.get_agent(config=agent_config)]
+        return agent.can_stream(), await agent.get_agent(config=agent_config)
 
     async def _get_llm(self):
         NotImplementedError

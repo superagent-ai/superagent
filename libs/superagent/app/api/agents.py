@@ -48,7 +48,10 @@ from app.models.response import (
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.llm import LLM_PROVIDER_MAPPING
 from app.utils.prisma import prisma
-from app.utils.streaming import CustomAsyncIteratorCallbackHandler
+from app.utils.streaming import (
+    CustomAsyncIteratorCallbackHandler,
+    get_intermediate_steps_event,
+)
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
@@ -240,6 +243,7 @@ async def invoke(
                 )
             )
 
+            # streaming the agent token-by-token if streaming is supported
             if can_stream:
                 async for token in callback.aiter():
                     yield f"data: {token}\n\n"
@@ -254,17 +258,11 @@ async def invoke(
                 for token in out.split(" "):
                     yield f"data: {token} \n\n"
 
-            if "intermediate_steps" in result:
-                for step in result["intermediate_steps"]:
-                    agent_action_message_log = step[0]
-                    function = agent_action_message_log.tool
-                    args = agent_action_message_log.tool_input
-                    if function and args:
-                        yield (
-                            "event: function_call\n"
-                            f'data: {{"function": "{function}", '
-                            f'"args": {json.dumps(args)}}}\n\n'
-                        )
+            intermediate_steps = get_intermediate_steps_event(result)
+            if intermediate_steps:
+                for step in intermediate_steps:
+                    yield step
+
         except Exception as e:
             logging.error(f"Error in send_message: {e}")
         finally:
@@ -279,7 +277,7 @@ async def invoke(
     enable_streaming = body.enableStreaming
     output_schema = body.outputSchema
     callback = CustomAsyncIteratorCallbackHandler()
-    [can_stream, agent] = await AgentBase(
+    can_stream, agent = await AgentBase(
         agent_id=agent_id,
         session_id=session_id,
         enable_streaming=enable_streaming,

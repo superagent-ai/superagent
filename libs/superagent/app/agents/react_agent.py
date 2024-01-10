@@ -83,7 +83,11 @@ class ReActAgent(AbstractAgent, AgentBase):
             )
 
             agent_executor = AgentExecutor(
-                agent=react_agent, tools=tools, verbose=True, memory=memory
+                agent=react_agent,
+                tools=tools,
+                verbose=True,
+                memory=memory,
+                return_intermediate_steps=True,
             )
             return agent_executor
         else:

@@ -1,5 +1,3 @@
-import asyncio
-import json
 import logging
 from typing import AsyncIterable
 
@@ -176,7 +174,6 @@ async def invoke(
 
     workflow = WorkflowBase(
         workflow=workflowData,
-        enable_streaming=enable_streaming,
         callbacks=[workflowStep["callback"] for workflowStep in workflowSteps],
         session_id=session_id,
     )
@@ -186,32 +183,10 @@ async def invoke(
 
         async def send_message() -> AsyncIterable[str]:
             try:
-                task = asyncio.ensure_future(workflow.arun(input))
-                for workflowStep in workflowSteps:
-                    async for token in workflowStep["callback"].aiter():
-                        yield f"id: {workflowStep['agentName']}\ndata: {token}\n\n"
-                await task
-                workflow_result = task.result()
-
-                for i in range(len(workflowSteps)):
-                    result = workflow_result.get("steps", {}).get(i, {})
-
-                    if "intermediate_steps" in result:
-                        for step in result["intermediate_steps"]:
-                            agent_action_message_log = step[0]
-                            function = agent_action_message_log.tool
-                            args = agent_action_message_log.tool_input
-                            if function and args:
-                                yield (
-                                    "event: function_call\n"
-                                    f'data: {{"function": "{function}", '
-                                    f'"args": {json.dumps(args)}}}\n\n'
-                                )
-
+                async for chunk in workflow.astream(input):
+                    yield chunk
             except Exception as e:
                 logging.error(f"Error in send_message: {e}")
-            finally:
-                workflowStep["callback"].done.set()
 
         generator = send_message()
         return StreamingResponse(generator, media_type="text/event-stream")
