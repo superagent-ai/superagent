@@ -225,21 +225,35 @@ async def invoke(
         agent: LLMChain | AgentExecutor,
         content: str,
         callback: CustomAsyncIteratorCallbackHandler,
+        can_stream: bool,
     ) -> AsyncIterable[str]:
         try:
+            callbacks = [callback]
+            if langfuse_handler:
+                callbacks.append(langfuse_handler)
+
             task = asyncio.ensure_future(
                 agent.acall(
                     inputs={"input": content},
                     tags=[agent_id],
-                    callbacks=[langfuse_handler] if langfuse_handler else None,
+                    callbacks=callbacks,
                 )
             )
 
-            async for token in callback.aiter():
-                yield f"data: {token}\n\n"
+            if can_stream:
+                async for token in callback.aiter():
+                    yield f"data: {token}\n\n"
 
             await task
             result = task.result()
+            # if agent can't stream, we are streaming the parsed output
+            # for example we need to parse the outpuf of ReActAgent response
+            # https://api.python.langchain.com/en/latest/agents/langchain.agents.react.output_parser.ReActOutputParser.html
+            if not can_stream:
+                out: str = result.get("output")
+                for token in out.split(" "):
+                    yield f"data: {token} \n\n"
+
             if "intermediate_steps" in result:
                 for step in result["intermediate_steps"]:
                     agent_action_message_log = step[0]
@@ -265,18 +279,19 @@ async def invoke(
     enable_streaming = body.enableStreaming
     output_schema = body.outputSchema
     callback = CustomAsyncIteratorCallbackHandler()
-    agent = await AgentBase(
+    [can_stream, agent] = await AgentBase(
         agent_id=agent_id,
         session_id=session_id,
         enable_streaming=enable_streaming,
         output_schema=output_schema,
-        callback=callback,
     ).get_agent()
 
     if enable_streaming:
         logging.info("Streaming enabled. Preparing streaming response...")
 
-        generator = send_message(agent, content=input, callback=callback)
+        generator = send_message(
+            agent, content=input, callback=callback, can_stream=can_stream
+        )
         return StreamingResponse(generator, media_type="text/event-stream")
 
     logging.info("Streaming not enabled. Invoking agent synchronously...")

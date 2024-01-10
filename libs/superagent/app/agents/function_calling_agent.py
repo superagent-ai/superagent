@@ -77,3 +77,6 @@ class FunctionCallingAgent(AbstractAgent, AgentBase):
                 prompt=PromptTemplate.from_template(prompt),
             )
         return agent
+
+    def can_stream(self) -> bool:
+        return True

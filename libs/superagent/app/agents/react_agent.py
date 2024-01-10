@@ -82,7 +82,9 @@ class ReActAgent(AbstractAgent, AgentBase):
                 llm, tools, prompt=PromptTemplate.from_template(agent_prompt)
             )
 
-            agent_executor = AgentExecutor(agent=react_agent, tools=tools, verbose=True)
+            agent_executor = AgentExecutor(
+                agent=react_agent, tools=tools, verbose=True, memory=memory
+            )
             return agent_executor
         else:
             prompt_base = (
@@ -104,3 +106,6 @@ class ReActAgent(AbstractAgent, AgentBase):
             )
 
         return agent
+
+    def can_stream(self) -> bool:
+        return False

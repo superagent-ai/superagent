@@ -47,6 +47,12 @@ class AbstractAgent(ABC):
     async def get_agent(self):
         pass
 
+    # returns if support streaming
+    @property
+    @abstractmethod
+    async def can_stream(self) -> bool:
+        pass
+
 
 class AgentBase:
     def __init__(
@@ -197,7 +203,7 @@ class AgentBase:
                 output_schema=self.output_schema,
             )
 
-        return await agent.get_agent(config=agent_config)
+        return [agent.can_stream(), await agent.get_agent(config=agent_config)]
 
     async def _get_llm(self):
         NotImplementedError
