@@ -22,6 +22,7 @@ export class ApiChatwoot {
           ...options.headers,
           "Content-Type": "application/json",
           'api_access_token': this.apiKey ?? '',
+          'Ocp-Apim-Subscription-Key': `${process.env.NEXT_PUBLIC_CHATWOOT_SUBSCRIPTION}`
         },
       }
     )
@@ -119,7 +120,8 @@ export class ApiChatwootPlatform {
         headers: {
           ...options.headers,
           "Content-Type": "application/json",
-          'api_access_token': 'oTcVsqvDVJ76CJgdLRbDdF5m',
+          'api_access_token': 'eh2iJ7QoiBRxZSRAp59f19c1',
+          'Ocp-Apim-Subscription-Key': `${process.env.NEXT_PUBLIC_CHATWOOT_SUBSCRIPTION}`
         },
       }
     )

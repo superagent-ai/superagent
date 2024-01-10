@@ -20,7 +20,6 @@ import { siteConfig } from "@/config/site"
 
 export const CardTable = ({ profile }: { profile: Profile }) => {
   const { token, handleChangeToken, userProfileChatwoot, tokenActive, handleChangeActiveToken } = useChatwoot()
-  console.log(tokenActive)
   const [modal, setModal] = useState(() => {
     return tokenActive ? true : false
   })
@@ -143,7 +142,7 @@ export const CardTable = ({ profile }: { profile: Profile }) => {
             )
 
             const respToken = await api.createToken({
-              apiUserChatwoot: accountResponse.id,
+              apiUserChatwoot: response.id,
               userToken: response.access_token,
               agentToken: agentBotResponse.access_token,
             })

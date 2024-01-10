@@ -66,7 +66,7 @@ async def get(api_user=Depends(get_current_api_user)):
             where={"apiUserId": api_user.id},
         )
         if not data:
-            raise HTTPException(status_code=404, detail="Token not found")
+            return {"success": False, "message": "Token not found"}
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
