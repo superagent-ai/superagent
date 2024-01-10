@@ -140,6 +140,10 @@ export const siteConfig = {
           value: "MISTRAL_7B_INSTRUCT_V01",
           title: "mistral-7b-instruct-v0.1",
         },
+        {
+          value: "MIXTRAL_8X7B_INSTRUCT_V01",
+          title: "mixtral-8x7B-Instruct-v0.1",
+        },
       ],
     },
   ],
