@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 from decouple import config
 from langchain.agents import (
@@ -20,9 +20,22 @@ DEFAULT_PROMPT = (
 )
 
 
+class CustomChatLiteLLM(ChatLiteLLM):
+    def _get_invocation_params(
+        self, stop: Optional[List[str]] = None, **kwargs: Any
+    ) -> Dict[str, Any]:
+        """Get the parameters used to invoke the model."""
+        return {
+            **super()._get_invocation_params(stop=stop),
+            # need to pass model name for langfuse
+            # https://github.com/langfuse/langfuse-python/blob/main/langfuse/callback.py#L634-L689
+            "model_name": self.model_name,
+        }
+
+
 class ReActAgent(AbstractAgent, AgentBase):
     async def _get_llm(self, agent_llm: AgentLLM, model: str) -> Any:
-        chat = ChatLiteLLM(
+        chat = CustomChatLiteLLM(
             model=LLM_MAPPING[model],
             huggingface_api_key=get_first_non_null(
                 agent_llm.llm.apiKey, config("HUGGINGFACE_API_KEY", None)
