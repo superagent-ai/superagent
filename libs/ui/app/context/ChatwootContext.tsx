@@ -16,12 +16,14 @@ export const ChatwootContext = createContext<{
   userProfileChatwoot: ProfileChatwoot | null;
   handleChangeToken: (value: string) => void;
   handleChangeActiveToken: (value: boolean) => void;
+  handleProfileChatwoot: (profile: ProfileChatwoot) => void;
 }>({
   token: "",
   userProfileChatwoot: null,
   tokenActive: false,
   handleChangeToken: () => {},
-  handleChangeActiveToken: () => {}
+  handleChangeActiveToken: () => {},
+  handleProfileChatwoot: () => {}
 });
 
 export const ChatwootProvider: React.FC<ChatwootProviderProps> = ({ children }) => {
@@ -48,7 +50,6 @@ export const ChatwootProvider: React.FC<ChatwootProviderProps> = ({ children }) 
         if (profile) {
           const api = new Api(profile.api_key)
           const response = await api.getToken()
-          console.log(response)
 
           if(response.success && response.data){
             setTokenActive(true)
@@ -81,8 +82,12 @@ export const ChatwootProvider: React.FC<ChatwootProviderProps> = ({ children }) 
     setTokenActive(value)
   }
 
+  const handleProfileChatwoot = (profile: ProfileChatwoot) => {
+    setUserProfileChatwoot({...profile})
+  }
+
   return (
-    <ChatwootContext.Provider value={{ userProfileChatwoot, token, handleChangeToken, tokenActive, handleChangeActiveToken }}>
+    <ChatwootContext.Provider value={{ userProfileChatwoot, token, handleChangeToken, tokenActive, handleChangeActiveToken, handleProfileChatwoot }}>
       {children}
     </ChatwootContext.Provider>
   );

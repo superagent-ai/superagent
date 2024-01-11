@@ -1,0 +1,22 @@
+name: Build Linux Container Image and Push to ACR
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: libs/superagent
+    steps:
+    - uses: actions/checkout@v2
+    - uses: azure/docker-login@v1
+      with:
+        login-server: revhouse.azurecr.io
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+    - run: |
+        docker build . -t revhouse.azurecr.io/revhouse:${{ github.sha }}
+        docker push revhouse.azurecr.io/revhouse:${{ github.sha }}

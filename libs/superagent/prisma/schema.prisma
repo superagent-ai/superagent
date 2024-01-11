@@ -87,7 +87,6 @@ model ApiUser {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   agents      Agent[]
-  llms        LLM[]
   datasources Datasource[]
   tools       Tool[]
   workflows   Workflow[]
@@ -178,8 +177,6 @@ model LLM {
   agents    AgentLLM[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  apiUserId String
-  apiUser   ApiUser     @relation(fields: [apiUserId], references: [id])
 }
 
 model AgentLLM {
