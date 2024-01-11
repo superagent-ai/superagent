@@ -1,40 +1,62 @@
-import { Api } from '@/lib/api';
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
-import React, { createContext, useState, ReactNode, useContext, useEffect, useMemo } from 'react';
-import { Profile } from '@/types/profile';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { ApiChatwoot } from '@/lib/api_chatwoot';
-import { ProfileChatwoot } from '@/types/profileChatwoot';
+import { Profile } from "@/types/profile"
+import { ProfileChatwoot } from "@/types/profileChatwoot"
+import { Api } from "@/lib/api"
+import { ApiChatwoot } from "@/lib/api_chatwoot"
 
 interface ChatwootProviderProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 export const ChatwootContext = createContext<{
-  token: string,
-  tokenActive: boolean,
-  userProfileChatwoot: ProfileChatwoot | null;
-  handleChangeToken: (value: string) => void;
-  handleChangeActiveToken: (value: boolean) => void;
-  handleProfileChatwoot: (profile: ProfileChatwoot) => void;
+  token: string
+  tokenActive: boolean
+  userProfileChatwoot: ProfileChatwoot | null
+  agentToken: string,
+  apiAgent: string,
+
+  handleChangeToken: (value: string) => void
+  handleChangeActiveToken: (value: boolean) => void
+  handleProfileChatwoot: (profile: ProfileChatwoot) => void
+  handleTokenChange: (value: string) => void
+  handleAgentApi: (id: string) => void
 }>({
   token: "",
+  agentToken: "",
   userProfileChatwoot: null,
   tokenActive: false,
+  apiAgent: "",
   handleChangeToken: () => {},
   handleChangeActiveToken: () => {},
-  handleProfileChatwoot: () => {}
-});
+  handleProfileChatwoot: () => {},
+  handleTokenChange: () => {},
+  handleAgentApi: () => {}
+})
 
-export const ChatwootProvider: React.FC<ChatwootProviderProps> = ({ children }) => {
-  const [token, setToken] = useState<string>("");
-  const [tokenActive, setTokenActive] = useState<boolean>(false);
+export const ChatwootProvider: React.FC<ChatwootProviderProps> = ({
+  children,
+}) => {
+  const [token, setToken] = useState<string>("")
+  const [tokenActive, setTokenActive] = useState<boolean>(false)
+
+  const [agentToken, setAgentToken] = useState("")
+  const [apiAgent, setApiAgent] = useState("")
 
 
-  const [userProfileChatwoot, setUserProfileChatwoot] = useState<ProfileChatwoot | null>(null);
+  const [userProfileChatwoot, setUserProfileChatwoot] =
+    useState<ProfileChatwoot | null>(null)
 
   useEffect(() => {
-    const getDataProfile = async() => {
+    const getDataProfile = async () => {
       try {
         const supabase = createClientComponentClient()
         const {
@@ -42,16 +64,16 @@ export const ChatwootProvider: React.FC<ChatwootProviderProps> = ({ children }) 
         } = await supabase.auth.getUser()
 
         const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user?.id)
-        .single()
+          .from("profiles")
+          .select("*")
+          .eq("user_id", user?.id)
+          .single()
 
         if (profile) {
           const api = new Api(profile.api_key)
           const response = await api.getToken()
 
-          if(response.success && response.data){
+          if (response.success && response.data) {
             setTokenActive(true)
             setToken(response.data.userToken)
             const apiChatwoot = new ApiChatwoot(response.data.userToken)
@@ -60,13 +82,13 @@ export const ChatwootProvider: React.FC<ChatwootProviderProps> = ({ children }) 
             setUserProfileChatwoot(res)
           } else {
             setTokenActive(false)
-            throw new Error('Token not found')
+            throw new Error("Token not found")
           }
         } else {
-          throw new Error('User not found')
+          throw new Error("User not found")
         }
       } catch (error) {
-        console.error('Failed to fetch profile data:', error)
+        console.error("Failed to fetch profile data:", error)
         setTokenActive(false)
       }
     }
@@ -83,16 +105,36 @@ export const ChatwootProvider: React.FC<ChatwootProviderProps> = ({ children }) 
   }
 
   const handleProfileChatwoot = (profile: ProfileChatwoot) => {
-    setUserProfileChatwoot({...profile})
+    setUserProfileChatwoot({ ...profile })
   }
 
+  const handleTokenChange = (token: string) => {
+    setAgentToken(token)
+  }
+
+  const handleAgentApi = (id: string) => {
+    setApiAgent(id)
+  }
   return (
-    <ChatwootContext.Provider value={{ userProfileChatwoot, token, handleChangeToken, tokenActive, handleChangeActiveToken, handleProfileChatwoot }}>
+    <ChatwootContext.Provider
+      value={{
+        userProfileChatwoot,
+        token,
+        handleChangeToken,
+        tokenActive,
+        handleChangeActiveToken,
+        handleProfileChatwoot,
+        agentToken,
+        handleTokenChange,
+        apiAgent,
+        handleAgentApi
+      }}
+    >
       {children}
     </ChatwootContext.Provider>
-  );
-};
+  )
+}
 
 export const useChatwoot = () => {
-  return useContext(ChatwootContext);
-};
+  return useContext(ChatwootContext)
+}

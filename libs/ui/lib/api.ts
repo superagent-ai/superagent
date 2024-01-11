@@ -264,6 +264,7 @@ export class Api {
           apiUserChatwoot: payload.apiUserChatwoot,
           agentToken: payload.agentToken,
           userToken: payload.userToken,
+          isAgentActive: true
         }),
       })
       return response;
