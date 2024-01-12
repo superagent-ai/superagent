@@ -35,7 +35,7 @@ export default function Chat({
     "chat"
   )
   const [messages, setMessages] = React.useState<
-    { type: string; message: string }[]
+    { type: string; message: string; isSuccess?: boolean }[]
   >(agent.initialMessage ? [{ type: "ai", message: agent.initialMessage }] : [])
   const [timer, setTimer] = React.useState<number>(0)
   const [session, setSession] = React.useState<string | null>(uuidv4())
@@ -114,12 +114,14 @@ export default function Chat({
           async onmessage(event) {
             if (event.data !== "[END]" && event.event !== "function_call") {
               message += event.data === "" ? `${event.data} \n` : event.data
+              const isSuccess = event.event != "error"
               setMessages((previousMessages) => {
                 let updatedMessages = [...previousMessages]
 
                 for (let i = updatedMessages.length - 1; i >= 0; i--) {
                   if (updatedMessages[i].type === "ai") {
                     updatedMessages[i].message = message
+                    updatedMessages[i].isSuccess = isSuccess
                     break
                   }
                 }
@@ -208,13 +210,12 @@ export default function Chat({
         {selectedView === "chat" ? (
           <div className="mb-20 mt-10 flex flex-col space-y-5 py-5">
             <div className="container mx-auto flex max-w-4xl flex-col">
-              {messages.map(({ type, message }, index) => (
+              {messages.map((message, index) => (
                 <Message
                   key={index}
                   traceId={session ? `${agent.id}-${session}` : agent.id}
-                  type={type}
-                  message={message}
                   profile={profile}
+                  {...message}
                 />
               ))}
               <div ref={messagesEndRef} />
