@@ -70,7 +70,7 @@ const StepTwo = ({ nextStep, prevStep }: StepOneProps) => {
             className="mt-4 rounded bg-blue-500 px-4 py-2 text-white"
             disabled={loading}
           >
-            {loading ? "Cargando Usuario..." : "Crear Cuenta"}
+            {loading ? "Cargando..." : "Crear Cuenta"}
           </button>
           <button onClick={prevStep}>Previo</button>
         </div>
