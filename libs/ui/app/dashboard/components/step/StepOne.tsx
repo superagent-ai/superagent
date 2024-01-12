@@ -53,7 +53,7 @@ const StepOne = ({ nextStep }: StepOneProps) => {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <h2 className="mb-4 text-lg font-bold">Paso 1: Información Básica</h2>
+      <h2 className="mb-4 text-lg font-bold">Paso 1: Creación de Usuario en Chatwoot</h2>
       <form onSubmit={handleAddUserChatwoot}>
         <label className="flex w-full flex-col gap-1">
           <p>User name: </p>
