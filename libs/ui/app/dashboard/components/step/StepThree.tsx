@@ -114,7 +114,7 @@ const StepThree = ({ nextStep, prevStep, profile }: StepOneProps) => {
             className="mt-4 rounded bg-blue-500 px-4 py-2 text-white"
             disabled={loading}
           >
-            {loading ? "Cargando Usuario..." : "Crear Agent SuperAgent"}
+            {loading ? "Cargando..." : "Crear Agent SuperAgent"}
           </button>
           <ButtonPrev title="Previo" prevStep={prevStep}/>
         </div>
