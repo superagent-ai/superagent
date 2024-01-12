@@ -50,7 +50,7 @@ const StepTwo = ({ nextStep, prevStep }: StepOneProps) => {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <h2 className="mb-4 text-lg font-bold">Paso 1: Información Básica</h2>
+      <h2 className="mb-4 text-lg font-bold">Paso 2: Creación de Cuenta en Chatwoot</h2>
       <form onSubmit={handleAddUserChatwoot}>
         <label className="flex w-full flex-col gap-1">
           <p>Account: </p>
@@ -70,7 +70,7 @@ const StepTwo = ({ nextStep, prevStep }: StepOneProps) => {
             className="mt-4 rounded bg-blue-500 px-4 py-2 text-white"
             disabled={loading}
           >
-            {loading ? "Cargando Usuario..." : "Crear Usuario"}
+            {loading ? "Cargando Usuario..." : "Crear Cuenta"}
           </button>
           <button onClick={prevStep}>Previo</button>
         </div>
