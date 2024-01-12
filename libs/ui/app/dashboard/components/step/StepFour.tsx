@@ -3,6 +3,7 @@ import React, { useState } from "react"
 
 import { ApiChatwootPlatform } from "@/lib/api_chatwoot"
 import { useChatwoot } from "@/app/context/ChatwootContext"
+import { ButtonPrev } from "../btn/ButtonPrev"
 
 interface StepOneProps {
   nextStep: () => void
@@ -75,7 +76,7 @@ const StepFour = ({ nextStep, prevStep }: StepOneProps) => {
           >
             {loading ? "Cargando..." : "Crear Agente Bot"}
           </button>
-          <button onClick={prevStep}>Previo</button>
+          <ButtonPrev title="Previo" prevStep={prevStep}/>
         </div>
       </form>
     </div>

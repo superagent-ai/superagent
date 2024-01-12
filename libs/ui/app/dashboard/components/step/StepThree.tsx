@@ -5,6 +5,7 @@ import { useAsync } from "react-use"
 import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
 import { useChatwoot } from "@/app/context/ChatwootContext"
+import { ButtonPrev } from "../btn/ButtonPrev"
 
 interface StepOneProps {
   nextStep: () => void
@@ -115,7 +116,7 @@ const StepThree = ({ nextStep, prevStep, profile }: StepOneProps) => {
           >
             {loading ? "Cargando Usuario..." : "Crear Agent SuperAgent"}
           </button>
-          <button onClick={prevStep}>Previo</button>
+          <ButtonPrev title="Previo" prevStep={prevStep}/>
         </div>
       </form>
     </div>
