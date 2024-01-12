@@ -42,6 +42,7 @@ const StepFour = ({ nextStep, prevStep }: StepOneProps) => {
       if (agentBotResponse) {
         handleTokenChange(agentBotResponse.access_token)
         nextStep()
+        return
       }
 
       throw new Error("Fallo en la creación de la cuenta.")

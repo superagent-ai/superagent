@@ -60,6 +60,7 @@ const StepThree = ({ nextStep, prevStep, profile }: StepOneProps) => {
 
         handleAgentApi(apiAgent)
         nextStep()
+        return
       }
 
       throw new Error("Fallo en la creación de la cuenta.")

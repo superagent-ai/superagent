@@ -41,6 +41,7 @@ const StepOne = ({ nextStep }: StepOneProps) => {
       if (response.confirmed) {
         handleProfileChatwoot(response)
         nextStep()
+        return
       }
 
       throw new Error("No se ha podido crear el usuario.")
