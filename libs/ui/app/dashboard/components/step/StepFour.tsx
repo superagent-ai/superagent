@@ -12,7 +12,7 @@ interface StepOneProps {
 
 const StepFour = ({ nextStep, prevStep }: StepOneProps) => {
   //Context
-  const { userProfileChatwoot, apiAgent, handleTokenChange } = useChatwoot()
+  const { userProfileChatwoot, apiAgent, accountId, handleTokenChange } = useChatwoot()
 
   //State
   const [loading, setLoading] = useState(false)
@@ -34,7 +34,7 @@ const StepFour = ({ nextStep, prevStep }: StepOneProps) => {
         name: agent_bot_name,
         description: agent_bot_description,
         outgoing_url: agent_bot_url,
-        account_id: userProfileChatwoot?.id,
+        account_id: accountId,
       }
       const agentBotResponse =
         await apiChatwoot.createAgentBot(agentBotDetails)

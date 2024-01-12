@@ -23,23 +23,26 @@ export const ChatwootContext = createContext<{
   userProfileChatwoot: ProfileChatwoot | null
   agentToken: string,
   apiAgent: string,
-
+  accountId: string,
   handleChangeToken: (value: string) => void
   handleChangeActiveToken: (value: boolean) => void
   handleProfileChatwoot: (profile: ProfileChatwoot) => void
   handleTokenChange: (value: string) => void
   handleAgentApi: (id: string) => void
+  handleAccountId: (id: string) => void
 }>({
   token: "",
   agentToken: "",
   userProfileChatwoot: null,
   tokenActive: false,
   apiAgent: "",
+  accountId: "",
   handleChangeToken: () => {},
   handleChangeActiveToken: () => {},
   handleProfileChatwoot: () => {},
   handleTokenChange: () => {},
-  handleAgentApi: () => {}
+  handleAgentApi: () => {},
+  handleAccountId: () => {}
 })
 
 export const ChatwootProvider: React.FC<ChatwootProviderProps> = ({
@@ -50,6 +53,8 @@ export const ChatwootProvider: React.FC<ChatwootProviderProps> = ({
 
   const [agentToken, setAgentToken] = useState("")
   const [apiAgent, setApiAgent] = useState("")
+  const [accountId, setAccountId] = useState("")
+
 
 
   const [userProfileChatwoot, setUserProfileChatwoot] =
@@ -115,6 +120,10 @@ export const ChatwootProvider: React.FC<ChatwootProviderProps> = ({
   const handleAgentApi = (id: string) => {
     setApiAgent(id)
   }
+
+  const handleAccountId = (id: string) => {
+    setAccountId(id)
+  }
   return (
     <ChatwootContext.Provider
       value={{
@@ -127,7 +136,9 @@ export const ChatwootProvider: React.FC<ChatwootProviderProps> = ({
         agentToken,
         handleTokenChange,
         apiAgent,
-        handleAgentApi
+        handleAgentApi,
+        accountId,
+        handleAccountId
       }}
     >
       {children}

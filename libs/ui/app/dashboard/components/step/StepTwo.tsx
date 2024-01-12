@@ -12,7 +12,7 @@ interface StepOneProps {
 
 const StepTwo = ({ nextStep, prevStep }: StepOneProps) => {
   //Context
-  const { userProfileChatwoot } = useChatwoot()
+  const { userProfileChatwoot, handleAccountId } = useChatwoot()
 
   //State
   const [loading, setLoading] = useState(false)
@@ -37,6 +37,7 @@ const StepTwo = ({ nextStep, prevStep }: StepOneProps) => {
           accountResponse.id,
           adminUserDetails
         )
+        handleAccountId(accountResponse.id)
         nextStep()
         return
       } else {
