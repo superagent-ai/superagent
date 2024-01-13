@@ -138,6 +138,7 @@ export function DataTable<TData, TValue>({
     const { data } = await api.getLLMs()
     return data
   }, [])
+
   const { value: tools = [] } = useAsync(async () => {
     const { data } = await api.getTools()
     return data
@@ -150,6 +151,7 @@ export function DataTable<TData, TValue>({
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const { tools, datasources } = values
+
       const { data: agent } = await api.createAgent({
         ...values,
         llmModel: siteConfig.defaultLLM,
