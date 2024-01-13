@@ -50,7 +50,7 @@ class AgentBase:
                 "tools": {"include": {"tool": True}},
             },
         )
-
+        print(agent_config)
         if agent_config.llms[0].llm.provider in ["OPENAI", "AZURE_OPENAI"]:
             from app.agents.langchain import LangchainAgent
 

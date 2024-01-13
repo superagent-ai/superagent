@@ -16,7 +16,6 @@ async def obtener_token_supabase(user_id: str):
       handle_exception(e)
 
 async def modificar_estado_agente(user_id: str, es_respuesta_de_bot=False):
-  print(user_id)
   try:
     if user_id:
       user_id_with_one = f"{user_id}"
