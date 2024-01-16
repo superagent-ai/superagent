@@ -37,7 +37,7 @@ export default async function Agents({
 
   return (
     <div className="flex flex-col space-y-4 px-4 py-6">
-      <p className="text-lg">Agents</p>
+      <p className="text-lg">Agentes de Inteligencia Artificial 🧠</p>
       <DataTable
         columns={columns}
         data={agents}
