@@ -25,9 +25,9 @@
     --ring: 20 14.3% 4.1%;
     --radius: 0.5rem;
   }
- 
+
   .dark {
-    --background: 20 14.3% 4.1%;
+    --background: 0 0% 0%;
     --foreground: 60 9.1% 97.8%;
     --card: 20 14.3% 4.1%;
     --card-foreground: 60 9.1% 97.8%;
