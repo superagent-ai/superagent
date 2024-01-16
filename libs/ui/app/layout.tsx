@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
 
 import Container from "./container"
+import { ChatsAppAI } from "@/components/svg/ChatsAppAI"
 
 export const metadata: Metadata = {
   title: {
@@ -17,8 +18,8 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "white" },
-    { media: "(prefers-color-scheme: dark)", color: "black" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
   ],
   icons: {
     icon: "/favicon.ico",
@@ -39,13 +40,13 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  return (
-    <>
+  if (session) {
+    return (
       <html lang="en" suppressHydrationWarning>
         <head />
         <body
           className={cn(
-            "min-h-screen bg-background font-sans antialiased",
+            "bg-background min-h-screen font-sans antialiased",
             fontSans.variable
           )}
         >
@@ -58,6 +59,34 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           </ThemeProvider>
         </body>
       </html>
-    </>
-  )
+    );
+  } else {
+    return (
+      <>
+        <html lang="en" suppressHydrationWarning>
+          <head />
+          <body
+            className={cn(
+              "bg-background min-h-screen font-sans antialiased",
+              fontSans.variable
+            )}
+          >
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+              <div className="relative flex min-h-screen flex-col overflow-hidden">
+                <div className="flex flex-1">
+                  <div className="bg-white-100 flex w-1/2 flex-col justify-between border-r-2 border-white p-2 md:p-10">
+                    <ChatsAppAI/>
+                    <p className="w-[80%]">“Los Agentes de IA nos ahorraron mas de 1000 horas de trabajo manual en solo un mes, una locura para una empresa como la nuestra.”Martin David</p>
+                  </div>
+                  <div className="w-1/2">
+                    <Container session={session}>{children}</Container>
+                  </div>
+                </div>
+              </div>
+            </ThemeProvider>
+          </body>
+        </html>
+      </>
+    );
+  }
 }
