@@ -20,6 +20,7 @@ export default async function Agents({
     agentId: string
   }
 }) {
+  let agent = ""
   const supabase = createRouteHandlerClient({ cookies })
   const { agentId } = searchParams
   const {
@@ -37,12 +38,17 @@ export default async function Agents({
     take: 300,
   })
 
+  if (agentId) {
+    const { data } = await api.getAgentById(agentId)
+    agent = data
+  }
+
   return (
     <div className="flex h-screen flex-col justify-between space-y-0 overflow-hidden">
       <p className="border-b px-6 py-5">Assistants</p>
       <div className="flex grow overflow-auto">
         <DataTable columns={columns} data={agents} />
-        <Agent id={agentId} profile={profile} />
+        <Agent agent={agent} profile={profile} />
       </div>
     </div>
   )
