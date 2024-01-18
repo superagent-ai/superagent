@@ -3,13 +3,25 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { Api } from "@/lib/api"
 
+import Agent from "./agent"
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
 
 export const dynamic = "force-dynamic"
 
-export default async function Agents() {
+interface SearchParams {
+  searchParams: string
+}
+
+export default async function Agents({
+  searchParams,
+}: {
+  searchParams: {
+    agentId: string
+  }
+}) {
   const supabase = createRouteHandlerClient({ cookies })
+  const { agentId } = searchParams
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -19,9 +31,10 @@ export default async function Agents() {
     .eq("user_id", user?.id)
     .single()
   const api = new Api(profile.api_key)
+
   const { data: agents } = await api.getAgents({
     skip: 0,
-    take: 40,
+    take: 300,
   })
 
   return (
@@ -29,9 +42,7 @@ export default async function Agents() {
       <p className="border-b px-6 py-5">Assistants</p>
       <div className="flex grow overflow-auto">
         <DataTable columns={columns} data={agents} />
-        <div className="px-6">
-          <p>test</p>
-        </div>
+        <Agent id={agentId} profile={profile} />
       </div>
     </div>
   )

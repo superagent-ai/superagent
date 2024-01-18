@@ -24,9 +24,11 @@ export const columns: ColumnDef<Agent>[] = [
       row.getValue(column.id) ? (
         <div className="text-right">
           <Badge variant="secondary">
-            <div className="flex items-center">
-              <RxCheckCircled className="mr-1 h-3 w-3 text-amber-400" />
-              Deployed
+            <div className="flex items-center space-x-1">
+              <RxCheckCircled className="mr-1 h-3 w-3 text-green-400" />
+              <span className="font-mono font-normal text-muted-foreground">
+                DEPLOYED
+              </span>
             </div>
           </Badge>
         </div>

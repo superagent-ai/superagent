@@ -34,4 +34,4 @@ async def list_runs(
     auth_headers = {"Authorization": f"Basic {credentials}"}
     response = requests.get(url, params=query_params, headers=auth_headers)
     output = response.json()
-    return {"success": False, "data": output.get("data")}
+    return {"success": True, "data": output.get("data")}

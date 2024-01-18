@@ -150,6 +150,10 @@ export class Api {
     return this.fetchFromApi("/tools", {}, searchParams)
   }
 
+  async getRuns(searchParams: { agentId?: string }) {
+    return this.fetchFromApi("/runs", {}, searchParams)
+  }
+
   async patchAgent(id: string, payload: any) {
     return this.fetchFromApi(`/agents/${id}`, {
       method: "PATCH",
