@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { LangfuseWeb } from "langfuse"
+import { AiOutlineExclamationCircle } from "react-icons/ai"
 import { GoThumbsdown, GoThumbsup } from "react-icons/go"
 import { RxCopy, RxReload } from "react-icons/rx"
 import remarkGfm from "remark-gfm"
@@ -14,6 +15,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -27,8 +29,6 @@ import {
 import { useToast } from "@/components/ui/use-toast"
 import { CodeBlock } from "@/components/codeblock"
 import { MemoizedReactMarkdown } from "@/components/markdown"
-
-import { Badge } from "./ui/badge"
 
 let langfuseWeb: LangfuseWeb | null = null
 
@@ -58,21 +58,25 @@ function PulsatingCursor() {
   )
 }
 
+interface MessageProps {
+  traceId: string
+  type: string
+  message: string
+  isSuccess?: boolean
+  steps?: Record<string, string>
+  profile: Profile
+  onResubmit?: () => void
+}
+
 export default function Message({
   traceId,
   type,
   message,
+  isSuccess = true,
   steps,
   profile,
   onResubmit,
-}: {
-  traceId: string
-  type: string
-  message: string
-  steps?: Record<string, string>
-  profile: Profile
-  onResubmit?: () => void
-}) {
+}: MessageProps) {
   const { toast } = useToast()
   const handleFeedback = async (value: number) => {
     if (!langfuseWeb) {
@@ -110,69 +114,75 @@ export default function Message({
         </Avatar>
         <div className="ml-4 mt-1 flex-1 flex-col space-y-2 overflow-hidden px-1">
           {message?.length === 0 && !steps && <PulsatingCursor />}
-          {steps
-            ? Object.entries(steps).map(([key, value], index) => (
-                <Accordion
-                  defaultValue={Object.keys(steps)[0]}
-                  type="single"
-                  collapsible
-                >
-                  <AccordionItem value={key}>
-                    <AccordionTrigger
-                      className={`mb-4 py-0 text-sm hover:no-underline ${
-                        index > 0 && "mt-2"
-                      }`}
+          {isSuccess ? (
+            <>
+              {steps
+                ? Object.entries(steps).map(([key, value], index) => (
+                    <Accordion
+                      defaultValue={Object.keys(steps)[0]}
+                      type="single"
+                      collapsible
                     >
-                      <p className="font-semibold">{key}</p>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <CustomMarkdown message={value} />
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              ))
-            : message && <CustomMarkdown message={message} />}
-          {type === "ai" && message.length > 0 && (
-            <div className="flex space-x-2 ">
-              {langfuseWeb && (
+                      <AccordionItem value={key}>
+                        <AccordionTrigger
+                          className={`mb-4 py-0 text-sm hover:no-underline ${
+                            index > 0 && "mt-2"
+                          }`}
+                        >
+                          <p className="font-semibold">{key}</p>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <CustomMarkdown message={value} />
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  ))
+                : message && <CustomMarkdown message={message} />}
+              {type === "ai" && message.length > 0 && (
                 <div className="flex space-x-2 ">
+                  {langfuseWeb && (
+                    <div className="flex space-x-2 ">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleFeedback(1)}
+                        className="rounded-lg"
+                      >
+                        <GoThumbsup size="15px" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleFeedback(0)}
+                        className="rounded-lg"
+                      >
+                        <GoThumbsdown size="15px" />
+                      </Button>
+                    </div>
+                  )}
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleFeedback(1)}
+                    onClick={() => handleCopy()}
                     className="rounded-lg"
                   >
-                    <GoThumbsup size="15px" />
+                    <RxCopy size="15px" />
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleFeedback(0)}
-                    className="rounded-lg"
-                  >
-                    <GoThumbsdown size="15px" />
-                  </Button>
+                  {onResubmit && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={onResubmit}
+                      className="rounded-lg"
+                    >
+                      <RxReload size="15px" />
+                    </Button>
+                  )}
                 </div>
               )}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleCopy()}
-                className="rounded-lg"
-              >
-                <RxCopy size="15px" />
-              </Button>
-              {onResubmit && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={onResubmit}
-                  className="rounded-lg"
-                >
-                  <RxReload size="15px" />
-                </Button>
-              )}
-            </div>
+            </>
+          ) : (
+            <MessageAlert error={message} />
           )}
         </div>
       </div>
@@ -273,5 +283,21 @@ const CustomMarkdown = ({ message }: CustomMarkdownProps) => {
     >
       {message}
     </MemoizedReactMarkdown>
+  )
+}
+
+interface MessageAlertProps {
+  error: string
+}
+
+function MessageAlert({ error }: MessageAlertProps) {
+  return (
+    <Alert className="bg-destructive/10" variant="destructive">
+      <AiOutlineExclamationCircle className="h-4 w-4" />
+      <AlertTitle>Error</AlertTitle>
+      <AlertDescription>
+        <b>{error}.</b>
+      </AlertDescription>
+    </Alert>
   )
 }

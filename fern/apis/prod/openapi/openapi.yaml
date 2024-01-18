@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The open framework for building AI Assistants
-  version: 0.1.54
+  version: 0.1.56
 servers:
   - url: https://api.beta.superagent.sh
 paths:

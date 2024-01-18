@@ -90,6 +90,9 @@ Superagent is an open-source project, and contributions are welcome. If you want
 
 To see how to contribute, visit [Contribution guidelines](https://github.com/homanp/Superagent/blob/main/.github/CONTRIBUTING.md)
 
+To help with contributions, you can search, navigate, and understand Superagent's source code using Onboard AI's free tool LearnThisRepo.
+[learnthisrepo.com/superagent](https://learnthisrepo.com/superagent)
+
 <a href="https://github.com/homanp/superagent/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=homanp/superagent" />
 </a>

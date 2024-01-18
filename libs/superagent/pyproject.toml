@@ -55,9 +55,9 @@ langsmith = "0.0.77"
 langchain = "0.0.354"
 algoliasearch = "^3.0.0"
 litellm = "^1.14.1"
-langfuse = "^1.6.0"
 weaviate-client = "^3.25.3"
 qdrant-client = "^1.6.9"
+langfuse = "^2.6.3"
 
 
 [build-system]

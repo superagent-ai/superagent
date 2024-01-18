@@ -10,8 +10,6 @@ from fastapi.responses import StreamingResponse
 from langchain.agents import AgentExecutor
 from langchain.chains import LLMChain
 from langfuse import Langfuse
-from langfuse.model import CreateTrace
-from langsmith import Client
 
 from app.agents.base import AgentBase
 from app.models.request import (
@@ -41,7 +39,6 @@ from app.models.response import (
 from app.models.response import (
     AgentList as AgentListResponse,
 )
-from app.models.response import AgentRunList as AgentRunListResponse
 from app.models.response import (
     AgentToolList as AgentToolListResponse,
 )
@@ -212,12 +209,11 @@ async def invoke(
         )
         session_id = f"{agent_id}-{body.sessionId}" if body.sessionId else f"{agent_id}"
         trace = langfuse.trace(
-            CreateTrace(
-                id=session_id,
-                name="Assistant",
-                userId=api_user.id,
-                metadata={"agentId": agent_id},
-            )
+            id=session_id,
+            name="Assistant",
+            tags=[agent_id],
+            metadata={"agentId": agent_id},
+            user_id=api_user.id,
         )
         langfuse_handler = trace.get_langchain_handler()
 
@@ -236,7 +232,7 @@ async def invoke(
             )
 
             async for token in callback.aiter():
-                yield f"data: {token}\n\n"
+                yield ("event: message\n" f"data: {token}\n\n")
 
             await task
             result = task.result()
@@ -251,8 +247,9 @@ async def invoke(
                             f'data: {{"function": "{function}", '
                             f'"args": {json.dumps(args)}}}\n\n'
                         )
-        except Exception as e:
-            logging.error(f"Error in send_message: {e}")
+        except Exception as error:
+            logging.error(f"Error in send_message: {error}")
+            yield ("event: error\n" f"data: {error}\n\n")
         finally:
             callback.done.set()
 
@@ -503,27 +500,3 @@ async def remove_datasource(
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
-
-
-# Agent runs
-@router.get(
-    "/agents/{agent_id}/runs",
-    name="list_runs",
-    description="List agent runs",
-    response_model=AgentRunListResponse,
-)
-async def list_runs(agent_id: str, api_user=Depends(get_current_api_user)):
-    """Endpoint for listing agent runs"""
-    is_langsmith_enabled = config("LANGCHAIN_TRACING_V2", False)
-    if is_langsmith_enabled == "True":
-        langsmith_client = Client()
-        try:
-            output = langsmith_client.list_runs(
-                project_id=config("LANGSMITH_PROJECT_ID"),
-                filter=f"has(tags, '{agent_id}')",
-            )
-            return {"success": True, "data": output}
-        except Exception as e:
-            handle_exception(e)
-
-    return {"success": False, "data": []}
