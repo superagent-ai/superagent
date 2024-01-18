@@ -23,19 +23,9 @@ export const siteConfig = {
       icon: RxPlay,
     },
     {
-      title: "workflows",
-      href: "/workflows",
-      icon: GoWorkflow,
-    },
-    {
       title: "datasources",
       href: "/datasources",
       icon: RxReader,
-    },
-    {
-      title: "apis",
-      href: "/apis",
-      icon: RxGlobe,
     },
     {
       title: "llms",

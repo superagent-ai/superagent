@@ -121,7 +121,7 @@ export class Api {
   }
 
   async getAgents(
-    searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
+    searchParams: { take?: number; skip?: number } = { skip: 0, take: 300 }
   ) {
     return this.fetchFromApi("/agents", {}, searchParams)
   }
