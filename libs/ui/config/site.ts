@@ -1,13 +1,10 @@
 import { VectorDbProvider } from "@/models/models"
-import { GoWorkflow } from "react-icons/go"
 import {
   RxAvatar,
   RxDiscordLogo,
   RxFileText,
   RxGithubLogo,
-  RxGlobe,
   RxPlay,
-  RxReader,
 } from "react-icons/rx"
 import { TbBrain, TbDatabase } from "react-icons/tb"
 
@@ -21,11 +18,6 @@ export const siteConfig = {
       title: "Agents",
       href: "/agents",
       icon: RxPlay,
-    },
-    {
-      title: "datasources",
-      href: "/datasources",
-      icon: RxReader,
     },
     {
       title: "llms",
