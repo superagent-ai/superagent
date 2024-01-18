@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from typing import Optional
 
@@ -13,7 +12,6 @@ router = APIRouter()
 logging.basicConfig(level=logging.INFO)
 
 
-# Agent runs
 @router.get(
     "/runs",
     name="list_runs",
