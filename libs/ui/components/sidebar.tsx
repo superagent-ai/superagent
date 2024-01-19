@@ -22,7 +22,7 @@ export default function Sidebar() {
 
   return (
     <div
-      className={`flex h-full w-16 flex-col items-center justify-between space-y-6 border-r py-4 align-top ${
+      className={`flex h-full w-16 flex-col items-center justify-between space-y-6 border-r bg-muted py-4 align-top ${
         !session && "hidden"
       }`}
     >

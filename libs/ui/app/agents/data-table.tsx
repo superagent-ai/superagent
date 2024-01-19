@@ -35,24 +35,26 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <ScrollArea className="w-[500px] border-r">
+    <ScrollArea className="w-[400px] border-r">
       <div className="flex flex-col">
-        <div className="bg-background/95 px-6 py-5 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Filter by name..."
-              value={
-                (table.getColumn("name")?.getFilterValue() as string) ?? ""
-              }
-              onChange={(event) =>
-                table.getColumn("name")?.setFilterValue(event.target.value)
-              }
-              className="min-w-full pl-10"
-            />
+        <div className="absolute w-full">
+          <div className="bg-background/95 px-6 py-5 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Filter by name..."
+                value={
+                  (table.getColumn("name")?.getFilterValue() as string) ?? ""
+                }
+                onChange={(event) =>
+                  table.getColumn("name")?.setFilterValue(event.target.value)
+                }
+                className="min-w-full pl-10"
+              />
+            </div>
           </div>
         </div>
-        <Table>
+        <Table className="mt-[70px]">
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (

@@ -1,12 +1,12 @@
 import { VectorDbProvider } from "@/models/models"
 import {
-  RxAvatar,
-  RxDiscordLogo,
-  RxFileText,
-  RxGithubLogo,
-  RxPlay,
-} from "react-icons/rx"
-import { TbBrain, TbDatabase } from "react-icons/tb"
+  TbBrain,
+  TbBrandDiscord,
+  TbChartBar,
+  TbDatabase,
+  TbFileCode,
+  TbUserCircle,
+} from "react-icons/tb"
 
 export type SiteConfig = typeof siteConfig
 
@@ -15,18 +15,18 @@ export const siteConfig = {
   description: "The agent framework for large language models",
   mainNav: [
     {
-      title: "Agents",
-      href: "/agents",
-      icon: RxPlay,
+      title: "Home",
+      href: "/stats",
+      icon: TbChartBar,
     },
     {
-      title: "llms",
-      href: "/llms",
+      title: "Agents",
+      href: "/agents",
       icon: TbBrain,
     },
     {
-      title: "vector databases",
-      href: "/vector-databases",
+      title: "Logs",
+      href: "/logs",
       icon: TbDatabase,
     },
   ],
@@ -34,22 +34,17 @@ export const siteConfig = {
     {
       title: "Discord",
       href: "https://discord.com/invite/mhmJUTjW4b",
-      icon: RxDiscordLogo,
-    },
-    {
-      title: "Github",
-      href: "https://github.com/homanp/superagent",
-      icon: RxGithubLogo,
+      icon: TbBrandDiscord,
     },
     {
       title: "Documentation",
       href: "https://docs.superagent.sh",
-      icon: RxFileText,
+      icon: TbFileCode,
     },
     {
       title: "Settings",
       href: "/settings",
-      icon: RxAvatar,
+      icon: TbUserCircle,
     },
   ],
   settingsNav: [

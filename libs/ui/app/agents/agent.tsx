@@ -1,11 +1,23 @@
 "use client"
 
-import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { PiTrash } from "react-icons/pi"
 import { RxActivityLog, RxGear, RxPlay } from "react-icons/rx"
-import { useAsync } from "react-use"
 
 import { Api } from "@/lib/api"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import Overview from "./overview"
@@ -20,12 +32,8 @@ interface Agent {
 
 export default function Agent({ agent, profile }: Agent) {
   const api = new Api(profile.api_key)
-  const { loading, value: runs } = useAsync(async () => {
-    const { data: runs } = await api.getRuns({ agent_id: agent.id })
-    return runs
-  }, [agent])
-
-  return (
+  const router = useRouter()
+  return agent ? (
     <div className="flex flex-1 flex-col space-y-5 p-6">
       <div className="flex space-x-2 text-sm text-muted-foreground">
         <span>Assistants</span>
@@ -38,21 +46,54 @@ export default function Agent({ agent, profile }: Agent) {
           </div>
         </Badge>
       </div>
-      <div className="flex flex-col space-y-2">
-        <p className="text-2xl">{agent?.name}</p>
-        <div className="flex space-x-6">
-          <span className="font-mono text-xs font-normal text-muted-foreground">
-            <span>
-              MODEL: <span className="text-foreground">{agent?.llmModel}</span>
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col space-y-2">
+          <p className="text-2xl">{agent?.name}</p>
+          <div className="flex space-x-6">
+            <span className="font-mono text-xs font-normal text-muted-foreground">
+              <span>
+                MODEL:{" "}
+                <span className="text-foreground">
+                  {agent?.llmModel} ({agent?.llms[0]?.llm.provider})
+                </span>
+              </span>
             </span>
-          </span>
-          <span className="font-mono text-xs font-normal text-muted-foreground">
-            <span>
-              CREATED AT:{" "}
-              <span className="text-foreground">{agent?.createdAt}</span>
+            <span className="font-mono text-xs font-normal text-muted-foreground">
+              <span>
+                CREATED AT:{" "}
+                <span className="text-foreground">{agent?.createdAt}</span>
+              </span>
             </span>
-          </span>
+          </div>
         </div>
+        <AlertDialog>
+          <AlertDialogTrigger>
+            <Button variant="outline" size="sm" className="space-x-2">
+              <PiTrash size={20} />
+              <span>Delete</span>
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete your
+                account and remove your data from our servers.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={async () => {
+                  await api.deleteAgentById(agent.id)
+                  router.push("/agents")
+                }}
+              >
+                Yes, delete!
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       <Tabs defaultValue="overview">
         <TabsList>
@@ -70,7 +111,7 @@ export default function Agent({ agent, profile }: Agent) {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="py-2 text-sm">
-          <Overview runs={runs} agent={agent} />
+          <Overview agent={agent} />
         </TabsContent>
         <TabsContent value="logs" className="py-2 text-sm">
           Logs
@@ -79,6 +120,13 @@ export default function Agent({ agent, profile }: Agent) {
           Runs
         </TabsContent>
       </Tabs>
+    </div>
+  ) : (
+    <div className="flex flex-1 flex-col items-center justify-center">
+      <p className="text-sm font-medium">No assistant selected</p>
+      <p className="text-sm">
+        View details about an assistant by navigating the list to the left
+      </p>
     </div>
   )
 }

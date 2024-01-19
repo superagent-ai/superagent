@@ -1,49 +1,17 @@
 "use client"
 
-import React, { PureComponent } from "react"
 import Image from "next/image"
-import { RxCopy } from "react-icons/rx"
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts"
+import { Search } from "lucide-react"
+import { RxCopy, RxPlus } from "react-icons/rx"
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 
 import { siteConfig } from "@/config/site"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 
-interface Run {
-  startTime: string
-  totalTokens: number
-}
-
-export default function Overview({ runs, agent }: { runs: [Run]; agent: any }) {
-  const llmConfig = siteConfig.llms.find(
-    (llm) => llm.id === agent?.llms[0]?.llm.provider
-  )
-  const data =
-    runs?.length > 1
-      ? runs.reduce((acc: { date: string; count: number }[], run: Run) => {
-          // Assuming startTime is a string in ISO format
-          const date = new Date(run.startTime).toISOString().split("T")[0]
-          const found = acc.find((item) => item.date === date)
-
-          if (found) {
-            found.count += 1
-          } else {
-            acc.push({ date, count: 1 })
-          }
-
-          return acc
-        }, [])
-      : []
+export default function Overview({ agent }: { agent: any }) {
+  const data: any[] = []
 
   return (
     <div className="flex space-x-6">
@@ -73,12 +41,29 @@ export default function Overview({ runs, agent }: { runs: [Run]; agent: any }) {
           </ResponsiveContainer>
           <div className="flex items-end space-x-2 px-6 pb-6 text-2xl">
             <p className="leading-none"></p>
-            <p className="leading-none">{runs?.length + 1}</p>
+            <p className="leading-none">10</p>
             <p className="text-sm text-muted-foreground">Total requests</p>
           </div>
         </Card>
         <Card>
-          <CardHeader>Datasources</CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between py-4">
+            <span>Datasources</span>
+            <div className="flex items-center space-x-2">
+              <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Filter by name..."
+                    className="min-w-[300px] pl-10"
+                  />
+                </div>
+              </div>
+              <Button size="sm" className="space-x-2">
+                <RxPlus />
+                <span>Add</span>
+              </Button>
+            </div>
+          </CardHeader>
           <CardContent>
             <p>OK</p>
           </CardContent>
@@ -99,22 +84,6 @@ export default function Overview({ runs, agent }: { runs: [Run]; agent: any }) {
             </div>
           </CardContent>
         </Card>
-        {llmConfig && (
-          <Card>
-            <CardHeader className="pb-2 font-medium">LLM Provider</CardHeader>
-            <CardContent className="w-[400px] pt-0">
-              <div className="flex space-x-2">
-                <Image
-                  src={llmConfig.logo || ""}
-                  width="20"
-                  height="20"
-                  alt={llmConfig.name || ""}
-                />
-                <span>{llmConfig.name}</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
         <Card>
           <CardHeader className="pb-2 font-medium">Prompt</CardHeader>
           <CardContent className="w-[400px] pt-0">
