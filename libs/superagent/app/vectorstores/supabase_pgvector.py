@@ -23,15 +23,15 @@ class SupabaseVectorStore:
         self.options = options
 
         variables = {
-            "SUPABASE_PGVECTOR_DB_URL": get_first_non_null(
+            "SUPABASE_DB_URL": get_first_non_null(
                 db_conn_url,
-                options.get("SUPABASE_PGVECTOR_DB_CONN_URL"),
-                config("SUPABASE_PGVECTOR_DB_CONN_URL", None),
+                options.get("SUPABASE_DB_URL"),
+                config("SUPABASE_DB_URL", None),
             ),
-            "SUPABASE_PGVECTOR_COLLECTION_NAME": get_first_non_null(
+            "SUPABASE_TABLE_NAME": get_first_non_null(
                 index_name,
-                options.get("SUPABASE_PGVECTOR_COLLECTION_NAME"),
-                config("SUPABASE_PGVECTOR_COLLECTION_NAME", None),
+                options.get("SUPABASE_TABLE_NAME"),
+                config("SUPABASE_TABLE_NAME", None),
             ),
         }
 
@@ -42,7 +42,7 @@ class SupabaseVectorStore:
                 )
 
         # create vector store client
-        self.client = vecs.create_client(variables["SUPABASE_PGVECTOR_DB_URL"])
+        self.client = vecs.create_client(variables["SUPABASE_DB_URL"])
 
         self.embeddings = OpenAIEmbeddings(
             model="text-embedding-ada-002", openai_api_key=config("OPENAI_API_KEY")
@@ -50,7 +50,7 @@ class SupabaseVectorStore:
 
         # create a collection named 'sentences' with 1536 dimensional vectors (default dimension for text-embedding-ada-002)
         self.collection = self.client.get_or_create_collection(
-            name=variables["SUPABASE_PGVECTOR_COLLECTION_NAME"], dimension=1536
+            name=variables["SUPABASE_TABLE_NAME"], dimension=1536
         )
 
         logger.info(f"Initialized Supabase PgVector Client with: {self.collection.name}")  # type: ignore

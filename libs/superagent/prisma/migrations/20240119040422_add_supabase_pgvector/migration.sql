@@ -1,2 +1,2 @@
 -- AlterEnum
-ALTER TYPE "VectorDbProvider" ADD VALUE 'SUPABASE_PGVECTOR';
+ALTER TYPE "VectorDbProvider" ADD VALUE 'SUPABASE';

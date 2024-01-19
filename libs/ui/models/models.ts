@@ -65,7 +65,7 @@ export enum VectorDbProvider {
   ASTRA_DB,
   WEAVIATE,
   QDRANT,
-  SUPABASE_PGVECTOR,
+  SUPABASE,
 }
 
 export class ApiUser {

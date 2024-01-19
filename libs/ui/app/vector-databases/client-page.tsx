@@ -68,8 +68,8 @@ const weaviateSchema = z.object({
 })
 
 const supabasePgVectorSchema = z.object({
-  SUPABASE_PGVECTOR_DB_CONN_URL: z.string(),
-  SUPABASE_PGVECTOR_COLLECTION_NAME: z.string(),
+  SUPABASE_DB_URL: z.string(),
+  SUPABASE_TABLE_NAME: z.string(),
 })
 
 const formSchema = z.object({

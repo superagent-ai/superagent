@@ -17,7 +17,7 @@ vector_db_mapping = {
     "qdrant": "QDRANT",
     "astra": "ASTRA_DB",
     "weaviate": "WEAVIATE",
-    "supabase_pgvector": "SUPABASE_PGVECTOR",
+    "supabase": "SUPABASE",
 }
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class VectorStoreBase:
             "ASTRA_DB": AstraVectorStore,
             "WEAVIATE": WeaviateVectorStore,
             "QDRANT": QdrantVectorStore,
-            "SUPABASE_PGVECTOR": SupabaseVectorStore,
+            "SUPABASE": SupabaseVectorStore,
         }
         index_names = {
             "PINECONE": get_first_non_null(
@@ -69,9 +69,9 @@ class VectorStoreBase:
                 config("QDRANT_INDEX", None),
                 self.DEFAULT_INDEX_NAME,
             ),
-            "SUPABASE_PGVECTOR": get_first_non_null(
-                self.options.get("SUPABASE_PGVECTOR_INDEX"),
-                config("SUPABASE_PGVECTOR_INDEX", None),
+            "SUPABASE": get_first_non_null(
+                self.options.get("SUPABASE_TABLE_NAME"),
+                config("SUPABASE_TABLE_NAME", None),
                 self.DEFAULT_INDEX_NAME,
             ),
         }

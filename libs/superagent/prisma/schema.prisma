@@ -78,7 +78,7 @@ enum VectorDbProvider {
   ASTRA_DB
   WEAVIATE
   QDRANT
-  SUPABASE_PGVECTOR
+  SUPABASE
 }
 
 model ApiUser {

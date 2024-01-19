@@ -488,14 +488,14 @@ export const siteConfig = {
       ],
     },
     {
-      provider: VectorDbProvider[VectorDbProvider.SUPABASE_PGVECTOR],
-      name: "Supabase Pgvector",
+      provider: VectorDbProvider[VectorDbProvider.SUPABASE],
+      name: "Supabase",
       description:
         "The pgvector extension is particularly useful for tasks such as vector similarity search, retrieval, generation, and clustering",
       formDescription: "Please enter your Supabase Pgvector credentials.",
       metadata: [
         {
-          key: "SUPABASE_PGVECTOR_DB_CONN_URL",
+          key: "SUPABASE_DB_URL",
           type: "input",
           label: "Database Connection URL",
           placeholder: "postgres://postgres:postgres@localhost:5432/postgres",
@@ -503,7 +503,7 @@ export const siteConfig = {
             "The connection URL for your database. You can find this in your Supabase dashboard.",
         },
         {
-          key: "SUPABASE_PGVECTOR_COLLECTION_NAME",
+          key: "SUPABASE_TABLE_NAME",
           type: "input",
           label: "Table Name",
           placeholder: "my_collection",
