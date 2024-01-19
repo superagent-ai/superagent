@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { RxActivityLog, RxGear, RxPlay } from "react-icons/rx"
-import { useAsyncFn } from "react-use"
+import { useAsync } from "react-use"
 
 import { Api } from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
@@ -20,14 +20,10 @@ interface Agent {
 
 export default function Agent({ agent, profile }: Agent) {
   const api = new Api(profile.api_key)
-  const [{ loading, value: runs }, fetch] = useAsyncFn(async () => {
-    const { data: runs } = await api.getRuns({ agentId: agent.id })
+  const { loading, value: runs } = useAsync(async () => {
+    const { data: runs } = await api.getRuns({ agent_id: agent.id })
     return runs
-  }, [])
-
-  useEffect(() => {
-    fetch()
-  }, [agent, fetch])
+  }, [agent])
 
   return (
     <div className="flex flex-1 flex-col space-y-5 p-6">
