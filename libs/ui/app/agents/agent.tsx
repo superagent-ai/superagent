@@ -111,7 +111,7 @@ export default function Agent({ agent, profile }: Agent) {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="py-2 text-sm">
-          <Overview agent={agent} />
+          <Overview agent={agent} profile={profile} />
         </TabsContent>
         <TabsContent value="logs" className="py-2 text-sm">
           Logs

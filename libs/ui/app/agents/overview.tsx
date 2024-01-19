@@ -1,16 +1,20 @@
 "use client"
 
-import Image from "next/image"
-import { Search } from "lucide-react"
-import { RxCopy, RxPlus } from "react-icons/rx"
+import { TbCopy } from "react-icons/tb"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 
-import { siteConfig } from "@/config/site"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 
-export default function Overview({ agent }: { agent: any }) {
+import Datasources from "./datasources"
+
+export default function Overview({
+  agent,
+  profile,
+}: {
+  agent: any
+  profile: any
+}) {
   const data: any[] = []
 
   return (
@@ -45,48 +49,27 @@ export default function Overview({ agent }: { agent: any }) {
             <p className="text-sm text-muted-foreground">Total requests</p>
           </div>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between py-4">
-            <span>Datasources</span>
-            <div className="flex items-center space-x-2">
-              <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Filter by name..."
-                    className="min-w-[300px] pl-10"
-                  />
-                </div>
-              </div>
-              <Button size="sm" className="space-x-2">
-                <RxPlus />
-                <span>Add</span>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p>OK</p>
-          </CardContent>
-        </Card>
+        <Datasources agent={agent} profile={profile} />
       </div>
       <div className="flex flex-col space-y-4">
         <Card>
           <CardHeader className="pb-2 font-medium">API endpoint</CardHeader>
-          <CardContent className="w-[400px] pt-0">
-            <div className="flex  items-center space-x-2">
+          <CardContent className="max-w-[300px] pt-0 lg:max-w-[400px]">
+            <div className="flex max-w-[300px] items-center space-x-2 pt-0 lg:max-w-[400px]">
               <span className="font-mono text-sm text-green-400">POST</span>
               <span className="overflow-hidden overflow-ellipsis whitespace-nowrap font-mono text-sm text-muted-foreground">
-                https://api.beta.superagent.sh/api/v1/agents/{agent?.id}/invoke
+                https://api.beta.superagent.sh/api/v1/agents/{agent?.id}
+                /invoke
               </span>
               <Button variant="outline" size="sm" className="flex-1">
-                <RxCopy />
+                <TbCopy size={20} />
               </Button>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2 font-medium">Prompt</CardHeader>
-          <CardContent className="w-[400px] pt-0">
+          <CardContent className="max-w-[300px] pt-0 lg:max-w-[400px]">
             <div className="flex space-x-2 text-muted-foreground">
               {agent.prompt}
             </div>
