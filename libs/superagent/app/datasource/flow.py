@@ -42,15 +42,11 @@ async def vectorize(
     datasource: Datasource, options: Optional[dict], vector_db_provider: Optional[str]
 ) -> None:
     data = DataLoader(datasource=datasource).load()
-    newDocuments = [
-        document.metadata.update({"datasource_id": datasource.id}) or document
-        for document in data
-    ]
 
     vector_store = VectorStoreBase(
         options=options, vector_db_provider=vector_db_provider
     )
-    vector_store.embed_documents(documents=newDocuments)
+    vector_store.embed_documents(documents=data, datasource_id=datasource.id)
 
 
 @task

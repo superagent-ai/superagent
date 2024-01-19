@@ -8,6 +8,7 @@ from app.utils.helpers import get_first_non_null
 from app.vectorstores.astra import AstraVectorStore
 from app.vectorstores.pinecone import PineconeVectorStore
 from app.vectorstores.qdrant import QdrantVectorStore
+from app.vectorstores.supabase_pgvector import SupabaseVectorStore
 from app.vectorstores.weaviate import WeaviateVectorStore
 from prisma.enums import VectorDbProvider
 
@@ -16,6 +17,7 @@ vector_db_mapping = {
     "qdrant": "QDRANT",
     "astra": "ASTRA_DB",
     "weaviate": "WEAVIATE",
+    "supabase_pgvector": "SUPABASE_PGVECTOR",
 }
 
 logger = logging.getLogger(__name__)
@@ -44,6 +46,7 @@ class VectorStoreBase:
             "ASTRA_DB": AstraVectorStore,
             "WEAVIATE": WeaviateVectorStore,
             "QDRANT": QdrantVectorStore,
+            "SUPABASE_PGVECTOR": SupabaseVectorStore,
         }
         index_names = {
             "PINECONE": get_first_non_null(
@@ -64,6 +67,11 @@ class VectorStoreBase:
             "QDRANT": get_first_non_null(
                 self.options.get("QDRANT_INDEX"),
                 config("QDRANT_INDEX", None),
+                self.DEFAULT_INDEX_NAME,
+            ),
+            "SUPABASE_PGVECTOR": get_first_non_null(
+                self.options.get("SUPABASE_PGVECTOR_INDEX"),
+                config("SUPABASE_PGVECTOR_INDEX", None),
                 self.DEFAULT_INDEX_NAME,
             ),
         }
@@ -102,8 +110,14 @@ class VectorStoreBase:
     # def _embed_with_retry(self, texts):
     #     return self.instance.embeddings.embed_documents(texts)
 
-    def embed_documents(self, documents: list[Document], batch_size: int = 20):
-        self.instance.embed_documents(documents, batch_size)
+    def embed_documents(
+        self, documents: list[Document], datasource_id: str, batch_size: int = 20
+    ):
+        newDocuments = [
+            document.metadata.update({"datasource_id": datasource_id}) or document
+            for document in documents
+        ]
+        self.instance.embed_documents(documents=newDocuments, batch_size=batch_size)
 
     def clear_cache(self, agent_id: str, datasource_id: str | None = None):
         self.instance.clear_cache(agent_id, datasource_id)
