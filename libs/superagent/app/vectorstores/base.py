@@ -5,10 +5,11 @@ from decouple import config
 from langchain.docstore.document import Document
 
 from app.utils.helpers import get_first_non_null
+from app.vectorstores.abstract import VectorStoreBase
 from app.vectorstores.astra import AstraVectorStore
 from app.vectorstores.pinecone import PineconeVectorStore
 from app.vectorstores.qdrant import QdrantVectorStore
-from app.vectorstores.supabase_pgvector import SupabaseVectorStore
+from app.vectorstores.supabase import SupabaseVectorStore
 from app.vectorstores.weaviate import WeaviateVectorStore
 from prisma.enums import VectorDbProvider
 
@@ -23,8 +24,7 @@ vector_db_mapping = {
 logger = logging.getLogger(__name__)
 
 
-# NOTE: Need an abstract class for the base vectorstore with defined methods
-class VectorStoreBase:
+class VectorStoreMain(VectorStoreBase):
     def __init__(self, options: Optional[dict], vector_db_provider: Optional[str]):
         """
         Determine the vectorstore

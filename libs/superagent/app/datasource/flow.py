@@ -7,7 +7,7 @@ from prefect import flow, task
 from app.datasource.loader import DataLoader
 from app.datasource.types import VALID_UNSTRUCTURED_DATA_TYPES
 from app.utils.prisma import prisma
-from app.vectorstores.base import VectorStoreBase
+from app.vectorstores.base import VectorStoreMain
 from prisma.enums import DatasourceStatus
 from prisma.models import AgentDatasource, Datasource
 
@@ -43,7 +43,7 @@ async def vectorize(
 ) -> None:
     data = DataLoader(datasource=datasource).load()
 
-    vector_store = VectorStoreBase(
+    vector_store = VectorStoreMain(
         options=options, vector_db_provider=vector_db_provider
     )
     vector_store.embed_documents(documents=data, datasource_id=datasource.id)
@@ -53,7 +53,7 @@ async def vectorize(
 async def handle_delete_datasource(
     datasource_id: str, options: Optional[dict], vector_db_provider: Optional[str]
 ) -> None:
-    vector_store = VectorStoreBase(
+    vector_store = VectorStoreMain(
         options=options, vector_db_provider=vector_db_provider
     )
     vector_store.delete(datasource_id=datasource_id)
