@@ -10,6 +10,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
 from pydantic.dataclasses import dataclass
 
 from app.utils.helpers import get_first_non_null
+from app.vectorstores.abstract import VectorStoreBase
 from app.vectorstores.astra_client import AstraClient, QueryResponse
 
 logger = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ class Response:
         self.metadata = metadata or {}
 
 
-class AstraVectorStore:
+class AstraVectorStore(VectorStoreBase):
     def __init__(
         self,
         options: dict,
