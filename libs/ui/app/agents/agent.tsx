@@ -8,6 +8,8 @@ import { Api } from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+import Overview from "./overview"
+
 interface Agent {
   agent: any
   profile: {
@@ -18,7 +20,7 @@ interface Agent {
 
 export default function Agent({ agent, profile }: Agent) {
   const api = new Api(profile.api_key)
-  const [{ loading, value }, fetch] = useAsyncFn(async () => {
+  const [{ loading, value: runs }, fetch] = useAsyncFn(async () => {
     const { data: runs } = await api.getRuns({ agentId: agent.id })
     return runs
   }, [])
@@ -71,11 +73,15 @@ export default function Agent({ agent, profile }: Agent) {
             <span>RUN</span>
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="overview" className="p-2">
-          Overview
+        <TabsContent value="overview" className="py-2 text-sm">
+          <Overview runs={runs} agent={agent} />
         </TabsContent>
-        <TabsContent value="logs">Logs</TabsContent>
-        <TabsContent value="runs">Runs</TabsContent>
+        <TabsContent value="logs" className="py-2 text-sm">
+          Logs
+        </TabsContent>
+        <TabsContent value="runs" className="py-2 text-sm">
+          Runs
+        </TabsContent>
       </Tabs>
     </div>
   )
