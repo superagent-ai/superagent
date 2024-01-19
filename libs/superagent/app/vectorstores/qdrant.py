@@ -10,11 +10,12 @@ from qdrant_client.http import models as rest
 from qdrant_client.http.models import PointStruct
 
 from app.utils.helpers import get_first_non_null
+from app.vectorstores.abstract import VectorStoreBase
 
 logger = logging.getLogger(__name__)
 
 
-class QdrantVectorStore:
+class QdrantVectorStore(VectorStoreBase):
     def __init__(
         self,
         options: dict,

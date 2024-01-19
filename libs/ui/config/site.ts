@@ -1,4 +1,5 @@
 import { VectorDbProvider } from "@/models/models"
+import { placeholder } from "@uiw/react-codemirror"
 import { GoWorkflow } from "react-icons/go"
 import {
   RxAvatar,
@@ -483,6 +484,31 @@ export const siteConfig = {
           key: "WEAVIATE_INDEX",
           type: "input",
           label: "Weaviate Index",
+        },
+      ],
+    },
+    {
+      provider: VectorDbProvider[VectorDbProvider.SUPABASE],
+      name: "Supabase",
+      description:
+        "The pgvector extension is particularly useful for tasks such as vector similarity search, retrieval, generation, and clustering",
+      formDescription: "Please enter your Supabase Pgvector credentials.",
+      metadata: [
+        {
+          key: "SUPABASE_DB_URL",
+          type: "input",
+          label: "Database Connection URL",
+          placeholder: "postgres://postgres:postgres@localhost:5432/postgres",
+          helpText:
+            "The connection URL for your database. You can find this in your Supabase dashboard.",
+        },
+        {
+          key: "SUPABASE_TABLE_NAME",
+          type: "input",
+          label: "Table Name",
+          placeholder: "my_collection",
+          helpText:
+            "The database table name which your vector embeddings will be stored in.",
         },
       ],
     },
