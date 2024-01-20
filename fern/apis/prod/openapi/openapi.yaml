@@ -1,8 +1,8 @@
 openapi: 3.0.2
 info:
   title: Superagent
-  description: The open framework for building AI Assistants
-  version: 0.1.56
+  description: The open source alternative to OpenAI Assistants API
+  version: 0.1.57
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -450,35 +450,6 @@ paths:
           content:
             application/json:
               schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - HTTPBearer: []
-  /api/v1/agents/{agent_id}/runs:
-    get:
-      tags:
-        - Agent
-      summary: List Runs
-      description: List agent runs
-      operationId: list_runs_api_v1_agents__agent_id__runs_get
-      parameters:
-        - required: true
-          schema:
-            title: Agent Id
-            type: string
-          name: agent_id
-          in: path
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentRunList'
         '422':
           description: Validation Error
           content:
@@ -1389,6 +1360,35 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
+  /api/v1/runs:
+    get:
+      tags:
+        - Telemetry
+      summary: List Runs
+      description: List runs
+      operationId: list_runs_api_v1_runs_get
+      parameters:
+        - required: false
+          schema:
+            title: Agent Id
+            type: string
+          name: agent_id
+          in: query
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentRunList'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
 components:
   schemas:
     AgentDatasosurceList:
@@ -1532,6 +1532,7 @@ components:
         - GPT_4_32K_0613
         - GPT_4_1106_PREVIEW
         - MISTRAL_7B_INSTRUCT_V01
+        - MIXTRAL_8X7B_INSTRUCT_V01
       type: string
       description: An enumeration.
     LLMProvider:
@@ -1625,6 +1626,7 @@ components:
         - ASTRA_DB
         - WEAVIATE
         - QDRANT
+        - SUPABASE
       type: string
       description: An enumeration.
     WorkflowInvoke:

@@ -67,12 +67,18 @@ const weaviateSchema = z.object({
   WEAVIATE_INDEX: z.string(),
 })
 
+const supabasePgVectorSchema = z.object({
+  SUPABASE_DB_URL: z.string(),
+  SUPABASE_TABLE_NAME: z.string(),
+})
+
 const formSchema = z.object({
   options: z.union([
     pineconeSchema,
     qdrantSchema,
     astraDbSchema,
     weaviateSchema,
+    supabasePgVectorSchema,
   ]),
 })
 
@@ -220,11 +226,19 @@ const VectorDbProviderCard = ({
                             {metadataField.type === "input" && (
                               <FormControl>
                                 {/* @ts-ignore */}
-                                <Input {...field} type="text" />
+                                <Input
+                                  {...field}
+                                  placeholder={
+                                    "placeholder" in metadataField
+                                      ? metadataField.placeholder
+                                      : ""
+                                  }
+                                  type="text"
+                                />
                               </FormControl>
                             )}
                             {"helpText" in metadataField && (
-                              <FormDescription>
+                              <FormDescription className="pb-2">
                                 {metadataField.helpText as string}
                               </FormDescription>
                             )}

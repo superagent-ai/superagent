@@ -150,7 +150,7 @@ export class Api {
     return this.fetchFromApi("/tools", {}, searchParams)
   }
 
-  async getRuns(searchParams: { agentId?: string }) {
+  async getRuns(searchParams: { agent_id?: string }) {
     return this.fetchFromApi("/runs", {}, searchParams)
   }
 
