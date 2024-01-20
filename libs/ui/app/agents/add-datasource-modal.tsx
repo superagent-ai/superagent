@@ -126,6 +126,7 @@ export default function AddDatsourceModal({
           name: file.name,
           description: `Useful for answering questions about ${file.name}`,
           type: mapMimeTypeToFileType(file.type),
+          url: publicUrl,
         })
 
         await api.createAgentDatasource(agent.id, datasource.id)
