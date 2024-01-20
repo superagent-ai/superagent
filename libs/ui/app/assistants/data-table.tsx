@@ -65,7 +65,7 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   onClick={() =>
-                    router.push(`/agents?agentId=${(row.original as any).id}`)
+                    router.push(`/assistants?id=${(row.original as any).id}`)
                   }
                 >
                   {row.getVisibleCells().map((cell) => (
