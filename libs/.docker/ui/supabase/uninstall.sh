@@ -1,6 +1,6 @@
 # Ensure Superagent is down first
 cd ../../
-docker compose down
+./stop.sh
 # Ensure supabase is down and remove volumes, delete local volume db data once down
 cd ui/supabase
 docker compose down -v --remove-orphans && rm -rf volumes/db/data/ && rm -rf volumes/storage

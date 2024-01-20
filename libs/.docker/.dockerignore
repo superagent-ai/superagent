@@ -11,8 +11,7 @@ out
 # Environment files
 .env
 .env*
-!.env.production
-!.env.local
+!.env.docker
 
 # Docker files
 docker-compose.yml
