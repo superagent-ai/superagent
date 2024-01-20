@@ -4,6 +4,7 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Search } from "lucide-react"
 import {
+  TbFile,
   TbFileTypeCsv,
   TbFileTypeDocx,
   TbFileTypePdf,
@@ -18,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
+import NonIdealState from "@/components/non-ideal-state"
 
 import AddDatsourceModal from "./add-datasource-modal"
 
@@ -104,6 +106,13 @@ export default function Datasources({
             </div>
           )
         })}
+        {agent.datasources.length === 0 && (
+          <NonIdealState
+            icon={TbFile}
+            title="No datasources found"
+            description="This assistant doesn't seem to have any datasources attached to it"
+          />
+        )}
       </CardContent>
     </Card>
   )
