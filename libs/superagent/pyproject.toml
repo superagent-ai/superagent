@@ -58,6 +58,7 @@ litellm = "^1.14.1"
 weaviate-client = "^3.25.3"
 qdrant-client = "^1.6.9"
 langfuse = "^2.6.3"
+vecs = "^0.4.2"
 
 
 [build-system]

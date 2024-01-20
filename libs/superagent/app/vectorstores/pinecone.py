@@ -11,6 +11,7 @@ from pinecone.core.client.models import QueryResponse
 from pydantic.dataclasses import dataclass
 
 from app.utils.helpers import get_first_non_null
+from app.vectorstores.abstract import VectorStoreBase
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class Response:
         self.metadata = metadata or {}
 
 
-class PineconeVectorStore:
+class PineconeVectorStore(VectorStoreBase):
     def __init__(
         self,
         options: dict,
