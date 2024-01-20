@@ -217,6 +217,23 @@ async def invoke(
         )
         langfuse_handler = trace.get_langchain_handler()
 
+    agent_metadata = {"agentId": agent_id, "sessionId": session_id}
+
+    def get_analytics_info(agent_metadata, result):
+        intermediate_steps_to_obj = [
+            {**vars(toolClass), "response": response}
+            for toolClass, response in result["intermediate_steps"]
+        ]
+
+        properties = {
+            **agent_metadata,
+            "output": result["output"],
+            "input": result["input"],
+            "intermediate_steps": intermediate_steps_to_obj,
+        }
+
+        return properties
+
     async def send_message(
         agent: LLMChain | AgentExecutor,
         content: str,
@@ -235,7 +252,15 @@ async def invoke(
                 yield ("event: message\n" f"data: {token}\n\n")
 
             await task
+
             result = task.result()
+
+            if SEGMENT_WRITE_KEY:
+                analytics.track(
+                    api_user.id,
+                    "Invoked Agent",
+                    get_analytics_info(agent_metadata, result),
+                )
             if "intermediate_steps" in result:
                 for step in result["intermediate_steps"]:
                     agent_action_message_log = step[0]
@@ -282,12 +307,19 @@ async def invoke(
         tags=[agent_id],
         callbacks=[langfuse_handler] if langfuse_handler else None,
     )
+
     if output_schema:
         try:
             output = json.loads(output.get("output"))
         except Exception as e:
             logging.error(f"Error parsing output: {e}")
-            output = None
+
+    if not enable_streaming and SEGMENT_WRITE_KEY:
+        analytics.track(
+            api_user.id,
+            "Invoked Agent",
+            get_analytics_info(agent_metadata, output),
+        )
     return {"success": True, "data": output}
 
 
