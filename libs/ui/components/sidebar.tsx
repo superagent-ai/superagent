@@ -54,40 +54,39 @@ export default function Sidebar() {
             </NextLink>
           ))}
         </div>
-      </div>
-      <div>
-        <p className="px-4 text-xs text-gray-300">{knowledgeBaseNav.title}</p>
-        <div className="flex flex-col px-2">
-          {knowledgeBaseNav.items.map((navItem) => (
-            <NextLink href={navItem.href} key={navItem.title}>
-              <ButtonSidebar
-                variant={pathname.includes(navItem.href) ? "active" : "ghost"}
-                size="icon"
-                className="flex w-full items-center justify-start bg-transparent px-3 text-white"
-              >
-                <navItem.icon size={20} className="mr-2" />
-                <span className="text-xs">{navItem.title}</span>
-              </ButtonSidebar>
-            </NextLink>
-          ))}
+        <div>
+          <p className="px-4 text-xs text-gray-300">{knowledgeBaseNav.title}</p>
+          <div className="flex flex-col px-2">
+            {knowledgeBaseNav.items.map((navItem) => (
+              <NextLink href={navItem.href} key={navItem.title}>
+                <ButtonSidebar
+                  variant={pathname.includes(navItem.href) ? "active" : "ghost"}
+                  size="icon"
+                  className="flex w-full items-center justify-start bg-transparent px-3 text-white"
+                >
+                  <navItem.icon size={20} className="mr-2" />
+                  <span className="text-xs">{navItem.title}</span>
+                </ButtonSidebar>
+              </NextLink>
+            ))}
+          </div>
         </div>
-      </div>
-
-      <div>
-        <p className="px-4 text-xs text-gray-300">{apiBaseNav.title}</p>
-        <div className="flex flex-col px-2">
-          {apiBaseNav.items.map((navItem) => (
-            <NextLink href={navItem.href} key={navItem.title}>
-              <ButtonSidebar
-                variant={pathname.includes(navItem.href) ? "active" : "ghost"}
-                size="icon"
-                className="flex w-full items-center justify-start bg-transparent px-3 text-white"
-              >
-                <navItem.icon size={20} className="mr-2" />
-                <span className="text-xs">{navItem.title}</span>
-              </ButtonSidebar>
-            </NextLink>
-          ))}
+        <div>
+          <p className="px-4 text-xs text-gray-300">{apiBaseNav.title}</p>
+          <div className="flex flex-col px-2">
+            {apiBaseNav.items.map((navItem) => (
+              <NextLink href={navItem.href} key={navItem.title}>
+                <ButtonSidebar
+                  variant={pathname.includes(navItem.href) ? "active" : "ghost"}
+                  size="icon"
+                  className="flex w-full items-center justify-start bg-transparent px-3 text-white"
+                >
+                  <navItem.icon size={20} className="mr-2" />
+                  <span className="text-xs">{navItem.title}</span>
+                </ButtonSidebar>
+              </NextLink>
+            ))}
+          </div>
         </div>
       </div>
 
