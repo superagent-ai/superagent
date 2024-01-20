@@ -18,6 +18,7 @@ services:
         NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
         NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY: ${NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY}
         NEXT_PUBLIC_LANGFUSE_BASE_URL: ${NEXT_PUBLIC_LANGFUSE_BASE_URL}
+    command: /bin/sh -c "npm run supabase:docker:push --debug && npm start"
     environment:
       - PORT=3000
       - SUPABASE_HOST=${SUPABASE_HOST}

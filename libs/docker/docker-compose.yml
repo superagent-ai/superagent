@@ -7,7 +7,7 @@ services:
     build:
       context: ../superagent
       dockerfile: Dockerfile
-    command: "until nc -z ${POSTGRES_DB_HOST} 5432; do echo 'waiting for ${POSTGRES_DB_HOST}:5432 to be available'; sleep 1; done && prisma migrate deploy && exec gunicorn --bind :$PORT --workers 2 --timeout 0 --worker-class uvicorn.workers.UvicornWorker --threads 8 app.main:app"
+    command: /bin/sh -c "until nc -z ${POSTGRES_DB_HOST} 5432; do echo 'waiting for ${POSTGRES_DB_HOST}:5432 to be available'; sleep 1; done && prisma migrate deploy && exec gunicorn --bind :8080 --workers 2 --timeout 0 --worker-class uvicorn.workers.UvicornWorker --threads 8 app.main:app"
     environment:
       - PORT=8080
       - POSTGRES_DB_HOST=${POSTGRES_DB_HOST}

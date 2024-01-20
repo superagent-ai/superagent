@@ -74,4 +74,4 @@ COPY --from=build /app/supabase ./supabase
 RUN npm ci --only=production
 
 # Start the application
-CMD printenv && npm run supabase:docker:push --debug && npm start
+CMD npm start

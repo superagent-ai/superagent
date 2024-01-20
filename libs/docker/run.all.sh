@@ -1,11 +1,5 @@
 # Remove any running services
-docker compose -f docker-compose.yml \
-        -f superagent/db/docker-compose.pgdb.yml \
-        -f superagent/db/docker-compose.pgadmin.yml \
-        -f superagent/motorhead/docker-compose.motorhead.yml \
-        -f ui/docker-compose.ui.yml \
-        down \
-        # -v # TODO: Remove the -v flag when we have a persistent database
+./stop.sh
 
 # Check if the network exists
 if ! docker network ls | grep -q superagent_network; then
@@ -23,4 +17,4 @@ docker-compose -f docker-compose.yml \
         --build \
         -d
 
-docker logs superagent-api -f
+docker logs superagent-ui
