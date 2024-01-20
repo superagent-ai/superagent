@@ -1,12 +1,13 @@
 "use client"
 
+import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Search } from "lucide-react"
-import { RxPlus } from "react-icons/rx"
 import {
   TbFileTypeCsv,
   TbFileTypeDocx,
   TbFileTypePdf,
+  TbFileTypePpt,
   TbFileTypeTxt,
   TbFileTypeXls,
   TbTrash,
@@ -16,6 +17,9 @@ import { Api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
+
+import AddDatsourceModal from "./add-datasource-modal"
 
 interface Datasource {
   datasource: {
@@ -39,6 +43,8 @@ function DatasourceIcon({ type }: { type: string }) {
       return <TbFileTypeTxt size={20} className="text-gray-500" />
     case "DOCX":
       return <TbFileTypeDocx size={20} className="text-blue-500" />
+    case "PPTX":
+      return <TbFileTypePpt size={20} className="text-orange-500" />
   }
 }
 
@@ -51,6 +57,7 @@ export default function Datasources({
 }) {
   const api = new Api(profile.api_key)
   const router = useRouter()
+  const [isLoading, setIsLoading] = React.useState<string | null>()
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-x-4 py-4">
@@ -65,31 +72,36 @@ export default function Datasources({
               />
             </div>
           </div>
-          <Button size="sm" className="space-x-2">
-            <RxPlus />
-            <span>Add</span>
-          </Button>
+          <AddDatsourceModal profile={profile} agent={agent} />
         </div>
       </CardHeader>
       <CardContent>
-        {agent.datasources.map(({ datasource }: Datasource) => (
-          <div className="flex items-center justify-between border-t py-3">
-            <div className="flex space-x-4">
-              <DatasourceIcon type={datasource.type} />
-              <p>{datasource.name}</p>
+        {agent.datasources.map(({ datasource }: Datasource) => {
+          return (
+            <div className="flex items-center justify-between border-t py-3">
+              <div className="flex space-x-4">
+                <DatasourceIcon type={datasource.type} />
+                <p>{datasource.name}</p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => {
+                  setIsLoading(datasource.id)
+                  await api.deleteAgentDatasource(agent.id, datasource.id)
+                  router.refresh()
+                  setIsLoading(null)
+                }}
+              >
+                {isLoading === datasource.id ? (
+                  <Spinner />
+                ) : (
+                  <TbTrash size={20} />
+                )}
+              </Button>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={async () => {
-                await api.deleteAgentDatasource(agent.id, datasource.id)
-                router.refresh()
-              }}
-            >
-              <TbTrash size={20} />
-            </Button>
-          </div>
-        ))}
+          )
+        })}
       </CardContent>
     </Card>
   )

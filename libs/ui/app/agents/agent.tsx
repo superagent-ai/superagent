@@ -1,8 +1,8 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { PiTrash } from "react-icons/pi"
 import { RxActivityLog, RxGear, RxPlay } from "react-icons/rx"
+import { TbTrash } from "react-icons/tb"
 
 import { Api } from "@/lib/api"
 import {
@@ -69,7 +69,7 @@ export default function Agent({ agent, profile }: Agent) {
         <AlertDialog>
           <AlertDialogTrigger>
             <Button variant="outline" size="sm" className="space-x-2">
-              <PiTrash size={20} />
+              <TbTrash size={20} />
               <span>Delete</span>
             </Button>
           </AlertDialogTrigger>
