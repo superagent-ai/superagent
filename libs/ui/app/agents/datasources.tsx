@@ -45,6 +45,8 @@ function DatasourceIcon({ type }: { type: string }) {
       return <TbFileTypeDocx size={20} className="text-blue-500" />
     case "PPTX":
       return <TbFileTypePpt size={20} className="text-orange-500" />
+    default:
+      return <TbFileTypeTxt size={20} className="text-gray-500" />
   }
 }
 
