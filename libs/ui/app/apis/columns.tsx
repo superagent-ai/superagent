@@ -87,7 +87,14 @@ export function DeleteButton({
     }
   }
 
-  return <DropdownMenuItem onSelect={handleDeleteTool}>Delete</DropdownMenuItem>
+  return (
+    <Button
+      onClick={handleDeleteTool}
+      className="rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700"
+    >
+      Borrar
+    </Button>
+  )
 }
 
 export function CopyButton({ id }: { id: string }) {
@@ -281,26 +288,7 @@ export const columns = (profile: Profile): ColumnDef<DataType>[] => [
 
       return (
         <div className="flex justify-end">
-          <Dialog>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <CopyButton id={api.id} />
-                <DialogTrigger asChild>
-                  <DropdownMenuItem>Edit</DropdownMenuItem>
-                </DialogTrigger>
-                <DropdownMenuSeparator />
-                <DeleteButton id={api.id} profile={profile} />
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <EditTool tool={api} profile={profile} />
-          </Dialog>
+          <DeleteButton id={api.id} profile={profile} />
         </div>
       )
     },
