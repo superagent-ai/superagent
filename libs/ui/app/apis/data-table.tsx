@@ -144,15 +144,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-      <div className="flex items-center space-x-4 py-4">
-        <Input
-          placeholder="Filter by name..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
-          className="max-w-md"
-        />
+      <div className="mb-5 flex items-center space-x-4 py-4">
         <Button
           size="sm"
           onClick={() => {
@@ -307,42 +299,49 @@ export function DataTable<TData, TValue>({
           </DialogContent>
         </Dialog>
       </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+      <div>
+        <div>
+          <div className="flex w-full">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <div
+                className="grid flex-1 grid-cols-12 gap-4"
+                key={headerGroup.id}
+              >
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <div
+                      className="col-span-2 text-xs text-gray-400"
+                      key={header.id}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
                             header.getContext()
                           )}
-                    </TableHead>
+                    </div>
                   )
                 })}
-              </TableRow>
+              </div>
             ))}
-          </TableHeader>
-          <TableBody>
+          </div>
+          <div className="mt-2">
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
+                <div
+                  className="hover:bg-white-100 grid flex-1 cursor-pointer grid-cols-12 gap-4 rounded-sm px-4"
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-3">
+                    <div key={cell.id} className="col-span-2 py-3">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
                       )}
-                    </TableCell>
+                    </div>
                   ))}
-                </TableRow>
+                </div>
               ))
             ) : (
               <TableRow>
@@ -351,8 +350,8 @@ export function DataTable<TData, TValue>({
                 </TableCell>
               </TableRow>
             )}
-          </TableBody>
-        </Table>
+          </div>
+        </div>
       </div>
       <DataTablePagination
         className="py-4"
