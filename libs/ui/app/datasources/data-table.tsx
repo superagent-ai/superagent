@@ -509,7 +509,7 @@ export function DataTable<TData, TValue>({
                         <div className="relative flex flex-col items-center justify-between space-y-4 rounded-lg border border-dashed p-4">
                           <div className="flex flex-col items-center justify-center">
                             <p className="text-sm">Select files</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-muted-foreground text-sm">
                               Upload local files from your device
                             </p>
                           </div>
@@ -543,7 +543,7 @@ export function DataTable<TData, TValue>({
                         <div className="relative flex flex-col items-center justify-between space-y-4 rounded-lg border border-dashed p-4">
                           <div className="flex flex-col items-center justify-center">
                             <p className="text-sm">Connect to your accounts</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-muted-foreground text-sm">
                               Google Drive, Dropbox, Box etc.
                             </p>
                           </div>
@@ -612,7 +612,7 @@ export function DataTable<TData, TValue>({
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <div
-                  className="grid flex-1 cursor-pointer grid-cols-12 gap-4 rounded-sm px-4 hover:bg-white-100"
+                  className="hover:bg-white-100 grid flex-1 cursor-pointer grid-cols-12 gap-4 rounded-sm px-4"
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
