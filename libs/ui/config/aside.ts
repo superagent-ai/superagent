@@ -1,4 +1,4 @@
-import { RxClock, RxColorWheel, RxCountdownTimer, RxFileText, RxGear, RxHome, RxReader, RxRocket, RxShare2, RxStack } from "react-icons/rx";
+import { RxClock, RxColorWheel, RxCountdownTimer, RxFileText, RxGear, RxHome, RxPaperPlane, RxReader, RxRocket, RxShare2, RxStack } from "react-icons/rx";
 
 export const workspaceNav = {
   title: "Espacio de trabajo",
@@ -56,13 +56,13 @@ export const apiBaseNav = {
   items: [
     {
       title: "APIs",
-      href: "/datasources",
+      href: "/apis",
       icon: RxClock,
     },
     {
       title: "Plataformas",
-      href: "/faqs",
-      icon: RxHome,
+      href: "/integration",
+      icon: RxRocket,
     },
   ],
 };
@@ -84,7 +84,7 @@ export const helpBaseNav = {
     {
       title: "Soporte",
       href: "/faqs",
-      icon: RxRocket,
+      icon: RxPaperPlane,
     },
   ],
 };
