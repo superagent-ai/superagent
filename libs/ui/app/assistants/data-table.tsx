@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
   ColumnDef,
   flexRender,
@@ -24,8 +24,8 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-  const searchParams = useSearchParams()
-  const activeAgent = searchParams.get("agentId")
+  const pathname = usePathname()
+  const activeAgent = pathname.split("/")[2]
   const router = useRouter()
   const table = useReactTable({
     data,
@@ -65,7 +65,7 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   onClick={() =>
-                    router.push(`/agents?agentId=${(row.original as any).id}`)
+                    router.push(`/assistants/${(row.original as any).id}`)
                   }
                 >
                   {row.getVisibleCells().map((cell) => (

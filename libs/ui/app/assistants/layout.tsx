@@ -3,26 +3,21 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { Api } from "@/lib/api"
 
-import Agent from "./agent"
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
 
-export const dynamic = "force-dynamic"
-
-interface SearchParams {
-  searchParams: string
+interface AssistantsLayoutProps {
+  children: React.ReactNode
+  params: { slug: string }
 }
 
-export default async function Agents({
-  searchParams,
-}: {
-  searchParams: {
-    agentId: string
-  }
-}) {
+export default async function AssistantsLayout({
+  params,
+  children,
+}: AssistantsLayoutProps) {
   let agent = ""
   const supabase = createRouteHandlerClient({ cookies })
-  const { agentId } = searchParams
+  const { slug } = params
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -38,17 +33,17 @@ export default async function Agents({
     take: 300,
   })
 
-  if (agentId) {
-    const { data } = await api.getAgentById(agentId)
+  if (slug) {
+    const { data } = await api.getAgentById(slug)
     agent = data
   }
 
   return (
     <div className="flex h-screen flex-col justify-between space-y-0 overflow-hidden">
-      <p className="border-b px-6 py-5">Assistants</p>
+      <p className="border-b px-6 py-5 font-medium">Assistants</p>
       <div className="flex grow overflow-auto">
         <DataTable columns={columns} data={agents} />
-        <Agent agent={agent} profile={profile} />
+        {children}
       </div>
     </div>
   )

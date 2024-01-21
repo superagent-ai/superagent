@@ -10,9 +10,9 @@ interface SettingsLayoutProps {
 
 export default function SettingsLayout({ children }: SettingsLayoutProps) {
   return (
-    <div className="flex flex-col space-y-4 p-5">
-      <p className="text-lg">Settings</p>
-      <div className="flex flex-row space-x-20">
+    <div className="flex flex-col space-y-4 ">
+      <p className="border-b px-6 py-5 font-medium">Settings</p>
+      <div className="flex flex-row space-x-20 p-5">
         <SettingsSidebar items={siteConfig.settingsNav} />
         <div className="flex flex-1 flex-col space-y-8">{children}</div>
       </div>
