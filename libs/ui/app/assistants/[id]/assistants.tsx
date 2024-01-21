@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+import LogList from "../../../components/log-list"
 import Overview from "./overview"
 
 interface Agent {
@@ -30,12 +31,12 @@ interface Agent {
   }
 }
 
-export default function Agent({ agent, profile }: Agent) {
+export default function AssistantsDetail({ agent, profile }: Agent) {
   const api = new Api(profile.api_key)
   const router = useRouter()
   return agent ? (
-    <div className="flex flex-1 flex-col space-y-5 p-6">
-      <div className="flex space-x-2 text-sm text-muted-foreground">
+    <div className="flex max-h-screen flex-1 flex-col space-y-5 pt-6">
+      <div className="flex space-x-2 px-6 text-sm text-muted-foreground">
         <span>Assistants</span>
         <span>/</span>
         <Badge variant="secondary">
@@ -46,7 +47,7 @@ export default function Agent({ agent, profile }: Agent) {
           </div>
         </Badge>
       </div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-6">
         <div className="flex flex-col space-y-2">
           <p className="text-2xl">{agent?.name}</p>
           <div className="flex space-x-6">
@@ -95,8 +96,8 @@ export default function Agent({ agent, profile }: Agent) {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      <Tabs defaultValue="overview">
-        <TabsList>
+      <Tabs defaultValue="overview" className="space-y-0 overflow-hidden">
+        <TabsList className="px-6 py-0">
           <TabsTrigger value="overview" className="space-x-1">
             <RxGear size={12} />
             <span>OVERVIEW</span>
@@ -110,11 +111,11 @@ export default function Agent({ agent, profile }: Agent) {
             <span>RUN</span>
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="overview" className="py-2 text-sm">
+        <TabsContent value="overview" className="px-6 py-2 text-sm">
           <Overview agent={agent} profile={profile} />
         </TabsContent>
-        <TabsContent value="logs" className="py-2 text-sm">
-          Logs
+        <TabsContent value="logs" className="h-full text-sm">
+          <LogList agent={agent} />
         </TabsContent>
         <TabsContent value="runs" className="py-2 text-sm">
           Runs

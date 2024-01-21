@@ -1,54 +1,14 @@
-import { cookies } from "next/headers"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { TbBrain } from "react-icons/tb"
 
-import { Api } from "@/lib/api"
-
-import Assistants from "./assistants"
-import { columns } from "./columns"
-import { DataTable } from "./data-table"
-
-export const dynamic = "force-dynamic"
-
-interface SearchParams {
-  searchParams: string
-}
-
-export default async function Agents({
-  searchParams,
-}: {
-  searchParams: {
-    id: string
-  }
-}) {
-  let agent = ""
-  const supabase = createRouteHandlerClient({ cookies })
-  const { id } = searchParams
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("user_id", user?.id)
-    .single()
-  const api = new Api(profile.api_key)
-
-  const { data: agents } = await api.getAgents({
-    skip: 0,
-    take: 300,
-  })
-
-  if (id) {
-    const { data } = await api.getAgentById(id)
-    agent = data
-  }
-
+export default async function Agents() {
   return (
-    <div className="flex h-screen flex-col justify-between space-y-0 overflow-hidden">
-      <p className="border-b px-6 py-5">Assistants</p>
-      <div className="flex grow overflow-auto">
-        <DataTable columns={columns} data={agents} />
-        <Assistants agent={agent} profile={profile} />
+    <div className="flex flex-1 flex-col items-center justify-center space-y-8">
+      <TbBrain size={45} />
+      <div className="flex flex-col items-center space-y-1">
+        <p className="text-sm font-medium">No assistant selected</p>
+        <p className="text-sm text-muted-foreground">
+          View details about an assistant by navigating the list to the left
+        </p>
       </div>
     </div>
   )
