@@ -217,18 +217,20 @@ async def invoke(
         )
         langfuse_handler = trace.get_langchain_handler()
 
-    agent_metadata = {"agentId": agent_id, "sessionId": session_id}
-
-    def get_analytics_info(agent_metadata, result):
+    def get_analytics_info(result):
         intermediate_steps_to_obj = [
             {**vars(toolClass), "response": response}
-            for toolClass, response in result["intermediate_steps"]
+            for toolClass, response in result.get("intermediate_steps", [])
         ]
 
         properties = {
-            **agent_metadata,
-            "output": result["output"],
-            "input": result["input"],
+            "agentId": agent_id,
+            "sessionId": session_id,
+            # default http status code is 200
+            "http_status_code": result.get("http_status_code", 200),
+            "error": result.get("error", None),
+            "output": result.get("output", None),
+            "input": result.get("input", None),
             "intermediate_steps": intermediate_steps_to_obj,
         }
 
@@ -259,7 +261,7 @@ async def invoke(
                 analytics.track(
                     api_user.id,
                     "Invoked Agent",
-                    get_analytics_info(agent_metadata, result),
+                    get_analytics_info(result),
                 )
             if "intermediate_steps" in result:
                 for step in result["intermediate_steps"]:
@@ -274,12 +276,15 @@ async def invoke(
                         )
         except Exception as error:
             logging.error(f"Error in send_message: {error}")
+            if SEGMENT_WRITE_KEY:
+                analytics.track(
+                    api_user.id,
+                    "Invoked Agent",
+                    get_analytics_info({"error": str(error), "http_status_code": 500}),
+                )
             yield ("event: error\n" f"data: {error}\n\n")
         finally:
             callback.done.set()
-
-    if SEGMENT_WRITE_KEY:
-        analytics.track(api_user.id, "Invoked Agent")
 
     logging.info("Invoking agent...")
     session_id = body.sessionId
@@ -318,7 +323,7 @@ async def invoke(
         analytics.track(
             api_user.id,
             "Invoked Agent",
-            get_analytics_info(agent_metadata, output),
+            get_analytics_info(output),
         )
     return {"success": True, "data": output}
 
