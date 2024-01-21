@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import NonIdealState from "@/components/non-ideal-state"
 
-import AddDatsourceModal from "./add-datasource-modal"
+import AddDatasourceModal from "./add-datasource-modal"
 
 interface Datasource {
   datasource: {
@@ -86,7 +86,7 @@ export default function Datasources({
               />
             </div>
           </div>
-          <AddDatsourceModal profile={profile} agent={agent} />
+          <AddDatasourceModal profile={profile} agent={agent} />
         </div>
       </CardHeader>
       <CardContent>

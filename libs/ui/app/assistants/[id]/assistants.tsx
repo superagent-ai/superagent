@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { useRouter } from "next/navigation"
 import { RxActivityLog, RxGear, RxPlay } from "react-icons/rx"
 import { TbTrash } from "react-icons/tb"
@@ -33,6 +34,7 @@ interface Agent {
 export default function AssistantsDetail({ agent, profile }: Agent) {
   const api = new Api(profile.api_key)
   const router = useRouter()
+  const [open, setOpen] = React.useState<boolean>(false)
   return agent ? (
     <div className="flex max-h-screen flex-1 flex-col space-y-5 pt-6">
       <div className="flex space-x-2 px-6 text-sm text-muted-foreground">
@@ -66,13 +68,16 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
             </span>
           </div>
         </div>
-        <AlertDialog>
-          <AlertDialogTrigger>
-            <Button variant="outline" size="sm" className="space-x-2">
-              <TbTrash size={20} />
-              <span>Delete</span>
-            </Button>
-          </AlertDialogTrigger>
+        <AlertDialog open={open} onOpenChange={setOpen}>
+          <Button
+            className="space-x-2"
+            size="sm"
+            variant="outline"
+            onClick={() => setOpen(true)}
+          >
+            <TbTrash size={20} />
+            <span>Delete</span>
+          </Button>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
@@ -119,7 +124,7 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
         <TabsContent value="logs" className="h-full text-sm">
           <LogList agent={agent} />
         </TabsContent>
-        <TabsContent value="chat" className="h-full py-2 text-sm">
+        <TabsContent value="chat" className="h-full text-sm">
           <Chat agent={agent} profile={profile} />
         </TabsContent>
       </Tabs>
