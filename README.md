@@ -4,7 +4,7 @@
 
 # Superagent
 
-### The open framework for building AI Assistants
+### The open source alternative to  OpenAI Assistants API
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/Superagent" />
@@ -16,6 +16,8 @@
 <img alt="Discord" src="https://img.shields.io/discord/1110910277110743103?label=Discord&logo=discord&logoColor=white&style=plastic&color=d7b023)](https://discord.gg/e8j7mgjDUK" />
 </p>
 
+<p>Backed by:</p>
+<img width="150px" src="https://asset.brandfetch.io/idKhWTXUYD/idkQv7L0Mm.svg?updated=1668020996653" alt="Backed by YCombinator" />
 </div>
 
 -----
@@ -32,7 +34,7 @@
 
 -----
 
-Superagent is an open-source agent framework that enables any developer to integrate production-ready AI Assistants into any application in a matter of minutes.
+Superagent is an open-source alternative to the OpenAI Assistants API, enabling any developer to integrate production-ready AI Assistants into any application in a matter of minutes.
 
 -----
 
