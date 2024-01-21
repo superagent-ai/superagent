@@ -34,7 +34,7 @@
 
 -----
 
-Superagent is an open-source agent framework that enables any developer to integrate production-ready AI Assistants into any application in a matter of minutes.
+Superagent is an open-source alternative to the OpenAI Assistants API, enabling any developer to integrate production-ready AI Assistants into any application in a matter of minutes.
 
 -----
 
