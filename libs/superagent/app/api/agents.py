@@ -219,7 +219,11 @@ async def invoke(
 
     def get_analytics_info(result):
         intermediate_steps_to_obj = [
-            {**vars(toolClass), "response": response}
+            {
+                **vars(toolClass),
+                "message_log": str(toolClass.message_log),
+                "response": response,
+            }
             for toolClass, response in result.get("intermediate_steps", [])
         ]
 
