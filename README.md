@@ -4,7 +4,7 @@
 
 # Superagent
 
-### The open framework for building AI Assistants
+### The open source alternative to  OpenAI Assistants API
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/Superagent" />
