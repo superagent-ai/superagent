@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { RxActivityLog, RxGear, RxPlay } from "react-icons/rx"
 import { TbTrash } from "react-icons/tb"
 
+import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
 import {
   AlertDialog,
@@ -21,14 +22,12 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import LogList from "../../../components/log-list"
+import Chat from "./chat"
 import Overview from "./overview"
 
 interface Agent {
   agent: any
-  profile: {
-    api_key: string
-    id: string
-  }
+  profile: Profile
 }
 
 export default function AssistantsDetail({ agent, profile }: Agent) {
@@ -96,7 +95,10 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      <Tabs defaultValue="overview" className="space-y-0 overflow-hidden">
+      <Tabs
+        defaultValue="overview"
+        className="flex-1 space-y-0 overflow-hidden"
+      >
         <TabsList className="px-6 py-1.5">
           <TabsTrigger value="overview" className="space-x-1">
             <RxGear size={12} />
@@ -106,7 +108,7 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
             <RxActivityLog size={12} />
             <span>LOGS</span>
           </TabsTrigger>
-          <TabsTrigger value="run" className="space-x-1">
+          <TabsTrigger value="chat" className="space-x-1">
             <RxPlay size={12} />
             <span>RUN</span>
           </TabsTrigger>
@@ -117,8 +119,8 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
         <TabsContent value="logs" className="h-full text-sm">
           <LogList agent={agent} />
         </TabsContent>
-        <TabsContent value="runs" className="py-2 text-sm">
-          Runs
+        <TabsContent value="chat" className="h-full py-2 text-sm">
+          <Chat agent={agent} profile={profile} />
         </TabsContent>
       </Tabs>
     </div>
