@@ -97,7 +97,7 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
         </AlertDialog>
       </div>
       <Tabs defaultValue="overview" className="space-y-0 overflow-hidden">
-        <TabsList className="px-6 py-0">
+        <TabsList className="px-6 py-1.5">
           <TabsTrigger value="overview" className="space-x-1">
             <RxGear size={12} />
             <span>OVERVIEW</span>
