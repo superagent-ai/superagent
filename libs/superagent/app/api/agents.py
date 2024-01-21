@@ -231,8 +231,10 @@ async def invoke(
             "agentId": agent_id,
             "sessionId": session_id,
             # default http status code is 200
-            "http_status_code": result.get("http_status_code", 200),
-            "error": result.get("error", None),
+            "response": {
+                "status_code": result.get("status_code", 200),
+                "error": result.get("error", None),
+            },
             "output": result.get("output", None),
             "input": result.get("input", None),
             "intermediate_steps": intermediate_steps_to_obj,
@@ -284,7 +286,7 @@ async def invoke(
                 analytics.track(
                     api_user.id,
                     "Invoked Agent",
-                    get_analytics_info({"error": str(error), "http_status_code": 500}),
+                    get_analytics_info({"error": str(error), "status_code": 500}),
                 )
             yield ("event: error\n" f"data: {error}\n\n")
         finally:
