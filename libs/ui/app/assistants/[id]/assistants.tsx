@@ -87,7 +87,7 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
               <AlertDialogAction
                 onClick={async () => {
                   await api.deleteAgentById(agent.id)
-                  router.push("/agents")
+                  router.push("/assistants")
                 }}
               >
                 Yes, delete!
