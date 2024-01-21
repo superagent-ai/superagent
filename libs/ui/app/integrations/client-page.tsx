@@ -2,23 +2,31 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-export default function IntegrationsClientPage() {
+import Storage from "./storage"
+
+export default function IntegrationsClientPage({ profile }: { profile: any }) {
   return (
     <Tabs defaultValue="overview" className="flex-1 space-y-0 overflow-hidden">
       <TabsList className="px-6 py-1.5">
-        <TabsTrigger value="overview" className="space-x-1">
-          <span>OVERVIEW</span>
+        <TabsTrigger value="storage" className="space-x-1">
+          <span>STORAGE</span>
         </TabsTrigger>
-        <TabsTrigger value="logs" className="space-x-1">
-          <span>LOGS</span>
+        <TabsTrigger value="logging" className="space-x-1">
+          <span>LOGGING</span>
         </TabsTrigger>
-        <TabsTrigger value="chat" className="space-x-1">
-          <span>RUN</span>
+        <TabsTrigger value="datasources" className="space-x-1">
+          <span>DATASOURCES</span>
+        </TabsTrigger>
+        <TabsTrigger value="tools" className="space-x-1">
+          <span>TOOLS</span>
         </TabsTrigger>
       </TabsList>
-      <TabsContent value="overview" className="px-6 py-2 text-sm"></TabsContent>
-      <TabsContent value="logs" className="h-full text-sm"></TabsContent>
-      <TabsContent value="chat" className="h-full text-sm"></TabsContent>
+      <TabsContent value="storage" className="px-6 py-2 text-sm">
+        <Storage profile={profile} />
+      </TabsContent>
+      <TabsContent value="logging" className="h-full text-sm"></TabsContent>
+      <TabsContent value="datasources" className="h-full text-sm"></TabsContent>
+      <TabsContent value="tools" className="h-full text-sm"></TabsContent>
     </Tabs>
   )
 }
