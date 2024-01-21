@@ -145,7 +145,7 @@ export default function Chat({
   }
 
   return (
-    <div className="relative flex h-full w-full flex-1 text-sm">
+    <div className="relative flex h-full w-full flex-1 bg-muted text-sm">
       <ScrollArea className="w-[100%]">
         <div className="mx-auto flex max-w-4xl flex-1 flex-col space-y-0 px-4 py-12">
           {messages.map((message, index) => (
@@ -153,7 +153,7 @@ export default function Chat({
           ))}
         </div>
       </ScrollArea>
-      <div className="absolute inset-x-0 bottom-10 z-50 h-20 bg-gradient-to-t from-background from-50% to-transparent to-100%">
+      <div className="absolute inset-x-0 bottom-10 z-50 h-20 bg-gradient-to-t from-muted from-50% to-transparent to-100%">
         <div className="relative mx-auto mb-6 max-w-2xl px-8">
           <PromptForm
             onStop={() => abortStream()}

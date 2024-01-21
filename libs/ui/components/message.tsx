@@ -85,13 +85,13 @@ export default function Message({
 
   return (
     <div className="flex flex-col space-y-1 pb-4">
-      <div className="min-w-4xl flex max-w-4xl space-x-4  pb-2">
+      <div className="min-w-4xl flex max-w-4xl space-x-4 pb-2 font-mono">
         <Avatar
           className={`h-8 w-8 rounded-md ${
             type !== "human" && "text-green-400"
           }`}
         >
-          <AvatarFallback className="rounded-md">
+          <AvatarFallback className="rounded-md bg-background">
             {type === "human"
               ? `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`
               : "A"}
