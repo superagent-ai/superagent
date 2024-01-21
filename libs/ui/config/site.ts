@@ -20,8 +20,8 @@ export const siteConfig = {
       icon: TbChartBar,
     },
     {
-      title: "Agents",
-      href: "/agents",
+      title: "Assistants",
+      href: "/assistants",
       icon: TbBrain,
     },
     {

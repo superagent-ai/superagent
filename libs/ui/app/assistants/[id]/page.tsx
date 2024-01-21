@@ -3,12 +3,15 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { Api } from "@/lib/api"
 
-import VectorDbsClientPage from "./client-page"
+import AssistantsDetail from "./assistants"
 
-export const dynamic = "force-dynamic"
-
-export default async function VectorDatabases() {
+export default async function Assistant({
+  params,
+}: {
+  params: { id: string }
+}) {
   const supabase = createRouteHandlerClient({ cookies })
+  const { id } = params
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -18,12 +21,7 @@ export default async function VectorDatabases() {
     .eq("user_id", user?.id)
     .single()
   const api = new Api(profile.api_key)
-  const { data: vectorDbsData } = await api.getVectorDbs()
+  const { data: agent } = await api.getAgentById(id)
 
-  return (
-    <div className="flex min-h-full flex-col space-y-4 px-4 py-6">
-      <p className="text-lg">Vector Databases</p>
-      <VectorDbsClientPage profile={profile} vectorDbsData={vectorDbsData} />
-    </div>
-  )
+  return <AssistantsDetail agent={agent} profile={profile} />
 }

@@ -4,6 +4,7 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Search } from "lucide-react"
 import {
+  TbFile,
   TbFileTypeCsv,
   TbFileTypeDocx,
   TbFileTypePdf,
@@ -18,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
+import NonIdealState from "@/components/non-ideal-state"
 
 import AddDatsourceModal from "./add-datasource-modal"
 
@@ -60,6 +62,13 @@ export default function Datasources({
   const api = new Api(profile.api_key)
   const router = useRouter()
   const [isLoading, setIsLoading] = React.useState<string | null>()
+  const [searchTerm, setSearchTerm] = React.useState<string>("")
+
+  const filteredDatasources = agent.datasources.filter(
+    ({ datasource }: Datasource) =>
+      datasource.name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-x-4 py-4">
@@ -71,6 +80,9 @@ export default function Datasources({
               <Input
                 placeholder="Filter by name..."
                 className="min-w-[200px] pl-10 lg:min-w-[350px]"
+                onChange={(event) => {
+                  setSearchTerm(event.target.value)
+                }}
               />
             </div>
           </div>
@@ -78,7 +90,7 @@ export default function Datasources({
         </div>
       </CardHeader>
       <CardContent>
-        {agent.datasources.map(({ datasource }: Datasource) => {
+        {filteredDatasources.map(({ datasource }: Datasource) => {
           return (
             <div className="flex items-center justify-between border-t py-3">
               <div className="flex space-x-4">
@@ -104,6 +116,13 @@ export default function Datasources({
             </div>
           )
         })}
+        {filteredDatasources.length === 0 && (
+          <NonIdealState
+            icon={TbFile}
+            title="No datasources found"
+            description="This assistant doesn't seem to have any datasources attached to it"
+          />
+        )}
       </CardContent>
     </Card>
   )
