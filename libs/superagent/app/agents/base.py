@@ -18,12 +18,14 @@ class AgentBase:
         enable_streaming: bool = False,
         output_schema: str = None,
         callback: CustomAsyncIteratorCallbackHandler = None,
+        llm_params: dict[any, any] = {},
     ):
         self.agent_id = agent_id
         self.session_id = session_id
         self.enable_streaming = enable_streaming
         self.output_schema = output_schema
         self.callback = callback
+        self.llm_params = llm_params
 
     async def _get_tools(
         self, agent_datasources: List[AgentDatasource], agent_tools: List[AgentTool]
@@ -60,6 +62,7 @@ class AgentBase:
                 enable_streaming=self.enable_streaming,
                 output_schema=self.output_schema,
                 callback=self.callback,
+                llm_params=self.llm_params,
             )
         else:
             from app.agents.superagent import SuperagentAgent

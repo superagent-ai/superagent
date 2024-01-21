@@ -196,7 +196,6 @@ async def invoke(
     agent_id: str, body: AgentInvokeRequest, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for invoking an agent"""
-
     langfuse_secret_key = config("LANGFUSE_SECRET_KEY", "")
     langfuse_public_key = config("LANGFUSE_PUBLIC_KEY", "")
     langfuse_host = config("LANGFUSE_HOST", "https://cloud.langfuse.com")
@@ -297,6 +296,7 @@ async def invoke(
     input = body.input
     enable_streaming = body.enableStreaming
     output_schema = body.outputSchema
+
     callback = CustomAsyncIteratorCallbackHandler()
     agent = await AgentBase(
         agent_id=agent_id,
@@ -304,6 +304,7 @@ async def invoke(
         enable_streaming=enable_streaming,
         output_schema=output_schema,
         callback=callback,
+        llm_params=body.llm_params.dict() if body.llm_params else {},
     ).get_agent()
 
     if enable_streaming:
