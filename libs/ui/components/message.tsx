@@ -59,7 +59,6 @@ function PulsatingCursor() {
 }
 
 interface MessageProps {
-  traceId: string
   type: string
   message: string
   isSuccess?: boolean
@@ -69,7 +68,6 @@ interface MessageProps {
 }
 
 export default function Message({
-  traceId,
   type,
   message,
   isSuccess = true,
@@ -78,23 +76,6 @@ export default function Message({
   onResubmit,
 }: MessageProps) {
   const { toast } = useToast()
-  const handleFeedback = async (value: number) => {
-    if (!langfuseWeb) {
-      return
-    }
-
-    await langfuseWeb.score({
-      traceId,
-      name: "user-feedback",
-      value,
-      comment: "I like how personalized the response is",
-    })
-
-    toast({
-      description: "Feedback submitted!",
-    })
-  }
-
   const handleCopy = () => {
     navigator.clipboard.writeText(message)
     toast({
@@ -104,12 +85,16 @@ export default function Message({
 
   return (
     <div className="flex flex-col space-y-1 pb-4">
-      <div className="min-w-4xl flex max-w-4xl space-x-4  pb-2">
-        <Avatar className="h-8 w-8 rounded-md">
-          <AvatarImage src={type === "ai" ? "/logo.png" : undefined} />
-          <AvatarFallback className="rounded-md">
-            {type === "human" &&
-              `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`}
+      <div className="min-w-4xl flex max-w-4xl space-x-4 pb-2 font-mono">
+        <Avatar
+          className={`h-8 w-8 rounded-md ${
+            type !== "human" && "text-green-400"
+          }`}
+        >
+          <AvatarFallback className="rounded-md bg-background">
+            {type === "human"
+              ? `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`
+              : "A"}
           </AvatarFallback>
         </Avatar>
         <div className="ml-4 mt-1 flex-1 flex-col space-y-2 overflow-hidden px-1">
@@ -140,26 +125,6 @@ export default function Message({
                 : message && <CustomMarkdown message={message} />}
               {type === "ai" && message.length > 0 && (
                 <div className="flex space-x-2 ">
-                  {langfuseWeb && (
-                    <div className="flex space-x-2 ">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleFeedback(1)}
-                        className="rounded-lg"
-                      >
-                        <GoThumbsup size="15px" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleFeedback(0)}
-                        className="rounded-lg"
-                      >
-                        <GoThumbsdown size="15px" />
-                      </Button>
-                    </div>
-                  )}
                   <Button
                     size="sm"
                     variant="outline"

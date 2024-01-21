@@ -37,7 +37,7 @@ export default function Logs({ agent }: { agent: any }) {
   const [panel, setPanel] = React.useState<string | null>()
 
   return (
-    <div className="relative flex h-full w-full overflow-auto text-sm">
+    <div className="relative flex h-full w-full overflow-auto text-xs">
       <ScrollArea className="flex-1">
         <div className="flex flex-1 flex-col space-y-0 px-4">
           {Array.from({ length: 100 }).map((_, index) => (
