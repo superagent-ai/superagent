@@ -16,7 +16,8 @@
 <img alt="Discord" src="https://img.shields.io/discord/1110910277110743103?label=Discord&logo=discord&logoColor=white&style=plastic&color=d7b023)](https://discord.gg/e8j7mgjDUK" />
 </p>
 
-<img width="50px" src="https://asset.brandfetch.io/idKhWTXUYD/idkQv7L0Mm.svg?updated=1668020996653" alt="Backed by YCombinator" />
+<p>Backed by:</p>
+<img width="90px" src="https://asset.brandfetch.io/idKhWTXUYD/idkQv7L0Mm.svg?updated=1668020996653" alt="Backed by YCombinator" />
 </div>
 
 -----
