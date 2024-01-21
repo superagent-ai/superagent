@@ -5,6 +5,8 @@ import {
   TbChartBar,
   TbDatabase,
   TbFileCode,
+  TbPlug,
+  TbTerminal2,
   TbUserCircle,
 } from "react-icons/tb"
 
@@ -27,7 +29,12 @@ export const siteConfig = {
     {
       title: "Logs",
       href: "/logs",
-      icon: TbDatabase,
+      icon: TbTerminal2,
+    },
+    {
+      title: "Integrations",
+      href: "/integrations",
+      icon: TbPlug,
     },
   ],
   footerNav: [
