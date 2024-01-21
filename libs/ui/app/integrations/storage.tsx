@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { TbCheck } from "react-icons/tb"
 import { useAsync } from "react-use"
 
 import { siteConfig } from "@/config/site"
@@ -18,7 +19,7 @@ function Loading() {
 
 export default function Storage({ profile }: { profile: any }) {
   const api = new Api(profile.api_key)
-  const { value, loading } = useAsync(async () => {
+  const { value: configuredDBs, loading } = useAsync(async () => {
     const { data } = await api.getVectorDbs()
     return data
   }, [])
@@ -36,27 +37,38 @@ export default function Storage({ profile }: { profile: any }) {
         <Loading />
       ) : (
         <div className="flex-col border-b">
-          {siteConfig.vectorDbs.map((vectorDb) => (
-            <div
-              className="flex items-center justify-between border-t py-4"
-              key={vectorDb.provider}
-            >
-              <div className="flex items-center space-x-4">
-                <Image
-                  src={vectorDb.logo}
-                  width="40"
-                  height="40"
-                  alt={vectorDb.name}
-                />
-                <p className="font-medium">{vectorDb.name}</p>
-              </div>
-              <div className="flex space-x-2">
+          {siteConfig.vectorDbs.map((vectorDb) => {
+            const isConfigured = configuredDBs.find(
+              (db: any) => db.provider === vectorDb.provider
+            )
+
+            return (
+              <div
+                className="flex items-center justify-between border-t py-4"
+                key={vectorDb.provider}
+              >
+                <div className="flex items-center space-x-4">
+                  {isConfigured ? (
+                    <div className="h-2 w-2 rounded-full bg-green-400" />
+                  ) : (
+                    <div className="h-2 w-2 rounded-full bg-muted" />
+                  )}
+                  <div className="flex items-center space-x-3">
+                    <Image
+                      src={vectorDb.logo}
+                      width="40"
+                      height="40"
+                      alt={vectorDb.name}
+                    />
+                    <p className="font-medium">{vectorDb.name}</p>
+                  </div>
+                </div>
                 <Button variant="outline" size="sm">
                   Settings
                 </Button>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
