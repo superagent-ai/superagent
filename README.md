@@ -17,7 +17,7 @@
 </p>
 
 <p>Backed by:</p>
-<img width="90px" src="https://asset.brandfetch.io/idKhWTXUYD/idkQv7L0Mm.svg?updated=1668020996653" alt="Backed by YCombinator" />
+<img width="150px" src="https://asset.brandfetch.io/idKhWTXUYD/idkQv7L0Mm.svg?updated=1668020996653" alt="Backed by YCombinator" />
 </div>
 
 -----
