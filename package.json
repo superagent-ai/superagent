@@ -21,5 +21,8 @@
   "homepage": "https://github.com/homanp/superagent#readme",
   "devDependencies": {
     "husky": "^8.0.0"
+  },
+  "dependencies": {
+    "stripe": "^14.13.0"
   }
 }

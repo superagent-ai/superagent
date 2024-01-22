@@ -8,7 +8,7 @@ export const Column = () => {
     console.log("hola")
   }
   return (
-    <div className="grid grid-cols-12 gap-5">
+    <div className="flex flex-wrap gap-4">
       <CardIntegration
         eventClick={handleClick}
         title="Whatsapp Busines API"
