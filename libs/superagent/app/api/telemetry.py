@@ -31,18 +31,33 @@ async def list_runs(
 
     client = get_client(json_key_file=service_key_path, readonly=True)
     try:
+        having = [
+            {
+                "field": "user_id",
+                "type": "STRING",
+                "comparators": [
+                    {"condition": "==", "negate": False, "value": api_user.id}
+                ],
+            }
+        ]
+        if agent_id is not None:
+            having.append(
+                {
+                    "field": "agent_id",
+                    "type": "STRING",
+                    "comparators": [
+                        {
+                            "condition": "==",
+                            "negate": False,
+                            "value": agent_id,
+                        }
+                    ],
+                }
+            )
         query = render_query(
             "website_prod",
             ["invoked_agent"],
-            having=[
-                {
-                    "field": "user_id",
-                    "type": "STRING",
-                    "comparators": [
-                        {"condition": "==", "negate": False, "value": api_user.id}
-                    ],
-                }
-            ],
+            having=having,
         )
         _, results = client.query(query, timeout=10)
     except BigQueryTimeoutException:
