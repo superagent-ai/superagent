@@ -2,11 +2,10 @@ import logging
 import os
 from typing import Optional
 
-from decouple import config
-from fastapi import APIRouter, Depends
 from bigquery import get_client
-from bigquery.query_builder import render_query
 from bigquery.errors import BigQueryTimeoutException
+from bigquery.query_builder import render_query
+from fastapi import APIRouter, Depends
 
 from app.models.response import AgentRunList as AgentRunListResponse
 from app.utils.api import get_current_api_user
