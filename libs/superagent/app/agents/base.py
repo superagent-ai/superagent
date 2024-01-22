@@ -5,7 +5,7 @@ from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
 
 DEFAULT_PROMPT = (
-    "You are a helpful AI Assistant, anwer the users questions to "
+    "You are a helpful AI Assistant, answer the users questions to "
     "the best of your ability."
 )
 
