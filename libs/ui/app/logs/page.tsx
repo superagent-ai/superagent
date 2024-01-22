@@ -15,7 +15,6 @@ export default async function Agents({
 }) {
   let agent = ""
   const supabase = createRouteHandlerClient({ cookies })
-  const { id } = searchParams
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -26,21 +25,13 @@ export default async function Agents({
     .single()
   const api = new Api(profile.api_key)
 
-  const { data: agents } = await api.getAgents({
-    skip: 0,
-    take: 300,
-  })
-
-  if (id) {
-    const { data } = await api.getAgentById(id)
-    agent = data
-  }
+  const { data: logs } = await api.getRuns({ limit: 50 })
 
   return (
     <div className="flex h-screen flex-col justify-between space-y-0 overflow-hidden">
       <p className="border-b px-6 py-5 font-medium">Logs</p>
       <div className="flex grow overflow-auto">
-        <LogList agent={agent} />
+        <LogList data={logs} profile={profile} />
       </div>
     </div>
   )
