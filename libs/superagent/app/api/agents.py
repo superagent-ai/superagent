@@ -217,6 +217,15 @@ async def invoke(
         )
         langfuse_handler = trace.get_langchain_handler()
 
+    agent_config = await prisma.agent.find_unique_or_raise(
+        where={"id": agent_id},
+        include={
+            "llms": {"include": {"llm": True}},
+            "datasources": {"include": {"datasource": {"include": {"vectorDb": True}}}},
+            "tools": {"include": {"tool": True}},
+        },
+    )
+
     def get_analytics_info(result):
         intermediate_steps_to_obj = [
             {
@@ -228,7 +237,8 @@ async def invoke(
         ]
 
         properties = {
-            "agentId": agent_id,
+            "agent": agent_config.id,
+            "llm_model": agent_config.llmModel,
             "sessionId": session_id,
             # default http status code is 200
             "response": {
@@ -304,6 +314,7 @@ async def invoke(
         enable_streaming=enable_streaming,
         output_schema=output_schema,
         callback=callback,
+        agent_config=agent_config,
     ).get_agent()
 
     if enable_streaming:
