@@ -28,6 +28,9 @@ navigation:
             path: ./mdx/sdk/installation.mdx
           - page: Basic example
             path: ./mdx/sdk/basic_example.mdx
+          - page: Agent LLM parameters
+            path: ./mdx/sdk/agent_llm_params.mdx
+
           - page: Chat with datasources
             path: ./mdx/sdk/chat_with_datasources.mdx
           - page: Chat with tools
