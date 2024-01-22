@@ -1,11 +1,10 @@
 from typing import Any, List
 
-from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
 
 DEFAULT_PROMPT = (
-    "You are a helpful AI Assistant, anwer the users questions to "
+    "You are a helpful AI Assistant, answer the users questions to "
     "the best of your ability."
 )
 
@@ -19,6 +18,7 @@ class AgentBase:
         output_schema: str = None,
         callback: CustomAsyncIteratorCallbackHandler = None,
         llm_params: dict[any, any] = {},
+        agent_config: Agent = None,
     ):
         self.agent_id = agent_id
         self.session_id = session_id
@@ -26,6 +26,7 @@ class AgentBase:
         self.output_schema = output_schema
         self.callback = callback
         self.llm_params = llm_params
+        self.agent_config = agent_config
 
     async def _get_tools(
         self, agent_datasources: List[AgentDatasource], agent_tools: List[AgentTool]
@@ -42,18 +43,7 @@ class AgentBase:
         raise NotImplementedError
 
     async def get_agent(self):
-        agent_config = await prisma.agent.find_unique_or_raise(
-            where={"id": self.agent_id},
-            include={
-                "llms": {"include": {"llm": True}},
-                "datasources": {
-                    "include": {"datasource": {"include": {"vectorDb": True}}}
-                },
-                "tools": {"include": {"tool": True}},
-            },
-        )
-
-        if agent_config.llms[0].llm.provider in ["OPENAI", "AZURE_OPENAI"]:
+        if self.agent_config.llms[0].llm.provider in ["OPENAI", "AZURE_OPENAI"]:
             from app.agents.langchain import LangchainAgent
 
             agent = LangchainAgent(
@@ -75,4 +65,4 @@ class AgentBase:
                 callback=self.callback,
             )
 
-        return await agent.get_agent(config=agent_config)
+        return await agent.get_agent(config=self.agent_config)
