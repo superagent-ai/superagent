@@ -43,6 +43,8 @@ navigation:
             path: ./mdx/sdk/local_tools.mdx
           - page: Assitant workflows
             path: ./mdx/sdk/workflows.mdx
+          - page: Configure Language Model
+            path: ./mdx/sdk/agent_llm_params.mdx  
       - section: Deployments
         contents:
           - page: Render
