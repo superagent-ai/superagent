@@ -314,7 +314,7 @@ async def invoke(
         enable_streaming=enable_streaming,
         output_schema=output_schema,
         callback=callback,
-        llm_params=body.llm_params.dict() if body.llm_params else {},
+        llm_params=body.llm_params,
         agent_config=agent_config,
     ).get_agent()
 
