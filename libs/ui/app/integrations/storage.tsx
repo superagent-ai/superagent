@@ -77,7 +77,11 @@ const formSchema = z.object({
 function Loading() {
   return (
     <div className="flex flex-col space-y-4">
-      {Array(5).fill(<Skeleton className="h-[60px] w-full" />)}
+      {Array(5)
+        .fill(null)
+        .map((_, index) => (
+          <Skeleton key={index} className="h-[60px] w-full" />
+        ))}
     </div>
   )
 }
