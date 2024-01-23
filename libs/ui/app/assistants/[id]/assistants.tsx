@@ -131,8 +131,10 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
         </TabsContent>
         <TabsContent value="logs" className="h-full text-sm">
           {loading ? (
-            <div className="flex flex-col space-y-2">
-              <Skeleton className="h-10 w-full" />
+            <div className="flex flex-col space-y-4 p-6">
+              {[...Array(10)].map((_, i) => (
+                <Skeleton key={i} className="h-4 w-full" />
+              ))}
             </div>
           ) : (
             <LogList profile={profile} data={logs} />

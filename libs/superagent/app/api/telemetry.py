@@ -31,7 +31,7 @@ async def list_runs(
     client = bigquery.Client.from_service_account_json(service_key_path)
     query = """
         SELECT * FROM `website_prod.invoked_agent`
-        WHERE user_id = @user_id
+        WHERE user_id = @user_id AND agent_id IS NOT NULL
     """
     params = [
         bigquery.ScalarQueryParameter("user_id", "STRING", api_user.id),

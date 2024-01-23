@@ -122,11 +122,11 @@ export default function Logs({
   const [logs, setLogs] = React.useState<Array<LogItem>>(data)
   const [panel, setPanel] = React.useState<LogItem | null>()
   const [isLoading, setIsLoading] = React.useState<boolean | null>(false)
+  const limit = 50
 
   const handleLoadMore = React.useCallback(async () => {
     setIsLoading(true)
     const api = new Api(profile.api_key)
-    const limit = 50
     const from_page = Math.floor(logs.length / limit)
     const to_page = from_page + 1
 
