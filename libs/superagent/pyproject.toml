@@ -59,8 +59,8 @@ weaviate-client = "^3.25.3"
 qdrant-client = "^1.6.9"
 langfuse = "^2.6.3"
 vecs = "^0.4.2"
-bigquery-python = "^1.15.0"
 oauth2client = "^4.1.3"
+google-cloud-bigquery = "^3.16.0"
 
 
 [build-system]

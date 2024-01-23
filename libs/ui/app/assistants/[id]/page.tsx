@@ -21,7 +21,9 @@ export default async function Assistant({
     .eq("user_id", user?.id)
     .single()
   const api = new Api(profile.api_key)
-  const { data: agent } = await api.getAgentById(id)
+  const [agentResult] = await Promise.all([api.getAgentById(id)])
+
+  const { data: agent } = agentResult
 
   return <AssistantsDetail agent={agent} profile={profile} />
 }

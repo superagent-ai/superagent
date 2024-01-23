@@ -4,7 +4,9 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { RxActivityLog, RxGear, RxPlay } from "react-icons/rx"
 import { TbTrash } from "react-icons/tb"
+import { useAsync } from "react-use"
 
+import { LogItem } from "@/types/log-item"
 import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
 import {
@@ -20,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import LogList from "../../../components/log-list"
@@ -28,13 +31,18 @@ import Overview from "./overview"
 
 interface Agent {
   agent: any
-  profile: Profile
+  profile: any
 }
 
 export default function AssistantsDetail({ agent, profile }: Agent) {
   const api = new Api(profile.api_key)
   const router = useRouter()
   const [open, setOpen] = React.useState<boolean>(false)
+  const { value: logs, loading } = useAsync(async () => {
+    const { data } = await api.getRuns({ agent_id: agent.id })
+    return data
+  }, [agent])
+
   return agent ? (
     <div className="flex max-h-screen flex-1 flex-col space-y-5 pt-6">
       <div className="flex space-x-2 px-6 text-sm text-muted-foreground">
@@ -122,7 +130,15 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
           <Overview agent={agent} profile={profile} />
         </TabsContent>
         <TabsContent value="logs" className="h-full text-sm">
-          <LogList agent={agent} />
+          {loading ? (
+            <div className="flex flex-col space-y-4 p-6">
+              {[...Array(10)].map((_, i) => (
+                <Skeleton key={i} className="h-4 w-full" />
+              ))}
+            </div>
+          ) : (
+            <LogList profile={profile} data={logs} />
+          )}
         </TabsContent>
         <TabsContent value="chat" className="h-full text-sm">
           <Chat agent={agent} profile={profile} />
