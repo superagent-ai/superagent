@@ -3,6 +3,7 @@
 import { TbCopy } from "react-icons/tb"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 
+import { LogItem } from "@/types/log-item"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
@@ -11,11 +12,33 @@ import Datasources from "./datasources"
 export default function Overview({
   agent,
   profile,
+  data,
 }: {
   agent: any
   profile: any
+  data: LogItem[]
 }) {
-  const data: any[] = []
+  const chartData = data.reduce((acc, logItem) => {
+    // Create a new Date object
+    const dateObject = new Date(logItem.received_at)
+
+    // Format the date to a string (e.g., '2022-03-01')
+    const date = `${dateObject.getFullYear()}-${String(
+      dateObject.getMonth() + 1
+    ).padStart(2, "0")}-${String(dateObject.getDate()).padStart(2, "0")}`
+
+    // If this date is not yet in the accumulator, add it with a count of 1
+    // Otherwise, increment the count for this date
+    acc[date] = (acc[date] || 0) + 1
+
+    return acc
+  }, {})
+
+  // Convert the object to an array of { date, count } objects
+  const chartDataArray = Object.entries(chartData).map(([date, count]) => ({
+    date,
+    count,
+  }))
 
   return (
     <div className="flex space-x-6">
@@ -27,9 +50,9 @@ export default function Overview({
               width={500}
               height={300}
               data={
-                data.length < 40
-                  ? [...data, ...new Array(40 - data.length).fill({})]
-                  : data
+                chartDataArray.length < 40
+                  ? [...chartDataArray, ...new Array(40 - data.length).fill({})]
+                  : chartDataArray
               }
               margin={{
                 top: 5,
@@ -45,7 +68,7 @@ export default function Overview({
           </ResponsiveContainer>
           <div className="flex items-end space-x-2 px-6 pb-6 text-2xl">
             <p className="leading-none"></p>
-            <p className="leading-none">10</p>
+            <p className="leading-none">{data.length}</p>
             <p className="text-sm text-muted-foreground">Total requests</p>
           </div>
         </Card>

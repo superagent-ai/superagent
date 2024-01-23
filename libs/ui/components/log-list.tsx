@@ -184,12 +184,14 @@ export default function Logs({
         </div>
       </ScrollArea>
       {panel && <LogPanel panel={panel} onClose={() => setPanel(null)} />}
-      <div className="absolute bottom-0 flex w-full items-center justify-center bg-transparent py-10">
-        <Button size="sm" className="space-x-2" onClick={handleLoadMore}>
-          {isLoading ? <Spinner /> : <TbArrowDown />}
-          <span>Load more</span>
-        </Button>
-      </div>
+      {data.length > 0 && (
+        <div className="absolute bottom-0 flex w-full items-center justify-center bg-transparent py-10">
+          <Button size="sm" className="space-x-2" onClick={handleLoadMore}>
+            {isLoading ? <Spinner /> : <TbArrowDown />}
+            <span>Load more</span>
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

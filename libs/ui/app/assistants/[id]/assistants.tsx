@@ -6,8 +6,6 @@ import { RxActivityLog, RxGear, RxPlay } from "react-icons/rx"
 import { TbTrash } from "react-icons/tb"
 import { useAsync } from "react-use"
 
-import { LogItem } from "@/types/log-item"
-import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
 import {
   AlertDialog,
@@ -18,7 +16,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -39,7 +36,7 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
   const router = useRouter()
   const [open, setOpen] = React.useState<boolean>(false)
   const { value: logs, loading } = useAsync(async () => {
-    const { data } = await api.getRuns({ agent_id: agent.id })
+    const { data } = await api.getRuns({ agent_id: agent.id, limit: 1000 })
     return data
   }, [agent])
 
@@ -127,7 +124,7 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="px-6 py-2 text-sm">
-          <Overview agent={agent} profile={profile} />
+          <Overview agent={agent} profile={profile} data={logs || []} />
         </TabsContent>
         <TabsContent value="logs" className="h-full text-sm">
           {loading ? (
@@ -137,7 +134,7 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
               ))}
             </div>
           ) : (
-            <LogList profile={profile} data={logs} />
+            <LogList profile={profile} data={logs || []} />
           )}
         </TabsContent>
         <TabsContent value="chat" className="h-full text-sm">
