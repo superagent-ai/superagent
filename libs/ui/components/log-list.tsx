@@ -3,8 +3,8 @@
 import * as React from "react"
 import Link from "next/link"
 import { TbArrowDown, TbBrain, TbX } from "react-icons/tb"
-import { useAsync } from "react-use"
 
+import { LogItem } from "@/types/log-item"
 import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
@@ -16,17 +16,6 @@ import { Spinner } from "./ui/spinner"
 interface LogPanelType {
   onClose: () => void
   panel: LogItem
-}
-
-interface LogItem {
-  id: string
-  intermediate_steps: string
-  agent_id: string
-  user_id: string
-  received_at: string
-  session_id: string
-  input: string
-  output: string
 }
 
 function LogPanel({ panel, onClose }: LogPanelType) {
@@ -148,7 +137,7 @@ export default function Logs({
   }, [profile.api_key, logs])
 
   return (
-    <div className="relative flex h-full w-full overflow-auto text-sm">
+    <div className="relative flex h-full w-full overflow-auto text-xs">
       <ScrollArea className="flex-1">
         <div className="flex flex-1 flex-col space-y-0 px-4">
           {logs.map((item: LogItem) => (
@@ -181,12 +170,12 @@ export default function Logs({
               <div className="flex-none border-r px-4 font-mono">
                 <Badge
                   variant="secondary"
-                  className="rounded-sm text-sm font-normal"
+                  className="rounded-sm text-xs font-normal"
                 >
                   user: {item.user_id}
                 </Badge>
               </div>
-              <div className="flex flex-1 items-start justify-start space-x-2 border-r px-4 font-mono">
+              <div className="flex flex-1 items-start justify-start space-x-2 px-4 font-mono text-xs">
                 <span className="font-medium">POST:</span>
                 <span>/api/v1/agents/{item.agent_id}/invoke</span>
               </div>
