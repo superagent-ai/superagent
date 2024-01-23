@@ -1535,6 +1535,19 @@ components:
         - MIXTRAL_8X7B_INSTRUCT_V01
       type: string
       description: An enumeration.
+    LLMParams:
+      title: LLMParams
+      required:
+        - max_tokens
+        - temperature
+      type: object
+      properties:
+        max_tokens:
+          title: Max Tokens
+          type: integer
+        temperature:
+          title: Temperature
+          type: number
     LLMProvider:
       title: LLMProvider
       enum:
@@ -1735,6 +1748,8 @@ components:
         outputSchema:
           title: Outputschema
           type: string
+        llm_params:
+          $ref: '#/components/schemas/LLMParams'
     app__models__request__AgentLLM:
       title: AgentLLM
       required:

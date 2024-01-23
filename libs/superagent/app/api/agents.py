@@ -196,7 +196,6 @@ async def invoke(
     agent_id: str, body: AgentInvokeRequest, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for invoking an agent"""
-
     langfuse_secret_key = config("LANGFUSE_SECRET_KEY", "")
     langfuse_public_key = config("LANGFUSE_PUBLIC_KEY", "")
     langfuse_host = config("LANGFUSE_HOST", "https://cloud.langfuse.com")
@@ -217,6 +216,15 @@ async def invoke(
         )
         langfuse_handler = trace.get_langchain_handler()
 
+    agent_config = await prisma.agent.find_unique_or_raise(
+        where={"id": agent_id},
+        include={
+            "llms": {"include": {"llm": True}},
+            "datasources": {"include": {"datasource": {"include": {"vectorDb": True}}}},
+            "tools": {"include": {"tool": True}},
+        },
+    )
+
     def get_analytics_info(result):
         intermediate_steps_to_obj = [
             {
@@ -228,7 +236,8 @@ async def invoke(
         ]
 
         properties = {
-            "agentId": agent_id,
+            "agent": agent_config.id,
+            "llm_model": agent_config.llmModel,
             "sessionId": session_id,
             # default http status code is 200
             "response": {
@@ -297,6 +306,7 @@ async def invoke(
     input = body.input
     enable_streaming = body.enableStreaming
     output_schema = body.outputSchema
+
     callback = CustomAsyncIteratorCallbackHandler()
     agent = await AgentBase(
         agent_id=agent_id,
@@ -304,6 +314,8 @@ async def invoke(
         enable_streaming=enable_streaming,
         output_schema=output_schema,
         callback=callback,
+        llm_params=body.llm_params.dict() if body.llm_params else {},
+        agent_config=agent_config,
     ).get_agent()
 
     if enable_streaming:

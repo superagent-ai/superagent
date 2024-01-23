@@ -1,8 +1,10 @@
 import logging
+import os
 from typing import Optional
 
-import requests
-from decouple import config
+from bigquery import get_client
+from bigquery.errors import BigQueryTimeoutException
+from bigquery.query_builder import render_query
 from fastapi import APIRouter, Depends
 
 from app.models.response import AgentRunList as AgentRunListResponse
@@ -22,33 +24,41 @@ async def list_runs(
     agent_id: Optional[str] = None, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for listing agent runs"""
-    url = "https://cloud.langfuse.com/api/public/observations"
-    query_params = {"userId": api_user.id, "tags": [agent_id], "limit": 100}
-    import base64
+    # service_key_path = "/etc/secrets/service_key.json"
+    project_root = os.path.dirname(os.path.dirname(__file__))
+    service_key_path = os.path.join(project_root, "google_cloud_service_key.json")
 
-    username = config("LANGFUSE_PUBLIC_KEY")
-    password = config("LANGFUSE_SECRET_KEY")
-    credentials = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode(
-        "utf-8"
-    )
-    auth_headers = {"Authorization": f"Basic {credentials}"}
-    all_data = []
-    page = 1
-    # Add filter on tags
-    while True:
-        query_params.update({"page": page})
-        response = requests.get(url, params=query_params, headers=auth_headers)
-        output = response.json()
-        data = output.get("data", [])
-        filtered_data = [
-            item
-            for item in data
-            if item.get("parentObservationId") is None
-            and agent_id in item.get("traceId", "")
+    client = get_client(json_key_file=service_key_path, readonly=True)
+    try:
+        having = [
+            {
+                "field": "user_id",
+                "type": "STRING",
+                "comparators": [
+                    {"condition": "==", "negate": False, "value": api_user.id}
+                ],
+            }
         ]
-        all_data.extend(filtered_data)
-        if page >= output["meta"].get("totalPages", 0):
-            break
-        page += 1
-    output = all_data
-    return {"success": True, "data": output}
+        if agent_id is not None:
+            having.append(
+                {
+                    "field": "agent_id",
+                    "type": "STRING",
+                    "comparators": [
+                        {
+                            "condition": "==",
+                            "negate": False,
+                            "value": agent_id,
+                        }
+                    ],
+                }
+            )
+        query = render_query(
+            "website_prod",
+            ["invoked_agent"],
+            having=having,
+        )
+        _, results = client.query(query, timeout=10)
+    except BigQueryTimeoutException:
+        print("timeout")
+    return {"success": True, "data": results or []}
