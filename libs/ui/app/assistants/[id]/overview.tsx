@@ -18,23 +18,19 @@ export default function Overview({
   profile: any
   data: LogItem[]
 }) {
-  const chartData = data.reduce((acc, logItem) => {
-    // Create a new Date object
-    const dateObject = new Date(logItem.received_at)
+  const chartData = data.reduce(
+    (acc: Record<string, number>, logItem) => {
+      const dateObject = new Date(logItem.received_at)
+      const date = `${dateObject.getFullYear()}-${String(
+        dateObject.getMonth() + 1
+      ).padStart(2, "0")}-${String(dateObject.getDate()).padStart(2, "0")}`
+      acc[date] = (acc[date] || 0) + 1
 
-    // Format the date to a string (e.g., '2022-03-01')
-    const date = `${dateObject.getFullYear()}-${String(
-      dateObject.getMonth() + 1
-    ).padStart(2, "0")}-${String(dateObject.getDate()).padStart(2, "0")}`
+      return acc
+    },
+    {} as Record<string, number>
+  )
 
-    // If this date is not yet in the accumulator, add it with a count of 1
-    // Otherwise, increment the count for this date
-    acc[date] = (acc[date] || 0) + 1
-
-    return acc
-  }, {})
-
-  // Convert the object to an array of { date, count } objects
   const chartDataArray = Object.entries(chartData).map(([date, count]) => ({
     date,
     count,
