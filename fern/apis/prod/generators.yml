@@ -12,12 +12,12 @@ groups:
         config:
           client_class_name: Superagent
       - name: fernapi/fern-typescript-node-sdk
-        version: 0.8.8
+        version: 0.9.4
         output:
           location: npm
           package-name: superagentai-js
           token: ${NPM_TOKEN}
         github:
-          repository: homanp/superagent-js
+          repository: fern-api/github-app-test
         config:
           namespaceExport: SuperAgent
