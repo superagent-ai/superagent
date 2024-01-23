@@ -1,0 +1,41 @@
+This page describes how to specify the LLM parametrs in an agent invocation.
+
+When invoking an Agent, you can specify the following LLM parameters:
+
+- `temperature` (default: 0.0): This parameter controls the randomness of the agent's responses. A higher value makes the output more random, while a lower value makes it more deterministic.
+
+- `max_tokens` (default: None): This parameter sets the maximum length of the agent's response. If not specified, the agent will use the default maximum length.
+
+Here's an example of how to set these parameters when invoking an agent:
+
+
+<Callout intent="warn">
+    Note: We assume that you have already created `agent`. If not, please refer to the [quickstart](https://docs.superagent.sh/overview/getting-started/basic-example) guide.
+</Callout>
+<br/>
+
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python
+        response = client.agent.invoke(
+            agent_id=agent_id,
+            input="What was Tesla's revenue?",
+            enable_streaming=False,
+            session_id="my_session_id",
+            llm_params={"temperature": 0.0, "max_tokens": 100}
+        )
+        ```
+    </CodeBlock>
+    
+    <CodeBlock title="Javascript/Typescript">
+        ```typescript
+        response = client.agent.invoke({
+            agent_id: agentId,
+            input: "What was Tesla's revenue?",
+            enable_streaming: false,
+            session_id: "my_session_id",
+            llm_params: {temperature: 0.0, max_tokens: 100}
+        });
+        ```
+    </CodeBlock>
+</CodeBlocks>

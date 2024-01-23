@@ -27,11 +27,17 @@ class AgentDatasource(BaseModel):
     datasourceId: str
 
 
+class LLMParams(BaseModel):
+    max_tokens: int
+    temperature: float
+
+
 class AgentInvoke(BaseModel):
     input: str
     sessionId: Optional[str]
     enableStreaming: bool
     outputSchema: Optional[str]
+    llm_params: Optional[LLMParams]
 
 
 class Datasource(BaseModel):
