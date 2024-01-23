@@ -20,7 +20,7 @@ interface LogPanelType {
 
 interface LogItem {
   id: string
-  intermediate_steps: Array<object>
+  intermediate_steps: string
   agent_id: string
   user_id: string
   received_at: string
@@ -30,12 +30,8 @@ interface LogItem {
 }
 
 function LogPanel({ panel, onClose }: LogPanelType) {
-  const { value, loading } = useAsync(async () => {
-    console.log(panel.id)
-  }, [panel])
-
   return (
-    <div className="absolute right-0 h-full max-w-[450px] border-l bg-background">
+    <div className="absolute right-0 h-full max-w-[500px] border-l bg-background">
       <div className="flex items-center justify-between space-x-2 border-b px-6 py-2">
         <p className="font-medium">Log details</p>
         <Button variant="outline" className="h-7 w-7 p-0" onClick={onClose}>
@@ -80,17 +76,30 @@ function LogPanel({ panel, onClose }: LogPanelType) {
               <div className="h-2 w-2 rounded-full bg-green-400" />
               <p className="font-mono uppercase text-muted-foreground">Input</p>
             </div>
-            <p className="max-w-[70%] truncate">{panel.input}</p>
+            <p className="max-w-[70%] truncate">{panel.input || "n/a"}</p>
           </div>
-          <div className="flex w-full flex-1 justify-between space-x-12">
-            <div className="flex items-center space-x-2">
-              <div className="h-2 w-2 rounded-full bg-green-400" />
-              <p className="font-mono uppercase text-muted-foreground">
-                Reasoning
-              </p>
+          {JSON.parse(panel.intermediate_steps)?.length > 0 && (
+            <div className="flex w-full flex-1 flex-col justify-between space-y-4">
+              {JSON.parse(panel.intermediate_steps)?.map(
+                (step: any, index: number) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center space-x-2 ">
+                      <div className="h-2 w-2 rounded-full bg-green-400" />
+                      <p className="font-mono uppercase text-muted-foreground">
+                        TOOL: {step.tool}
+                      </p>
+                    </div>
+                    <p className="max-w-[70%] truncate">
+                      {JSON.stringify(step.tool_input)}
+                    </p>
+                  </div>
+                )
+              )}
             </div>
-            <p className="max-w-[70%] truncate">{panel.input}</p>
-          </div>
+          )}
           <div className="flex w-full flex-1 justify-between space-x-12">
             <div className="flex items-center space-x-2">
               <div className="h-2 w-2 rounded-full bg-green-400" />
@@ -98,7 +107,7 @@ function LogPanel({ panel, onClose }: LogPanelType) {
                 Output
               </p>
             </div>
-            <p className="max-w-[70%] truncate">{panel.output}</p>
+            <p className="max-w-[70%] truncate">{panel.output || "n/a"}</p>
           </div>
         </div>
         {panel.agent_id && (
