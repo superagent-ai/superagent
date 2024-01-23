@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The open source alternative to OpenAI Assistants API
-  version: 0.1.64
+  version: 0.1.65
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -201,6 +201,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
+      x-fern-sdk-group-name: agent
+      x-fern-sdk-method-name: invoke
   /api/v1/agents/{agent_id}/llms:
     post:
       tags:
