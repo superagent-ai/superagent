@@ -2,8 +2,8 @@ import logging
 import os
 from typing import Optional
 
-from google.cloud import bigquery
 from fastapi import APIRouter, Depends
+from google.cloud import bigquery
 
 from app.models.response import AgentRunList as AgentRunListResponse
 from app.utils.api import get_current_api_user
