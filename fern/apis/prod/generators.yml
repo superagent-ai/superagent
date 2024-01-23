@@ -18,6 +18,6 @@ groups:
           package-name: superagentai-js
           token: ${NPM_TOKEN}
         github:
-          repository: fern-api/github-app-test
+          repository: homanp/superagent-js
         config:
           namespaceExport: SuperAgent
