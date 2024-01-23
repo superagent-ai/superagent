@@ -108,7 +108,7 @@ class LangchainAgent(AgentBase):
     async def _get_llm(self, agent_llm: AgentLLM, model: str) -> Any:
         llm_params = {
             "temperature": 0,
-            **self.llm_params,
+            **(self.llm_params.dict() if self.llm_params else {}),
         }
 
         if agent_llm.llm.provider == "OPENAI":

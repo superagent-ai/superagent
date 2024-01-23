@@ -1,5 +1,6 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
+from app.models.request import LLMParams
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
 
@@ -17,7 +18,7 @@ class AgentBase:
         enable_streaming: bool = False,
         output_schema: str = None,
         callback: CustomAsyncIteratorCallbackHandler = None,
-        llm_params: dict[any, any] = {},
+        llm_params: Optional[LLMParams] = {},
         agent_config: Agent = None,
     ):
         self.agent_id = agent_id
