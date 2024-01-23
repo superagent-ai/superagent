@@ -7,7 +7,7 @@ from decouple import config
 from tempfile import NamedTemporaryFile
 from langchain.tools import BaseTool
 from llama import Context, LLMEngine, Type
-from app.vectorstores.base import VectorStoreBase
+from app.vectorstores.base import VectorStoreMain
 from app.datasource.loader import DataLoader
 from prisma.models import Datasource
 
@@ -74,7 +74,10 @@ class DatasourceTool(BaseTool):
         question: str,
     ) -> str:
         """Use the tool."""
-        vector_store = VectorStoreBase()
+        vector_store = VectorStoreMain(
+            options=self.metadata["options"],
+            vector_db_provider=self.metadata["provider"],
+        )
         result = vector_store.query_documents(
             prompt=question,
             datasource_id=self.metadata["datasource_id"],
@@ -88,7 +91,10 @@ class DatasourceTool(BaseTool):
         question: str,
     ) -> str:
         """Use the tool asynchronously."""
-        vector_store = VectorStoreBase()
+        vector_store = VectorStoreMain(
+            options=self.metadata["options"],
+            vector_db_provider=self.metadata["provider"],
+        )
         result = vector_store.query_documents(
             prompt=question,
             datasource_id=self.metadata["datasource_id"],

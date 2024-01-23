@@ -1,0 +1,248 @@
+Workflows allow you to connect multiple assistants in a sequential chain passing the output from one step to another in a deterministic way. 
+## Step-by-step guide
+
+1. Start by creating 2 agents (you need to have at least 2 agents to be able to create a workflow).
+
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python
+        import os
+        from superagent.client import Superagent
+        
+        client = Superagent(
+            base_url="https://api.beta.superagent.sh",
+            token=os.environ["SUPERAGENT_API_KEY"]
+        )
+
+        agent = client.agent.create(request={
+            "name": "Blog Assistant",
+            "description": "An Assistant that can create blog post contents",
+            "avatar": "https://example.com/logo.png", # Replace with a real image
+            "isActive": True,
+            "llmModel": "GPT_3_5_TURBO_16K_0613",
+            "initialMessage": "Hi there, how can I help you?",
+            "prompt": "Create blog post contents."
+        })
+
+        agent2 = client.agent.create(request={
+            "name": "Image Assistant",
+            "description": "An Assistant that can generate image",
+            "avatar": "https://example.com/logo2.png", # Replace with a real image
+            "isActive": True,
+            "llmModel": "GPT_3_5_TURBO_16K_0613",
+            "initialMessage": "Hi there, how can I help you?",
+            "prompt": "Use the SDXL API to generate an image."
+        })
+
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        import { SuperAgentClient } from "superagentai-js"
+        
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh",
+            token: process.env.SUPERAGENT_API_KEY
+        })
+
+        const {data: agent1} = await client.agent.create({
+            name: "Blog Assistant",
+            description: "An Assistant that can create blog post contents",
+            avatar: "https://example.com/logo.png", // Replace with a real image
+            isActive: true,
+            llmModel: "GPT_3_5_TURBO_16K_0613",
+            initialMessage: "Hi there, how can I help you?",
+            prompt: "Create blog post contents."
+        })
+
+
+        const {data: agent2} = await client.agent.create({
+            name: "Image Assistant",
+            description: "An Assistant that can generate image",
+            avatar: "https://example.com/logo2.png", // Replace with a real image
+            isActive: true,
+            llmModel: "GPT_3_5_TURBO_16K_0613",
+            initialMessage: "Hi there, how can I help you?",
+            prompt: "Use the SDXL API to generate an image."
+        })
+
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+2. Next, let's create a workflow.
+
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        workflow = client.workflow.create(request={
+            "name": "Blog Post Generator Workflow",
+            "description": "Useful for generating blog post",
+        })
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        const {data: workflow} = await client.workflow.create({
+            name: "Blog Post Generator Workflow",
+            description: "Useful for generating blog post",
+        })
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+3. Add the workflow steps
+
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+            step1 = client.workflow.add_step(workflow_id=workflow.data.id, request={
+                "agentId": agent1.data.id,
+                "order": 0
+            })
+            step2 = client.workflow.add_step(workflow_id=workflow.data.id, request={
+                "agentId": agent2.data.id,
+                "order": 1
+            })
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript 
+        const {data: step1} = await client.workflow.add_step(workflow.id, {
+            agentId: agent1.id,
+            order: 0
+        })
+
+        const {data: step2} = await client.workflow.add_step(workflow.id, {
+            agentId: agent2.id,
+            order: 1
+        })
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+4. Let's invoke the workflow
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        response = client.workflow.invoke(workflow_id=workflow.data.id, input="create a blog post about AI", enable_streaming=False)
+        print(response)
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript 
+        const response = await client.agent.invoke(workflow.id, {
+            enableStreaming: false,
+            input: "What's the current stock price of Apple?",
+        })
+        console.log(response)
+        ```
+    </CodeBlock>
+
+
+</CodeBlocks>
+
+
+## Full code
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python
+        import os
+        from superagent.client import Superagent
+        
+        client = Superagent(
+            base_url="https://api.beta.superagent.sh",
+            token=os.environ["SUPERAGENT_API_KEY"]
+        )
+
+        agent = client.agent.create(request={
+            "name": "Blog Assistant",
+            "description": "An Assistant that can create blog post contents",
+            "avatar": "https://example.com/logo.png", # Replace with a real image
+            "isActive": True,
+            "llmModel": "GPT_3_5_TURBO_16K_0613",
+            "initialMessage": "Hi there, how can I help you?",
+            "prompt": "Create blog post contents."
+        })
+
+        agent2 = client.agent.create(request={
+            "name": "Image Assistant",
+            "description": "An Assistant that can generate image",
+            "avatar": "https://example.com/logo2.png", # Replace with a real image
+            "isActive": True,
+            "llmModel": "GPT_3_5_TURBO_16K_0613",
+            "initialMessage": "Hi there, how can I help you?",
+            "prompt": "Use the SDXL API to generate an image."
+        })
+
+         workflow = client.workflow.create(request={
+            "name": "Blog Post Generator Workflow",
+            "description": "Useful for generating blog post",
+        })
+
+        step1 = client.workflow.add_step(workflow_id=workflow.data.id, request={
+            "agentId": agent1.data.id,
+            "order": 0
+        })
+        step2 = client.workflow.add_step(workflow_id=workflow.data.id, request={
+            "agentId": agent2.data.id,
+            "order": 1
+        })
+        response = client.workflow.invoke(workflow_id=workflow.data.id, input="create a blog post about AI", enable_streaming=False)
+        print(response)
+
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        import { SuperAgentClient } from "superagentai-js"
+        
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh",
+            token: process.env.SUPERAGENT_API_KEY
+        })
+
+        const {data: agent} = await client.agent.create({
+            name: "Blog Assistant",
+            description: "An Assistant that can create blog post contents",
+            avatar: "https://example.com/logo.png", // Replace with a real image
+            isActive: true,
+            llmModel: "GPT_3_5_TURBO_16K_0613",
+            initialMessage: "Hi there, how can I help you?",
+            prompt: "Create blog post contents."
+        })
+
+
+        const {data: agent2} = await client.agent.create({
+            name: "Image Assistant",
+            description: "An Assistant that can generate image",
+            avatar: "https://example.com/logo2.png", // Replace with a real image
+            isActive: true,
+            llmModel: "GPT_3_5_TURBO_16K_0613",
+            initialMessage: "Hi there, how can I help you?",
+            prompt: "Use the SDXL API to generate an image."
+        })
+
+        const {data: workflow} = await client.workflow.create({
+            name: "Blog Post Generator Workflow",
+            description: "Useful for generating blog post",
+        })
+
+        const {data: step1} = await client.workflow.add_step(workflow.id, {
+            agentId: agent1.id,
+            order: 0
+        })
+
+        const {data: step2} = await client.workflow.add_step(workflow.id, {
+            agentId: agent2.id,
+            order: 1
+        })
+
+        const response = await client.agent.invoke(workflow.id, {
+            enableStreaming: false,
+            input: "What's the current stock price of Apple?",
+        })
+        console.log(response)
+        ```
+    </CodeBlock>
+</CodeBlocks>

@@ -10,6 +10,9 @@ from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
 from pinecone.core.client.models import QueryResponse
 from pydantic.dataclasses import dataclass
 
+from app.utils.helpers import get_first_non_null
+from app.vectorstores.abstract import VectorStoreBase
+
 logger = logging.getLogger(__name__)
 
 
@@ -33,35 +36,50 @@ class Response:
         self.metadata = metadata or {}
 
 
-class PineconeVectorStore:
+class PineconeVectorStore(VectorStoreBase):
     def __init__(
         self,
-        index_name: str = config("PINECONE_INDEX"),
-        environment: str = config("PINECONE_ENVIRONMENT"),
-        pinecone_api_key: str = config("PINECONE_API_KEY"),
+        options: dict,
+        index_name: str = None,
+        environment: str = None,
+        pinecone_api_key: str = None,
     ) -> None:
-        if not index_name:
-            raise ValueError(
-                "Please provide a Pinecone Index Name via the "
-                "`PINECONE_INDEX` environment variable."
-            )
+        self.options = options
 
-        if not environment:
-            raise ValueError(
-                "Please provide a Pinecone Environment/Region Name via the "
-                "`PINECONE_ENVIRONMENT` environment variable."
-            )
+        variables = {
+            "PINECONE_INDEX": get_first_non_null(
+                index_name,
+                options.get("PINECONE_INDEX"),
+                config("PINECONE_INDEX", None),
+            ),
+            "PINECONE_ENVIRONMENT": get_first_non_null(
+                environment,
+                options.get("PINECONE_ENVIRONMENT"),
+                config("PINECONE_ENVIRONMENT", None),
+            ),
+            "PINECONE_API_KEY": get_first_non_null(
+                pinecone_api_key,
+                options.get("PINECONE_API_KEY"),
+                config("PINECONE_API_KEY", None),
+            ),
+        }
 
-        if not pinecone_api_key:
-            raise ValueError(
-                "Please provide a Pinecone API key via the "
-                "`PINECONE_API_KEY` environment variable."
-            )
+        for var, value in variables.items():
+            if not value:
+                raise ValueError(
+                    f"Please provide a {var} via the "
+                    f"`{var}` environment variable"
+                    "or check the `VectorDb` table in the database."
+                )
 
-        pinecone.init(api_key=pinecone_api_key, environment=environment)
+        pinecone.init(
+            api_key=variables["PINECONE_API_KEY"],
+            environment=variables["PINECONE_ENVIRONMENT"],
+        )
 
-        logger.info(f"Index name: {index_name}")
-        self.index = pinecone.Index(index_name)
+        self.index_name = variables["PINECONE_INDEX"]
+        logger.info(f"Index name: {self.index_name}")
+        self.index = pinecone.Index(self.index_name)
         self.embeddings = OpenAIEmbeddings(
             model="text-embedding-ada-002", openai_api_key=config("OPENAI_API_KEY")
         )  # type: ignore
@@ -175,7 +193,6 @@ class PineconeVectorStore:
     ) -> list[str]:
         if top_k is None:
             top_k = 5
-
         logger.info(f"Executing query with document id in namespace {datasource_id}")
         documents_in_namespace = self.query(
             prompt=prompt,
@@ -202,34 +219,9 @@ class PineconeVectorStore:
         return [str(response) for response in documents_in_namespace]
 
     def delete(self, datasource_id: str):
-        vector_dimensionality = 1536
-        arbitrary_vector = [1.0] * vector_dimensionality
-
         try:
-            documents_in_namespace = self.index.query(
-                arbitrary_vector,
-                namespace=datasource_id,
-                top_k=9999,
-                include_metadata=False,
-                include_values=False,
-            )
-
-            vector_ids = [match["id"] for match in documents_in_namespace["matches"]]
-
-            if len(vector_ids) == 0:
-                logger.info(
-                    f"No vectors found in namespace `{datasource_id}`. "
-                    f"Deleting `{datasource_id}` using default namespace."
-                )
-                self.index.delete(
-                    filter={"datasource_id": datasource_id}, delete_all=False
-                )
-
-            else:
-                logger.info(
-                    f"Deleting {len(vector_ids)} documents in namespace {datasource_id}"
-                )
-                self.index.delete(ids=vector_ids, delete_all=False)
+            logger.info(f"Deleting vectors for datasource with id: {datasource_id}")
+            self.index.delete(filter={"datasource_id": datasource_id})
 
         except Exception as e:
             logger.error(f"Failed to delete {datasource_id}. Error: {e}")

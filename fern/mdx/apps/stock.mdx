@@ -1,0 +1,65 @@
+The Stock Assistant enables you to create a ChatGPT-like experience for anlyzing companies/stocks. Ask it questions about recent news, sentiments and stock prices and it will answer. This Assistant utilizes the [Alpha Vantage](https://alphavantage.co) API for accessing real-time stock information as well as the Bing Search API and the Superagent Browser API.
+
+## Demo
+
+<video
+  controls
+  autoplay
+  width="100%"
+  height="500px"
+  src="https://superagentai.s3.eu-north-1.amazonaws.com/stock-ai-3.mp4"
+></video>
+
+
+
+## Installation
+
+1. Clone the following repository [https://github.com/homanp/super-stocks](https://github.com/homanp/super-stocks)
+
+2. Change the name of `.env.example` to `.env` and fill out the variables. You need to setup a Superagent and Alpha Vantage account to retrieve API keys. 
+
+3. Install the dependencies
+    ```bash 
+    npm i 
+    ```
+
+4. Run the app
+    ```bash 
+    npm run dev
+    ```
+
+## Superagent setup
+This app required you to have a Superagent account. Create an account by signing up: [https://beta.superaget.sh](https://beta.superagent.sh).
+
+1. Visit https://beta.superagent.sh/apis and create a new API called `Stock API`. 
+
+<img src="https://superagentai.s3.eu-north-1.amazonaws.com/stock-api.png" alt="Stocks API" />
+
+2. Optionally create a `Browser` and `Bing Search` APIs as well. 
+
+3. Create an Agent and attach the APIs to it.
+
+<br />
+
+<Callout intent="warn">
+Make sure to use on of the models that has `function calling` capabilities such as `GPT-3.5-TURBO-16K-0613` or `GPT-4-0613`.
+</Callout>
+
+<br/>
+
+<img src="https://superagentai.s3.eu-north-1.amazonaws.com/Screenshot+2023-11-29+at+08.47.47.png" alt="Stocks Agent" />
+
+<br />
+
+4. Copy the Agent ID and place it into your `.env` file.
+
+
+## Deployment
+After configuring the above you can deploy this Assistant to [Vercel](https://vercel.com) using [these instructions](https://nextjs.org/learn-pages-router/basics/deploying-nextjs-app/deploy).
+
+## Stack
+
+- GPT-3.5-TURBO-16K-0613
+- Superagent Browser API
+- Bing Search API
+- AlphaVantage API (Real-time stock data)

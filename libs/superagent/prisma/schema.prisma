@@ -6,23 +6,29 @@ generator client {
 datasource db {
   provider          = "postgresql"
   url               = env("DATABASE_URL")
+  directUrl         = env("DATABASE_MIGRATION_URL")
   shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
 enum LLMProvider {
   OPENAI
   AZURE_OPENAI
+  HUGGINGFACE
 }
 
 enum LLMModel {
   GPT_3_5_TURBO_16K_0613
   GPT_3_5_TURBO_0613
+  GPT_3_5_TURBO_1106
   GPT_4_0613
   GPT_4_32K_0613
   GPT_4_1106_PREVIEW
+  MISTRAL_7B_INSTRUCT_V01
+  MIXTRAL_8X7B_INSTRUCT_V01
 }
 
 enum ToolType {
+  ALGOLIA
   BROWSER
   BING_SEARCH
   REPLICATE
@@ -37,6 +43,9 @@ enum ToolType {
   OPENBB
   GPT_VISION
   TTS_1
+  HAND_OFF
+  FUNCTION
+  HTTP
 }
 
 enum DatasourceType {
@@ -65,6 +74,14 @@ enum DatasourceStatus {
   FAILED
 }
 
+enum VectorDbProvider {
+  PINECONE
+  ASTRA_DB
+  WEAVIATE
+  QDRANT
+  SUPABASE
+}
+
 model ApiUser {
   id          String       @id @default(uuid())
   token       String?
@@ -76,6 +93,7 @@ model ApiUser {
   datasources Datasource[]
   tools       Tool[]
   workflows   Workflow[]
+  vectorDb    VectorDb[]
 }
 
 model Agent {
@@ -111,6 +129,8 @@ model Datasource {
   metadata    String?           @db.Text
   status      DatasourceStatus  @default(IN_PROGRESS)
   datasources AgentDatasource[]
+  vectorDb    VectorDb?         @relation(fields: [vectorDbId], references: [id])
+  vectorDbId  String?
 }
 
 model AgentDatasource {
@@ -136,6 +156,7 @@ model Tool {
   apiUserId    String
   apiUser      ApiUser     @relation(fields: [apiUserId], references: [id])
   tools        AgentTool[]
+  toolConfig   Json?
 }
 
 model AgentTool {
@@ -187,11 +208,22 @@ model WorkflowStep {
   id         String   @id @default(uuid())
   order      Int
   workflowId String
-  workflow   Workflow @relation(fields: [workflowId], references: [id])
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  input      String   @db.Text
-  output     String   @db.Text
+  input      String?  @db.Text
+  output     String?  @db.Text
   agentId    String
-  agent      Agent    @relation(fields: [agentId], references: [id])
+  agent      Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+}
+
+model VectorDb {
+  id          String           @id @default(uuid())
+  provider    VectorDbProvider @default(PINECONE)
+  options     Json
+  datasources Datasource[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  apiUserId   String
+  apiUser     ApiUser          @relation(fields: [apiUserId], references: [id])
 }

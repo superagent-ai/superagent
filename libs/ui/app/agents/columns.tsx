@@ -30,7 +30,7 @@ export const columns: ColumnDef<Agent>[] = [
         </Badge>
       ) : (
         <Badge variant="secondary">
-          <div className="text-muted-foreground flex items-center">
+          <div className="flex items-center text-muted-foreground">
             <RxCircle className="mr-1 h-3 w-3" />
             Paused
           </div>

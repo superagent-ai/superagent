@@ -1,0 +1,238 @@
+You can force your Assistant to reply using structured outputs. This can be beneficial when you want the Assisatant to return data in the form of `json`. 
+
+## Step-by-step guide
+
+1. Start by creating an LLM, a Tool and an Agent. Note that you usually only need to create the `llm` object once and re-use it for subsequent agents. 
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python
+        import os
+        from superagent.client import Superagent
+        
+        client = Superagent(
+            base_url="https://api.beta.superagent.sh",
+            token=os.environ["SUPERAGENT_API_KEY"]
+        )
+
+        # We recommend querying for existing LLMs prior to creating.
+        llm = client.llm.create(request={
+            "provider": "OPENAI",
+            "apiKey": os.environ["OPENAI_API_KEY"]
+        })
+
+        agent = client.agent.create(request={
+            "name": "Structured Assistant",
+            "description": "An Assistant that returns responses in json",
+            "avatar": "https://mylogo.com/logo.png", # Replace with a real image
+            "isActive": True,
+            "llmModel": "GPT_4_1106_PREVIEW",
+            "initialMessage": "Hi there, how can I help you?",
+            "prompt": "Use the Browser to answer the users question."
+        })
+
+        tool = client.tool.create(request={
+            "name": "Browser",
+            "description": "useful for analyzing and summarizing websites and urls.",
+            "type": "BROWSER"
+        })
+
+        client.agent.add_tool(agent_id=agent.data.id, tool_id=tool.data.id)
+        client.agent.add_llm(agent_id=agent.data.id, llm_id=llm.data.id)
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript 
+        import { SuperAgentClient } from "superagentai-js"
+
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh",
+            token: process.env.SUPERAGENT_API_KEY
+        })
+
+        // We recommend querying for existing LLMs prior to creating.
+        const {data: llm} = await client.llm.create({
+            provider: "OPENAI",
+            apiKey: process.env.OPENAI_API_KEY
+        })
+
+        const {data: agent} = await client.agent.create({
+            name: "Structured Assistant",
+            description: "An Assistant that returns responses in json",
+            avatar: "https://mylogo.com/logo.png", // Replace with a real image
+            isActive: true,
+            llmModel: "GPT_4_1106_PREVIEW",
+            initialMessage: "Hi there, how can I help you?",
+            prompt: "Use the Browser to answer the users question."
+        })
+
+        const {data: tool} = await client.tool.create({
+            name: "Browser",
+            description: "useful for analyzing and summarizing websites and urls.",
+            type: "BROWSER"
+        })
+
+        await client.agent.addTool(agent.id, {toolId: tool.id})
+        await client.agent.addLlm(agent.id, {llmId: llm.id})
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+2. Invoke your Agent with the `output_schema` parameter. This parameter should hold the desired schema. 
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        prediction = client.agent.invoke(
+            agent_id=agent.data.id,
+            input="List the top 5 articles on https://news.ycombinator.com."
+            enable_streaming=False,
+            session_id="my_session_id",
+            output_schema="[{title: string, points: number, url: string}]" # Your desired output schema
+        )
+
+        print(prediction.data.get("output"))
+
+        # [{
+        #     "title": "...",
+        #     "points": "...",
+        #     "url": "..."
+        # }, {
+        #     ...
+        # }]
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript 
+        const {data: prediction} = await client.agent.invoke(agent.id, {
+            input: "List the top 5 articles on https://news.ycombinator.com."
+            enableStreaming: false,
+            sessionId: "my_session_id",
+            outputSchema: "[{title: string, points: number, url: string}]" // Your desired output schema
+        });
+
+        console.log(prediction.output)
+
+        // [{
+        //     "title": "...",
+        //     "points": "...",
+        //     "url": "..."
+        // }, {
+        //     ...
+        // }]
+        ```
+    </CodeBlock>
+</CodeBlocks>    
+    
+
+By passing the `output_schema` we make sure the Assistant returns a `json` repsonse in our desired output schema.
+
+## Full code
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python
+        import os
+        from superagent.client import Superagent
+
+        client = Superagent(
+            base_url="https://api.beta.superagent.sh",
+            token=os.environ["SUPERAGENT_API_KEY"]
+        )
+
+        # We recommend querying for existing LLMs prior to creating.
+        llm = client.llm.create(request={
+            "provider": "OPENAI",
+            "apiKey": os.environ["OPENAI_API_KEY"]
+        })
+
+        agent = client.agent.create(request={
+            "name": "Structured Assistant",
+            "description": "An Assistant that returns responses in json",
+            "avatar": "https://mylogo.com/logo.png", # Replace with a real image
+            "isActive": True,
+            "llmModel": "GPT_4_1106_PREVIEW",
+            "initialMessage": "Hi there, how can I help you?",
+            "prompt": "Use the Browser to answer the users question."
+        })
+
+        tool = client.tool.create(request={
+            "name": "Browser",
+            "description": "useful for analyzing and summarizing websites and urls.",
+            "type": "BROWSER"
+        })
+
+        client.agent.add_tool(agent_id=agent.data.id, tool_id=tool.data.id)
+        client.agent.add_llm(agent_id=agent.data.id, llm_id=llm.data.id)
+
+        prediction = client.agent.invoke(
+            agent_id=agent.data.id,
+            input="List the top 5 articles on https://news.ycombinator.com."
+            enable_streaming=False,
+            session_id="my_session_id",
+            output_schema="[{title: string, points: number, url: string}]" # Your desired output schema
+        )
+
+        print(prediction.data.get("output"))
+
+        # [{
+        #     "title": "...",
+        #     "points": "...",
+        #     "url": "..."
+        # }, {
+        #     ...
+        # }]
+
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        import { SuperAgentClient } from "superagentai-js"
+
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh",
+            token: process.env.SUPERAGENT_API_KEY
+        })
+
+        // We recommend querying for existing LLMs prior to creating.
+        const {data: llm} = await client.llm.create({
+            provider: "OPENAI",
+            apiKey: process.env.OPENAI_API_KEY
+        })
+
+        const {data: agent} = await client.agent.create({
+            name: "Structured Assistant",
+            description: "An Assistant that returns responses in json",
+            avatar: "https://mylogo.com/logo.png", // Replace with a real image
+            isActive: true,
+            llmModel: "GPT_4_1106_PREVIEW",
+            initialMessage: "Hi there, how can I help you?",
+            prompt: "Use the Browser to answer the users question."
+        })
+
+        const {data: tool} = await client.tool.create({
+            name: "Browser",
+            description: "useful for analyzing and summarizing websites and urls.",
+            type: "BROWSER"
+        })
+
+        await client.agent.addTool(agent.id, {toolId: tool.id})
+        await client.agent.addLlm(agent.id, {llmId: llm.id})
+
+        const {data: prediction} = await client.agent.invoke(agent.id, {
+            input: "List the top 5 articles on https://news.ycombinator.com."
+            enableStreaming: false,
+            sessionId: "my_session_id",
+            outputSchema: "[{title: string, points: number, url: string}]" // Your desired output schema
+        });
+
+        console.log(prediction.output)
+
+        // [{
+        //     "title": "...",
+        //     "points": "...",
+        //     "url": "..."
+        // }, {
+        //     ...
+        // }]
+        ```
+    </CodeBlock>
+</CodeBlocks>  
+

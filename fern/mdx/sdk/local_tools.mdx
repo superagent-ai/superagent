@@ -1,0 +1,386 @@
+In addition to running the pre-made tools offered by the framework, you can also add custom tools/functions to your agent. This is particularily useful when you want the LLM to run custom code in your application that is not directly supported by the preset of tools in Superagent. 
+
+## Step-by-step guide
+
+1. Start by creating an LLM and an Agent. Note that you can use already created LLMs or Agents.
+
+<Callout intent="warn">
+Note that you usually only need to create the `llm` object once and re-use it for subsequent agents you create.
+</Callout>
+<br/>
+
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python
+        import os
+        from superagent.client import Superagent
+        
+        client = Superagent(
+            base_url="https://api.beta.superagent.sh",
+            token=os.environ["SUPERAGENT_API_KEY"]
+        )
+
+        llm = client.llm.create(request={
+            "provider": "OPENAI",
+            "apiKey": os.environ["OPENAI_API_KEY"]
+        })
+
+        agent = client.agent.create(request={
+            "name": "Stock Assistant",
+            "description": "An Assistant that can fetch Stock prices",
+            "avatar": "https://mylogo.com/logo.png", # Replace with a real image
+            "isActive": True,
+            "llmModel": "GPT_3_5_TURBO_16K_0613",
+            "initialMessage": "Hi there, how can I help you?",
+            "prompt": "Use the Stock API to answer the users question."
+        })
+
+        client.agent.add_llm(agent_id=agent.data.id, llm_id=llm.data.id)
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        import { SuperAgentClient } from "superagentai-js"
+        
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh",
+            token: process.env.SUPERAGENT_API_KEY
+        })
+
+        const {data: llm} = await client.llm.create({
+            provider: "OPENAI",
+            apiKey: os.environ["OPENAI_API_KEY"]
+        })
+
+        const {data: agent} = await client.agent.create({
+            name: "Stock Assistant",
+            description: "An Assistant that can fetch Stock prices",
+            avatar: "https://mylogo.com/logo.png", // Replace with a real image
+            isActive: true,
+            llmModel: "GPT_3_5_TURBO_16K_0613",
+            initialMessage: "Hi there, how can I help you?",
+            prompt: "Use the Stock API to answer the users question."
+        })
+
+        await client.agent.addLlm(agent.id, {
+            llmId: llm.id
+        })
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+2. Next, let's create a custom tool that will fetch stock info for a specific ticker.
+
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        tool = client.tool.create({
+            "name": "Stock API",
+            "description": "Useful for answering questions about a specific stock",
+            "type": "FUNCTION",
+            "returnDirect": False,
+            "metadata": {
+                "functionName": "get_stock",
+                "args": {
+                    "ticker": {
+                        "type": "string",
+                        "description": "The stock ticker to search for"
+                    }
+                }
+            }
+        })
+
+        client.agent.add_tool(agent_id=agent.data.id, tool_id=tool.data.id)
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        const {data: tool} = await client.tool.create({
+            name: "Stock API",
+            description: "Useful for answering questions about a specific stock",
+            type: "FUNCTION",
+            returnDirect: false,
+            metadata: {
+                functionName: "get_stock",
+                args: {
+                    ticker: {
+                        type: "string",
+                        description: "The stock ticker to search for"
+                    }
+                }
+            }
+        })
+
+        await client.agent.addTool(agent.id, {
+            toolId: tool.id
+        })
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+3. Invoke the agent
+
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        prediction = client.agent.invoke(
+            agent_id=agent_id,
+            enable_streaming=False,
+            input="What's the current stock price of Apple?",
+            session_id="my_session_id"
+        )
+
+        output = prediction.data.get("output")
+        steps = preduction.data.get("intermediate_steps")
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript 
+        const {data: prediction} = await client.agent.invoke(agentId, {
+            enableStreaming: false,
+            input: "What's the current stock price of Apple?",
+            sessionId: "my_session_id"
+        })
+
+        const output = prediction.output
+        const steps = prediction.intermediate_steps
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+4. Check the intermediate steps and execute the local function.
+
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python
+        # Implementation of the get_stock function
+        def get_stock(ticker):
+            print(f"Getting stock information for {ticker}")
+        
+        # Create a dispatch table
+        tool_dispatch = {
+            "get_stock": get_stock,
+            # Add more tools here as needed
+        }
+
+        # Check the steps and run the function
+        def handle_tool_actions(steps):
+            for item, _ in data:
+                tool_name = item.get('tool')
+                tool_function = tool_dispatch.get(tool_name)
+                if tool_function:
+                    tool_input = item.get('tool_input', {})
+                    tool_function(**tool_input)
+                else:
+                    print(f"No function defined for tool: {tool_name}")
+
+        # Run your custom tool
+        handle_tool_actions(steps)
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        // Implementation of the getStock function
+        function getStock({ ticker }) {       
+            console.log(`Getting stock information for ${ticker}`);
+        };
+
+        // Create a tool dispatch mapping
+        const toolDispatch = {
+            "get_stock": getStock,
+            // Add more tools here as needed
+        };
+
+        // Implement a handler for running functions
+        function handleToolActions(steps) {
+            steps.forEach(([item, _]) => {
+                const toolName = item.tool;
+                const toolFunction = toolDispatch[toolName];
+                if (toolFunction) {
+                    const toolInput = item.tool_input || {};
+                    toolFunction(toolInput);
+                } else {
+                    console.log(`No function defined for tool: ${toolName}`);
+                }
+            });
+        };
+
+        // Run your custom tool/function
+        handleToolActions(steps);
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+## Full code
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python
+        import os
+        from superagent.client import Superagent
+        
+        client = Superagent(
+            base_url="https://api.beta.superagent.sh",
+            token=os.environ["SUPERAGENT_API_KEY"]
+        )
+
+        llm = client.llm.create(request={
+            "provider": "OPENAI",
+            "apiKey": os.environ["OPENAI_API_KEY"]
+        })
+
+        agent = client.agent.create(request={
+            "name": "Stock Assistant",
+            "description": "Useful for answering questions about a specific stock",
+            "avatar": "https://mylogo.com/logo.png", # Replace with a real image
+            "isActive": True,
+            "llmModel": "GPT_3_5_TURBO_16K_0613",
+            "initialMessage": "Hi there, how can I help you?",
+            "prompt": "Use the Stock API to answer the users question."
+        })
+
+        # Create your custom tool
+        tool = client.tool.create({
+            "name": "Stock API",
+            "description": "Useful for answering questions about a specific stock",
+            "type": "FUNCTION",
+            "returnDirect": False,
+            "metadata": {
+                "functionName": "get_stock",
+                "args": {
+                    "ticker": {
+                        "type": "string",
+                        "description": "The stock ticker to search for"
+                    }
+                }
+            }
+        })
+
+        client.agent.add_llm(agent_id=agent.data.id, llm_id=llm.data.id)
+        client.agent.add_tool(agent_id=agent.data.id, tool_id=tool.data.id)
+
+        prediction = client.agent.invoke(
+            agent_id=agent_id,
+            enable_streaming=False,
+            input="What's the current stock price of Apple?",
+            session_id="my_session_id"
+        )
+
+        output = prediction.data.get("output")
+        steps = preduction.data.get("intermediate_steps")
+
+        # Implementation of the get_stock function
+        def get_stock(ticker):
+            print(f"Getting stock information for {ticker}")
+        
+        # Create a dispatch table
+        tool_dispatch = {
+            "get_stock": get_stock,
+            # Add more tools here as needed
+        }
+
+        # Check the steps and run the function
+        def handle_tool_actions(steps):
+            for item, _ in data:
+                tool_name = item.get('tool')
+                tool_function = tool_dispatch.get(tool_name)
+
+                if tool_function:
+                    tool_input = item.get('tool_input', {})
+                    tool_function(**tool_input)
+                else:
+                    print(f"No function defined for tool: {tool_name}")
+
+        # Run your custom tool
+        handle_tool_actions(steps)
+
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        import { SuperAgentClient } from "superagentai-js"
+        
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh",
+            token: process.env.SUPERAGENT_API_KEY
+        })
+
+        const {data: llm} = await client.llm.create({
+            provider: "OPENAI",
+            apiKey: os.environ["OPENAI_API_KEY"]
+        })
+
+        const {data: agent} = await client.agent.create({
+            name: "Stock Assistant",
+            description: "Useful for answering questions about a specific stock",
+            avatar: "https://mylogo.com/logo.png", // Replace with a real image
+            isActive: true,
+            llmModel: "GPT_3_5_TURBO_16K_0613",
+            initialMessage: "Hi there, how can I help you?",
+            prompt: "Use the Stock API to answer the users question."
+        })
+
+        // Your custom tool
+        const {data: tool} = await client.tool.create({
+            name: "Stock API",
+            description: "Useful for answering questions about a specific stock",
+            type: "FUNCTION",
+            returnDirect: false,
+            metadata: {
+                functionName: "get_stock",
+                args: {
+                    ticker: {
+                        type: "string",
+                        description: "The stock ticker to search for"
+                    }
+                }
+            }
+        })
+
+        await client.agent.addTool(agent.id, {
+            toolId: tool.id
+        })
+
+        await client.agent.addLlm(agent.id, {
+            llmId: llm.id
+        })
+
+        const {data: prediction} = await client.agent.invoke(agentId, {
+            enableStreaming: false,
+            input: "What's the current stock price of Apple?",
+            sessionId: "my_session_id"
+        })
+
+        const output = prediction.output
+        const steps = prediction.intermediate_steps
+
+        // Implementation of the getStock function
+        function getStock({ ticker }) {       
+            console.log(`Getting stock information for ${ticker}`);
+        };
+
+        // Create a tool dispatch mapping
+        const toolDispatch = {
+            "get_stock": getStock,
+            // Add more tools here as needed
+        };
+
+        // Implement a handler for running functions
+        function handleToolActions(steps) {
+            steps.forEach(([item, _]) => {
+                const toolName = item.tool;
+                const toolFunction = toolDispatch[toolName];
+
+                if (toolFunction) {
+                    const toolInput = item.tool_input || {};
+                    toolFunction(toolInput);
+                } else {
+                    console.log(`No function defined for tool: ${toolName}`);
+                }
+            });
+        };
+
+        // Run your custom tool/function
+        handleToolActions(steps);
+        ```
+    </CodeBlock>
+</CodeBlocks>

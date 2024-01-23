@@ -11,6 +11,8 @@ from app.models.response import (
 from app.models.response import (
     ToolList as ToolListResponse,
 )
+
+# from app.tools.flow import generate_tool_config
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 
@@ -36,6 +38,16 @@ async def create(
             analytics.track(api_user.id, "Created Tool")
         body.metadata = json.dumps(body.metadata) if body.metadata else ""
         data = await prisma.tool.create({**body.dict(), "apiUserId": api_user.id})
+
+        # async def run_generate_tool_config(tool: ToolResponse):
+        #    try:
+        #        await generate_tool_config(
+        #            tool=data,
+        #        )
+        #    except Exception as flow_exception:
+        #        handle_exception(flow_exception)
+
+        # asyncio.create_task(run_generate_tool_config(tool=data))
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -47,13 +59,29 @@ async def create(
     description="List all tools",
     response_model=ToolListResponse,
 )
-async def list(api_user=Depends(get_current_api_user)):
+async def list(api_user=Depends(get_current_api_user), skip: int = 0, take: int = 50):
     """Endpoint for listing all tools"""
     try:
+        import math
+
         data = await prisma.tool.find_many(
-            where={"apiUserId": api_user.id}, order={"createdAt": "desc"}
+            skip=skip,
+            take=take,
+            where={"apiUserId": api_user.id},
+            order={"createdAt": "desc"},
         )
-        return {"success": True, "data": data}
+
+        for tool in data:
+            if isinstance(tool.toolConfig, dict):
+                tool.toolConfig = json.dumps(tool.toolConfig)
+
+        # Get the total count of agents
+        total_count = await prisma.tool.count(where={"apiUserId": api_user.id})
+
+        # Calculate the total number of pages
+        total_pages = math.ceil(total_count / take)
+
+        return {"success": True, "data": data, "total_pages": total_pages}
     except Exception as e:
         handle_exception(e)
 
@@ -95,6 +123,9 @@ async def update(
             "apiUserId": api_user.id,
         },
     )
+
+    if isinstance(data.toolConfig, dict):
+        data.toolConfig = json.dumps(data.toolConfig)
     return {"success": True, "data": data}
 
 

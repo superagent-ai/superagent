@@ -1,10 +1,13 @@
 import aiohttp
 import requests
 from bs4 import BeautifulSoup
-from langchain.tools import BaseTool
+from langchain.tools import BaseTool as LCBaseTool
+from pydantic import BaseModel, Field
+
+from app.tools.base import BaseTool
 
 
-class Browser(BaseTool):
+class LCBrowser(LCBaseTool):
     name = "Browser"
     description = (
         "a portal to the internet. Use this when you need to "
@@ -24,3 +27,24 @@ class Browser(BaseTool):
                 soup = BeautifulSoup(html_content, "html.parser")
                 text = soup.get_text()
                 return text
+
+
+class BrowserArgs(BaseModel):
+    url: str = Field(..., description="A valid url including protocol to analyze")
+
+
+class Browser(BaseTool):
+    args_schema = BrowserArgs
+
+    async def arun(self, args: BrowserArgs) -> dict:
+        url = args.url
+
+        if not url.startswith(("http://", "https://")):
+            url = "http://" + url
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                html_content = await response.text()
+                soup = BeautifulSoup(html_content, "html.parser")
+                text = soup.get_text()
+                return {"type": "function_call", "content": text}

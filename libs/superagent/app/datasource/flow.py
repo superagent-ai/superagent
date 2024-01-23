@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from decouple import config
 from llama import Context, LLMEngine, Type
@@ -7,7 +7,8 @@ from prefect import flow, task
 from app.datasource.loader import DataLoader
 from app.datasource.types import VALID_UNSTRUCTURED_DATA_TYPES
 from app.utils.prisma import prisma
-from app.vectorstores.base import VectorStoreBase
+from app.vectorstores.base import VectorStoreMain
+from prisma.enums import DatasourceStatus
 from prisma.models import AgentDatasource, Datasource
 
 
@@ -37,14 +38,25 @@ async def handle_datasources(
 
 
 @task
-async def vectorize(datasource: Datasource) -> None:
+async def vectorize(
+    datasource: Datasource, options: Optional[dict], vector_db_provider: Optional[str]
+) -> None:
     data = DataLoader(datasource=datasource).load()
-    newDocuments = [
-        document.metadata.update({"datasource_id": datasource.id}) or document
-        for document in data
-    ]
-    vector_store = VectorStoreBase()
-    vector_store.embed_documents(documents=newDocuments)
+
+    vector_store = VectorStoreMain(
+        options=options, vector_db_provider=vector_db_provider
+    )
+    vector_store.embed_documents(documents=data, datasource_id=datasource.id)
+
+
+@task
+async def handle_delete_datasource(
+    datasource_id: str, options: Optional[dict], vector_db_provider: Optional[str]
+) -> None:
+    vector_store = VectorStoreMain(
+        options=options, vector_db_provider=vector_db_provider
+    )
+    vector_store.delete(datasource_id=datasource_id)
 
 
 @flow(name="process_datasource", description="Process new agent datasource", retries=0)
@@ -63,10 +75,18 @@ async def process_datasource(datasource_id: str, agent_id: str):
     description="Vectorize datasource",
     retries=0,
 )
-async def vectorize_datasource(datasource: Datasource) -> None:
+async def vectorize_datasource(
+    datasource: Datasource, options: Optional[dict], vector_db_provider: Optional[str]
+) -> None:
     if datasource.type in VALID_UNSTRUCTURED_DATA_TYPES:
-        await vectorize(datasource=datasource)
-    await prisma.datasource.update(where={"id": datasource.id}, data={"status": "DONE"})
+        await vectorize(
+            datasource=datasource,
+            options=options,
+            vector_db_provider=vector_db_provider,
+        )
+    await prisma.datasource.update(
+        where={"id": datasource.id}, data={"status": DatasourceStatus.DONE}
+    )
 
 
 @flow(name="revalidate_datasource", description="Revalidate datasources", retries=0)
@@ -75,3 +95,14 @@ async def revalidate_datasource(agent_id: str):
         where={"agentId": agent_id}, include={"datasource": True}
     )
     await handle_datasources(agent_datasources=agent_datasources, agent_id=agent_id)
+
+
+@flow(name="delete_datasource", description="Delete datasource", retries=0)
+async def delete_datasource(
+    datasource_id: str, options: Optional[dict], vector_db_provider: Optional[str]
+) -> None:
+    await handle_delete_datasource(
+        datasource_id=datasource_id,
+        options=options,
+        vector_db_provider=vector_db_provider,
+    )

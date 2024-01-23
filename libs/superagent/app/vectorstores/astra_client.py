@@ -59,18 +59,17 @@ class AstraClient:
                 "options": {"vector": {"dimension": 1536, "metric": "cosine"}},
             }
         }
+
         resp = requests.request(
             "POST",
             self.create_url,
             headers=self.request_header,
             data=json.dumps(create_query),
         )
-        if resp.status_code == 200:
-            pass
-        else:
-            raise Exception(
-                f"[ERROR] Failed with the following error: {resp.status_code}, {resp.text}"
-            )
+        resp.raise_for_status()
+        parsed_content = json.loads(resp.content)
+        if "errors" in parsed_content:
+            raise Exception(parsed_content["errors"])
 
     def find_index(self):
         find_query = {"findCollections": {"options": {"explain": True}}}
@@ -80,7 +79,10 @@ class AstraClient:
             headers=self.request_header,
             data=json.dumps(find_query),
         )
+        resp.raise_for_status()
         text_response = json.loads(resp.text)
+        if "errors" in text_response:
+            raise Exception(text_response["errors"])
 
         collection_output = list(
             filter(
@@ -92,17 +94,12 @@ class AstraClient:
             raise Exception(
                 f"[ERROR] Something went wrong! Astra collection {self.collection_name} not found under {self.keyspace_name}"
             )
-
-        if resp.status_code == 200 and "status" in text_response:
+        if "status" in text_response:
             v_dim = collection_output[0]["options"]["vector"]["dimension"]
             if v_dim != 1536:
                 raise Exception(
                     f"Collection vector dimension is not valid, expected 1536, found {v_dim}"
                 )
-        else:
-            raise Exception(
-                f"Failed with the following error: {resp.status_code}, {resp.text}"
-            )
 
     def query(
         self,
@@ -160,35 +157,32 @@ class AstraClient:
         return QueryResponse(final_res)
 
     def _query(self, vector, top_k, filters=None):
-        score_query = {
-            "find": {
-                "sort": {"$vector": vector},
-                "projection": {"$similarity": 1},
-                "options": {"limit": top_k},
-            }
+        query = {
+            "sort": {"$vector": vector},
+            "options": {"limit": top_k, "includeSimilarity": True},
         }
-        query = {"find": {"sort": {"$vector": vector}, "options": {"limit": top_k}}}
         if filters is not None:
-            score_query["find"]["filter"] = filters
-            query["find"]["filter"] = filters
-        similarity_score = requests.request(
+            query["filter"] = filters
+        result = self.find_documents(query)
+        return result
+
+    def find_documents(self, find_query):
+        query = json.dumps({"find": find_query})
+        response = requests.request(
             "POST",
             self.request_url,
             headers=self.request_header,
-            data=json.dumps(score_query),
-        ).json()["data"]["documents"]
-        result = requests.request(
-            "POST",
-            self.request_url,
-            headers=self.request_header,
-            data=json.dumps(query),
-        ).json()["data"]["documents"]
-        response = []
-        for elt1 in similarity_score:
-            for elt2 in result:
-                if elt1["_id"] == elt2["_id"]:
-                    response.append(elt1 | elt2)
-        return response
+            data=query,
+        )
+        response.raise_for_status()
+        response_dict = json.loads(response.text)
+        if "errors" in response_dict:
+            raise Exception(response_dict["errors"])
+
+        if "data" in response_dict and "documents" in response_dict["data"]:
+            return response_dict["data"]["documents"]
+        else:
+            print("[WARNING] No documents found", response_dict)
 
     def upsert(self, to_upsert):
         to_insert = []
@@ -213,9 +207,13 @@ class AstraClient:
                 headers=self.request_header,
                 data=query,
             )
+            result.raise_for_status()
+            parsed_result = json.loads(result.text)
+            if "errors" in parsed_result:
+                raise Exception(parsed_result["errors"])
 
             # if the id doesn't exist, prepare record for inserting
-            if json.loads(result.text)["data"]["document"] == None:
+            if parsed_result["data"]["document"] == None:
                 to_insert.append(
                     {
                         "_id": record_id,
@@ -248,7 +246,8 @@ class AstraClient:
                     data=query,
                 )
                 response_dict = json.loads(result.text)
-
+                if "errors" in response_dict:
+                    raise Exception(response_dict["errors"])
                 if "status" not in response_dict:
                     raise Exception(
                         f"There was an issue updating record {record_id}. The following response was received: {response_dict}"
@@ -274,6 +273,8 @@ class AstraClient:
                 data=query,
             )
             response_dict = json.loads(result.text)
+            if "errors" in response_dict:
+                raise Exception(response_dict["errors"])
 
             if "status" not in response_dict:
                 raise Exception(
@@ -300,7 +301,10 @@ class AstraClient:
             headers=self.request_header,
             data=json.dumps(query),
         )
-        return response
+        parsed_resp = json.loads(response.text)
+        if "errors" in parsed_resp:
+            raise Exception(parsed_resp["errors"])
+        return parsed_resp
 
     def describe_index_stats(self):
         # get size of vectors in collection
@@ -311,6 +315,8 @@ class AstraClient:
                 "POST", url, headers=self.request_header, data=query
             )
             response_dict = json.loads(response.text)
+            if "errors" in response_dict:
+                raise Exception(response_dict["errors"])
         except Exception as e:
             raise Exception(
                 f"The following exception occured when requesting data for describe_index_stats(): {e}"
@@ -338,7 +344,11 @@ class AstraClient:
         response = requests.request(
             "POST", self.request_url, headers=self.request_header, data=query
         )
-        vector_count = json.loads(response.text)["status"]["count"]
+        response.raise_for_status()
+        parsed_resp = json.loads(response.text)
+        if "errors" in parsed_resp:
+            raise Exception(parsed_resp["errors"])
+        vector_count = parsed_resp["status"]["count"]
 
         result = {
             "dimension": dimension,

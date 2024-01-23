@@ -1,0 +1,39 @@
+This guide shows you how to deploy the Superagent API to [Replit](https://www.replit.com)
+
+## Step-by-step guide
+
+1. Create a Replit REPL by importing the Superagent Github Repository. [Link](https://docs.replit.com/hosting/deployments/deploying-a-github-repository)
+
+2. Set the REPL language to `Python`
+
+3. Replace the contents of the `.replit` file in your REPL with the following
+    ```sh
+    run = "chmod 777 ./libs/superagent/replit.sh && cd ./libs/superagent && ./replit.sh"
+    modules = ["python-3.10:v18-20230807-322e88b", "nodejs-18:v3-20230608-f4cd419"]
+
+    hidden = [".pythonlibs"]
+
+    [nix]
+    channel = "stable-23_05"
+
+    [deployment]
+    run = ["sh", "-c", "chmod 777 ./libs/superagent/replit.sh && cd ./libs/superagent && ./replit.sh"]
+    deploymentTarget = "cloudrun"
+    ```
+    
+4. Add all necessary `.env` variables as Replit `Secrets`. Also, add the following additional secret:
+    ```sh
+    TZ = Etc/UTC
+    ```
+
+5. Deploy the REPL using Replit `Autoscale`.
+
+## Video tutorial
+
+<video
+  controls
+  autoplay
+  width="100%"
+  height="500px"
+  src="https://superagentai.s3.eu-north-1.amazonaws.com/replit-api.mp4"
+></video>

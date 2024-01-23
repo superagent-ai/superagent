@@ -1,0 +1,251 @@
+With Superagent you can easilly create an AI Assistant that has access to your private data thorugh a conecpt we call `Datasources`. 
+Superagent supports different types of datasources listed [here](https://docs.superagent.sh/overview/overview/concepts#datasources). Attaching a datasource to an Assistant enables that Assistant to read and analyze that data.
+
+## Step-by-step guide
+
+<Callout intent="warn">
+Note that you usually only need to create the `llm` object once and re-use it for subsequent agents you create.
+</Callout>
+<br/>
+
+
+1. Start by configuring an LLM and creating an agent
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        import os
+        from superagent.client import Superagent
+
+        client = Superagent(
+            base_url="https://api.beta.superagent.sh",
+            token=os.environ["SUPERAGENT_API_KEY"]
+        )
+        
+        llm = client.llm.create(request={
+            "provider": "OPENAI",
+            "apiKey": os.environ["OPENAI_API_KEY"]
+        })
+
+        agent = client.agent.create(request={
+            "name": "Earnings Assistant",
+            "description": "An Assistant that's an expert at analyzing earnings reports",
+            "avatar": "",
+            "isActive": True,
+            "llmModel": "GPT_3_5_TURBO_16K_0613",
+            "initialMessage": "Hi there, how can I help you?",
+            "prompt": "You are an expert at analyzing earnings reports."
+        })
+
+        client.agent.add_llm(agent_id=agent.data.id, llm_id=llm.data.id)
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        import { SuperAgentClient } from "superagentai-js"
+
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh",
+            token: process.env.SUPERAGENT_API_KEY,
+        })
+
+        const {data: llm} = await client.llm.create({
+            provider: "OPENAI",
+            apiKey: process.env.OPENAI_API_KEY,
+        })
+
+        const {data: agent} = await client.agent.create({
+            name: "Earnings Assistant",
+            description: "An Assistant that's an expert at analyzing earnings reports",
+            avatar: "",
+            isActive: true,
+            llmModel: "GPT_3_5_TURBO_16K_0613",
+            initialMessage: "Hi there, how can I help you?",
+            prompt: "You are an expert at analyzing earnings reports."
+        })
+
+        await client.agent.addLlm(agent.id, {
+            llmId: llm.id
+        })
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+2. Now let's create a datasource by uploading Teslas Q3 2023 Earnings report to Superagent. Note that the `description` key tells the Assistant when this datasource should be used. Be vary of what you put in as your description as it might effect the Assistants behaviour. 
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        datasource = client.datasource.create(request={
+            "name": "Tesla Q3 2023",
+            "description": "Useful for answering questions about Teslas Q3 2023 earnings report",
+            "type": "PDF",
+            "url": "https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q3-2023-Update-3.pdf"
+        })
+
+        # Connect the datasource the the Agent
+        client.agent.add_datasource(
+            agent_id=agent.data.id,
+            datasource_id=datasource.data.id
+        )
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        const {data: datasource} = await client.datasource.create({
+            name: "Tesla Q3 2023",
+            description: "Useful for answering questions about Teslas Q3 2023 earnings report",
+            type: "PDF",
+            url: "https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q3-2023-Update-3.pdf" 
+        })
+
+        // Connect the datasource to the Agent
+        await client.agent.addDatasource(agent.id, {
+            datasourceId: datasource.id
+        })
+        ```
+    </CodeBlock>
+</CodeBlocks>
+    
+
+3. Now we can start chatting with the Assistant:
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        prediction = client.agent.invoke(
+            agent_id=agent.data.id,
+            input="What was Teslase revenue?",
+            enable_streaming=False,
+            session_id="my_session_id"
+        )
+
+        print(prediction.data.get("output"))
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        const {data: prediction} = await client.agent.invoke(agent.id, {
+            input: "What was Teslase revenue?",
+            enableStreaming: false,
+            sessionId: "my_session_id"
+        })
+
+        console.log(prediction.output)
+        ```
+    </CodeBlock>
+</CodeBlocks>
+    
+That's it! You can attach one or many datasources to your Assistants by following the same pattern. Be aware that there might be some rate limiting when adding many big datasources at once. 
+
+## Full code
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        import os
+        from superagent.client import Superagent
+
+        client = Superagent(
+            base_url="https://api.beta.superagent.sh",
+            token=os.environ["SUPERAGENT_API_KEY"]
+        )
+
+        llm = client.llm.create(request={
+            "provider": "OPENAI",
+            "apiKey": os.environ["OPENAI_API_KEY"]
+        })
+
+        agent = client.agent.create(request={
+            "name": "Earnings Assistant",
+            "description": "An Assistant that's an expert at analyzing earnings reports",
+            "avatar": "https://tesla.com/logo.png", # Replace with a real image
+            "isActive": True,
+            "llmModel": "GPT_3_5_TURBO_16K_0613",
+            "initialMessage": "Hi there, how can I help you?",
+            "prompt": "You are an expert at analyzing earnings reports.\nUse the earnings reports provided to answer any questions."
+        })
+
+        datasource = client.datasource.create(request={
+            "name": "Tesla Q3 2023",
+            "description": "Useful for answering questions about Teslas Q3 2023 earnings report",
+            "type": "PDF",
+            "url": "https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q3-2023-Update-3.pdf"
+        })
+
+        # Connect the datasource and llm to the Agent
+        client.agent.add_datasource(
+            agent_id=agent.data.id,
+            datasource_id=datasource.data.id
+        )
+        client.agent.add_llm(agent_id=agent.data.id, llm_id=llm.data.id)
+
+        # Invoke the Assistant
+        prediction = client.agent.invoke(
+            agent_id=agent.data.id,
+            input="What was Teslase revenue?",
+            enable_streaming=False,
+            session_id="my_session_id"
+        )
+
+        print(prediction.data.get("output"))
+
+        # Teslas revenue was 24 Billing USD according to the earnings report.
+
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        import { SuperAgentClient } from "superagentai-js"
+
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh",
+            token: process.env.SUPERAGENT_API_KEY,
+        })
+
+        const {data: llm} = await client.llm.create({
+            provider: "OPENAI",
+            apiKey: process.env.OPENAI_API_KEY,
+        })
+
+        const {data: agent} = await client.agent.create({
+            name: "Earnings Assistant",
+            description: "An Assistant that's an expert at analyzing earnings reports",
+            avatar: "",
+            isActive: true,
+            llmModel: "GPT_3_5_TURBO_16K_0613",
+            initialMessage: "Hi there, how can I help you?",
+            prompt: "You are an expert at analyzing earnings reports."
+        })
+
+       
+
+        const {data: datasource} = await client.datasource.create({
+            name: "Tesla Q3 2023",
+            description: "Useful for answering questions about Teslas Q3 2023 earnings report",
+            type: "PDF",
+            url: "https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q3-2023-Update-3.pdf" 
+        })
+
+        // Connect the LLM to the Agent
+        await client.agent.addLlm(agent.id, {
+            llmId: llm.id
+        })
+        // Connect the datasource to the Agent
+        await client.agent.addDatasource(agent.id, {
+            datasourceId: datasource.id
+        })
+
+        const {data: prediction} = await client.agent.invoke(agent.id, {
+            input: "What was Teslase revenue?",
+            enableStreaming: false,
+            sessionId: "my_session_id"
+        })
+
+        console.log(prediction.output)
+
+        // Teslas revenue was 24 Billing USD according to the earnings report.
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+
+## Replit template
+
+We've created a Replit template for this which you can run [here](https://replit.com/@homanp/Chat-with-datasources-py#main.py).

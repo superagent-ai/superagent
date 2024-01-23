@@ -7,7 +7,9 @@ import segment.analytics as analytics
 from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
-from langsmith import Client
+from langchain.agents import AgentExecutor
+from langchain.chains import LLMChain
+from langfuse import Langfuse
 
 from app.agents.base import AgentBase
 from app.models.request import (
@@ -37,18 +39,17 @@ from app.models.response import (
 from app.models.response import (
     AgentList as AgentListResponse,
 )
-from app.models.response import AgentRunList as AgentRunListResponse
 from app.models.response import (
     AgentToolList as AgentToolListResponse,
 )
 from app.utils.api import get_current_api_user, handle_exception
+from app.utils.llm import LLM_PROVIDER_MAPPING
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
 router = APIRouter()
-langsmith_client = Client()
 analytics.write_key = SEGMENT_WRITE_KEY
 logging.basicConfig(level=logging.INFO)
 
@@ -65,7 +66,7 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     try:
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Created Agent", {**body.dict()})
-        data = await prisma.agent.create(
+        agent = await prisma.agent.create(
             {**body.dict(), "apiUserId": api_user.id},
             include={
                 "tools": {"include": {"tool": True}},
@@ -73,7 +74,16 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
                 "llms": {"include": {"llm": True}},
             },
         )
-        return {"success": True, "data": data}
+        provider = None
+        for key, models in LLM_PROVIDER_MAPPING.items():
+            if body.llmModel in models:
+                provider = key
+                break
+        llm = await prisma.llm.find_first(
+            where={"provider": provider, "apiUserId": api_user.id}
+        )
+        await prisma.agentllm.create({"agentId": agent.id, "llmId": llm.id})
+        return {"success": True, "data": agent}
     except Exception as e:
         handle_exception(e)
 
@@ -84,13 +94,25 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     description="List all agents",
     response_model=AgentListResponse,
 )
-async def list(api_user=Depends(get_current_api_user)):
+async def list(api_user=Depends(get_current_api_user), skip: int = 0, take: int = 50):
     """Endpoint for listing all agents"""
     try:
+        import math
+
         data = await prisma.agent.find_many(
-            take=100, where={"apiUserId": api_user.id}, include={"llms": True}
+            skip=skip,
+            take=take,
+            where={"apiUserId": api_user.id},
+            include={"llms": True},
         )
-        return {"success": True, "data": data}
+
+        # Get the total count of agents
+        total_count = await prisma.agent.count(where={"apiUserId": api_user.id})
+
+        # Calculate the total number of pages
+        total_pages = math.ceil(total_count / take)
+
+        return {"success": True, "data": data, "total_pages": total_pages}
     except Exception as e:
         handle_exception(e)
 
@@ -114,6 +136,9 @@ async def get(agent_id: str, api_user=Depends(get_current_api_user)):
         )
         for llm in data.llms:
             llm.llm.options = json.dumps(llm.llm.options)
+        for tool in data.tools:
+            if isinstance(tool.tool.toolConfig, dict):
+                tool.tool.toolConfig = json.dumps(tool.tool.toolConfig)
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -171,32 +196,117 @@ async def invoke(
     agent_id: str, body: AgentInvokeRequest, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for invoking an agent"""
+    langfuse_secret_key = config("LANGFUSE_SECRET_KEY", "")
+    langfuse_public_key = config("LANGFUSE_PUBLIC_KEY", "")
+    langfuse_host = config("LANGFUSE_HOST", "https://cloud.langfuse.com")
+    langfuse_handler = None
+    if langfuse_public_key and langfuse_secret_key:
+        langfuse = Langfuse(
+            public_key=langfuse_public_key,
+            secret_key=langfuse_secret_key,
+            host=langfuse_host,
+        )
+        session_id = f"{agent_id}-{body.sessionId}" if body.sessionId else f"{agent_id}"
+        trace = langfuse.trace(
+            id=session_id,
+            name="Assistant",
+            tags=[agent_id],
+            metadata={"agentId": agent_id},
+            user_id=api_user.id,
+        )
+        langfuse_handler = trace.get_langchain_handler()
+
+    agent_config = await prisma.agent.find_unique_or_raise(
+        where={"id": agent_id},
+        include={
+            "llms": {"include": {"llm": True}},
+            "datasources": {"include": {"datasource": {"include": {"vectorDb": True}}}},
+            "tools": {"include": {"tool": True}},
+        },
+    )
+
+    def get_analytics_info(result):
+        intermediate_steps_to_obj = [
+            {
+                **vars(toolClass),
+                "message_log": str(toolClass.message_log),
+                "response": response,
+            }
+            for toolClass, response in result.get("intermediate_steps", [])
+        ]
+
+        properties = {
+            "agent": agent_config.id,
+            "llm_model": agent_config.llmModel,
+            "sessionId": session_id,
+            # default http status code is 200
+            "response": {
+                "status_code": result.get("status_code", 200),
+                "error": result.get("error", None),
+            },
+            "output": result.get("output", None),
+            "input": result.get("input", None),
+            "intermediate_steps": intermediate_steps_to_obj,
+        }
+
+        return properties
 
     async def send_message(
-        agent: AgentBase, content: str, callback: CustomAsyncIteratorCallbackHandler
+        agent: LLMChain | AgentExecutor,
+        content: str,
+        callback: CustomAsyncIteratorCallbackHandler,
     ) -> AsyncIterable[str]:
         try:
             task = asyncio.ensure_future(
-                agent.acall(inputs={"input": content}, tags=[agent_id])
+                agent.acall(
+                    inputs={"input": content},
+                    tags=[agent_id],
+                    callbacks=[langfuse_handler] if langfuse_handler else None,
+                )
             )
 
             async for token in callback.aiter():
-                yield f"data: {token}\n\n"
+                yield ("event: message\n" f"data: {token}\n\n")
 
             await task
-        except Exception as e:
-            logging.error(f"Error in send_message: {e}")
+
+            result = task.result()
+
+            if SEGMENT_WRITE_KEY:
+                analytics.track(
+                    api_user.id,
+                    "Invoked Agent",
+                    get_analytics_info(result),
+                )
+            if "intermediate_steps" in result:
+                for step in result["intermediate_steps"]:
+                    agent_action_message_log = step[0]
+                    function = agent_action_message_log.tool
+                    args = agent_action_message_log.tool_input
+                    if function and args:
+                        yield (
+                            "event: function_call\n"
+                            f'data: {{"function": "{function}", '
+                            f'"args": {json.dumps(args)}}}\n\n'
+                        )
+        except Exception as error:
+            logging.error(f"Error in send_message: {error}")
+            if SEGMENT_WRITE_KEY:
+                analytics.track(
+                    api_user.id,
+                    "Invoked Agent",
+                    get_analytics_info({"error": str(error), "status_code": 500}),
+                )
+            yield ("event: error\n" f"data: {error}\n\n")
         finally:
             callback.done.set()
-
-    if SEGMENT_WRITE_KEY:
-        analytics.track(api_user.id, "Invoked Agent")
 
     logging.info("Invoking agent...")
     session_id = body.sessionId
     input = body.input
     enable_streaming = body.enableStreaming
     output_schema = body.outputSchema
+
     callback = CustomAsyncIteratorCallbackHandler()
     agent = await AgentBase(
         agent_id=agent_id,
@@ -204,6 +314,8 @@ async def invoke(
         enable_streaming=enable_streaming,
         output_schema=output_schema,
         callback=callback,
+        llm_params=body.llm_params,
+        agent_config=agent_config,
     ).get_agent()
 
     if enable_streaming:
@@ -213,9 +325,24 @@ async def invoke(
         return StreamingResponse(generator, media_type="text/event-stream")
 
     logging.info("Streaming not enabled. Invoking agent synchronously...")
-    output = await agent.acall(inputs={"input": input}, tags=[agent_id])
+    output = await agent.acall(
+        inputs={"input": input},
+        tags=[agent_id],
+        callbacks=[langfuse_handler] if langfuse_handler else None,
+    )
+
     if output_schema:
-        output = json.loads(output.get("output"))
+        try:
+            output = json.loads(output.get("output"))
+        except Exception as e:
+            logging.error(f"Error parsing output: {e}")
+
+    if not enable_streaming and SEGMENT_WRITE_KEY:
+        analytics.track(
+            api_user.id,
+            "Invoked Agent",
+            get_analytics_info(output),
+        )
     return {"success": True, "data": output}
 
 
@@ -426,24 +553,5 @@ async def remove_datasource(
 
         # asyncio.create_task(run_datasource_revalidate_flow())
         return {"success": True, "data": None}
-    except Exception as e:
-        handle_exception(e)
-
-
-# Agent runs
-@router.get(
-    "/agents/{agent_id}/runs",
-    name="list_runs",
-    description="List agent runs",
-    response_model=AgentRunListResponse,
-)
-async def list_runs(agent_id: str, api_user=Depends(get_current_api_user)):
-    """Endpoint for listing agent runs"""
-    try:
-        output = langsmith_client.list_runs(
-            project_id=config("LANGSMITH_PROJECT_ID"),
-            filter=f"has(tags, '{agent_id}')",
-        )
-        return {"success": True, "data": output}
     except Exception as e:
         handle_exception(e)

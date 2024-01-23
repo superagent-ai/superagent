@@ -1,0 +1,234 @@
+Superagent comes packed with pre-built tools you can use together with your Assistants. Tools are a way for assistants to connect and retrieve data/information from third-party APIs or applications.  
+Superagent supports different types of tools listed [here](https://docs.superagent.sh/overview/overview/concepts#tools).
+
+## Step-by-step guide
+
+1. Start by creating an LLM and an Agent. Note that you can use already created LLMs or Agents.
+
+<Callout intent="warn">
+Note that you usually only need to create the `llm` object once and re-use it for subsequent agents you create.
+</Callout>
+<br/>
+
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python
+        import os
+        from superagent.client import Superagent
+        
+        client = Superagent(
+            base_url="https://api.beta.superagent.sh",
+            token=os.environ["SUPERAGENT_API_KEY"]
+        )
+
+        llm = client.llm.create(request={
+            "provider": "OPENAI",
+            "apiKey": os.environ["OPENAI_API_KEY"]
+        })
+
+        agent = client.agent.create(request={
+            "name": "Browser Assistant",
+            "description": "An Assistant that has access to the Browser tool",
+            "avatar": "https://mylogo.com/logo.png", # Replace with a real image
+            "isActive": True,
+            "llmModel": "GPT_3_5_TURBO_16K_0613",
+            "initialMessage": "Hi there, how can I help you?",
+            "prompt": "Use the Browser to answer the users question."
+        })
+
+        client.agent.add_llm(agent_id=agent.data.id, llm_id=llm.data.id)
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        import { SuperAgentClient } from "superagentai-js"
+        
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh",
+            token: process.env.SUPERAGENT_API_KEY
+        })
+
+        const {data: llm} = await client.llm.create({
+            provider: "OPENAI",
+            apiKey: process.env.OPENAI_API_KEY
+        })
+
+        const {data: agent} = await client.agent.create({
+            name: "Browser Assistant",
+            description: "An Assistant that has access to the Browser tool",
+            avatar: "https://mylogo.com/logo.png", // Replace with a real image
+            isActive: true,
+            llmModel: "GPT_3_5_TURBO_16K_0613",
+            initialMessage: "Hi there, how can I help you?",
+            prompt: "Use the Browser to answer the users question."
+        })
+
+        await client.agent.addLlm(agent.id, {
+            llmId: llm.id
+        })
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+2. Create a tool. You can create and attach multiple tools to an Assistant. Note that the `description` key tells the Assistant when this tool should be used. Be vary of what you put in as your description as it might effect the Assistants behaviour.
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python 
+        tool = client.tool.create({
+            "name": "Browser",
+            "description": "A portal to the internet, useful for answering questions about websites or urls.",
+            "type": "BROWSER",
+            # "metadata": {"key": "value"} Optional metadata for the tool. 
+            "returnDirect": false, # returnDirect is required while creating a tool.
+        })
+
+        client.agent.add_tool(agent_id=agent.data.id, tool_id=tool.data.id)
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        const {data: tool} = await client.tool.create({
+            name: "Browser",
+            description: "A portal to the internet, useful for answering questions about websites or urls.",
+            type: "BROWSER",
+            returnDirect: false, // returnDirect is required for creating a tool.
+        })
+
+        await client.agent.addTool(agent.id, {
+            toolId: tool.id
+        })
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+3. Now we are ready to invoke the Agent...
+<CodeBlocks>
+    <CodeBlock title="Python">
+       ```python
+        prediction = client.agent.invoke(
+            agent_id=agent.data.id,
+            input="Summarize superagent.sh",
+            enable_streaming=False,
+            session_id="my_session_id",
+        )
+
+        print(prediction.data.get("output"))
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        const {data: prediction} = await client.agent.invoke(agent.id, {
+            input: "Summarize superagent.sh",
+            enableStreaming: false,
+            sessionId: "my_session_id", 
+        })
+
+        console.log(prediction.output)
+        ```
+    </CodeBlock>
+</CodeBlocks>
+    
+
+That's it! Tools are super powerful way ginving your Assistants super powers. We are constantly adding new tools based on the feedback from the community. 
+
+## Full code
+<CodeBlocks>
+    <CodeBlock title="Python">
+       ```python 
+        import os
+        from superagent.client import Superagent
+        
+        client = Superagent(
+            base_url="https://api.beta.superagent.sh",
+            token=os.environ["SUPERAGENT_API_KEY"]
+        )
+
+        llm = client.llm.create(request={
+            "provider": "OPENAI",
+            "apiKey": os.environ["OPENAI_API_KEY"]
+        })
+
+        agent = client.agent.create(request={
+            "name": "Browser Assistant",
+            "description": "An Assistant that has access to the Browser tool",
+            "avatar": "https://mylogo.com/logo.png", # Replace with a real image
+            "isActive": True,
+            "llmModel": "GPT_3_5_TURBO_16K_0613",
+            "initialMessage": "Hi there, how can I help you?",
+            "prompt": "Use the Browser to answer the users question."
+        })
+
+        tool = client.tool.create({
+            "name": "Browser",
+            "description": "A portal to the internet, useful for answering questions about websites or urls.",
+            "type": "BROWSER",
+            # "metadata": {"key": "value"} Optional metadata for the tool. 
+            "returnDirect": false,
+        })
+
+        client.agent.add_llm(agent_id=agent.data.id, llm_id=llm.data.id)
+        client.agent.add_tool(agent_id=agent.data.id, tool_id=tool.data.id)
+
+        prediction = client.agent.invoke(
+            agent_id=agent.data.id,
+            input="Summarize superagent.sh",
+            enable_streaming=False,
+            session_id="my_session_id",
+        )
+
+        print(prediction.data.get("output"))
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript">
+        ```javascript
+        import { SuperAgentClient } from "superagentai-js"
+        
+        const client = new SuperAgentClient({
+            environment: "https://api.beta.superagent.sh",
+            token: process.env.SUPERAGENT_API_KEY
+        })
+
+        const {data: llm} = await client.llm.create({
+            provider: "OPENAI",
+            apiKey: os.environ["OPENAI_API_KEY"]
+        })
+
+        const {data: agent} = await client.agent.create({
+            name: "Browser Assistant",
+            description: "An Assistant that has access to the Browser tool",
+            avatar: "https://mylogo.com/logo.png", // Replace with a real image
+            isActive: true,
+            llmModel: "GPT_3_5_TURBO_16K_0613",
+            initialMessage: "Hi there, how can I help you?",
+            prompt: "Use the Browser to answer the users question."
+        })        
+        
+        const {data: tool} = await client.tool.create({
+            name: "Browser",
+            description: "A portal to the internet, useful for answering questions about websites or urls.",
+            type: "BROWSER",
+            returnDirect: false,
+        })
+
+        await client.agent.addLlm(agent.id, {
+            llmId: llm.id
+        })
+
+        await client.agent.addTool(agent.id, {
+            toolId: tool.id
+        })
+
+        const {data: prediction} = await client.agent.invoke(agent.id, {
+            input: "Summarize superagent.sh",
+            enableStreaming: false,
+            sessionId: "my_session_id", 
+        })
+
+        console.log(prediction.output)
+        ```
+    </CodeBlock>
+</CodeBlocks>
+    
+## Replit template
+
+We've created a Replit template for this which you can run [here](https://replit.com/@homanp/Chat-with-tools-py#main.py).

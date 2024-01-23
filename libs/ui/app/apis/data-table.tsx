@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
+import { json } from "@codemirror/lang-json"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   ColumnDef,
@@ -11,14 +12,15 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table"
+import { vscodeDark } from "@uiw/codemirror-theme-vscode"
+import CodeMirror from "@uiw/react-codemirror"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 
 import { Profile } from "@/types/profile"
 import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
-import { cn } from "@/lib/utils"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -26,11 +28,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -56,11 +58,17 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
+import { DataTablePagination } from "@/components/data-table-pagination"
 
 interface DataTableProps<TData, TValue> {
   columns: (profile: Profile) => ColumnDef<TData, TValue>[]
   data: TData[]
   profile: Profile
+  pagination: {
+    take: number
+    currentPageNumber: number
+    totalPages: number
+  }
 }
 
 const formSchema = z.object({
@@ -81,6 +89,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   profile,
+  pagination: { currentPageNumber, take, totalPages },
 }: DataTableProps<TData, TValue>) {
   const router = useRouter()
   const { toast } = useToast()
@@ -95,8 +104,13 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
+    pageCount: totalPages,
     state: {
       columnFilters,
+      pagination: {
+        pageIndex: 0, // we are setting pageIndex to 0 because we have only the current page's data
+        pageSize: take,
+      },
     },
   })
   const { ...form } = useForm<z.infer<typeof formSchema>>({
@@ -113,7 +127,9 @@ export function DataTable<TData, TValue>({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await api.createTool({ ...values })
+      await api.createTool({
+        ...values,
+      })
       toast({
         description: "Tool created successfully",
       })
@@ -237,9 +253,40 @@ export function DataTable<TData, TValue>({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>{metadataField.label}</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
+                            {metadataField.type === "input" && (
+                              <FormControl>
+                                <Input {...field} type="text" />
+                              </FormControl>
+                            )}
+                            {metadataField.type === "password" && (
+                              <FormControl>
+                                <Input {...field} type="password" />
+                              </FormControl>
+                            )}
+                            {metadataField.type === "json" && (
+                              <div className="overflow-hidden rounded-lg">
+                                <CodeMirror
+                                  className="rounded-lg text-xs"
+                                  extensions={[json()]}
+                                  theme={vscodeDark}
+                                  onChange={field.onChange}
+                                  value={
+                                    "json" in metadataField
+                                      ? JSON.stringify(
+                                          metadataField.json,
+                                          null,
+                                          2
+                                        )
+                                      : undefined
+                                  }
+                                />
+                              </div>
+                            )}
+                            {"helpText" in metadataField && (
+                              <FormDescription>
+                                {metadataField.helpText}
+                              </FormDescription>
+                            )}
                             <FormMessage />
                           </FormItem>
                         )}
@@ -307,6 +354,11 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+      <DataTablePagination
+        className="py-4"
+        table={table}
+        currentPageNumber={currentPageNumber}
+      />
       <Toaster />
     </div>
   )

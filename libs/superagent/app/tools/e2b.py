@@ -1,19 +1,16 @@
 # flake8: noqa
 import ast
+from typing import Optional
+
 from decouple import config
 from e2b import DataAnalysis
+from langchain.callbacks.manager import CallbackManager
 from langchain.tools import BaseTool
 
 
 class E2BCodeExecutor(BaseTool):
     name = "Code interpreter"
     description = "useful for running python code, it returns the output of the code"
-
-    # E2B session represents a sandbox runtime for LLM - it's a microVM for every instance of an agent.
-    #
-    # We probably should keep an active E2B session for the whole time an agent is active.
-    # If the "E2B_API_KEY" env var is set, E2B automatically loads it, no need to pass it to the constructor.
-    _session = DataAnalysis(api_key=config("E2B_API_KEY"))
 
     def _add_last_line_print(self, code: str):
         tree = ast.parse(code)
@@ -30,11 +27,6 @@ class E2BCodeExecutor(BaseTool):
         )
         return ast.unparse(tree)
 
-    # TODO: Once we know the the agent is done, we need to close the E2B session.
-    # You most likely want to keep the E2B session active for the whole lifecycle of an agent.
-    def _close_session(self):
-        self._session.close()
-
     def _download_artifact(self, artifact):
         # Artifact is a chart file created by matplotlib
         # You can download it right from the E2B LLM Sandbox
@@ -46,14 +38,18 @@ class E2BCodeExecutor(BaseTool):
     def _run(self, python_code: str) -> str:
         code = self._add_last_line_print(python_code)
 
+        # E2B session represents a sandbox runtime for LLM - it's a microVM for every instance of an agent.
+        session = DataAnalysis(api_key=config("E2B_API_KEY"))
+
         # E2B offers both streaming output and artifacts or retrieving them after the code has finished running.
-        stdout, err, artifacts = self._session.run_python(
+        stdout, err, artifacts = session.run_python(
             code=code,
             # TODO: To create more responsive UI, you might want to stream stdout, stderr, and artifacts
             on_stdout=lambda line: print("stdout", line),
             on_stderr=lambda line: print("stderr", line),
             on_artifact=self._download_artifact,
         )
+        session.close()
 
         # Or you can download artifacts after the code has finished running:
         # for artifact in artifacts:
@@ -66,7 +62,6 @@ class E2BCodeExecutor(BaseTool):
 
     async def _arun(self, python_code: str) -> str:
         try:
-            result = self._run(python_code)
-        finally:
-            self._close_session()
-        return result
+            return self._run(python_code)
+        except:
+            return "There was an error during execution"

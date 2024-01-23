@@ -5,18 +5,27 @@ export class Api {
     this.apiKey = apiKey
   }
 
-  async fetchFromApi(endpoint: string, options: RequestInit = {}) {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}${endpoint}`,
-      {
-        ...options,
-        headers: {
-          ...options.headers,
-          "Content-Type": "application/json",
-          authorization: `Bearer ${this.apiKey}`,
-        },
-      }
+  async fetchFromApi(
+    endpoint: string,
+    options: RequestInit = {},
+    searchParams: Record<string, any> = {}
+  ) {
+    const url = new URL(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}${endpoint}`
     )
+
+    Object.entries(searchParams).forEach(([key, value]) => {
+      url.searchParams.append(key, value)
+    })
+
+    const response = await fetch(url.toString(), {
+      ...options,
+      headers: {
+        ...options.headers,
+        "Content-Type": "application/json",
+        authorization: `Bearer ${this.apiKey}`,
+      },
+    })
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
@@ -81,6 +90,12 @@ export class Api {
     })
   }
 
+  async deleteAgentLLM(agentId: string, llmId: string) {
+    return this.fetchFromApi(`/agents/${agentId}/llms/${llmId}`, {
+      method: "DELETE",
+    })
+  }
+
   async deleteAgentById(id: string) {
     return this.fetchFromApi(`/agents/${id}`, { method: "DELETE" })
   }
@@ -105,8 +120,10 @@ export class Api {
     return this.fetchFromApi(`/tools/${id}`, { method: "DELETE" })
   }
 
-  async getAgents() {
-    return this.fetchFromApi("/agents")
+  async getAgents(
+    searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
+  ) {
+    return this.fetchFromApi("/agents", {}, searchParams)
   }
 
   async getAgentById(id: string) {
@@ -117,16 +134,20 @@ export class Api {
     return this.fetchFromApi(`/agents/${id}/runs`)
   }
 
-  async getDatasources() {
-    return this.fetchFromApi(`/datasources`)
+  async getDatasources(
+    searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
+  ) {
+    return this.fetchFromApi(`/datasources`, {}, searchParams)
   }
 
   async getLLMs() {
     return this.fetchFromApi(`/llms`)
   }
 
-  async getTools() {
-    return this.fetchFromApi("/tools")
+  async getTools(
+    searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
+  ) {
+    return this.fetchFromApi("/tools", {}, searchParams)
   }
 
   async patchAgent(id: string, payload: any) {
@@ -152,6 +173,78 @@ export class Api {
 
   async patchTool(id: string, payload: any) {
     return this.fetchFromApi(`/tools/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async getWorkflows(
+    searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
+  ) {
+    return this.fetchFromApi("/workflows", {}, searchParams)
+  }
+
+  async getWorkflowById(id: string) {
+    return this.fetchFromApi(`/workflows/${id}`)
+  }
+
+  async createWorkflow(payload: any) {
+    return this.fetchFromApi("/workflows", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async getWorkflowSteps(id: string) {
+    return this.fetchFromApi(`/workflows/${id}/steps`)
+  }
+
+  async createWorkflowStep(workflowId: string, payload: any) {
+    return this.fetchFromApi(`/workflows/${workflowId}/steps`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async patchWorkflowStep(workflowId: string, stepId: string, payload: any) {
+    return this.fetchFromApi(`/workflows/${workflowId}/steps/${stepId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async deleteWorkflowStep(workflowId: string, stepId: string) {
+    return this.fetchFromApi(`/workflows/${workflowId}/steps/${stepId}`, {
+      method: "DELETE",
+    })
+  }
+
+  async patchWorkflow(workflowId: string, payload: any) {
+    return this.fetchFromApi(`/workflows/${workflowId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async deleteWorkflow(workflowId: string) {
+    return this.fetchFromApi(`/workflows/${workflowId}`, {
+      method: "DELETE",
+    })
+  }
+
+  async getVectorDbs() {
+    return this.fetchFromApi(`/vector-dbs`)
+  }
+
+  async createVectorDb(payload: any) {
+    return this.fetchFromApi("/vector-db", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async patchVectorDb(id: string, payload: any) {
+    return this.fetchFromApi(`/vector-dbs/${id}`, {
       method: "PATCH",
       body: JSON.stringify(payload),
     })

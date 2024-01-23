@@ -1,4 +1,11 @@
-from pydantic import BaseModel
+from typing import Optional
+
+from pydantic import BaseModel, Field
+
+
+class AlgoliaInput(BaseModel):
+    search_query: str
+    num_of_results: int
 
 
 class DatasourceInput(BaseModel):
@@ -65,3 +72,17 @@ class TTS1InputModel(BaseModel):
 
 class TTS1Input(BaseModel):
     input: TTS1InputModel
+
+
+class HandOffInput(BaseModel):
+    reason: str
+
+
+class FunctionInput(BaseModel):
+    config: dict
+
+
+class HTTPInput(BaseModel):
+    url: str
+    method: str = Field("GET", regex="^(GET|POST)$")
+    body: Optional[dict] = {}
