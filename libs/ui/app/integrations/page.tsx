@@ -1,6 +1,8 @@
 import { cookies } from "next/headers"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
+import { Api } from "@/lib/api"
+
 import IntegrationsClientPage from "./client-page"
 
 export default async function Integration() {
@@ -13,12 +15,17 @@ export default async function Integration() {
     .select("*")
     .eq("user_id", user?.id)
     .single()
+  const api = new Api(profile.api_key)
+  const { data: configuredDBs } = await api.getVectorDbs()
 
   return (
     <div className="flex h-screen flex-col justify-between space-y-0 overflow-hidden">
       <p className="px-6 py-5 font-medium">Integrations</p>
       <div className="flex grow overflow-auto">
-        <IntegrationsClientPage profile={profile} />
+        <IntegrationsClientPage
+          profile={profile}
+          configuredDBs={configuredDBs}
+        />
       </div>
     </div>
   )

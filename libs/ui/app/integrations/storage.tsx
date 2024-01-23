@@ -5,7 +5,6 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { useAsync } from "react-use"
 import * as z from "zod"
 
 import { siteConfig } from "@/config/site"
@@ -74,19 +73,13 @@ const formSchema = z.object({
   ]),
 })
 
-function Loading() {
-  return (
-    <div className="flex flex-col space-y-4">
-      {Array(5)
-        .fill(null)
-        .map((_, index) => (
-          <Skeleton key={index} className="h-[60px] w-full" />
-        ))}
-    </div>
-  )
-}
-
-export default function Storage({ profile }: { profile: any }) {
+export default function Storage({
+  profile,
+  configuredDBs,
+}: {
+  profile: any
+  configuredDBs: any
+}) {
   const [open, setOpen] = React.useState<boolean>()
   const [selectedDB, setSelectedDB] = React.useState<any>()
   const router = useRouter()
@@ -97,10 +90,6 @@ export default function Storage({ profile }: { profile: any }) {
       options: {},
     },
   })
-  const { value: configuredDBs, loading } = useAsync(async () => {
-    const { data } = await api.getVectorDbs()
-    return data
-  }, [])
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const payload = {
@@ -136,51 +125,47 @@ export default function Storage({ profile }: { profile: any }) {
           databases.
         </p>
       </div>
-      {loading ? (
-        <Loading />
-      ) : (
-        <div className="flex-col border-b">
-          {siteConfig.vectorDbs.map((vectorDb) => {
-            const isConfigured = configuredDBs.find(
-              (db: any) => db.provider === vectorDb.provider
-            )
+      <div className="flex-col border-b">
+        {siteConfig.vectorDbs.map((vectorDb) => {
+          const isConfigured = configuredDBs.find(
+            (db: any) => db.provider === vectorDb.provider
+          )
 
-            return (
-              <div
-                className="flex items-center justify-between border-t py-4"
-                key={vectorDb.provider}
-              >
-                <div className="flex items-center space-x-4">
-                  {isConfigured ? (
-                    <div className="h-2 w-2 rounded-full bg-green-400" />
-                  ) : (
-                    <div className="h-2 w-2 rounded-full bg-muted" />
-                  )}
-                  <div className="flex items-center space-x-3">
-                    <Image
-                      src={vectorDb.logo}
-                      width="40"
-                      height="40"
-                      alt={vectorDb.name}
-                    />
-                    <p className="font-medium">{vectorDb.name}</p>
-                  </div>
+          return (
+            <div
+              className="flex items-center justify-between border-t py-4"
+              key={vectorDb.provider}
+            >
+              <div className="flex items-center space-x-4">
+                {isConfigured ? (
+                  <div className="h-2 w-2 rounded-full bg-green-400" />
+                ) : (
+                  <div className="h-2 w-2 rounded-full bg-muted" />
+                )}
+                <div className="flex items-center space-x-3">
+                  <Image
+                    src={vectorDb.logo}
+                    width="40"
+                    height="40"
+                    alt={vectorDb.name}
+                  />
+                  <p className="font-medium">{vectorDb.name}</p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedDB(vectorDb)
-                    setOpen(true)
-                  }}
-                >
-                  Settings
-                </Button>
               </div>
-            )
-          })}
-        </div>
-      )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedDB(vectorDb)
+                  setOpen(true)
+                }}
+              >
+                Settings
+              </Button>
+            </div>
+          )
+        })}
+      </div>
       <Dialog
         onOpenChange={(isOpen) => {
           if (!isOpen) {
