@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The open source alternative to OpenAI Assistants API
-  version: 0.1.63
+  version: 0.1.64
 servers:
   - url: https://api.beta.superagent.sh
 paths:
