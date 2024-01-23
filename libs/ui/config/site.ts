@@ -367,6 +367,7 @@ export const siteConfig = {
     {
       provider: VectorDbProvider[VectorDbProvider.PINECONE],
       name: "Pinecone",
+      logo: "/pinecone.png",
       description:
         "Cloud-based database for storing and searching vectors, enabling fast similarity comparisons. Scales well for large datasets.",
       formDescription: "Please enter your Pinecone credentials.",
@@ -391,6 +392,7 @@ export const siteConfig = {
     {
       provider: VectorDbProvider[VectorDbProvider.QDRANT],
       name: "Qdrant",
+      logo: "/qdrant.png",
       description:
         "Open-source database optimized for efficient vector search and filtering. Handles large datasets effectively while requiring minimal resources.",
       formDescription: "Please enter your Qdrant credentials.",
@@ -415,6 +417,7 @@ export const siteConfig = {
     {
       provider: VectorDbProvider[VectorDbProvider.ASTRA_DB],
       name: "Astra DB",
+      logo: "/datastax.jpeg",
       description:
         "Serverless database built on Cassandra, offering integration with Pinecone for vector similarity search.",
       formDescription: "Please enter your Astra DB credentials",
@@ -449,6 +452,7 @@ export const siteConfig = {
     {
       provider: VectorDbProvider[VectorDbProvider.WEAVIATE],
       name: "Weaviate",
+      logo: "/weaviate.png",
       description:
         "Semantic vector database with schema-based organization. Supports both vector search and connections between data points like a graph.",
       formDescription: "Please enter your Weaviate credentials.",
@@ -473,6 +477,7 @@ export const siteConfig = {
     {
       provider: VectorDbProvider[VectorDbProvider.SUPABASE],
       name: "Supabase",
+      logo: "/supabase.png",
       description:
         "The pgvector extension is particularly useful for tasks such as vector similarity search, retrieval, generation, and clustering",
       formDescription: "Please enter your Supabase Pgvector credentials.",
