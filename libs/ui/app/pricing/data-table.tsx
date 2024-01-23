@@ -35,6 +35,7 @@ export const DataTable = async ({profile}: Props) => {
         prices.map(price => (
           <CardPrice
             key={price.id}
+            priceId={price.id}
             title={price?.nickname || ''}
             description='Agent Free Tree Reals'
             price={price?.unit_amount ? `$${price.unit_amount / 100}` : 'Free'}

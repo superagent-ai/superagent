@@ -1,4 +1,5 @@
 import React from "react"
+import { ButtonPrice } from "./ButtonPrice"
 
 interface CardPriceProps {
   title: string
@@ -6,6 +7,7 @@ interface CardPriceProps {
   price: string | number
   features: string[]
   buttonLink: string
+  priceId: string
 }
 
 export const CardPrice: React.FC<CardPriceProps> = ({
@@ -14,6 +16,7 @@ export const CardPrice: React.FC<CardPriceProps> = ({
   price,
   features,
   buttonLink,
+  priceId
 }) => {
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col justify-between rounded-lg border border-gray-100 bg-white p-6 text-center text-gray-900 shadow xl:p-8 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
@@ -46,12 +49,7 @@ export const CardPrice: React.FC<CardPriceProps> = ({
           ))}
         </ul>
       </div>
-      <a
-        href={buttonLink}
-        className="hover:bg-primary-700 focus:ring-primary-200 dark:focus:ring-primary-900 rounded-lg bg-blue-600 px-5 py-2.5 text-center text-sm font-medium text-white focus:ring-4  dark:text-white"
-      >
-        Asignar plan
-      </a>
+      <ButtonPrice priceId={priceId} title="Asignar Pago" />
     </div>
   )
 }
