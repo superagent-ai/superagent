@@ -67,6 +67,7 @@ class DataLoader:
             return loader.load_and_split()
 
     def load_pdf(self):
+        
         if self.datasource.url:
             loader = PyPDFLoader(file_path=self.datasource.url)
         else:

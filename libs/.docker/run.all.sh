@@ -7,7 +7,7 @@ if ! docker network ls | grep -q superagent_network; then
   docker network create superagent_network
 fi
 
-# Run the services
+# Run the core services
 docker-compose -f docker-compose.yml \
         -f superagent/db/docker-compose.pgdb.yml \
         -f superagent/db/docker-compose.pgadmin.yml \

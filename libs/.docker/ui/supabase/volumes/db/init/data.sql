@@ -4,6 +4,13 @@
 insert into storage.buckets (id, name)
 values ('superagent', 'superagent');
 
+-- Create policy for public read access
+create policy "Public read access"
+  on storage.objects
+  for select
+  using (bucket_id = 'superagent');
+
+-- Create policy for insert access for authenticated users
 create policy "Enable insert access for authenticated users only"
   on storage.objects
   for insert to authenticated
