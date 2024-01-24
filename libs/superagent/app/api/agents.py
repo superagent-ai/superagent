@@ -6,7 +6,7 @@ from typing import AsyncIterable
 import segment.analytics as analytics
 from decouple import config
 from fastapi import APIRouter, Depends
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from langchain.agents import AgentExecutor
 from langchain.chains import LLMChain
 from langfuse import Langfuse
@@ -66,19 +66,60 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     try:
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Created Agent", {**body.dict()})
+
         agent = await prisma.agent.create(
-            {**body.dict(), "apiUserId": api_user.id},
+            {
+                "isActive": body.isActive,
+                "name": body.name,
+                "initialMessage": body.initialMessage,
+                "prompt": body.prompt,
+                "llmModel": body.llmModel,
+                "description": body.description,
+                "avatar": body.avatar,
+                "apiUserId": api_user.id,
+            },
             include={
                 "tools": {"include": {"tool": True}},
                 "datasources": {"include": {"datasource": True}},
                 "llms": {"include": {"llm": True}},
             },
         )
-        provider = None
+
+        # Set the provider to llmProvider if provided in the request body;
+        provider = body.llmProvider
         for key, models in LLM_PROVIDER_MAPPING.items():
-            if body.llmModel in models:
-                provider = key
-                break
+            if provider == key:
+                # If the given provider is in the LLM_PROVIDER_MAPPING,
+                # it must have a model specified
+                # (some providers does not need a model, e.g. Azure)
+                if body.llmModel not in models:
+                    logging.error(
+                        (
+                            f"LLM model {body.llmModel}",
+                            f"not found in LLM_PROVIDER_MAPPING."
+                            f"LLM model must be set for provider {body.llmProvider.value}",
+                        )
+                    )
+                    return JSONResponse(
+                        status_code=400,
+                        content={
+                            "message": (
+                                f"LLM model {body.llmModel} not found. "
+                                f"LLM model must be set for provider {body.llmProvider.value}"
+                            )
+                        },
+                    )
+                else:
+                    provider = key
+                    break
+
+        # if provider is not still set, raise an error
+        if not provider:
+            return JSONResponse(
+                status_code=400,
+                content={"message": "LLM provider not found"},
+            )
+
         llm = await prisma.llm.find_first(
             where={"provider": provider, "apiUserId": api_user.id}
         )
@@ -178,7 +219,13 @@ async def update(
         data = await prisma.agent.update(
             where={"id": agent_id},
             data={
-                **body.dict(),
+                "isActive": body.isActive,
+                "name": body.name,
+                "initialMessage": body.initialMessage,
+                "prompt": body.prompt,
+                "llmModel": body.llmModel or None,
+                "description": body.description,
+                "avatar": body.avatar,
                 "apiUserId": api_user.id,
             },
         )

@@ -38,18 +38,14 @@ import { useToast } from "@/components/ui/use-toast"
 import Avatar from "./avatar"
 
 const formSchema = z.object({
-  name: z.string().nonempty({
+  name: z.string().min(1, {
     message: "Name is required",
   }),
-  description: z.string().nonempty({
-    message: "Description is required",
-  }),
+  description: z.string().min(1, { message: "Description is required" }),
   initialMessage: z.string(),
   llms: z.string(),
   isActive: z.boolean().default(true),
-  llmModel: z.string().nonempty({
-    message: "Model is required",
-  }),
+  llmModel: z.string().optional(),
   prompt: z.string(),
   tools: z.array(z.string()),
   datasources: z.array(z.string()),
