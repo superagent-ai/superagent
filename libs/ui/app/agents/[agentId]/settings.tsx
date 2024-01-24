@@ -45,7 +45,7 @@ const formSchema = z.object({
   initialMessage: z.string(),
   llms: z.string(),
   isActive: z.boolean().default(true),
-  llmModel: z.string().optional(),
+  llmModel: z.string().nullable(),
   prompt: z.string(),
   tools: z.array(z.string()),
   datasources: z.array(z.string()),
@@ -283,7 +283,7 @@ export default function Settings({
                     <FormItem className="flex-1">
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        defaultValue={field.value || ""}
                       >
                         <FormControl>
                           <SelectTrigger>

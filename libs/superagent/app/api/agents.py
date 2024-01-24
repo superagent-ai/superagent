@@ -69,13 +69,7 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
 
         agent = await prisma.agent.create(
             {
-                "isActive": body.isActive,
-                "name": body.name,
-                "initialMessage": body.initialMessage,
-                "prompt": body.prompt,
-                "llmModel": body.llmModel,
-                "description": body.description,
-                "avatar": body.avatar,
+                **body.dict(exclude={"llmProvider"}),
                 "apiUserId": api_user.id,
             },
             include={
@@ -221,13 +215,7 @@ async def update(
         data = await prisma.agent.update(
             where={"id": agent_id},
             data={
-                "isActive": body.isActive,
-                "name": body.name,
-                "initialMessage": body.initialMessage,
-                "prompt": body.prompt,
-                "llmModel": body.llmModel or None,
-                "description": body.description,
-                "avatar": body.avatar,
+                **body.dict(exclude={"llmProvider"}),
                 "apiUserId": api_user.id,
             },
         )
