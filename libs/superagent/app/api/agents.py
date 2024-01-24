@@ -95,9 +95,10 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
                 if body.llmModel not in models:
                     logging.error(
                         (
-                            f"LLM model {body.llmModel}",
-                            f"not found in LLM_PROVIDER_MAPPING."
-                            f"LLM model must be set for provider {body.llmProvider.value}",
+                            f"LLM model {body.llmModel} "
+                            f"not found in LLM_PROVIDER_MAPPING. "
+                            f"LLM model must be set "
+                            f"for provider {body.llmProvider.value}"
                         )
                     )
                     return JSONResponse(
@@ -105,7 +106,8 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
                         content={
                             "message": (
                                 f"LLM model {body.llmModel} not found. "
-                                f"LLM model must be set for provider {body.llmProvider.value}"
+                                f"LLM model must be set "
+                                f"for provider {body.llmProvider.value}"
                             )
                         },
                     )
