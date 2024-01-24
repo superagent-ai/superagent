@@ -134,6 +134,7 @@ async def get(agent_id: str, api_user=Depends(get_current_api_user)):
                 "llms": {"include": {"llm": True}},
             },
         )
+        print(data)
         for llm in data.llms:
             llm.llm.options = json.dumps(llm.llm.options)
         for tool in data.tools:
@@ -191,12 +192,15 @@ async def update(
     name="invoke",
     description="Invoke an agent",
     response_model=AgentInvokeResponse,
+    openapi_extra={
+        "x-fern-sdk-group-name": "agent",
+        "x-fern-sdk-method-name": "invoke",
+    },
 )
 async def invoke(
     agent_id: str, body: AgentInvokeRequest, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for invoking an agent"""
-
     langfuse_secret_key = config("LANGFUSE_SECRET_KEY", "")
     langfuse_public_key = config("LANGFUSE_PUBLIC_KEY", "")
     langfuse_host = config("LANGFUSE_HOST", "https://cloud.langfuse.com")
@@ -217,18 +221,36 @@ async def invoke(
         )
         langfuse_handler = trace.get_langchain_handler()
 
-    agent_metadata = {"agentId": agent_id, "sessionId": session_id}
+    agent_config = await prisma.agent.find_unique_or_raise(
+        where={"id": agent_id},
+        include={
+            "llms": {"include": {"llm": True}},
+            "datasources": {"include": {"datasource": {"include": {"vectorDb": True}}}},
+            "tools": {"include": {"tool": True}},
+        },
+    )
 
-    def get_analytics_info(agent_metadata, result):
+    def get_analytics_info(result):
         intermediate_steps_to_obj = [
-            {**vars(toolClass), "response": response}
-            for toolClass, response in result["intermediate_steps"]
+            {
+                **vars(toolClass),
+                "message_log": str(toolClass.message_log),
+                "response": response,
+            }
+            for toolClass, response in result.get("intermediate_steps", [])
         ]
 
         properties = {
-            **agent_metadata,
-            "output": result["output"],
-            "input": result["input"],
+            "agent": agent_config.id,
+            "llm_model": agent_config.llmModel,
+            "sessionId": session_id,
+            # default http status code is 200
+            "response": {
+                "status_code": result.get("status_code", 200),
+                "error": result.get("error", None),
+            },
+            "output": result.get("output", None),
+            "input": result.get("input", None),
             "intermediate_steps": intermediate_steps_to_obj,
         }
 
@@ -259,7 +281,7 @@ async def invoke(
                 analytics.track(
                     api_user.id,
                     "Invoked Agent",
-                    get_analytics_info(agent_metadata, result),
+                    get_analytics_info(result),
                 )
             if "intermediate_steps" in result:
                 for step in result["intermediate_steps"]:
@@ -274,18 +296,22 @@ async def invoke(
                         )
         except Exception as error:
             logging.error(f"Error in send_message: {error}")
+            if SEGMENT_WRITE_KEY:
+                analytics.track(
+                    api_user.id,
+                    "Invoked Agent",
+                    get_analytics_info({"error": str(error), "status_code": 500}),
+                )
             yield ("event: error\n" f"data: {error}\n\n")
         finally:
             callback.done.set()
-
-    if SEGMENT_WRITE_KEY:
-        analytics.track(api_user.id, "Invoked Agent")
 
     logging.info("Invoking agent...")
     session_id = body.sessionId
     input = body.input
     enable_streaming = body.enableStreaming
     output_schema = body.outputSchema
+
     callback = CustomAsyncIteratorCallbackHandler()
     agent = await AgentBase(
         agent_id=agent_id,
@@ -293,6 +319,8 @@ async def invoke(
         enable_streaming=enable_streaming,
         output_schema=output_schema,
         callback=callback,
+        llm_params=body.llm_params,
+        agent_config=agent_config,
     ).get_agent()
 
     if enable_streaming:
@@ -318,7 +346,7 @@ async def invoke(
         analytics.track(
             api_user.id,
             "Invoked Agent",
-            get_analytics_info(agent_metadata, output),
+            get_analytics_info(output),
         )
     return {"success": True, "data": output}
 

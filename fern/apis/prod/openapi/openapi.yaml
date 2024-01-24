@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The open source alternative to OpenAI Assistants API
-  version: 0.1.57
+  version: 0.1.65
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -167,6 +167,12 @@ paths:
       summary: Invoke
       description: Invoke an agent
       operationId: invoke_api_v1_agents__agent_id__invoke_post
+      x-fern-streaming:
+        stream-condition: $request.enableStreaming
+        response:
+          $ref: '#/components/schemas/app__models__response__AgentInvoke'
+        response-stream:
+          $ref: '#/components/schemas/app__models__response__AgentInvokeStream'
       parameters:
         - required: true
           schema:
@@ -195,6 +201,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
+      x-fern-sdk-group-name: agent
+      x-fern-sdk-method-name: invoke
   /api/v1/agents/{agent_id}/llms:
     post:
       tags:
@@ -1362,6 +1370,7 @@ paths:
         - HTTPBearer: []
   /api/v1/runs:
     get:
+      x-fern-ignore: true
       tags:
         - Telemetry
       summary: List Runs
@@ -1535,6 +1544,19 @@ components:
         - MIXTRAL_8X7B_INSTRUCT_V01
       type: string
       description: An enumeration.
+    LLMParams:
+      title: LLMParams
+      required:
+        - max_tokens
+        - temperature
+      type: object
+      properties:
+        max_tokens:
+          title: Max Tokens
+          type: integer
+        temperature:
+          title: Temperature
+          type: number
     LLMProvider:
       title: LLMProvider
       enum:
@@ -1735,6 +1757,8 @@ components:
         outputSchema:
           title: Outputschema
           type: string
+        llm_params:
+          $ref: '#/components/schemas/LLMParams'
     app__models__request__AgentLLM:
       title: AgentLLM
       required:
@@ -1891,6 +1915,16 @@ components:
           type: boolean
         data:
           title: Data
+    app__models__response__AgentInvokeStream:
+      title: AgentInvokeStream
+      type: object
+      properties:
+        event:
+          type: string
+          description: The type of the event.
+        data:
+          type: string
+          description: The data associated with the event.
     app__models__response__ApiUser:
       title: ApiUser
       required:

@@ -12,7 +12,7 @@ groups:
         config:
           client_class_name: Superagent
       - name: fernapi/fern-typescript-node-sdk
-        version: 0.8.8
+        version: 0.9.4
         output:
           location: npm
           package-name: superagentai-js
