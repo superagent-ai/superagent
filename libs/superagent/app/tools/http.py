@@ -11,11 +11,11 @@ class LCHttpTool(LCBaseTool):
     return_direct = False
 
     def _run(self, url: str, method: str = "GET", body: dict = None) -> None:
-        headers = (
-            json.loads(self.metadata.get("headers"))
-            if self.metadata.get("headers")
-            else {}
-        )
+        headers = self.metadata.get("headers")
+        if isinstance(headers, str):
+            headers = json.loads(headers)
+        elif headers is None:
+            headers = {}
         headers["content-type"] = "application/json"
         try:
             request_kwargs = {"method": method, "url": url, "headers": headers}
@@ -31,11 +31,11 @@ class LCHttpTool(LCBaseTool):
             return str(e)
 
     async def _arun(self, url: str, method: str = "GET", body: dict = None) -> str:
-        headers = (
-            json.loads(self.metadata.get("headers"))
-            if self.metadata.get("headers")
-            else {}
-        )
+        headers = self.metadata.get("headers")
+        if isinstance(headers, str):
+            headers = json.loads(headers)
+        elif headers is None:
+            headers = {}
         headers["content-type"] = "application/json"
         try:
             async with aiohttp.ClientSession() as session:
