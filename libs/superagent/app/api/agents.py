@@ -54,7 +54,6 @@ analytics.write_key = SEGMENT_WRITE_KEY
 logging.basicConfig(level=logging.INFO)
 
 
-# Agent endpoints
 @router.post(
     "/agents",
     name="create",
@@ -79,13 +78,9 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
             },
         )
 
-        # Set the provider to llmProvider if provided in the request body;
         provider = body.llmProvider
         for key, models in LLM_PROVIDER_MAPPING.items():
             if provider == key:
-                # If the given provider is in the LLM_PROVIDER_MAPPING,
-                # it must have a model specified
-                # (some providers does not need a model, e.g. Azure)
                 if body.llmModel not in models:
                     logging.error(
                         (
@@ -109,7 +104,6 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
                     provider = key
                     break
 
-        # if provider is not still set, raise an error
         if not provider:
             return JSONResponse(
                 status_code=400,
