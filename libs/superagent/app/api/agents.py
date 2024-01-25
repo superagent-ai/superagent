@@ -134,6 +134,7 @@ async def get(agent_id: str, api_user=Depends(get_current_api_user)):
                 "llms": {"include": {"llm": True}},
             },
         )
+        print(data)
         for llm in data.llms:
             llm.llm.options = json.dumps(llm.llm.options)
         for tool in data.tools:
@@ -191,6 +192,10 @@ async def update(
     name="invoke",
     description="Invoke an agent",
     response_model=AgentInvokeResponse,
+    openapi_extra={
+        "x-fern-sdk-group-name": "agent",
+        "x-fern-sdk-method-name": "invoke",
+    },
 )
 async def invoke(
     agent_id: str, body: AgentInvokeRequest, api_user=Depends(get_current_api_user)
@@ -314,7 +319,7 @@ async def invoke(
         enable_streaming=enable_streaming,
         output_schema=output_schema,
         callback=callback,
-        llm_params=body.llm_params.dict() if body.llm_params else {},
+        llm_params=body.llm_params,
         agent_config=agent_config,
     ).get_agent()
 

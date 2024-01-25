@@ -1,6 +1,6 @@
-from agentops.langchain_callback_handler import LangchainCallbackHandler
-from typing import Any, List
+from typing import Any, List, Optional
 
+from app.models.request import LLMParams
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
 
@@ -18,8 +18,7 @@ class AgentBase:
         enable_streaming: bool = False,
         output_schema: str = None,
         callback: CustomAsyncIteratorCallbackHandler = None,
-        session_tracker: LangchainCallbackHandler = None,
-        llm_params: dict[any, any] = {},
+        llm_params: Optional[LLMParams] = {},
         agent_config: Agent = None,
     ):
         self.session_tracker = session_tracker
