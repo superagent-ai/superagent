@@ -50,13 +50,24 @@ Here is an example hosts file with most of the services listed. Add or remove se
  127.0.0.1  qdrant
 ```
 
-## 1. Deploy Supabase
+## Deploy dependent services
 
-First setup supabase. Refer to our guide [Supabase setup](https://docs.superagent.sh/overview/deployments/render). The guide explains how to run Supabase with docker compose using our provided example.
+### 1. Deploy Supabase
 
-## 2. Deploy Core services
+First setup supabase. Refer to our guide [Supabase setup](https://docs.superagent.sh/overview/deployments/render). The guide explains how to setup and run Supabase with docker compose using our provided example.
 
-Core services, with the exception of Supabase can all be spun up in docker with one script.
+### 2. Deploy Langfuse
+
+Refer to our guide [Langfuse setup](https://docs.superagent.sh/overview/dependencies/langfuse). The guide explains how to run a local version of Langfuse with docker compose using our provided example, or how to setup Langfuse cloud if preferred.
+
+### 3. Deploy a vector store
+
+Refer to our guides on setting up one of the supported vector stores in docker or how to use the cloud versions where available.
+
+- **Weaviate** - [Weaviate Setup Guide](https://docs.superagent.sh/overview/vector-stores/weaviate)
+- More guides coming soon
+
+## Deploy Superagent and core services
 
 The main docker compose file is located in `libs\.docker\docker-compose.yml` and contains only the Superagent API. Other core services are provided as additional compose files and can be appended to the `docker compose up` command to deploy them all at once.
 
@@ -79,9 +90,9 @@ This will start up the following services in docker
 - `pgdb` - Postgres DB for the Superagent API
 - `pgadmin` - User interface for the Postgres DB
 
-### Optionally omit any services if you have them deployed elsewhere
+### Swapping out core dependencies
 
-The `libs/.docker/run.all.sh` script looks like this and includes all the core dependencies. You can omit any part that you may wish to deploy elsewhere. For example, if you wanted to use a cloud hosted database for the superagent api, then you can comment/delete the lines for `-f superagent/db/docker-compose.pgdb.yml \` and `-f superagent/db/docker-compose.pgadmin.yml \` then modify the `libs/.docker/.env` file with the configuration for your own POSTGRES db.
+The `libs/.docker/run.all.sh` script runs all the core dependencies. You can omit any part that you may wish to deploy elsewhere. For example, if you wanted to use a cloud hosted database for the superagent api, then you can comment/delete the lines for `-f superagent/db/docker-compose.pgdb.yml \` and `-f superagent/db/docker-compose.pgadmin.yml \` then modify the `libs/.docker/.env` file with the configuration for your own POSTGRES db.
 
 ``` bash
 # Remove any running services
@@ -107,17 +118,6 @@ docker-compose -f docker-compose.yml \
 docker logs superagent-ui
 
 ```
-
-## Deploy Langfuse
-
-Refer to our guide [Langfuse setup](https://docs.superagent.sh/overview/dependencies/langfuse). The guide explains how to run a local version of Langfuse with docker compose using our provided example, or how to setup Langfuse cloud if preferred.
-
-## Deploy a vector store
-
-Refer to our guides on setting up one of the supported vector stores in docker or how to use the cloud versions where available.
-
-- **Weaviate** - [Weaviate Setup Guide](https://docs.superagent.sh/overview/vector-stores/weaviate)
-- More guides coming soon
 
 ## logs
 
