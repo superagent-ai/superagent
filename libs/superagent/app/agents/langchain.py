@@ -116,7 +116,8 @@ class LangchainAgent(AgentBase):
                 model=LLM_MAPPING[model],
                 openai_api_key=agent_llm.llm.apiKey,
                 streaming=self.enable_streaming,
-                callbacks=[self.callback] if self.enable_streaming else [],
+                callbacks=[self.callback, self.session_tracker] if self.enable_streaming else [
+                    self.session_tracker],
                 **(agent_llm.llm.options if agent_llm.llm.options else {}),
                 **(llm_params),
             )
@@ -126,7 +127,8 @@ class LangchainAgent(AgentBase):
                 temperature=0,
                 openai_api_type="azure",
                 streaming=self.enable_streaming,
-                callbacks=[self.callback] if self.enable_streaming else [],
+                callbacks=[self.callback, self.session_tracker] if self.enable_streaming else [
+                    self.session_tracker],
                 **(agent_llm.llm.options if agent_llm.llm.options else {}),
                 **(llm_params),
             )
