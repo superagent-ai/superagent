@@ -25,7 +25,7 @@ async function loadPrices() {
 }
 
 
-export const DataTable = async ({profile}: Props) => {
+export const DataTable = async () => {
 
   const prices = await loadPrices()
 

@@ -27,7 +27,7 @@ export default async function Pricing() {
             Con <span className="font-bold">SuperAgent Elite Membership</span> no solo mejoras tu eficiencia y organización, sino que también elevas tu experiencia de trabajo a un nivel superior. ¡Únete hoy y transforma tu manera de trabajar!
             </p>
           </div>
-          <DataTable profile={profile}/>
+          <DataTable />
         </div>
       </section>
     </div>
