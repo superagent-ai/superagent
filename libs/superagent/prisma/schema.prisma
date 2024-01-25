@@ -106,7 +106,7 @@ model Agent {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   llms           AgentLLM[]
-  llmModel       LLMModel          @default(GPT_3_5_TURBO_16K_0613)
+  llmModel       LLMModel?         @default(GPT_3_5_TURBO_16K_0613)
   prompt         String?
   apiUserId      String
   apiUser        ApiUser           @relation(fields: [apiUserId], references: [id])
