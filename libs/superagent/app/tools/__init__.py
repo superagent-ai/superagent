@@ -8,6 +8,7 @@ from app.models.tools import (
     AlgoliaInput,
     BingSearchInput,
     BrowserInput,
+    CodeInterpreterInput,
     ChatGPTInput,
     E2BCodeExecutorInput,
     FunctionInput,
@@ -39,6 +40,7 @@ from app.tools.replicate import Replicate
 from app.tools.tts_1 import TTS1
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
+from app.tools.code_interpreter import CodeInterpreter
 
 TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
@@ -47,6 +49,7 @@ TOOL_TYPE_MAPPING = {
         "class": LCBingSearch,
         "schema": BingSearchInput,
     },
+    "CODE_EXECUTOR": {"class": CodeInterpreter, "schema": CodeInterpreterInput},
     "METAPHOR": {
         "class": MetaphorSearch,
         "schema": MetaphorSearchInput,
