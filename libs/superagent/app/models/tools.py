@@ -16,6 +16,10 @@ class BingSearchInput(BaseModel):
     search_query: str
 
 
+class CodeInterpreterInput(BaseModel):
+    python_code: str
+
+
 class MetaphorSearchInput(BaseModel):
     search_query: str
 

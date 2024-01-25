@@ -9,7 +9,8 @@ from app.models.tools import (
     BingSearchInput,
     BrowserInput,
     ChatGPTInput,
-    E2BCodeExecutorInput,
+    CodeInterpreterInput,
+    # E2BCodeExecutorInput,
     FunctionInput,
     GPTVisionInput,
     HandOffInput,
@@ -27,7 +28,9 @@ from app.tools.algolia import Algolia
 from app.tools.bing_search import BingSearch, LCBingSearch
 from app.tools.browser import Browser, LCBrowser
 from app.tools.chatgpt import get_chatpgt_tool
-from app.tools.e2b import E2BCodeExecutor
+from app.tools.code_interpreter import CodeInterpreter
+
+# from app.tools.e2b import E2BCodeExecutor
 from app.tools.function import Function
 from app.tools.gpt_vision import GPTVision
 from app.tools.hand_off import HandOff
@@ -60,7 +63,8 @@ TOOL_TYPE_MAPPING = {
     "CHATGPT_PLUGIN": {"class": get_chatpgt_tool, "schema": ChatGPTInput},
     "REPLICATE": {"class": Replicate, "schema": ReplicateInput},
     "WOLFRAM_ALPHA": {"class": WolframAlpha, "schema": WolframInput},
-    "CODE_EXECUTOR": {"class": E2BCodeExecutor, "schema": E2BCodeExecutorInput},
+    # "CODE_EXECUTOR": {"class": E2BCodeExecutor, "schema": E2BCodeExecutorInput},
+    "CODE_EXECUTOR": {"class": CodeInterpreter, "schema": CodeInterpreterInput},
     "BROWSER": {"class": LCBrowser, "schema": BrowserInput},
     "GPT_VISION": {"class": GPTVision, "schema": GPTVisionInput},
     "TTS_1": {"class": TTS1, "schema": TTS1Input},
