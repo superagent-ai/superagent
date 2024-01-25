@@ -4,6 +4,8 @@ from app.models.request import LLMParams
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
 
+from agentops.langchain_callback_handler import LangchainCallbackHandler, AsyncCallbackHandler
+
 DEFAULT_PROMPT = (
     "You are a helpful AI Assistant, answer the users questions to "
     "the best of your ability."
@@ -18,6 +20,7 @@ class AgentBase:
         enable_streaming: bool = False,
         output_schema: str = None,
         callback: CustomAsyncIteratorCallbackHandler = None,
+        session_tracker: LangchainCallbackHandler | AsyncCallbackHandler = None,
         llm_params: Optional[LLMParams] = {},
         agent_config: Agent = None,
     ):

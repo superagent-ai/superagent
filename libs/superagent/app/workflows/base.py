@@ -6,12 +6,7 @@ from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.models import Workflow
 from decouple import config
-
-from agentops.langchain_callback_handler import LangchainCallbackHandler
-
-
-agentops_api_key = config("AGENTOPS_API_KEY")
-agentops_org_key = config("AGENTOPS_ORG_KEY")
+from agentops.langchain_callback_handler import LangchainCallbackHandler, AsyncCallbackHandler
 
 
 class WorkflowBase:
@@ -20,16 +15,13 @@ class WorkflowBase:
         workflow: Workflow,
         callbacks: List[CustomAsyncIteratorCallbackHandler],
         session_id: str,
+        session_tracker: LangchainCallbackHandler | AsyncCallbackHandler = None,
         enable_streaming: bool = False,
     ):
         self.workflow = workflow
         self.enable_streaming = enable_streaming
         self.session_id = session_id
-
-        self.agentops_handler = LangchainCallbackHandler(api_key=agentops_api_key,
-                                                         org_key=agentops_org_key,
-                                                         tags=[session_id, workflow.id])
-
+        self.session_tracker = session_tracker
         self.callbacks = callbacks
 
     async def arun(self, input: Any):
@@ -53,7 +45,7 @@ class WorkflowBase:
                 agent_id=step.agentId,
                 enable_streaming=True,
                 callback=self.callbacks[stepIndex],
-                session_tracker=self.agentops_handler,
+                session_tracker=self.session_tracker,
                 session_id=self.session_id,
                 agent_config=agent_config,
             ).get_agent()

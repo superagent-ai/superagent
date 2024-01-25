@@ -11,6 +11,8 @@ from langchain.agents import AgentExecutor
 from langchain.chains import LLMChain
 from langfuse import Langfuse
 
+from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
+
 from app.agents.base import AgentBase
 from app.models.request import (
     Agent as AgentRequest,
@@ -221,6 +223,13 @@ async def invoke(
         )
         langfuse_handler = trace.get_langchain_handler()
 
+    agentops_api_key = config("AGENTOPS_API_KEY")
+    agentops_org_key = config("AGENTOPS_ORG_KEY")
+
+    agentops_handler = AsyncLangchainCallbackHandler(api_key=agentops_api_key,
+                                                     org_key=agentops_org_key,
+                                                     tags=[agent_id, str(body.sessionId)])
+
     agent_config = await prisma.agent.find_unique_or_raise(
         where={"id": agent_id},
         include={
@@ -266,7 +275,8 @@ async def invoke(
                 agent.acall(
                     inputs={"input": content},
                     tags=[agent_id],
-                    callbacks=[langfuse_handler] if langfuse_handler else None,
+                    callbacks=[langfuse_handler, agentops_handler]
+                    if langfuse_handler else [agentops_handler],
                 )
             )
 
@@ -300,7 +310,8 @@ async def invoke(
                 analytics.track(
                     api_user.id,
                     "Invoked Agent",
-                    get_analytics_info({"error": str(error), "status_code": 500}),
+                    get_analytics_info(
+                        {"error": str(error), "status_code": 500}),
                 )
             yield ("event: error\n" f"data: {error}\n\n")
         finally:
@@ -319,6 +330,7 @@ async def invoke(
         enable_streaming=enable_streaming,
         output_schema=output_schema,
         callback=callback,
+        session_tracker=agentops_handler,
         llm_params=body.llm_params,
         agent_config=agent_config,
     ).get_agent()
@@ -330,10 +342,12 @@ async def invoke(
         return StreamingResponse(generator, media_type="text/event-stream")
 
     logging.info("Streaming not enabled. Invoking agent synchronously...")
+
     output = await agent.acall(
         inputs={"input": input},
         tags=[agent_id],
-        callbacks=[langfuse_handler] if langfuse_handler else None,
+        callbacks=[langfuse_handler, agentops_handler] if langfuse_handler else [
+            agentops_handler],
     )
 
     if output_schema:
@@ -348,6 +362,8 @@ async def invoke(
             "Invoked Agent",
             get_analytics_info(output),
         )
+
+    agentops_handler.ao_client.end_session(end_state="Success")
     return {"success": True, "data": output}
 
 

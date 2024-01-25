@@ -26,6 +26,8 @@ from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from app.workflows.base import WorkflowBase
 
+from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
+
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
 router = APIRouter()
@@ -174,10 +176,18 @@ async def invoke(
     input = body.input
     enable_streaming = body.enableStreaming
 
+    agentops_api_key = config("AGENTOPS_API_KEY")
+    agentops_org_key = config("AGENTOPS_ORG_KEY")
+
+    agentops_handler = AsyncLangchainCallbackHandler(api_key=agentops_api_key,
+                                                     org_key=agentops_org_key,
+                                                     tags=[session_id])
+
     workflow = WorkflowBase(
         workflow=workflowData,
         enable_streaming=enable_streaming,
         callbacks=[workflowStep["callback"] for workflowStep in workflowSteps],
+        session_tracker=agentops_handler,
         session_id=session_id,
     )
 
@@ -221,6 +231,8 @@ async def invoke(
         input,
     )
 
+    # End session
+    agentops_handler.ao_client.end_session("Success")
     return {"success": True, "data": output}
 
 
