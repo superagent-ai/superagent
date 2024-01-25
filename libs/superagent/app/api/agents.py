@@ -6,7 +6,7 @@ from typing import AsyncIterable
 import segment.analytics as analytics
 from decouple import config
 from fastapi import APIRouter, Depends
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from langchain.agents import AgentExecutor
 from langchain.chains import LLMChain
 from langfuse import Langfuse
@@ -54,7 +54,6 @@ analytics.write_key = SEGMENT_WRITE_KEY
 logging.basicConfig(level=logging.INFO)
 
 
-# Agent endpoints
 @router.post(
     "/agents",
     name="create",
@@ -66,19 +65,32 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     try:
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Created Agent", {**body.dict()})
+
         agent = await prisma.agent.create(
-            {**body.dict(), "apiUserId": api_user.id},
+            {
+                **body.dict(exclude={"llmProvider"}),
+                "apiUserId": api_user.id,
+            },
             include={
                 "tools": {"include": {"tool": True}},
                 "datasources": {"include": {"datasource": True}},
                 "llms": {"include": {"llm": True}},
             },
         )
-        provider = None
-        for key, models in LLM_PROVIDER_MAPPING.items():
-            if body.llmModel in models:
-                provider = key
-                break
+
+        provider = body.llmProvider
+        if body.llmModel:
+            for key, models in LLM_PROVIDER_MAPPING.items():
+                if body.llmModel in models:
+                    provider = key
+                    break
+
+        if not provider:
+            return JSONResponse(
+                status_code=400,
+                content={"message": "LLM provider not found"},
+            )
+
         llm = await prisma.llm.find_first(
             where={"provider": provider, "apiUserId": api_user.id}
         )
@@ -178,7 +190,7 @@ async def update(
         data = await prisma.agent.update(
             where={"id": agent_id},
             data={
-                **body.dict(),
+                **body.dict(exclude={"llmProvider"}),
                 "apiUserId": api_user.id,
             },
         )
