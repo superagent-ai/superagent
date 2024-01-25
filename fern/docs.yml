@@ -44,12 +44,26 @@ navigation:
             path: ./mdx/sdk/workflows.mdx
       - section: Deployments
         contents:
+          - page: Docker
+            path: ./mdx/deploy/docker.mdx     
           - page: Render
             path: ./mdx/deploy/render.mdx
           - page: Replit
             path: ./mdx/deploy/replit.mdx
           - page: Runnning locally
             path: ./mdx/deploy/local.mdx
+      - section: Dependencies
+        contents:
+          - page: Supabase
+            path: ./mdx/dependencies/supabase.mdx
+          - page: Langfuse
+            path: ./mdx/dependencies/langfuse.mdx
+          - page: Motorhead
+            path: ./mdx/dependencies/motorhead.mdx
+      - section: Vector Stores
+        contents:
+        - page: Weaviate
+          path: ./mdx/deploy/vector-stores/weaviate.mdx
   - tab: templates
     layout:
       - section: Assistants
