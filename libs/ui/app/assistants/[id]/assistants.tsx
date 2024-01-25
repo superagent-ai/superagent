@@ -171,7 +171,7 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
         <TabsContent value="saml" className="flex h-full text-sm">
           <Chat agent={agent} profile={profile} />
           <div className="flex-1 flex-col border-l">
-            <div className="p2-6 flex items-center justify-center justify-between border-b py-1 pl-2 pr-4">
+            <div className="p2-6 flex items-center justify-between border-b py-1 pl-2 pr-4">
               <div className="flex space-x-0 p-1">
                 <p className="font-mono text-xs text-muted-foreground">
                   sa.yml
