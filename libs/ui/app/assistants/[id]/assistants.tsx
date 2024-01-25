@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { RxActivityLog, RxGear, RxPlay } from "react-icons/rx"
+import { RxActivityLog, RxPieChart, RxPlay } from "react-icons/rx"
 import { TbTrash } from "react-icons/tb"
 import { useAsync } from "react-use"
 
@@ -105,25 +105,22 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      <Tabs
-        defaultValue="overview"
-        className="flex-1 space-y-0 overflow-hidden"
-      >
+      <Tabs defaultValue="saml" className="flex-1 space-y-0 overflow-hidden">
         <TabsList className="px-6 py-1.5">
-          <TabsTrigger value="overview" className="space-x-1">
-            <RxGear size={12} />
-            <span>OVERVIEW</span>
+          <TabsTrigger value="saml" className="space-x-1">
+            <RxPlay size={12} />
+            <span>EDIT</span>
+          </TabsTrigger>
+          <TabsTrigger value="stats" className="space-x-1">
+            <RxPieChart size={12} />
+            <span>STATS</span>
           </TabsTrigger>
           <TabsTrigger value="logs" className="space-x-1">
             <RxActivityLog size={12} />
             <span>LOGS</span>
           </TabsTrigger>
-          <TabsTrigger value="chat" className="space-x-1">
-            <RxPlay size={12} />
-            <span>RUN</span>
-          </TabsTrigger>
         </TabsList>
-        <TabsContent value="overview" className="px-6 py-2 text-sm">
+        <TabsContent value="stats" className="px-6 py-2 text-sm">
           <Overview agent={agent} profile={profile} data={logs || []} />
         </TabsContent>
         <TabsContent value="logs" className="h-full text-sm">
@@ -137,8 +134,9 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
             <LogList profile={profile} data={logs || []} />
           )}
         </TabsContent>
-        <TabsContent value="chat" className="h-full text-sm">
+        <TabsContent value="saml" className="flex h-full text-sm">
           <Chat agent={agent} profile={profile} />
+          <div className="flex-1 border-l">OK</div>
         </TabsContent>
       </Tabs>
     </div>

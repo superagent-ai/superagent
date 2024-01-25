@@ -43,7 +43,7 @@
     "@supabase/supabase-js": "^2.33.1",
     "@tanstack/react-table": "^8.9.7",
     "@uiw/codemirror-theme-vscode": "^4.21.20",
-    "@uiw/react-codemirror": "^4.21.20",
+    "@uiw/react-codemirror": "^4.21.21",
     "ai": "^2.2.12",
     "class-variance-authority": "^0.4.0",
     "clsx": "^1.2.1",

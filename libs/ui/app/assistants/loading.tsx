@@ -7,14 +7,15 @@ export default function Loading() {
         <Skeleton className="h-4 w-[250px]" />
         <Skeleton className="h-20 w-[450px]" />
       </div>
-      <div className="flex space-x-12">
-        <div className="flex-1 flex-col space-y-6">
-          <Skeleton className="h-[300px] w-full" />
-          <Skeleton className="h-[300px] w-full" />
+      <div className="flex h-full flex-1 space-x-12">
+        <div className="flex-1 flex-col">
+          <Skeleton className="h-full w-full" />
         </div>
-        <div className="flex flex-col space-y-6">
-          <Skeleton className="h-[100px] w-[400px]" />
-          <Skeleton className="h-[100px] w-[400px]" />
+        <div className="flex-1 flex-col space-y-6">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-4 w-10" />
+          <Skeleton className="h-4 w-14" />
+          <Skeleton className="h-4 w-5" />
         </div>
       </div>
     </div>

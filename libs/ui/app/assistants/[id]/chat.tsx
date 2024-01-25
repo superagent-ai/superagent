@@ -147,7 +147,7 @@ export default function Chat({
   return (
     <div className="relative flex h-full w-full flex-1 bg-muted text-sm">
       <ScrollArea className="w-[100%]">
-        <div className="mx-auto flex max-w-4xl flex-1 flex-col space-y-0 px-4 py-12">
+        <div className="mx-auto mb-20 flex max-w-4xl flex-1 flex-col space-y-0 px-4 py-12">
           {messages.map((message, index) => (
             <Message key={index} profile={profile} {...message} />
           ))}
