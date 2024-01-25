@@ -4,6 +4,7 @@ import logging
 from typing import AsyncIterable
 
 import segment.analytics as analytics
+from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
 from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
@@ -25,8 +26,6 @@ from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from app.workflows.base import WorkflowBase
-
-from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
@@ -179,9 +178,9 @@ async def invoke(
     agentops_api_key = config("AGENTOPS_API_KEY")
     agentops_org_key = config("AGENTOPS_ORG_KEY")
 
-    agentops_handler = AsyncLangchainCallbackHandler(api_key=agentops_api_key,
-                                                     org_key=agentops_org_key,
-                                                     tags=[session_id])
+    agentops_handler = AsyncLangchainCallbackHandler(
+        api_key=agentops_api_key, org_key=agentops_org_key, tags=[session_id]
+    )
 
     workflow = WorkflowBase(
         workflow=workflowData,
@@ -232,8 +231,9 @@ async def invoke(
     )
 
     # End session
-    agentops_handler.ao_client.end_session("Success",
-                                           end_state_reason="Workflow completed")
+    agentops_handler.ao_client.end_session(
+        "Success", end_state_reason="Workflow completed"
+    )
     return {"success": True, "data": output}
 
 

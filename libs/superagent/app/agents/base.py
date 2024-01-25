@@ -1,10 +1,13 @@
 from typing import Any, List, Optional
 
+from agentops.langchain_callback_handler import (
+    AsyncCallbackHandler,
+    LangchainCallbackHandler,
+)
+
 from app.models.request import LLMParams
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
-
-from agentops.langchain_callback_handler import LangchainCallbackHandler, AsyncCallbackHandler
 
 DEFAULT_PROMPT = (
     "You are a helpful AI Assistant, answer the users questions to "

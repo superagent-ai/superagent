@@ -4,14 +4,13 @@ import logging
 from typing import AsyncIterable
 
 import segment.analytics as analytics
+from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
 from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from langchain.agents import AgentExecutor
 from langchain.chains import LLMChain
 from langfuse import Langfuse
-
-from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
 
 from app.agents.base import AgentBase
 from app.models.request import (
@@ -228,9 +227,11 @@ async def invoke(
 
     agentops_handler = None
     if langfuse_public_key and langfuse_secret_key:
-        agentops_handler = AsyncLangchainCallbackHandler(api_key=agentops_api_key,
-                                                         org_key=agentops_org_key,
-                                                         tags=[agent_id, str(body.sessionId)])
+        agentops_handler = AsyncLangchainCallbackHandler(
+            api_key=agentops_api_key,
+            org_key=agentops_org_key,
+            tags=[agent_id, str(body.sessionId)],
+        )
 
     agent_config = await prisma.agent.find_unique_or_raise(
         where={"id": agent_id},
@@ -277,9 +278,12 @@ async def invoke(
                 agent.acall(
                     inputs={"input": content},
                     tags=[agent_id],
-                    callbacks=[callback for callback in
-                               [langfuse_handler, agentops_handler]
-                               if callback])
+                    callbacks=[
+                        callback
+                        for callback in [langfuse_handler, agentops_handler]
+                        if callback
+                    ],
+                )
             )
 
             async for token in callback.aiter():
@@ -312,8 +316,7 @@ async def invoke(
                 analytics.track(
                     api_user.id,
                     "Invoked Agent",
-                    get_analytics_info(
-                        {"error": str(error), "status_code": 500}),
+                    get_analytics_info({"error": str(error), "status_code": 500}),
                 )
             yield ("event: error\n" f"data: {error}\n\n")
         finally:
@@ -348,9 +351,10 @@ async def invoke(
     output = await agent.acall(
         inputs={"input": input},
         tags=[agent_id],
-        callbacks=[callback for callback in
-                   [langfuse_handler, agentops_handler]
-                   if callback])
+        callbacks=[
+            callback for callback in [langfuse_handler, agentops_handler] if callback
+        ],
+    )
 
     if output_schema:
         try:
@@ -366,8 +370,9 @@ async def invoke(
         )
 
     if agentops_handler:
-        agentops_handler.ao_client.end_session(end_state="Success",
-                                               end_state_reason="Invocation completed")
+        agentops_handler.ao_client.end_session(
+            end_state="Success", end_state_reason="Invocation completed"
+        )
     return {"success": True, "data": output}
 
 
