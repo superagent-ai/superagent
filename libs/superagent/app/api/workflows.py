@@ -232,7 +232,8 @@ async def invoke(
     )
 
     # End session
-    agentops_handler.ao_client.end_session("Success")
+    agentops_handler.ao_client.end_session("Success",
+                                           end_state_reason="Workflow completed")
     return {"success": True, "data": output}
 
 

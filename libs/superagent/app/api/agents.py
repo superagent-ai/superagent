@@ -226,9 +226,11 @@ async def invoke(
     agentops_api_key = config("AGENTOPS_API_KEY")
     agentops_org_key = config("AGENTOPS_ORG_KEY")
 
-    agentops_handler = AsyncLangchainCallbackHandler(api_key=agentops_api_key,
-                                                     org_key=agentops_org_key,
-                                                     tags=[agent_id, str(body.sessionId)])
+    agentops_handler = None
+    if langfuse_public_key and langfuse_secret_key:
+        agentops_handler = AsyncLangchainCallbackHandler(api_key=agentops_api_key,
+                                                         org_key=agentops_org_key,
+                                                         tags=[agent_id, str(body.sessionId)])
 
     agent_config = await prisma.agent.find_unique_or_raise(
         where={"id": agent_id},
@@ -275,9 +277,9 @@ async def invoke(
                 agent.acall(
                     inputs={"input": content},
                     tags=[agent_id],
-                    callbacks=[langfuse_handler, agentops_handler]
-                    if langfuse_handler else [agentops_handler],
-                )
+                    callbacks=[callback for callback in
+                               [langfuse_handler, agentops_handler]
+                               if callback])
             )
 
             async for token in callback.aiter():
@@ -346,9 +348,9 @@ async def invoke(
     output = await agent.acall(
         inputs={"input": input},
         tags=[agent_id],
-        callbacks=[langfuse_handler, agentops_handler] if langfuse_handler else [
-            agentops_handler],
-    )
+        callbacks=[callback for callback in
+                   [langfuse_handler, agentops_handler]
+                   if callback])
 
     if output_schema:
         try:
@@ -363,7 +365,9 @@ async def invoke(
             get_analytics_info(output),
         )
 
-    agentops_handler.ao_client.end_session(end_state="Success")
+    if agentops_handler:
+        agentops_handler.ao_client.end_session(end_state="Success",
+                                               end_state_reason="Invocation completed")
     return {"success": True, "data": output}
 
 
