@@ -1,0 +1,7 @@
+node_modules
+.next
+.github
+
+.env
+env/
+ENV/
