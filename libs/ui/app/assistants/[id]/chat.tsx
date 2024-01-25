@@ -153,8 +153,8 @@ export default function Chat({
           ))}
         </div>
       </ScrollArea>
-      <div className="absolute inset-x-0 bottom-10 z-50 h-20 bg-gradient-to-t from-muted from-50% to-transparent to-100%">
-        <div className="relative mx-auto mb-6 max-w-2xl px-8">
+      <div className="absolute inset-x-0 bottom-10 z-50 h-[100px] bg-gradient-to-t from-muted from-0% to-transparent to-50%">
+        <div className="relative mx-auto max-w-2xl px-8">
           <PromptForm
             onStop={() => abortStream()}
             onSubmit={async (value) => {

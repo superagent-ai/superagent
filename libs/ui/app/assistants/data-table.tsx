@@ -35,7 +35,7 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <ScrollArea className="w-[400px] border-r">
+    <ScrollArea className="min-w-[300px] border-r">
       <div className="flex flex-col">
         <div className="absolute w-full border-b">
           <div className="bg-background/95 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/60">
