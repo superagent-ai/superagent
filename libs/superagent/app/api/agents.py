@@ -226,7 +226,7 @@ async def invoke(
     agentops_org_key = config("AGENTOPS_ORG_KEY")
 
     agentops_handler = None
-    if langfuse_public_key and langfuse_secret_key:
+    if agentops_api_key:
         agentops_handler = AsyncLangchainCallbackHandler(
             api_key=agentops_api_key,
             org_key=agentops_org_key,
@@ -316,7 +316,8 @@ async def invoke(
                 analytics.track(
                     api_user.id,
                     "Invoked Agent",
-                    get_analytics_info({"error": str(error), "status_code": 500}),
+                    get_analytics_info(
+                        {"error": str(error), "status_code": 500}),
                 )
             yield ("event: error\n" f"data: {error}\n\n")
         finally:
