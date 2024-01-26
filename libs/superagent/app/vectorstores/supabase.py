@@ -46,10 +46,10 @@ class SupabaseVectorStore(VectorStoreBase):
         self.client = vecs.create_client(variables["SUPABASE_DB_URL"])
 
         self.embeddings = OpenAIEmbeddings(
-            model="text-embedding-ada-002", openai_api_key=config("OPENAI_API_KEY")
+            model="text-embedding-3-small", openai_api_key=config("OPENAI_API_KEY")
         )
 
-        # create a collection named 'sentences' with 1536 dimensional vectors (default dimension for text-embedding-ada-002)
+        # create a collection named 'sentences' with 1536 dimensional vectors (default dimension for text-embedding-3-small)
         self.collection = self.client.get_or_create_collection(
             name=variables["SUPABASE_TABLE_NAME"], dimension=1536
         )
