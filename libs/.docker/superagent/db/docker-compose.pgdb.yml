@@ -1,0 +1,30 @@
+name: superagent
+services:
+  pgdb:
+    container_name: pgdb
+    networks:
+      - superagent_network
+    image: postgres:12
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: pgdb-data
+        target: "/var/lib/postgresql/data"
+    environment:
+      POSTGRES_DB: ${POSTGRES_USER}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - ${POSTGRES_DB_PORT}:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+volumes:
+  pgdb-data:
+
+networks:
+  superagent_network:
+    external: true
