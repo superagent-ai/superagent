@@ -7,7 +7,7 @@ import segment.analytics as analytics
 from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
 from decouple import config
 from fastapi import APIRouter, Depends
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from langchain.agents import AgentExecutor
 from langchain.chains import LLMChain
 from langfuse import Langfuse
@@ -44,9 +44,9 @@ from app.models.response import (
     AgentToolList as AgentToolListResponse,
 )
 from app.utils.api import get_current_api_user, handle_exception
-from app.utils.llm import LLM_PROVIDER_MAPPING
+from app.utils.llm import LLM_MAPPING, LLM_PROVIDER_MAPPING
 from app.utils.prisma import prisma
-from app.utils.streaming import CustomAsyncIteratorCallbackHandler
+from app.utils.streaming import CostCalcAsyncHandler, CustomAsyncIteratorCallbackHandler
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
@@ -55,7 +55,6 @@ analytics.write_key = SEGMENT_WRITE_KEY
 logging.basicConfig(level=logging.INFO)
 
 
-# Agent endpoints
 @router.post(
     "/agents",
     name="create",
@@ -67,19 +66,32 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     try:
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Created Agent", {**body.dict()})
+
         agent = await prisma.agent.create(
-            {**body.dict(), "apiUserId": api_user.id},
+            {
+                **body.dict(exclude={"llmProvider"}),
+                "apiUserId": api_user.id,
+            },
             include={
                 "tools": {"include": {"tool": True}},
                 "datasources": {"include": {"datasource": True}},
                 "llms": {"include": {"llm": True}},
             },
         )
-        provider = None
-        for key, models in LLM_PROVIDER_MAPPING.items():
-            if body.llmModel in models:
-                provider = key
-                break
+
+        provider = body.llmProvider
+        if body.llmModel:
+            for key, models in LLM_PROVIDER_MAPPING.items():
+                if body.llmModel in models:
+                    provider = key
+                    break
+
+        if not provider:
+            return JSONResponse(
+                status_code=400,
+                content={"message": "LLM provider not found"},
+            )
+
         llm = await prisma.llm.find_first(
             where={"provider": provider, "apiUserId": api_user.id}
         )
@@ -179,7 +191,7 @@ async def update(
         data = await prisma.agent.update(
             where={"id": agent_id},
             data={
-                **body.dict(),
+                **body.dict(exclude={"llmProvider"}),
                 "apiUserId": api_user.id,
             },
         )
@@ -242,7 +254,7 @@ async def invoke(
         },
     )
 
-    def get_analytics_info(result):
+    def track_agent_invocation(result):
         intermediate_steps_to_obj = [
             {
                 **vars(toolClass),
@@ -252,21 +264,34 @@ async def invoke(
             for toolClass, response in result.get("intermediate_steps", [])
         ]
 
-        properties = {
-            "agent": agent_config.id,
-            "llm_model": agent_config.llmModel,
-            "sessionId": session_id,
-            # default http status code is 200
-            "response": {
-                "status_code": result.get("status_code", 200),
-                "error": result.get("error", None),
+        analytics.track(
+            api_user.id,
+            "Invoked Agent",
+            {
+                "agent": agent_config.id,
+                "llm_model": agent_config.llmModel,
+                "sessionId": session_id,
+                # default http status code is 200
+                "response": {
+                    "status_code": result.get("status_code", 200),
+                    "error": result.get("error", None),
+                },
+                "output": result.get("output", None),
+                "input": result.get("input", None),
+                "intermediate_steps": intermediate_steps_to_obj,
+                "prompt_tokens": costCallback.prompt_tokens,
+                "completion_tokens": costCallback.completion_tokens,
+                "prompt_tokens_cost_usd": costCallback.prompt_tokens_cost_usd,
+                "completion_tokens_cost_usd": costCallback.completion_tokens_cost_usd,
             },
-            "output": result.get("output", None),
-            "input": result.get("input", None),
-            "intermediate_steps": intermediate_steps_to_obj,
-        }
+        )
 
-        return properties
+    costCallback = CostCalcAsyncHandler(model=LLM_MAPPING[agent_config.llmModel])
+
+    agentCallbacks = [costCallback]
+
+    if langfuse_handler:
+        agentCallbacks.append(langfuse_handler)
 
     async def send_message(
         agent: LLMChain | AgentExecutor,
@@ -280,7 +305,11 @@ async def invoke(
                     tags=[agent_id],
                     callbacks=[
                         callback
-                        for callback in [langfuse_handler, agentops_handler]
+                        for callback in [
+                            langfuse_handler,
+                            agentops_handler,
+                            agentCallbacks,
+                        ]
                         if callback
                     ],
                 )
@@ -294,11 +323,8 @@ async def invoke(
             result = task.result()
 
             if SEGMENT_WRITE_KEY:
-                analytics.track(
-                    api_user.id,
-                    "Invoked Agent",
-                    get_analytics_info(result),
-                )
+                track_agent_invocation(result)
+
             if "intermediate_steps" in result:
                 for step in result["intermediate_steps"]:
                     agent_action_message_log = step[0]
@@ -313,12 +339,7 @@ async def invoke(
         except Exception as error:
             logging.error(f"Error in send_message: {error}")
             if SEGMENT_WRITE_KEY:
-                analytics.track(
-                    api_user.id,
-                    "Invoked Agent",
-                    get_analytics_info(
-                        {"error": str(error), "status_code": 500}),
-                )
+                track_agent_invocation({"error": str(error), "status_code": 500})
             yield ("event: error\n" f"data: {error}\n\n")
         finally:
             callback.done.set()
@@ -350,11 +371,7 @@ async def invoke(
     logging.info("Streaming not enabled. Invoking agent synchronously...")
 
     output = await agent.acall(
-        inputs={"input": input},
-        tags=[agent_id],
-        callbacks=[
-            callback for callback in [langfuse_handler, agentops_handler] if callback
-        ],
+        inputs={"input": input}, tags=[agent_id], callbacks=agentCallbacks
     )
 
     if output_schema:
@@ -364,16 +381,8 @@ async def invoke(
             logging.error(f"Error parsing output: {e}")
 
     if not enable_streaming and SEGMENT_WRITE_KEY:
-        analytics.track(
-            api_user.id,
-            "Invoked Agent",
-            get_analytics_info(output),
-        )
+        track_agent_invocation(output)
 
-    if agentops_handler:
-        agentops_handler.ao_client.end_session(
-            end_state="Success", end_state_reason="Invocation completed"
-        )
     return {"success": True, "data": output}
 
 

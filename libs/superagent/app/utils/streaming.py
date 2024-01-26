@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any, AsyncIterator, Dict, List, Literal, Union, cast
+from typing import Any, AsyncIterator, Dict, List, Literal, Tuple, Union, cast
 
 from langchain.callbacks.base import AsyncCallbackHandler
 from langchain.schema.messages import BaseMessage
 from langchain.schema.output import LLMResult
+from litellm import cost_per_token, token_counter
 
 
 class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
@@ -86,3 +87,46 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
 
             # Otherwise, the extracted value is a token, which we yield
             yield token_or_done
+
+
+class CostCalcAsyncHandler(AsyncCallbackHandler):
+    """Callback handler that calculates the cost of the prompt and completion."""
+
+    def __init__(self, model):
+        self.model = model
+        self.prompt: str = ""
+        self.completion: str = ""
+        self.prompt_tokens: int = 0
+        self.completion_tokens: int = 0
+        self.prompt_tokens_cost_usd: float = 0.0
+        self.completion_tokens_cost_usd: float = 0.0
+
+    def on_llm_start(self, _, prompts: List[str], **kwargs: Any) -> None:
+        self.prompt = prompts[0]
+
+    def on_llm_end(self, llm_result: LLMResult, **kwargs: Any) -> None:
+        self.completion = llm_result.generations[0][0].message.content
+        completion_tokens = self._calculate_tokens(self.completion)
+        prompt_tokens = self._calculate_tokens(self.prompt)
+
+        (
+            prompt_tokens_cost_usd,
+            completion_tokens_cost_usd,
+        ) = self._calculate_cost_per_token(prompt_tokens, completion_tokens)
+
+        self.prompt_tokens = prompt_tokens
+        self.completion_tokens = completion_tokens
+        self.prompt_tokens_cost_usd = prompt_tokens_cost_usd
+        self.completion_tokens_cost_usd = completion_tokens_cost_usd
+
+    def _calculate_tokens(self, text: str) -> int:
+        return token_counter(model=self.model, text=text)
+
+    def _calculate_cost_per_token(
+        self, prompt_tokens: int, completion_tokens: int
+    ) -> Tuple[float, float]:
+        return cost_per_token(
+            model=self.model,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+        )

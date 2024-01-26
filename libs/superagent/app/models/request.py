@@ -2,7 +2,7 @@ from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
 
-from prisma.enums import VectorDbProvider
+from prisma.enums import LLMProvider, VectorDbProvider
 
 
 class ApiUser(BaseModel):
@@ -14,7 +14,8 @@ class Agent(BaseModel):
     name: str
     initialMessage: Optional[str]
     prompt: Optional[str]
-    llmModel: str
+    llmModel: Optional[str]
+    llmProvider: Optional[LLMProvider]  # either llmProvider or llmModel must be set
     description: str
     avatar: Optional[str]
 

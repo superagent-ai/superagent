@@ -35,4 +35,4 @@ jobs:
       - name: Analysing the code with our lint
         run: |
           cd libs/superagent
-          make lint
+          ./lint-and-format.sh lint
