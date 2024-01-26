@@ -147,7 +147,6 @@ async def get(agent_id: str, api_user=Depends(get_current_api_user)):
                 "llms": {"include": {"llm": True}},
             },
         )
-        print(data)
         for llm in data.llms:
             llm.llm.options = json.dumps(llm.llm.options)
         for tool in data.tools:
@@ -234,11 +233,11 @@ async def invoke(
         )
         langfuse_handler = trace.get_langchain_handler()
 
-    agentops_api_key = config("AGENTOPS_API_KEY")
-    agentops_org_key = config("AGENTOPS_ORG_KEY")
+    agentops_api_key = config("AGENTOPS_API_KEY", default=None)
+    agentops_org_key = config("AGENTOPS_ORG_KEY", default=None)
 
     agentops_handler = None
-    if agentops_api_key or agentops_org_key:
+    if agentops_api_key and agentops_org_key:
         agentops_handler = AsyncLangchainCallbackHandler(
             api_key=agentops_api_key,
             org_key=agentops_org_key,
@@ -293,6 +292,9 @@ async def invoke(
     if langfuse_handler:
         agentCallbacks.append(langfuse_handler)
 
+    if agentops_handler:
+        agentCallbacks.append(agentops_handler)
+
     async def send_message(
         agent: LLMChain | AgentExecutor,
         content: str,
@@ -303,15 +305,7 @@ async def invoke(
                 agent.acall(
                     inputs={"input": content},
                     tags=[agent_id],
-                    callbacks=[
-                        callback
-                        for callback in [
-                            langfuse_handler,
-                            agentops_handler,
-                            agentCallbacks,
-                        ]
-                        if callback
-                    ],
+                    callbacks=agentCallbacks,
                 )
             )
 
