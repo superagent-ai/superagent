@@ -317,7 +317,10 @@ async def invoke(
             result = task.result()
 
             if SEGMENT_WRITE_KEY:
-                track_agent_invocation(result)
+                try:
+                    track_agent_invocation(result)
+                except Exception as e:
+                    logging.error(f"Error tracking agent invocation: {e}")
 
             if "intermediate_steps" in result:
                 for step in result["intermediate_steps"]:
@@ -333,7 +336,10 @@ async def invoke(
         except Exception as error:
             logging.error(f"Error in send_message: {error}")
             if SEGMENT_WRITE_KEY:
-                track_agent_invocation({"error": str(error), "status_code": 500})
+                try:
+                    track_agent_invocation({"error": str(error), "status_code": 500})
+                except Exception as e:
+                    logging.error(f"Error tracking agent invocation: {e}")
             yield ("event: error\n" f"data: {error}\n\n")
         finally:
             callback.done.set()
@@ -375,7 +381,10 @@ async def invoke(
             logging.error(f"Error parsing output: {e}")
 
     if not enable_streaming and SEGMENT_WRITE_KEY:
-        track_agent_invocation(output)
+        try:
+            track_agent_invocation(output)
+        except Exception as e:
+            logging.error(f"Error tracking agent invocation: {e}")
 
     return {"success": True, "data": output}
 
