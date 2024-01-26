@@ -46,12 +46,12 @@ For a production setup refer to the [official documentation](https://langfuse.co
 6. Sign up for an account using any credentials.
 7. Create a project named `superagent`
 8. Under `settings` and `API Keys` - create a new API Key, copy the Public Key and Secret Key.
-9. Enter the values in the superagent docker `.env` file
+9. Enter the values in the superagent docker `.env` file located at `libs/.docker/.env`
 
     ``` bash
     # libs/.docker/.env
-    LANGFUSE_PUBLIC_KEY=pk-lf-...
-    LANGFUSE_SECRET_KEY=sk-lf-...
+    LANGFUSE_PUBLIC_KEY=<Public key e.g pk-lf-...>
+    LANGFUSE_SECRET_KEY=<Secret Key e.g sk-lf-...>
     LANGFUSE_HOST=http://langfuse-server:3100
     
     ```

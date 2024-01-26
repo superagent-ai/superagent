@@ -71,13 +71,13 @@ Refer to our guides on setting up one of the supported vector stores in docker o
 
 The main docker compose file is located in `libs\.docker\docker-compose.yml` and contains only the Superagent API. Other core services are provided as additional compose files and can be appended to the `docker compose up` command to deploy them all at once.
 
-In order to deploy all the core services an example script is provided in `libs\.docker\run.all.sh`.  You can modify this script to ommit any services by commenting out or deleting lines.
+In order to deploy all the core services an example script is provided in `libs\.docker\run.sh`.  You can modify this script to ommit any services by commenting out or deleting lines.
 
-To run all of these services in docker, cd into the `libs/.docker` folder, run the script `run.all.sh`:
+To run all of these services in docker, cd into the `libs/.docker` folder, run the script `run.sh`:
 
 ``` bash
 cd libs/.docker
-./run.all.sh
+./run.sh
 
 ```
 
@@ -90,9 +90,20 @@ This will start up the following services in docker
 - `pgdb` - Postgres DB for the Superagent API
 - `pgadmin` - User interface for the Postgres DB
 
-### Swapping out core dependencies
+### Ready to go
 
-The `libs/.docker/run.all.sh` script runs all the core dependencies. You can omit any part that you may wish to deploy elsewhere. For example, if you wanted to use a cloud hosted database for the superagent api, then you can comment/delete the lines for `-f superagent/db/docker-compose.pgdb.yml \` and `-f superagent/db/docker-compose.pgadmin.yml \` then modify the `libs/.docker/.env` file with the configuration for your own POSTGRES db.
+You are now set up and ready to go. If you need to restart superagent for any reason, such as after changing any of the `.env` vars, just re-run the `./run.sh` script from the `libs/.docker` folder. This will stop and restart the core services
+
+#### Urls
+
+Superagent UI: [http://localhost:3000](http://localhost:3000)
+Superagent API: [http://localhost:8080/api/v1](http://localhost:8080/api/v1)
+Supabase Studio: [http://localhost:8000](http://localhost:8000)
+Langfuse: [http://localhost:3100](http://localhost:3100)
+
+## Swapping out core dependencies
+
+The `libs/.docker/run.sh` script runs all the core dependencies. You can omit any part that you may wish to deploy elsewhere. For example, if you wanted to use a cloud hosted database for the superagent api, then you can comment/delete the lines for `-f superagent/db/docker-compose.pgdb.yml \` and `-f superagent/db/docker-compose.pgadmin.yml \` then modify the `libs/.docker/.env` file with the configuration for your own POSTGRES db.
 
 ``` bash
 # Remove any running services

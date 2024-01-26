@@ -80,6 +80,16 @@ For a production setup refer to the [official documentation](https://supabase.co
     127.0.0.1   supabase-kong
     ```
 
+7. Login with the values `DASHBOARD_USERNAME` and `DASHBOARD_PASSWORD` from `libs/.docker/ui/supabase/.env`
+
+### Supabase Storage
+
+File storage is already configured in the provided supabase docker setup. This is created when you deploy using the script from `libs\.docker\ui\supabase\volumes\db\init\data.sql`
+
+You can access the storage and manage files at the following url
+
+- [http://localhost:8000/project/default/storage/buckets/superagent](http://localhost:8000/project/default/storage/buckets/superagent)
+
 ### Supabase container logs
 
 ``` bash
