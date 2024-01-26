@@ -11,7 +11,14 @@
     "preview": "next build && next start",
     "typecheck": "tsc --noEmit",
     "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
-    "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache"
+    "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache",
+    "supabase:init": "supabase init",
+    "supabase:local:start": "supabase start && supabase status",
+    "supabase:local:migrate": "supabase migrations up",
+    "supabase:cloud:login": "supabase login",
+    "supabase:cloud:link": "supabase link",
+    "supabase:cloud:push": "supabase db push",
+    "supabase:docker:push": "supabase db push --db-url ${SUPABASE_DB_URL}"
   },
   "dependencies": {
     "@apideck/file-picker": "^1.0.3",
@@ -71,6 +78,7 @@
     "remark-math": "^5.1.1",
     "sharp": "^0.31.3",
     "stripe": "^13.7.0",
+    "supabase": "^1.113.3",
     "tailwind-merge": "^1.13.2",
     "tailwindcss-animate": "^1.0.6",
     "uuid": "^9.0.0",
@@ -91,6 +99,7 @@
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-tailwindcss": "^3.13.0",
+    "lint-staged": "^15.2.0",
     "postcss": "^8.4.24",
     "prettier": "^3.1.1",
     "prettier-plugin-tailwindcss": "^0.5.9",

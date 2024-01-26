@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint:backend": "cd libs/superagent && make format && make lint",
-    "lint:frontend": "cd libs/ui && npm run typecheck && npm run format:write && npm run format:check && npm run lint:fix && npm run lint",
+    "lint:backend": "cd libs/superagent && ./lint-and-format.sh format && ./lint-and-format.sh lint",
+    "lint:frontend": "cd libs/ui && npx lint-staged",
     "prepare": "husky install"
   },
   "repository": {
