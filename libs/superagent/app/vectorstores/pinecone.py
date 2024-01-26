@@ -64,7 +64,7 @@ class PineconeVectorStore(VectorStoreBase):
             ),
         }
 
-        print(variables)
+        logger.info(f"USING VECTORSTORE: {variables}")
 
         for var, value in variables.items():
             if not value:
