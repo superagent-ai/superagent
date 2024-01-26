@@ -64,6 +64,8 @@ class PineconeVectorStore(VectorStoreBase):
             ),
         }
 
+        print(variables)
+
         for var, value in variables.items():
             if not value:
                 raise ValueError(

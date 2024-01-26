@@ -5,7 +5,6 @@ from agentops.langchain_callback_handler import (
     AsyncCallbackHandler,
     LangchainCallbackHandler,
 )
-from decouple import config
 
 from app.agents.base import AgentBase
 from app.utils.prisma import prisma
