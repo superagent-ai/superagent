@@ -52,18 +52,32 @@ navigation:
             path: ./mdx/deploy/replit.mdx
           - page: Runnning locally
             path: ./mdx/deploy/local.mdx
+      - section: Logging
+        contents:
+          - page: Langfuse
+            path: ./mdx/dependencies/langfuse.mdx
+      - section: Vector Stores
+        contents:
+          - page: Weaviate
+            path: ./mdx/vector-stores/weaviate.mdx
+          - page: Supabase
+            path: ./mdx/vector-stores/supabase.mdx
+          - page: Qdrant
+            path: ./mdx/vector-stores/qdrant.mdx
+          - page: Pinecone
+            path: ./mdx/vector-stores/pinecone.mdx
+          - page: Datastax Astra
+            path: ./mdx/vector-stores/astra.mdx
+      - section: Memory 
+        contents: 
+          - page: Motorhead
+            path: ./mdx/dependencies/motorhead.mdx
       - section: Dependencies
         contents:
           - page: Supabase
             path: ./mdx/dependencies/supabase.mdx
-          - page: Langfuse
-            path: ./mdx/dependencies/langfuse.mdx
-          - page: Motorhead
-            path: ./mdx/dependencies/motorhead.mdx
-      - section: Vector Stores
-        contents:
-        - page: Weaviate
-          path: ./mdx/deploy/vector-stores/weaviate.mdx
+          
+      
   - tab: templates
     layout:
       - section: Assistants
