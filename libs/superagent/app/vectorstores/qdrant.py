@@ -62,9 +62,7 @@ class QdrantVectorStore(VectorStoreBase):
         self.index_name = variables["QDRANT_INDEX"]
         logger.info(f"Initialized Qdrant Client with: {self.index_name}")
 
-    def embed_documents(
-        self, documents: list[Document], batch_size: int = 100
-    ) -> None:
+    def embed_documents(self, documents: list[Document], batch_size: int = 100) -> None:
         collections = self.client.get_collections()
         if self.index_name not in [c.name for c in collections.collections]:
             self.client.recreate_collection(
