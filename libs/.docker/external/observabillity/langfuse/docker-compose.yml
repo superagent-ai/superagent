@@ -7,7 +7,8 @@ services:
       - superagent_network
     image: ghcr.io/langfuse/langfuse:latest
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - ${PORT}:${PORT}
     environment:
@@ -37,9 +38,10 @@ services:
       - database_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   database_data:
