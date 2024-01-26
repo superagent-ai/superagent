@@ -4,6 +4,7 @@ import logging
 from typing import AsyncIterable
 
 import segment.analytics as analytics
+from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
 from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -146,7 +147,6 @@ async def get(agent_id: str, api_user=Depends(get_current_api_user)):
                 "llms": {"include": {"llm": True}},
             },
         )
-        print(data)
         for llm in data.llms:
             llm.llm.options = json.dumps(llm.llm.options)
         for tool in data.tools:
@@ -233,6 +233,17 @@ async def invoke(
         )
         langfuse_handler = trace.get_langchain_handler()
 
+    agentops_api_key = config("AGENTOPS_API_KEY", default=None)
+    agentops_org_key = config("AGENTOPS_ORG_KEY", default=None)
+
+    agentops_handler = None
+    if agentops_api_key and agentops_org_key:
+        agentops_handler = AsyncLangchainCallbackHandler(
+            api_key=agentops_api_key,
+            org_key=agentops_org_key,
+            tags=[agent_id, str(body.sessionId)],
+        )
+
     agent_config = await prisma.agent.find_unique_or_raise(
         where={"id": agent_id},
         include={
@@ -280,6 +291,9 @@ async def invoke(
 
     if langfuse_handler:
         agentCallbacks.append(langfuse_handler)
+
+    if agentops_handler:
+        agentCallbacks.append(agentops_handler)
 
     async def send_message(
         agent: LLMChain | AgentExecutor,
@@ -337,6 +351,7 @@ async def invoke(
         enable_streaming=enable_streaming,
         output_schema=output_schema,
         callback=callback,
+        session_tracker=agentops_handler,
         llm_params=body.llm_params,
         agent_config=agent_config,
     ).get_agent()
@@ -348,6 +363,7 @@ async def invoke(
         return StreamingResponse(generator, media_type="text/event-stream")
 
     logging.info("Streaming not enabled. Invoking agent synchronously...")
+
     output = await agent.acall(
         inputs={"input": input}, tags=[agent_id], callbacks=agentCallbacks
     )

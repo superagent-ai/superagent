@@ -86,7 +86,7 @@ class WeaviateVectorStore(VectorStoreBase):
             auth_client_secret=auth,
         )
         self.embeddings = OpenAIEmbeddings(
-            model="text-embedding-ada-002", openai_api_key=config("OPENAI_API_KEY")
+            model="text-embedding-3-small", openai_api_key=config("OPENAI_API_KEY")
         )
 
         self.index_name = variables["WEAVIATE_INDEX"]
