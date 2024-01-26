@@ -92,7 +92,7 @@ class AstraVectorStore(VectorStoreBase):
         )
 
         self.embeddings = OpenAIEmbeddings(
-            model="text-embedding-ada-002",
+            model="text-embedding-3-small",
             openai_api_key=os.getenv("OPENAI_API_KEY", ""),
         )
 
