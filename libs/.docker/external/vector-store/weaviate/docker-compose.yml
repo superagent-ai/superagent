@@ -17,7 +17,7 @@ services:
       - 50051:50051
     volumes:
       - weaviate_data:/var/lib/weaviate
-    restart: on-failure:0
+    restart: unless-stopped
     environment:
       QUERY_DEFAULTS_LIMIT: ${QUERY_DEFAULTS_LIMIT}
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: ${AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED}

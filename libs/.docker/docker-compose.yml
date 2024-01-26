@@ -45,6 +45,8 @@ services:
       - LANGSMITH_PROJECT_ID=${LANGSMITH_PROJECT_ID}
       - LAMINI_API_KEY=${LAMINI_API_KEY}
       - SEGMENT_WRITE_KEY=${SEGMENT_WRITE_KEY}
+      - AGENTOPS_API_KEY=${AGENTOPS_API_KEY}
+      - AGENTOPS_ORG_KEY=${AGENTOPS_ORG_KEY}
     ports:
       - 8080:8080
     restart: unless-stopped
