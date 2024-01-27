@@ -8,7 +8,7 @@ import * as yamlMode from "@codemirror/legacy-modes/mode/yaml"
 import { githubLight } from "@uiw/codemirror-theme-github"
 import CodeMirror from "@uiw/react-codemirror"
 import { RxActivityLog, RxPieChart, RxPlay } from "react-icons/rx"
-import { TbDeviceFloppy, TbPlayerPlay, TbTrash } from "react-icons/tb"
+import { TbTrash } from "react-icons/tb"
 import { useAsync } from "react-use"
 
 import { Api } from "@/lib/api"
