@@ -12,7 +12,7 @@ class LCHttpTool(LCBaseTool):
     description = "useful for making GET/POST API requests"
     return_direct = False
 
-    def _run(self, url: str, method: str = "GET", body: dict = None) -> None:
+    def _run(self, url: str = None, method: str = "GET", body: dict = None) -> None:
         headers = self.metadata.get("headers")
         if isinstance(headers, str):
             headers = json.loads(headers)
@@ -38,7 +38,9 @@ class LCHttpTool(LCBaseTool):
         except requests.exceptions.RequestException as e:
             return str(e)
 
-    async def _arun(self, url: str, method: str = "GET", body: dict = None) -> str:
+    async def _arun(
+        self, url: str = None, method: str = "GET", body: dict = None
+    ) -> str:
         headers = self.metadata.get("headers")
         if isinstance(headers, str):
             headers = json.loads(headers)
