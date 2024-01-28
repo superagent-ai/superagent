@@ -10,6 +10,9 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.api.agents import (
+    add_datasource as api_add_agent_datasource,
+)
+from app.api.agents import (
     add_tool as api_add_agent_tool,
 )
 from app.api.agents import (
@@ -181,7 +184,7 @@ class WorkflowConfigHandler:
                 "apiUserId": self.api_user.id,
             }
         )
-        await api_create_datasource(
+        datasourceRes = await api_create_datasource(
             body=DatasourceRequest(
                 **{
                     **data,
@@ -192,12 +195,14 @@ class WorkflowConfigHandler:
             api_user=self.api_user,
         )
 
-        logger.info(f"Added datasource: {data}")
+        new_datasource = datasourceRes.get("data", {})
 
-    def update_datasource(self, data: Dict[str, str]):
-        logger.info(
-            f"Updated datasource: {data}",
+        await self._add_agent_datasource(
+            agent_id=agent.id,
+            datasource_id=new_datasource.id,
         )
+
+        logger.info(f"Added datasource: {data}")
 
     async def delete_datasource(self, assistant_name: str, datasource_name: str):
         agent = await prisma.agent.find_first(
@@ -321,8 +326,15 @@ class WorkflowConfigHandler:
         )
         logger.info(f"Added agent tool: {tool_id} - {assistant_name}")
 
-    def _add_agent_datasource(self, data: Dict[str, str]):
-        logger.info(f"Added agent datasource: {data}")
+    async def _add_agent_datasource(self, agent_id: str, datasource_id: str):
+        await api_add_agent_datasource(
+            agent_id=agent_id,
+            body={
+                "datasourceId": datasource_id,
+            },
+            api_user=self.api_user,
+        )
+        logger.info(f"Added agent datasource: {agent_id} - {datasource_id}")
 
     async def process_tools(self, old_tools, new_tools, assistant_name):
         # Process individual tools
