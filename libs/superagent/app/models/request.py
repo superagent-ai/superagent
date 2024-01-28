@@ -104,3 +104,8 @@ class WorkflowInvoke(BaseModel):
 class VectorDb(BaseModel):
     provider: VectorDbProvider
     options: Dict
+
+
+class WorkflowConfig(BaseModel):
+    name: str
+    description: Optional[str]

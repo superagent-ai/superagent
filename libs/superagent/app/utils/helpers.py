@@ -1,3 +1,6 @@
+import requests
+
+
 def get_first_non_null(*args):
     """
     Returns the first non-null argument
@@ -52,3 +55,34 @@ def rename_and_remove_key(dictionary, old_key, new_key):
     if old_key in dictionary:
         dictionary[new_key] = dictionary[old_key]
         del dictionary[old_key]
+
+
+def parse_mimetype(mimetype):
+    if not mimetype:
+        return None
+
+    parts = mimetype.split(";")
+    primary_type = parts[0].strip()
+    return {"content_type": primary_type, "parameters": parts[1:]}
+
+
+def get_mimetype_from_url(url):
+    try:
+        response = requests.head(url)
+        mimetype = response.headers.get("Content-Type")
+        parsed_mimetype = parse_mimetype(mimetype)
+        return parsed_mimetype["content_type"] if parsed_mimetype else None
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching URL {url}: {e}")
+        return None
+
+
+MIME_TYPE_TO_EXTENSION = {
+    "application/pdf": "PDF",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "DOCX",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation": "PPTX",
+    "application/vnd.google-apps.document": "GOOGLE_DOC",
+    "text/markdown": "MARKDOWN",
+    "text/html": "WEBPAGE",
+    "text/plain": "TXT",
+}
