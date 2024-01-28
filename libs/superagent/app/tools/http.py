@@ -24,7 +24,10 @@ class LCHttpTool(LCBaseTool):
                 method = self.metadata.get("defaultMethod", "GET")
 
             if not url:
-                url = self.metadata.get("defaultURL")
+                url = self.metadata.get("defaultURL", None)
+
+            if body is None:
+                body = self.metadata.get("defaultBody", {})
 
             request_kwargs = {"method": method, "url": url, "headers": headers}
             if body is not None:
@@ -52,7 +55,10 @@ class LCHttpTool(LCBaseTool):
                 method = self.metadata.get("defaultMethod", "GET")
 
             if not url:
-                url = self.metadata.get("defaultURL")
+                url = self.metadata.get("defaultURL", None)
+
+            if body is None:
+                body = self.metadata.get("defaultBody", {})
 
             async with aiohttp.ClientSession() as session:
                 request_kwargs = {"method": method, "url": url, "headers": headers}
