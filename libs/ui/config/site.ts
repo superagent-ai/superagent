@@ -1,11 +1,9 @@
 import { VectorDbProvider } from "@/models/models"
 import {
-  TbBrain,
   TbBrandDiscord,
-  TbChartBar,
-  TbDatabase,
   TbFileCode,
   TbPlug,
+  TbStack2,
   TbTerminal2,
   TbUserCircle,
 } from "react-icons/tb"
@@ -17,14 +15,9 @@ export const siteConfig = {
   description: "The agent framework for large language models",
   mainNav: [
     {
-      title: "Home",
-      href: "/stats",
-      icon: TbChartBar,
-    },
-    {
-      title: "Assistants",
-      href: "/assistants",
-      icon: TbBrain,
+      title: "Workflows",
+      href: "/workflows",
+      icon: TbStack2,
     },
     {
       title: "Logs",
