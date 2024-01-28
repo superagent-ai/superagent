@@ -26,26 +26,18 @@ export default function Chat({
   workflow: any
   profile: Profile
 }) {
-  console.log(workflow)
   const api = new Api(profile.api_key)
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [messages, setMessages] = React.useState<
     { type: string; message: string; isSuccess?: boolean }[]
   >(
-    workflow.initialMessage
-      ? [{ type: "ai", message: workflow.initialMessage }]
+    workflow.steps[0].agent.initialMessage
+      ? [{ type: "ai", message: workflow.steps[0].agent.initialMessage }]
       : []
   )
   const [session, setSession] = React.useState<string | null>(uuidv4())
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
   const { toast } = useToast()
-
-  const [{ loading: isLoadingRuns, value: runs = [] }, getAgentRuns] =
-    useAsyncFn(async () => {
-      const { data: runs } = await api.getAgentRuns(workflow.id)
-      return runs
-    }, [workflow])
-
   const abortControllerRef = React.useRef<AbortController | null>(null)
 
   const abortStream = () => {

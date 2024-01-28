@@ -28,12 +28,13 @@ import Chat from "./chat"
 import Overview from "./overview"
 import Saml from "./saml"
 
-interface Agent {
-  workflow: any
+export default function WorkflowDetail({
+  workflow,
+  profile,
+}: {
   profile: any
-}
-
-export default function AssistantsDetail({ workflow, profile }: Agent) {
+  workflow: any
+}) {
   const api = new Api(profile.api_key)
   const router = useRouter()
   const [open, setOpen] = React.useState<boolean>(false)
@@ -45,7 +46,7 @@ export default function AssistantsDetail({ workflow, profile }: Agent) {
     return data
   }, [workflow])
 
-  return workflow ? (
+  return (
     <div className="flex max-h-screen flex-1 flex-col space-y-5 pt-6">
       <div className="flex space-x-2 px-6 text-sm text-muted-foreground">
         <Link passHref href="/workflows">
@@ -66,7 +67,7 @@ export default function AssistantsDetail({ workflow, profile }: Agent) {
           <span className="font-mono text-xs font-normal text-muted-foreground">
             <span>
               CREATED AT:{" "}
-              <span className="text-foreground">{workflow?.createdAt}</span>
+              <span className="text-foreground">{workflow.createdAt}</span>
             </span>
           </span>
         </div>
@@ -136,13 +137,6 @@ export default function AssistantsDetail({ workflow, profile }: Agent) {
           <Saml />
         </TabsContent>
       </Tabs>
-    </div>
-  ) : (
-    <div className="flex flex-1 flex-col items-center justify-center">
-      <p className="text-sm font-medium">No assistant selected</p>
-      <p className="text-sm">
-        View details about an assistant by navigating the list to the left
-      </p>
     </div>
   )
 }

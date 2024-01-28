@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 
 const langYaml = new LanguageSupport(StreamLanguage.define(yamlMode.yaml))
 const initialValue =
-  "# 👋 Welcome! Orchestrate your worflows using yaml below.\n# More info in our docs: https://docs.superagent.sh\n\n"
+  "# 👋 Welcome! Orchestrate your worflows using yaml below.\n# More info in our docs: https://docs.superagent.sh\n\nworkflow:\n  "
 
 export default function Saml() {
   const [value, setValue] = React.useState<string>(initialValue)
@@ -40,7 +40,7 @@ export default function Saml() {
           height: "100%",
         }}
       />
-      <div className="absolute bottom-0 flex w-full items-center justify-end space-x-4 px-6 py-12">
+      <div className="absolute bottom-4 flex w-full items-center justify-end space-x-4 px-6 py-12">
         <p className="text-xs text-muted-foreground">
           Last update: {new Date().toLocaleString()}
         </p>

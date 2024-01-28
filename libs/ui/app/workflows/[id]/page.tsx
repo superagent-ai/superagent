@@ -23,5 +23,14 @@ export default async function Assistant({
   const api = new Api(profile.api_key)
   const { data: workflow } = await api.getWorkflowById(id)
 
-  return <WorkflowDetail workflow={workflow} profile={profile} />
+  return workflow ? (
+    <WorkflowDetail workflow={workflow} profile={profile} />
+  ) : (
+    <div className="flex flex-1 flex-col items-center justify-center">
+      <p className="text-sm font-medium">No assistant selected</p>
+      <p className="text-sm">
+        View details about an assistant by navigating the list to the left
+      </p>
+    </div>
+  )
 }
