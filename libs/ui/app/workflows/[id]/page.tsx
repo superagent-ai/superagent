@@ -3,7 +3,7 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { Api } from "@/lib/api"
 
-import AssistantsDetail from "./assistants"
+import WorkflowDetail from "./workflow"
 
 export default async function Assistant({
   params,
@@ -21,9 +21,7 @@ export default async function Assistant({
     .eq("user_id", user?.id)
     .single()
   const api = new Api(profile.api_key)
-  const [agentResult] = await Promise.all([api.getAgentById(id)])
+  const { data: workflow } = await api.getWorkflowById(id)
 
-  const { data: agent } = agentResult
-
-  return <AssistantsDetail agent={agent} profile={profile} />
+  return <WorkflowDetail workflow={workflow} profile={profile} />
 }

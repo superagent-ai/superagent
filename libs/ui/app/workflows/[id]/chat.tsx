@@ -20,10 +20,10 @@ import PromptForm from "./prompt-form"
 dayjs.extend(relativeTime)
 
 export default function Chat({
-  agent,
+  workflow,
   profile,
 }: {
-  agent: Agent
+  workflow: any
   profile: Profile
 }) {
   const api = new Api(profile.api_key)
