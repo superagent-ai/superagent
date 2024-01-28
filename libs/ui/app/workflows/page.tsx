@@ -1,9 +1,7 @@
 import { cookies } from "next/headers"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
-import { TbPlus } from "react-icons/tb"
 
 import { Api } from "@/lib/api"
-import { Button } from "@/components/ui/button"
 
 import WorkflowCards from "./cards"
 import Header from "./header"
