@@ -133,8 +133,8 @@ model Datasource {
 
   workflowConfigId      String?
   workflowConfigAgentId String?
-  workflowConfig        WorkflowConfig? @relation(fields: [workflowConfigId], references: [id])
-  workflowConfigAgent   Agent?          @relation(fields: [workflowConfigAgentId], references: [id])
+  workflowConfig        WorkflowConfig? @relation(fields: [workflowConfigId], references: [id], onDelete: Cascade)
+  workflowConfigAgent   Agent?          @relation(fields: [workflowConfigAgentId], references: [id], onDelete: Cascade)
 
   apiUser     ApiUser           @relation(fields: [apiUserId], references: [id])
   createdAt   DateTime          @default(now())
@@ -150,7 +150,7 @@ model AgentDatasource {
   agentId      String
   datasourceId String
   agent        Agent      @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  datasource   Datasource @relation(fields: [datasourceId], references: [id])
+  datasource   Datasource @relation(fields: [datasourceId], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -169,8 +169,8 @@ model Tool {
 
   workflowConfigId      String?
   workflowConfigAgentId String?
-  WorkflowConfig        WorkflowConfig? @relation(fields: [workflowConfigId], references: [id])
-  WorkflowConfigAgent   Agent?          @relation(fields: [workflowConfigAgentId], references: [id])
+  WorkflowConfig        WorkflowConfig? @relation(fields: [workflowConfigId], references: [id], onDelete: Cascade)
+  WorkflowConfigAgent   Agent?          @relation(fields: [workflowConfigAgentId], references: [id], onDelete: Cascade)
 
   apiUserId  String
   apiUser    ApiUser     @relation(fields: [apiUserId], references: [id])
@@ -182,7 +182,7 @@ model AgentTool {
   agentId   String
   toolId    String
   agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  tool      Tool     @relation(fields: [toolId], references: [id])
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -248,24 +248,24 @@ model VectorDb {
 }
 
 model WorkflowConfigHistory {
-  id               String           @id @default(uuid())
+  id               String         @id @default(uuid())
   configFile       Json
   workflowConfigId String
-  WorkflowConfig   WorkflowConfig[]
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  WorkflowConfig   WorkflowConfig @relation(fields: [workflowConfigId], references: [id], onDelete: Cascade)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 }
 
 model WorkflowConfig {
-  id                            String                 @id @default(uuid())
+  id                            String                  @id @default(uuid())
   name                          String
   description                   String?
   latestWorkflowConfigHistoryId String?
-  configHistory                 WorkflowConfigHistory? @relation(fields: [latestWorkflowConfigHistoryId], references: [id])
+  configHistory                 WorkflowConfigHistory[]
   apiUserId                     String?
-  ApiUser                       ApiUser?               @relation(fields: [apiUserId], references: [id])
-  createdAt                     DateTime               @default(now())
-  updatedAt                     DateTime               @updatedAt
+  ApiUser                       ApiUser?                @relation(fields: [apiUserId], references: [id])
+  createdAt                     DateTime                @default(now())
+  updatedAt                     DateTime                @updatedAt
   Tool                          Tool[]
   Datasource                    Datasource[]
   Agent                         Agent[]
