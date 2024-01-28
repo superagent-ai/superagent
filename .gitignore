@@ -50,3 +50,5 @@ next-env.d.ts
 
 # supabase
 v2.code-workspace
+
+google_cloud_service_key.json
