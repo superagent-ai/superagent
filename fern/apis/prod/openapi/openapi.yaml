@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The open source alternative to OpenAI Assistants API
-  version: 0.1.65
+  version: 0.1.67
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -167,12 +167,6 @@ paths:
       summary: Invoke
       description: Invoke an agent
       operationId: invoke_api_v1_agents__agent_id__invoke_post
-      x-fern-streaming:
-        stream-condition: $request.enableStreaming
-        response:
-          $ref: '#/components/schemas/app__models__response__AgentInvoke'
-        response-stream:
-          $ref: '#/components/schemas/app__models__response__AgentInvokeStream'
       parameters:
         - required: true
           schema:
@@ -201,8 +195,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
-      x-fern-sdk-group-name: agent
       x-fern-sdk-method-name: invoke
+      x-fern-sdk-group-name: agent
   /api/v1/agents/{agent_id}/llms:
     post:
       tags:
@@ -1370,7 +1364,6 @@ paths:
         - HTTPBearer: []
   /api/v1/runs:
     get:
-      x-fern-ignore: true
       tags:
         - Telemetry
       summary: List Runs
@@ -1703,7 +1696,6 @@ components:
       title: Agent
       required:
         - name
-        - llmModel
         - description
       type: object
       properties:
@@ -1723,6 +1715,8 @@ components:
         llmModel:
           title: Llmmodel
           type: string
+        llmProvider:
+          $ref: '#/components/schemas/LLMProvider'
         description:
           title: Description
           type: string
@@ -1915,16 +1909,6 @@ components:
           type: boolean
         data:
           title: Data
-    app__models__response__AgentInvokeStream:
-      title: AgentInvokeStream
-      type: object
-      properties:
-        event:
-          type: string
-          description: The type of the event.
-        data:
-          type: string
-          description: The data associated with the event.
     app__models__response__ApiUser:
       title: ApiUser
       required:
@@ -2011,7 +1995,6 @@ components:
         - isActive
         - createdAt
         - updatedAt
-        - llmModel
         - apiUserId
       type: object
       properties:
