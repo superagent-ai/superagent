@@ -83,46 +83,59 @@ enum VectorDbProvider {
 }
 
 model ApiUser {
-  id          String       @id @default(uuid())
-  token       String?
-  email       String?      @db.Text
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  agents      Agent[]
-  llms        LLM[]
-  datasources Datasource[]
-  tools       Tool[]
-  workflows   Workflow[]
-  vectorDb    VectorDb[]
+  id             String           @id @default(uuid())
+  token          String?
+  email          String?          @db.Text
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  agents         Agent[]
+  llms           LLM[]
+  datasources    Datasource[]
+  tools          Tool[]
+  workflows      Workflow[]
+  vectorDb       VectorDb[]
+  WorkflowConfig WorkflowConfig[]
 }
 
 model Agent {
-  id             String            @id @default(uuid())
+  id             String     @id @default(uuid())
   name           String
   avatar         String?
-  initialMessage String?           @db.Text()
-  description    String            @default("Add a agent description...") @db.Text
-  isActive       Boolean           @default(false)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  initialMessage String?    @db.Text()
+  description    String     @default("Add a agent description...") @db.Text
+  isActive       Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
   llms           AgentLLM[]
-  llmModel       LLMModel?         @default(GPT_3_5_TURBO_16K_0613)
-  prompt         String?
-  apiUserId      String
-  apiUser        ApiUser           @relation(fields: [apiUserId], references: [id])
-  datasources    AgentDatasource[]
-  tools          AgentTool[]
-  workflowSteps  WorkflowStep[]
+  llmModel       LLMModel?  @default(GPT_3_5_TURBO_16K_0613)
+
+  workflowConfigId String?
+  WorkflowConfig   WorkflowConfig? @relation(fields: [workflowConfigId], references: [id])
+
+  prompt        String?
+  apiUserId     String
+  apiUser       ApiUser           @relation(fields: [apiUserId], references: [id])
+  datasources   AgentDatasource[]
+  tools         AgentTool[]
+  workflowSteps WorkflowStep[]
+  Datasource    Datasource[]
+  Tool          Tool[]
 }
 
 model Datasource {
-  id          String            @id @default(uuid())
+  id          String         @id @default(uuid())
   name        String
-  content     String?           @db.Text()
+  content     String?        @db.Text()
   description String?
   url         String?
   type        DatasourceType
   apiUserId   String
+
+  workflowConfigId      String?
+  workflowConfigAgentId String?
+  workflowConfig        WorkflowConfig? @relation(fields: [workflowConfigId], references: [id])
+  workflowConfigAgent   Agent?          @relation(fields: [workflowConfigAgentId], references: [id])
+
   apiUser     ApiUser           @relation(fields: [apiUserId], references: [id])
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
@@ -145,18 +158,24 @@ model AgentDatasource {
 }
 
 model Tool {
-  id           String      @id @default(uuid())
+  id           String   @id @default(uuid())
   name         String
   description  String
   type         ToolType
-  returnDirect Boolean     @default(false)
-  metadata     String      @db.Text
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  apiUserId    String
-  apiUser      ApiUser     @relation(fields: [apiUserId], references: [id])
-  tools        AgentTool[]
-  toolConfig   Json?
+  returnDirect Boolean  @default(false)
+  metadata     String   @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  workflowConfigId      String?
+  workflowConfigAgentId String?
+  WorkflowConfig        WorkflowConfig? @relation(fields: [workflowConfigId], references: [id])
+  WorkflowConfigAgent   Agent?          @relation(fields: [workflowConfigAgentId], references: [id])
+
+  apiUserId  String
+  apiUser    ApiUser     @relation(fields: [apiUserId], references: [id])
+  tools      AgentTool[]
+  toolConfig Json?
 }
 
 model AgentTool {
@@ -226,4 +245,28 @@ model VectorDb {
   updatedAt   DateTime         @updatedAt
   apiUserId   String
   apiUser     ApiUser          @relation(fields: [apiUserId], references: [id])
+}
+
+model WorkflowConfigHistory {
+  id               String           @id @default(uuid())
+  configFile       Json
+  workflowConfigId String
+  WorkflowConfig   WorkflowConfig[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model WorkflowConfig {
+  id                            String                 @id @default(uuid())
+  name                          String
+  description                   String?
+  latestWorkflowConfigHistoryId String?
+  configHistory                 WorkflowConfigHistory? @relation(fields: [latestWorkflowConfigHistoryId], references: [id])
+  apiUserId                     String?
+  ApiUser                       ApiUser?               @relation(fields: [apiUserId], references: [id])
+  createdAt                     DateTime               @default(now())
+  updatedAt                     DateTime               @updatedAt
+  Tool                          Tool[]
+  Datasource                    Datasource[]
+  Agent                         Agent[]
 }
