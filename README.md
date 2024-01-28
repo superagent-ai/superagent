@@ -4,7 +4,7 @@
 
 # Superagent
 
-### The open source alternative to  OpenAI Assistants API
+### The Open Source AI Assistant Framework & API
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/homanp/Superagent" />
@@ -34,7 +34,9 @@
 
 -----
 
-Superagent is an open-source alternative to the OpenAI Assistants API, enabling any developer to integrate production-ready AI Assistants into any application in a matter of minutes.
+Superagent allows any developer to add powerful AI assistants to their applications. These assistants use large language models (LLM), retrieval augmented generation (RAG), and generative AI to help users.
+
+Fully open-source. Backed by Y Combinator. Part of YC W24.
 
 -----
 
@@ -52,19 +54,19 @@ Superagent lets you build any AI application/microservice you want, including:
 - Co-pilots & AI assistants.
 - Content generation.
 - Data aggregation.
-- Workflow automation.
+- Workflow automation agent.
 
 
 ## 👀 Features:
 
 - Memory
 - Streaming
-- Custom finetuning 🆕
-- Python/Typescript SDKs
+- Python and Typescript SDKs
 - REST API
 - API connectivity
 - Vectorization
-- Support for proprietary and OSS LLMs
+- Support for third-party vector stores (e.g Weaviate, Pinecone)
+- Support for proprietary and open-source LLMs
 - API concurrency support
 
 
