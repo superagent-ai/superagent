@@ -17,7 +17,7 @@ export default function WorkflowCards({
   workflows: Array<Workflow>
 }) {
   return (
-    <ScrollArea className="flex grow overflow-auto border-t px-6 py-4">
+    <ScrollArea className="flex grow overflow-auto border-t px-6 pt-12">
       <div className="container">
         <div className="grid grid-cols-4 gap-4">
           {workflows.map((workflow) => (

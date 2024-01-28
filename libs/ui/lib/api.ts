@@ -151,7 +151,7 @@ export class Api {
   }
 
   async getRuns(searchParams?: {
-    workflow_id: string
+    workflow_id?: string
     agent_id?: string
     limit?: number
     from_page?: number

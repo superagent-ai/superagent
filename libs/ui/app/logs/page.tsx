@@ -29,7 +29,7 @@ export default async function Agents({
 
   return (
     <div className="flex h-screen flex-col justify-between space-y-0 overflow-hidden">
-      <p className="border-b px-6 py-5 font-medium">Logs</p>
+      <p className="border-b px-6 py-4 font-medium">Logs</p>
       <div className="flex grow overflow-auto">
         <LogList data={logs} profile={profile} />
       </div>

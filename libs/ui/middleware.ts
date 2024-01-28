@@ -11,7 +11,7 @@ export async function middleware(req: NextRequest) {
 
   // if user is signed in and the current path is / redirect the user to /agents
   if (user && req.nextUrl.pathname === "/") {
-    return NextResponse.redirect(new URL("/assistants", req.url))
+    return NextResponse.redirect(new URL("/workflows", req.url))
   }
 
   if (user) {
@@ -37,11 +37,9 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     "/",
-    "/assistants/:path*",
+    "/logs/:path*",
     "/settings/:path*",
-    "/apis/:path*",
-    "/datasources/:path*",
+    "/integrations/:path*",
     "/workflows/:path*",
-    "/llms/:path*",
   ],
 }
