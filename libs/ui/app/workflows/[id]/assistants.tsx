@@ -1,12 +1,8 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { autocompletion } from "@codemirror/autocomplete"
-import { LanguageSupport, StreamLanguage } from "@codemirror/language"
-import * as yamlMode from "@codemirror/legacy-modes/mode/yaml"
-import { githubLight } from "@uiw/codemirror-theme-github"
-import CodeMirror from "@uiw/react-codemirror"
 import { RxActivityLog, RxPieChart, RxPlay } from "react-icons/rx"
 import { TbTrash } from "react-icons/tb"
 import { useAsync } from "react-use"
@@ -30,31 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import LogList from "../../../components/log-list"
 import Chat from "./chat"
 import Overview from "./overview"
-
-const yaml = new LanguageSupport(StreamLanguage.define(yamlMode.yaml))
-
-const completions = [
-  { label: "assistant:", info: "Create new assistant" },
-  { label: "tools:", info: "Create new tool" },
-  { label: "data:", info: "Add data a new datasource" },
-]
-
-function myCompletions(context: any) {
-  let before = context.matchBefore(/\w+/)
-  if (!context.explicit && !before) return null
-  return {
-    from: before ? before.from : context.pos,
-    options: completions,
-    validFor: /^\w*$/,
-  }
-}
-
-const initialValue = `assistant:
-  name: My assistant
-  llm: gpt-4-1106-preview
-  prompt: You are a helpull AI Assistant
-  intro_message: 👋 Hi there, Nice to meet you
-`
+import Saml from "./saml"
 
 interface Agent {
   agent: any
@@ -65,10 +37,6 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
   const api = new Api(profile.api_key)
   const router = useRouter()
   const [open, setOpen] = React.useState<boolean>(false)
-  const [value, setValue] = React.useState<string>(initialValue)
-  const onChange = React.useCallback((val: string) => {
-    setValue(val)
-  }, [])
   const { value: logs, loading } = useAsync(async () => {
     const { data } = await api.getRuns({ agent_id: agent.id, limit: 1000 })
     return data
@@ -77,7 +45,9 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
   return agent ? (
     <div className="flex max-h-screen flex-1 flex-col space-y-5 pt-6">
       <div className="flex space-x-2 px-6 text-sm text-muted-foreground">
-        <span>Assistants</span>
+        <Link passHref href="/workflows">
+          <span>Workflows</span>
+        </Link>
         <span>/</span>
         <Badge variant="secondary">
           <div className="flex items-center space-x-1">
@@ -170,33 +140,7 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
         </TabsContent>
         <TabsContent value="saml" className="flex h-full text-sm">
           <Chat agent={agent} profile={profile} />
-          <div className="flex-1 flex-col border-l">
-            <div className="p2-6 flex items-center justify-between border-b py-1 pl-2 pr-4">
-              <div className="flex space-x-0 p-1">
-                <p className="font-mono text-xs text-muted-foreground">
-                  sa.yml
-                </p>
-              </div>
-              <div className="flex space-x-1">
-                <p className="text-xs text-muted-foreground">
-                  Last updated 2h ago
-                </p>
-              </div>
-            </div>
-            <CodeMirror
-              theme={githubLight}
-              value={value}
-              onChange={onChange}
-              extensions={[yaml, autocompletion({ override: [myCompletions] })]}
-              height="100%"
-              indentWithTab={true}
-              style={{
-                border: "none",
-                outline: "none",
-                height: "100%",
-              }}
-            />
-          </div>
+          <Saml />
         </TabsContent>
       </Tabs>
     </div>
