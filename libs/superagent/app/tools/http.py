@@ -4,6 +4,8 @@ import aiohttp
 import requests
 from langchain.tools import BaseTool as LCBaseTool
 
+supported_methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
+
 
 class LCHttpTool(LCBaseTool):
     name = "API Request"
@@ -18,6 +20,12 @@ class LCHttpTool(LCBaseTool):
             headers = {}
         headers["content-type"] = "application/json"
         try:
+            if method not in supported_methods:
+                method = self.metadata.get("defaultMethod", "GET")
+
+            if not url:
+                url = self.metadata.get("defaultURL")
+
             request_kwargs = {"method": method, "url": url, "headers": headers}
             if body is not None:
                 request_kwargs["json"] = body
@@ -38,6 +46,12 @@ class LCHttpTool(LCBaseTool):
             headers = {}
         headers["content-type"] = "application/json"
         try:
+            if method not in supported_methods:
+                method = self.metadata.get("defaultMethod", "GET")
+
+            if not url:
+                url = self.metadata.get("defaultURL")
+
             async with aiohttp.ClientSession() as session:
                 request_kwargs = {"method": method, "url": url, "headers": headers}
                 if body is not None:
