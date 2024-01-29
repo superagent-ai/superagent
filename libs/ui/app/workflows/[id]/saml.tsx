@@ -25,7 +25,7 @@ export default function Saml({
   }, [])
 
   return (
-    <div className="relative flex-[40%] flex-col border-l">
+    <div className="relative h-full flex-[40%] flex-col border-l">
       <div className="flex items-center justify-between border-b py-1 pl-2 pr-6">
         <div className="flex space-x-0 p-1">
           <p className="font-mono text-xs text-muted-foreground">

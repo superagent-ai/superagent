@@ -8,11 +8,6 @@ import relativeTime from "dayjs/plugin/relativeTime"
 import { v4 as uuidv4 } from "uuid"
 
 import { Profile } from "@/types/profile"
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToast } from "@/components/ui/use-toast"
 import Message from "@/components/message"
@@ -204,61 +199,54 @@ export default function Chat({
   }, [messages])
 
   return (
-    <div className="relative flex h-full w-full flex-[60%] bg-muted text-sm">
-      <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel maxSize={20}>
+    <div className="h-full">
+      <div className="relative flex h-full w-full  bg-muted text-sm">
+        <div className="flex-[20%] p-4">
+          <p
+            className={`${
+              timer === 0 ? "text-muted-foreground" : "text-primary"
+            } mb-4 font-mono text-sm`}
+          >
+            {timer.toFixed(1)}s
+          </p>
           <FunctionCalls functionCalls={functionCalls} />
-        </ResizablePanel>
-        <ResizableHandle
-          withHandle
-          className="w-2 rounded-lg bg-muted-foreground/5 transition-colors duration-500 data-[resize-handle-active]:bg-muted-foreground/50"
-        />
-        <ResizablePanel>
-          <div className="relative flex h-full w-[100%] bg-muted text-sm">
-            <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-4">
-              <p
-                className={`${
-                  timer === 0 ? "text-muted-foreground" : "text-primary"
-                } font-mono text-sm`}
-              >
-                {timer.toFixed(1)}s
-              </p>
+        </div>
+
+        <div className="relative flex h-full flex-[80%] bg-muted text-sm">
+          <ScrollArea className="w-full">
+            <div className="mb-20 flex max-w-4xl flex-1 flex-col space-y-0 px-4 py-12">
+              {messages.map(({ type, message, steps }, index) => (
+                <Message
+                  key={index}
+                  type={type}
+                  message={message}
+                  steps={steps}
+                  profile={profile}
+                />
+              ))}
             </div>
-            <ScrollArea className="w-[100%]">
-              <div className="mx-auto mb-20 flex max-w-4xl flex-1 flex-col space-y-0 px-4 py-12">
-                {messages.map(({ type, message, steps }, index) => (
-                  <Message
-                    key={index}
-                    type={type}
-                    message={message}
-                    steps={steps}
-                    profile={profile}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
+          </ScrollArea>
+        </div>
+        <div className="absolute inset-x-0 bottom-10 z-50 h-[100px] bg-gradient-to-t from-muted from-0% to-transparent to-50%">
+          <div className="relative mx-auto max-w-2xl px-8">
+            <PromptForm
+              onStop={() => abortStream()}
+              onSubmit={async (value) => {
+                onSubmit(value)
+              }}
+              onCreateSession={async (uuid) => {
+                setSession(uuid)
+                if (timerRef.current) {
+                  clearInterval(timerRef.current)
+                }
+                setMessages([])
+                toast({
+                  description: "New session created",
+                })
+              }}
+              isLoading={isLoading}
+            />
           </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
-      <div className="absolute inset-x-0 bottom-10 z-50 h-[100px] bg-gradient-to-t from-muted from-0% to-transparent to-50%">
-        <div className="relative mx-auto max-w-2xl px-8">
-          <PromptForm
-            onStop={() => abortStream()}
-            onSubmit={async (value) => {
-              onSubmit(value)
-            }}
-            onCreateSession={async (uuid) => {
-              setSession(uuid)
-              if (timerRef.current) {
-                clearInterval(timerRef.current)
-              }
-              setMessages([])
-              toast({
-                description: "New session created",
-              })
-            }}
-            isLoading={isLoading}
-          />
         </div>
       </div>
     </div>
