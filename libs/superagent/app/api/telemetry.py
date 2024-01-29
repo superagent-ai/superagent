@@ -4,10 +4,10 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends
 from google.cloud import bigquery
-from app.utils.prisma import prisma
 
 from app.models.response import AgentRunList as AgentRunListResponse
 from app.utils.api import get_current_api_user
+from app.utils.prisma import prisma
 
 router = APIRouter()
 logging.basicConfig(level=logging.INFO)
@@ -55,7 +55,7 @@ async def list_runs(
 
     if agent_ids:
         agent_ids_placeholder = ", ".join(
-            ["@agent" + str(i) for i in range(len(agent_ids))]
+            ["@agent_id" + str(i) for i in range(len(agent_ids))]
         )
         query += f" AND agent_id IN ({agent_ids_placeholder})"
         for i, agent_id in enumerate(agent_ids):
