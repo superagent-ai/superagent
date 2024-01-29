@@ -4,6 +4,7 @@ import logging
 from typing import AsyncIterable
 
 import segment.analytics as analytics
+from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
 from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
@@ -176,10 +177,18 @@ async def invoke(
     input = body.input
     enable_streaming = body.enableStreaming
 
+    agentops_api_key = config("AGENTOPS_API_KEY", default=None)
+    agentops_org_key = config("AGENTOPS_ORG_KEY", default=None)
+
+    agentops_handler = AsyncLangchainCallbackHandler(
+        api_key=agentops_api_key, org_key=agentops_org_key, tags=[session_id]
+    )
+
     workflow = WorkflowBase(
         workflow=workflowData,
         enable_streaming=enable_streaming,
         callbacks=[workflowStep["callback"] for workflowStep in workflowSteps],
+        session_tracker=agentops_handler,
         session_id=session_id,
     )
 
@@ -223,6 +232,10 @@ async def invoke(
         input,
     )
 
+    # End session
+    agentops_handler.ao_client.end_session(
+        "Success", end_state_reason="Workflow completed"
+    )
     return {"success": True, "data": output}
 
 
