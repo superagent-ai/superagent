@@ -55,7 +55,7 @@ async def list_runs(
 
     if agent_ids:
         agent_ids_placeholder = ", ".join(
-            ["@agent_id" + str(i) for i in range(len(agent_ids))]
+            ["@agent" + str(i) for i in range(len(agent_ids))]
         )
         query += f" AND agent_id IN ({agent_ids_placeholder})"
         for i, agent_id in enumerate(agent_ids):

@@ -267,7 +267,7 @@ async def invoke(
             api_user.id,
             "Invoked Agent",
             {
-                "agent": agent_config.id,
+                "agentId": agent_config.id,
                 "llm_model": agent_config.llmModel,
                 "sessionId": session_id,
                 # default http status code is 200
