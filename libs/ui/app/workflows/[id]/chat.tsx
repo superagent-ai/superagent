@@ -213,7 +213,7 @@ export default function Chat({
         </div>
 
         <div className="relative flex h-full flex-[80%] bg-muted text-sm">
-          <ScrollArea className="w-full">
+          <ScrollArea className="w-full pr-16">
             <div className="mb-20 flex max-w-4xl flex-1 flex-col space-y-0 px-4 py-12">
               {messages.map(({ type, message, steps }, index) => (
                 <Message
