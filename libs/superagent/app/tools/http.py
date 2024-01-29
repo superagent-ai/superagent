@@ -2,7 +2,7 @@ import json
 
 import aiohttp
 import requests
-from langchain.tools import BaseTool as LCBaseTool
+from langchain_community.tools import BaseTool as LCBaseTool
 
 supported_methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
