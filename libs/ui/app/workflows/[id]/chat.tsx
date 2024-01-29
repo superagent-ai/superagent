@@ -8,15 +8,26 @@ import relativeTime from "dayjs/plugin/relativeTime"
 import { v4 as uuidv4 } from "uuid"
 
 import { Profile } from "@/types/profile"
-import { Api } from "@/lib/api"
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToast } from "@/components/ui/use-toast"
 import Message from "@/components/message"
 
+import FunctionCalls from "./function-calls"
 import LLMDialog from "./llm-dialog"
 import PromptForm from "./prompt-form"
 
 dayjs.extend(relativeTime)
+
+const defaultFunctionCalls = [
+  {
+    type: "start",
+  },
+]
 
 export default function Chat({
   workflow,
@@ -39,6 +50,9 @@ export default function Chat({
       ? [{ type: "ai", message: workflowSteps[0].agent.initialMessage }]
       : []
   )
+
+  const [functionCalls, setFunctionCalls] = React.useState<any[]>()
+
   const [timer, setTimer] = React.useState<number>(0)
   const [session, setSession] = React.useState<string | null>(uuidv4())
   const [open, setOpen] = React.useState<boolean>(false)
@@ -47,15 +61,20 @@ export default function Chat({
 
   const abortControllerRef = React.useRef<AbortController | null>(null)
 
+  const resetState = () => {
+    setIsLoading(false)
+    setTimer(0)
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+    }
+  }
+
   const abortStream = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
-      setIsLoading(false)
-      setTimer(0)
-      if (timerRef.current) {
-        clearInterval(timerRef.current)
-      }
     }
+
+    resetState()
   }
 
   async function onSubmit(value?: string) {
@@ -102,15 +121,32 @@ export default function Chat({
           }),
           openWhenHidden: true,
           signal: abortControllerRef.current.signal,
+          async onopen() {
+            setFunctionCalls(defaultFunctionCalls)
+          },
           async onclose() {
-            setIsLoading(false)
-            setTimer(0)
-            if (timerRef.current) {
-              clearInterval(timerRef.current)
-            }
+            console.log("close")
+            setFunctionCalls((previousFunctionCalls = []) => [
+              ...previousFunctionCalls,
+              {
+                type: "end",
+              },
+            ])
+            resetState()
           },
           async onmessage(event) {
             if (event.id) currentEventId = event.id
+
+            if (event.event === "function_call") {
+              const data = JSON.parse(event.data)
+              setFunctionCalls((previousFunctionCalls = []) => [
+                ...previousFunctionCalls,
+                {
+                  ...data,
+                  type: "function_call",
+                },
+              ])
+            }
 
             if (
               event.data !== "[END]" &&
@@ -143,11 +179,7 @@ export default function Chat({
         }
       )
     } catch {
-      setIsLoading(false)
-      setTimer(0)
-      if (timerRef.current) {
-        clearInterval(timerRef.current)
-      }
+      resetState()
       setMessages((previousMessages) => {
         let updatedMessages = [...previousMessages]
 
@@ -175,29 +207,42 @@ export default function Chat({
   }, [messages])
 
   return (
-    <div className="relative flex h-full w-full flex-[60%] bg-background text-sm">
-      <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-4">
-        <p
-          className={`${
-            timer === 0 ? "text-muted-foreground" : "text-primary"
-          } font-mono text-sm`}
-        >
-          {timer.toFixed(1)}s
-        </p>
-      </div>
-      <ScrollArea className="w-[100%]">
-        <div className="mx-auto mb-20 flex max-w-4xl flex-1 flex-col space-y-0 px-4 py-12">
-          {messages.map(({ type, message, steps }, index) => (
-            <Message
-              key={index}
-              type={type}
-              message={message}
-              steps={steps}
-              profile={profile}
-            />
-          ))}
-        </div>
-      </ScrollArea>
+    <div className="relative flex h-full w-full flex-[60%] bg-muted text-sm">
+      <ResizablePanelGroup direction="horizontal">
+        <ResizablePanel maxSize={20}>
+          <FunctionCalls functionCalls={functionCalls} />
+        </ResizablePanel>
+        <ResizableHandle
+          withHandle
+          className="w-2 rounded-lg bg-muted-foreground/5 transition-colors duration-500 data-[resize-handle-active]:bg-muted-foreground/50"
+        />
+        <ResizablePanel>
+          <div className="relative flex h-full w-[100%] bg-muted text-sm">
+            <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-4">
+              <p
+                className={`${
+                  timer === 0 ? "text-muted-foreground" : "text-primary"
+                } font-mono text-sm`}
+              >
+                {timer.toFixed(1)}s
+              </p>
+            </div>
+            <ScrollArea className="w-[100%]">
+              <div className="mx-auto mb-20 flex max-w-4xl flex-1 flex-col space-y-0 px-4 py-12">
+                {messages.map(({ type, message, steps }, index) => (
+                  <Message
+                    key={index}
+                    type={type}
+                    message={message}
+                    steps={steps}
+                    profile={profile}
+                  />
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
       <div className="absolute inset-x-0 bottom-10 z-50 h-[100px] bg-gradient-to-t from-muted from-0% to-transparent to-50%">
         <div className="relative mx-auto max-w-2xl px-8">
           <PromptForm
