@@ -139,14 +139,14 @@ export default function WorkflowDetail({
         </TabsContent>
         <TabsContent value="saml" className="flex h-full text-sm">
           <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel minSize={30}>
+            <ResizablePanel defaultSize={60} minSize={30}>
               <Chat workflow={workflow} profile={profile} />
             </ResizablePanel>
             <ResizableHandle
               withHandle
               className="w-2 rounded-lg bg-muted-foreground/5 transition-colors duration-500 data-[resize-handle-active]:bg-muted-foreground/50"
             />
-            <ResizablePanel>
+            <ResizablePanel defaultSize={40}>
               <Saml workflow={workflow} profile={profile} />
             </ResizablePanel>
           </ResizablePanelGroup>
