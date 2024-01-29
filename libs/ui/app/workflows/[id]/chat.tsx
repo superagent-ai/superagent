@@ -1,17 +1,15 @@
 "use client"
 
-import * as React from "react"
+import React, { useMemo } from "react"
+import { Workflow, WorkflowStep } from "@/models/models"
 import { fetchEventSource } from "@microsoft/fetch-event-source"
 import dayjs from "dayjs"
 import relativeTime from "dayjs/plugin/relativeTime"
-import { useAsyncFn } from "react-use"
 import { v4 as uuidv4 } from "uuid"
 
-import { Agent } from "@/types/agent"
 import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 import Message from "@/components/message"
 
@@ -23,27 +21,34 @@ export default function Chat({
   workflow,
   profile,
 }: {
-  workflow: any
+  workflow: Workflow
   profile: Profile
 }) {
-  const api = new Api(profile.api_key)
+  const workflowSteps = useMemo(
+    () => workflow.steps.map((item: any) => new WorkflowStep(item)),
+    [workflow]
+  )
+
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [messages, setMessages] = React.useState<
-    { type: string; message: string; isSuccess?: boolean }[]
+    { type: string; message: string; steps?: Record<string, string> }[]
   >(
-    workflow.steps[0].agent.initialMessage
-      ? [{ type: "ai", message: workflow.steps[0].agent.initialMessage }]
+    workflowSteps[0]?.agent?.initialMessage
+      ? [{ type: "ai", message: workflowSteps[0].agent.initialMessage }]
       : []
   )
+  const [timer, setTimer] = React.useState<number>(0)
   const [session, setSession] = React.useState<string | null>(uuidv4())
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
   const { toast } = useToast()
+
   const abortControllerRef = React.useRef<AbortController | null>(null)
 
   const abortStream = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
       setIsLoading(false)
+      setTimer(0)
       if (timerRef.current) {
         clearInterval(timerRef.current)
       }
@@ -51,7 +56,8 @@ export default function Chat({
   }
 
   async function onSubmit(value: string) {
-    let message = ""
+    let messageByEventIds: Record<string, string> = {}
+    let currentEventId = ""
 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
@@ -61,6 +67,12 @@ export default function Chat({
     abortControllerRef.current = new AbortController()
 
     setIsLoading(true)
+
+    setTimer(0)
+    timerRef.current = setInterval(() => {
+      setTimer((prevTimer) => prevTimer + 0.1)
+    }, 100)
+
     setMessages((previousMessages: any) => [
       ...previousMessages,
       { type: "human", message: value },
@@ -68,7 +80,7 @@ export default function Chat({
 
     setMessages((previousMessages) => [
       ...previousMessages,
-      { type: "ai", message },
+      { type: "ai", message: "" },
     ])
 
     try {
@@ -89,21 +101,31 @@ export default function Chat({
           signal: abortControllerRef.current.signal,
           async onclose() {
             setIsLoading(false)
+            setTimer(0)
             if (timerRef.current) {
               clearInterval(timerRef.current)
             }
           },
           async onmessage(event) {
-            if (event.data !== "[END]" && event.event !== "function_call") {
-              message += event.data === "" ? `${event.data} \n` : event.data
-              const isSuccess = event.event != "error"
+            if (event.id) currentEventId = event.id
+
+            if (
+              event.data !== "[END]" &&
+              event.event !== "function_call" &&
+              currentEventId
+            ) {
+              if (!messageByEventIds[currentEventId])
+                messageByEventIds[currentEventId] = ""
+
+              messageByEventIds[currentEventId] +=
+                event.data === "" ? `${event.data} \n` : event.data
+
               setMessages((previousMessages) => {
                 let updatedMessages = [...previousMessages]
 
                 for (let i = updatedMessages.length - 1; i >= 0; i--) {
                   if (updatedMessages[i].type === "ai") {
-                    updatedMessages[i].message = message
-                    updatedMessages[i].isSuccess = isSuccess
+                    updatedMessages[i].steps = messageByEventIds
                     break
                   }
                 }
@@ -119,6 +141,7 @@ export default function Chat({
       )
     } catch {
       setIsLoading(false)
+      setTimer(0)
       if (timerRef.current) {
         clearInterval(timerRef.current)
       }
@@ -138,12 +161,37 @@ export default function Chat({
     }
   }
 
+  const messagesEndRef = React.useRef<HTMLDivElement>(null)
+
+  const scrollToMessagesBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
+  }
+
+  React.useEffect(() => {
+    scrollToMessagesBottom()
+  }, [messages])
+
   return (
     <div className="relative flex h-full w-full flex-[60%] bg-muted text-sm">
+      <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-4">
+        <p
+          className={`${
+            timer === 0 ? "text-muted-foreground" : "text-primary"
+          } font-mono text-sm`}
+        >
+          {timer.toFixed(1)}s
+        </p>
+      </div>
       <ScrollArea className="w-[100%]">
         <div className="mx-auto mb-20 flex max-w-4xl flex-1 flex-col space-y-0 px-4 py-12">
-          {messages.map((message, index) => (
-            <Message key={index} profile={profile} {...message} />
+          {messages.map(({ type, message, steps }, index) => (
+            <Message
+              key={index}
+              type={type}
+              message={message}
+              steps={steps}
+              profile={profile}
+            />
           ))}
         </div>
       </ScrollArea>

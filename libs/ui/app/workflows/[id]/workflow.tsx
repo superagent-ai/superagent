@@ -134,7 +134,7 @@ export default function WorkflowDetail({
         </TabsContent>
         <TabsContent value="saml" className="flex h-full text-sm">
           <Chat workflow={workflow} profile={profile} />
-          <Saml />
+          <Saml workflow={workflow} profile={profile} />
         </TabsContent>
       </Tabs>
     </div>
