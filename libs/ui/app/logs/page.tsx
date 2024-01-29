@@ -26,6 +26,7 @@ export default async function Agents({
   const api = new Api(profile.api_key)
 
   const { data: logs } = await api.getRuns({ limit: 50 })
+  console.log(logs)
 
   return (
     <div className="flex h-screen flex-col justify-between space-y-0 overflow-hidden">
