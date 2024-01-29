@@ -70,6 +70,8 @@ export default function WorkflowDetail({
         isOpen={isLLMModalOpen}
         onOpenChange={(change: any) => setIsLLMModalOpen(change)}
         profile={profile}
+        title="Configure a Language Model"
+        description="Before you can start creating your first worflow you need to configure a Language Model from one of the options below."
       />
       <div className="flex space-x-2 px-6 text-sm text-muted-foreground">
         <Link passHref href="/workflows">
@@ -186,7 +188,7 @@ export default function WorkflowDetail({
           )}
         </TabsContent>
         <TabsContent value="saml" className="flex h-full text-sm">
-          <Chat workflow={workflow} profile={profile} />
+          <Chat workflow={workflow} profile={profile} llms={llms} />
           <Saml workflow={workflow} profile={profile} />
         </TabsContent>
       </Tabs>

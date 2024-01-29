@@ -13,6 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToast } from "@/components/ui/use-toast"
 import Message from "@/components/message"
 
+import LLMDialog from "./llm-dialog"
 import PromptForm from "./prompt-form"
 
 dayjs.extend(relativeTime)
@@ -20,15 +21,16 @@ dayjs.extend(relativeTime)
 export default function Chat({
   workflow,
   profile,
+  llms,
 }: {
   workflow: Workflow
   profile: Profile
+  llms: any
 }) {
   const workflowSteps = useMemo(
     () => workflow.steps.map((item: any) => new WorkflowStep(item)),
     [workflow]
   )
-
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [messages, setMessages] = React.useState<
     { type: string; message: string; steps?: Record<string, string> }[]
@@ -39,6 +41,7 @@ export default function Chat({
   )
   const [timer, setTimer] = React.useState<number>(0)
   const [session, setSession] = React.useState<string | null>(uuidv4())
+  const [open, setOpen] = React.useState<boolean>(false)
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
   const { toast } = useToast()
 
@@ -55,7 +58,7 @@ export default function Chat({
     }
   }
 
-  async function onSubmit(value: string) {
+  async function onSubmit(value?: string) {
     let messageByEventIds: Record<string, string> = {}
     let currentEventId = ""
 
@@ -200,6 +203,11 @@ export default function Chat({
           <PromptForm
             onStop={() => abortStream()}
             onSubmit={async (value) => {
+              if (llms.length === 0) {
+                setOpen(true)
+                return
+              }
+
               onSubmit(value)
             }}
             onCreateSession={async (uuid) => {
@@ -216,6 +224,13 @@ export default function Chat({
           />
         </div>
       </div>
+      <LLMDialog
+        isOpen={open}
+        onOpenChange={(change) => setOpen(change)}
+        profile={profile}
+        title="Heads up!"
+        description="Before you can test this workflow you need to configure a Language Model."
+      />
     </div>
   )
 }

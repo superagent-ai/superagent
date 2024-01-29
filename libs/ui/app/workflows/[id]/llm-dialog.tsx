@@ -38,10 +38,14 @@ const formSchema = z.object({
 export default function LLMDialog({
   profile,
   isOpen,
+  title,
+  description,
   onOpenChange,
 }: {
   profile: Profile
   isOpen: boolean
+  title: string
+  description: string
   onOpenChange: (change: any) => void
 }) {
   const api = new Api(profile.api_key)
@@ -65,11 +69,8 @@ export default function LLMDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Configure a Language Model</DialogTitle>
-          <DialogDescription>
-            Before you can start creating your first worflow you need to
-            configure a Language Model from one of the options below.
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="openai" className="w-full">
           <TabsList>
@@ -77,7 +78,7 @@ export default function LLMDialog({
               <SiOpenai />
               <span>OPENAI</span>
             </TabsTrigger>
-            <TabsTrigger value="azure" className="space-x-2">
+            <TabsTrigger value="azure-openai" className="space-x-2">
               <SiMicrosoftazure />
               <span>AZURE-OPENAI</span>
             </TabsTrigger>
@@ -86,7 +87,7 @@ export default function LLMDialog({
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="mt-8 w-full space-y-4"
+                className="mt-4 w-full space-y-4"
               >
                 <div className="flex flex-col space-y-6">
                   <FormField
@@ -124,15 +125,15 @@ export default function LLMDialog({
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="mt-8 w-full space-y-4"
+                className="mt-4 w-full space-y-4"
               >
-                <div className="flex flex-col space-y-6">
+                <div className="flex flex-col space-y-2">
                   <FormField
                     control={form.control}
                     name="apiKey"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>OpenAI API key</FormLabel>
+                        <FormLabel>API key</FormLabel>
                         <FormControl>
                           <Input placeholder="Enter your api key" {...field} />
                         </FormControl>
@@ -140,16 +141,64 @@ export default function LLMDialog({
                       </FormItem>
                     )}
                   />
-                  <input
-                    defaultValue="OPENAI"
-                    name="provider"
-                    className="hidden h-0 w-0"
+                  <FormField
+                    control={form.control}
+                    name="options.azure_endpoint"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Azure endpoint URL</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter your Azure endpoint URL."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                  <div className="flex justify-end">
-                    <Button size="sm" type="submit">
-                      Save
-                    </Button>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="options.openai_api_version"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>API version</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter your openai api version"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="options.azure_deployment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Azure deployment name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter your Azure deployment name"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <input
+                  defaultValue="AZURE_OPENAI"
+                  name="provider"
+                  className="hidden h-0 w-0"
+                />
+                <div className="flex justify-end">
+                  <Button size="sm" type="submit">
+                    Save
+                  </Button>
                 </div>
               </form>
             </Form>
