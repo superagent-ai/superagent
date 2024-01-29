@@ -21,6 +21,11 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -188,8 +193,18 @@ export default function WorkflowDetail({
           )}
         </TabsContent>
         <TabsContent value="saml" className="flex h-full text-sm">
-          <Chat workflow={workflow} profile={profile} llms={llms} />
-          <Saml workflow={workflow} profile={profile} />
+          <ResizablePanelGroup direction="horizontal">
+            <ResizablePanel minSize={30}>
+              <Chat workflow={workflow} profile={profile} llms={llms} />
+            </ResizablePanel>
+            <ResizableHandle
+              withHandle
+              className="w-2 rounded-lg bg-muted-foreground/5 transition-colors duration-500 data-[resize-handle-active]:bg-muted-foreground/50"
+            />
+            <ResizablePanel>
+              <Saml workflow={workflow} profile={profile} />
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </TabsContent>
       </Tabs>
     </div>

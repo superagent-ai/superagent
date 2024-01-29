@@ -6,7 +6,7 @@ interface FunctionCallsProps {
 
 function FunctionCalls({ functionCalls }: FunctionCallsProps) {
   return (
-    <div className="h-full space-y-4 p-4">
+    <div className="h-full space-y-4">
       <h3 className="text-primary/70">Run Logs</h3>
 
       {functionCalls?.map((call, index) => (

@@ -207,42 +207,29 @@ export default function Chat({
   }, [messages])
 
   return (
-    <div className="relative flex h-full w-full flex-[60%] bg-muted text-sm">
-      <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel maxSize={20}>
-          <FunctionCalls functionCalls={functionCalls} />
-        </ResizablePanel>
-        <ResizableHandle
-          withHandle
-          className="w-2 rounded-lg bg-muted-foreground/5 transition-colors duration-500 data-[resize-handle-active]:bg-muted-foreground/50"
-        />
-        <ResizablePanel>
-          <div className="relative flex h-full w-[100%] bg-muted text-sm">
-            <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-4">
-              <p
-                className={`${
-                  timer === 0 ? "text-muted-foreground" : "text-primary"
-                } font-mono text-sm`}
-              >
-                {timer.toFixed(1)}s
-              </p>
-            </div>
-            <ScrollArea className="w-[100%]">
-              <div className="mx-auto mb-20 flex max-w-4xl flex-1 flex-col space-y-0 px-4 py-12">
-                {messages.map(({ type, message, steps }, index) => (
-                  <Message
-                    key={index}
-                    type={type}
-                    message={message}
-                    steps={steps}
-                    profile={profile}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+    <div className="relative flex h-full w-full flex-[60%] bg-background text-sm">
+      <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-4">
+        <p
+          className={`${
+            timer === 0 ? "text-muted-foreground" : "text-primary"
+          } font-mono text-sm`}
+        >
+          {timer.toFixed(1)}s
+        </p>
+      </div>
+      <ScrollArea className="w-[100%]">
+        <div className="mx-auto mb-20 flex max-w-4xl flex-1 flex-col space-y-0 px-4 py-12">
+          {messages.map(({ type, message, steps }, index) => (
+            <Message
+              key={index}
+              type={type}
+              message={message}
+              steps={steps}
+              profile={profile}
+            />
+          ))}
+        </div>
+      </ScrollArea>
       <div className="absolute inset-x-0 bottom-10 z-50 h-[100px] bg-gradient-to-t from-muted from-0% to-transparent to-50%">
         <div className="relative mx-auto max-w-2xl px-8">
           <PromptForm
