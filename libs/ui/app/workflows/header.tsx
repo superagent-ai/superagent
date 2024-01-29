@@ -1,0 +1,32 @@
+"use client"
+
+import { useRouter } from "next/navigation"
+import { TbPlus } from "react-icons/tb"
+import { useAsyncFn } from "react-use"
+
+import { Profile } from "@/types/profile"
+import { Api } from "@/lib/api"
+import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
+
+export default function Header({ profile }: { profile: Profile }) {
+  const api = new Api(profile.api_key)
+  const router = useRouter()
+  const [{ loading }, createWorkflow] = useAsyncFn(async () => {
+    const { data: workflow } = await api.createWorkflow({
+      name: "My Workflow",
+      description: "My new workflow",
+    })
+    router.push(`/workflows/${workflow.id}`)
+  })
+
+  return (
+    <div className="flex items-center justify-between px-6 py-2 font-medium">
+      <span>Workflows</span>
+      <Button size="sm" className="space-x-2" onClick={createWorkflow}>
+        {loading ? <Spinner /> : <TbPlus />}
+        <span>New worflow</span>
+      </Button>
+    </div>
+  )
+}

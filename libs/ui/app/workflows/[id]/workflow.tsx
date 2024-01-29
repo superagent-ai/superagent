@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { RxActivityLog, RxPieChart, RxPlay } from "react-icons/rx"
 import { TbTrash } from "react-icons/tb"
-import { useAsync } from "react-use"
+import { useAsync, useAsyncFn } from "react-use"
 
 import { Api } from "@/lib/api"
 import {
@@ -20,7 +20,9 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import LogList from "../../../components/log-list"
@@ -37,6 +39,8 @@ export default function WorkflowDetail({
 }) {
   const api = new Api(profile.api_key)
   const router = useRouter()
+  const [name, setName] = React.useState<string>(workflow.name)
+  const [editName, setEditName] = React.useState<boolean>(false)
   const [open, setOpen] = React.useState<boolean>(false)
   const { value: logs, loading } = useAsync(async () => {
     const { data } = await api.getRuns({
@@ -45,6 +49,14 @@ export default function WorkflowDetail({
     })
     return data
   }, [workflow])
+
+  const [{ loading: isEditingName }, updateName] = useAsyncFn(async (name) => {
+    await api.patchWorkflow(workflow.id, {
+      ...workflow,
+      name,
+    })
+    router.refresh()
+  })
 
   return (
     <div className="flex max-h-screen flex-1 flex-col space-y-5 pt-6">
@@ -63,7 +75,37 @@ export default function WorkflowDetail({
       </div>
       <div className="flex items-center justify-between px-6">
         <div className="flex flex-col space-y-2">
-          <p className="text-2xl">{workflow?.name}</p>
+          {editName ? (
+            <div className="flex items-center justify-between space-x-2">
+              <Input
+                value={name}
+                onChangeCapture={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  setName(event.target.value)
+                }
+                placeholder="My Worflow"
+                className="leading-0 flex-1 border-none p-0 text-2xl ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+              <Button
+                size="sm"
+                variant="secondary"
+                className="h-8 py-0"
+                onClick={async () => {
+                  await updateName(name)
+                  setEditName(false)
+                }}
+              >
+                {isEditingName ? <Spinner /> : "Save"}
+              </Button>
+            </div>
+          ) : (
+            <p
+              className="py-1 text-2xl hover:bg-muted"
+              onClick={() => setEditName(true)}
+            >
+              {workflow?.name}
+            </p>
+          )}
+
           <span className="font-mono text-xs font-normal text-muted-foreground">
             <span>
               CREATED AT:{" "}
