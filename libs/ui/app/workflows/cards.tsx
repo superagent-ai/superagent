@@ -2,7 +2,9 @@
 
 import Link from "next/link"
 import { ScrollArea } from "@radix-ui/react-scroll-area"
-import { TbStack2 } from "react-icons/tb"
+import { TbBolt, TbStack2 } from "react-icons/tb"
+
+import { Badge } from "@/components/ui/badge"
 
 export default function WorkflowCards({
   workflows,
@@ -15,7 +17,7 @@ export default function WorkflowCards({
         <div className="grid grid-cols-4 gap-4">
           {workflows.map((workflow) => (
             <Link key={workflow.id} passHref href={`/workflows/${workflow.id}`}>
-              <div className="col-span-1 flex cursor-pointer flex-col space-y-3 rounded-lg border bg-muted p-6 hover:bg-background">
+              <div className="col-span-1 flex cursor-pointer flex-col space-y-5 rounded-lg border bg-muted px-6 py-4 hover:bg-background">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-1">
                     <TbStack2 fontSize="20px" />
@@ -29,7 +31,13 @@ export default function WorkflowCards({
                     })}
                   </p>
                 </div>
-                <p className="text-sm">{workflow.description}</p>
+                <Badge
+                  className="space-x-1 self-start bg-background"
+                  variant="outline"
+                >
+                  <TbBolt size={15} />
+                  <span>{workflow.steps.length}</span>
+                </Badge>
               </div>
             </Link>
           ))}

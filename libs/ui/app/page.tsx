@@ -75,7 +75,7 @@ export default function IndexPage() {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, _session) => {
         if (event === "SIGNED_IN") {
-          window.location.href = "/assistants"
+          window.location.href = "/workflows"
         }
       }
     )
