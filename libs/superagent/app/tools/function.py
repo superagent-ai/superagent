@@ -1,4 +1,4 @@
-from langchain.tools import BaseTool
+from langchain_community.tools import BaseTool
 
 
 class Function(BaseTool):
@@ -6,8 +6,8 @@ class Function(BaseTool):
     description = "useful for doing something"
     return_direct = True
 
-    def _run(self, *args, **kwargs) -> str:
+    def _run(self) -> str:
         return f"Tell the user that you are pending function {self.name}"
 
-    async def _arun(self, *args, **kwargs) -> str:
+    async def _arun(self) -> str:
         return f"Tell the user that you are pending function {self.name}"

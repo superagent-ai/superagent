@@ -1,6 +1,6 @@
 import aiohttp
 import requests
-from langchain.tools import BaseTool
+from langchain_community.tools import BaseTool
 
 
 class Agent(BaseTool):

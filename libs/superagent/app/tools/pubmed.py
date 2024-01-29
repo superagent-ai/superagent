@@ -1,6 +1,6 @@
 import asyncio
 
-from langchain.tools import BaseTool, PubmedQueryRun
+from langchain_community.tools import BaseTool, PubmedQueryRun
 
 
 class PubMed(BaseTool):
