@@ -5,7 +5,7 @@ import pandas as pd
 from io import StringIO
 from decouple import config
 from tempfile import NamedTemporaryFile
-from langchain.tools import BaseTool
+from langchain_community.tools import BaseTool
 from llama import Context, LLMEngine, Type
 from app.vectorstores.base import VectorStoreMain
 from app.datasource.loader import DataLoader
@@ -13,7 +13,7 @@ from prisma.models import Datasource
 
 from langchain.agents.agent_types import AgentType
 from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
-from langchain.chat_models.openai import ChatOpenAI
+from langchain_openai import ChatOpenAI
 
 
 class DatasourceFinetuneTool(BaseTool):

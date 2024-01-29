@@ -1,5 +1,5 @@
-from langchain.tools import BaseTool
-from langchain.utilities import MetaphorSearchAPIWrapper
+from langchain_community.tools import BaseTool
+from langchain_community.utilities import MetaphorSearchAPIWrapper
 
 
 class MetaphorSearch(BaseTool):
