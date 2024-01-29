@@ -93,7 +93,7 @@ export default function LLMClientPage({
 
   return (
     <div className="grid grid-cols-5 gap-4 lg:grid-cols-4 2xl:grid-cols-5">
-      {siteConfig.llms.map((llm) => (
+      {siteConfig.llms.filter((llm) => llm.id !== "OPENAI").map((llm) => (
         <div key={llm.id}>
           <Card>
             <CardHeader className="flex flex-col">
@@ -115,7 +115,7 @@ export default function LLMClientPage({
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-between text-sm text-muted-foreground">
+              <div className="text-muted-foreground flex justify-between text-sm">
                 {llms.find((obj: LLM) => obj.provider === llm.id) ? (
                   <div className="flex items-center">
                     <RxCheckCircled className="mr-1 h-3 w-3 text-amber-400" />
@@ -162,64 +162,6 @@ export default function LLMClientPage({
                             onSubmit={form.handleSubmit(onSubmit)}
                             className="w-full space-y-4"
                           >
-                            {llm.id === "OPENAI" && (
-                              <div className="flex flex-col space-y-2">
-                                <FormField
-                                  control={form.control}
-                                  name="apiKey"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>API key</FormLabel>
-                                      <FormControl>
-                                        <Input
-                                          placeholder="Enter your api key"
-                                          {...field}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                              </div>
-                            )}
-                            {llm.id === "HUGGINGFACE" && (
-                              <div className="flex flex-col space-y-2">
-                                <FormField
-                                  control={form.control}
-                                  name="apiKey"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>API key</FormLabel>
-                                      <FormControl>
-                                        <Input
-                                          placeholder="Enter your api key"
-                                          {...field}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={form.control}
-                                  name="options.api_base"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>
-                                        Hugging Face inference endpoint
-                                      </FormLabel>
-                                      <FormControl>
-                                        <Input
-                                          placeholder="Enter an optional HF inference endpoint"
-                                          {...field}
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                              </div>
-                            )}
                             {llm.id === "AZURE_OPENAI" && (
                               <div className="flex flex-col space-y-2">
                                 <FormField
