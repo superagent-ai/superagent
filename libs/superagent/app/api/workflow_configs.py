@@ -40,6 +40,9 @@ from app.models.request import (
     Agent as AgentRequest,
 )
 from app.models.request import (
+    AgentDatasource as AgentDatasourceRequest,
+)
+from app.models.request import (
     AgentTool as AgentToolRequest,
 )
 from app.models.request import (
@@ -329,9 +332,11 @@ class WorkflowConfigHandler:
     async def _add_agent_datasource(self, agent_id: str, datasource_id: str):
         await api_add_agent_datasource(
             agent_id=agent_id,
-            body={
-                "datasourceId": datasource_id,
-            },
+            body=AgentDatasourceRequest(
+                **{
+                    "datasourceId": datasource_id,
+                },
+            ),
             api_user=self.api_user,
         )
         logger.info(f"Added agent datasource: {agent_id} - {datasource_id}")
@@ -430,18 +435,14 @@ class WorkflowConfigHandler:
 
         if old_type and new_type:
             if old_type != new_type:
-                await self.process_tools(
-                    old_tools, new_tools, old_assistant.get("name")
-                )
                 await self.delete_assistant(
                     assistant_name=old_assistant["name"],
                 )
                 await self.add_assistant(data=new_assistant)
-                await self.process_tools(
-                    old_tools, new_tools, new_assistant.get("name")
-                )
+                # all tools and data should be re-created
+                await self.process_tools({}, new_tools, new_assistant.get("name"))
                 await self.process_data(
-                    old_data,
+                    {},
                     new_data,
                     new_assistant.get("name"),
                 )
@@ -461,13 +462,6 @@ class WorkflowConfigHandler:
                         assistant_name=old_assistant["name"], data=changes
                     )
         elif old_type and not new_type:
-            await self.process_tools(old_tools, new_tools, old_assistant.get("name"))
-            await self.process_data(
-                old_data,
-                new_data,
-                old_assistant.get("name"),
-            )
-
             await self.delete_assistant(
                 assistant_name=old_assistant["name"],
             )
