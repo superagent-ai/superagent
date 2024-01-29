@@ -44,6 +44,7 @@ export default function Chat({
   const [open, setOpen] = React.useState<boolean>(false)
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
   const { toast } = useToast()
+
   const abortControllerRef = React.useRef<AbortController | null>(null)
 
   const abortStream = () => {
