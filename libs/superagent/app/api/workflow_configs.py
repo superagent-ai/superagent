@@ -36,6 +36,9 @@ from app.api.tools import (
 from app.api.tools import (
     delete as api_delete_tool,
 )
+from app.api.workflows import (
+    add_step as api_add_step_workflow,
+)
 from app.models.request import (
     Agent as AgentRequest,
 )
@@ -55,7 +58,7 @@ from app.models.request import (
     Tool as ToolRequest,
 )
 from app.models.request import (
-    WorkflowConfig as WorkflowConfigRequest,
+    WorkflowStep as WorkflowStepRequest,
 )
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.helpers import (
@@ -100,70 +103,42 @@ class WorkflowConfig(BaseModel):
     workflows: List[Dict[str, WorkflowAssistant]]
 
 
-@router.post("/workflow-config")
-async def create_workflow_config(
-    body: WorkflowConfigRequest,
-    api_user=Depends(get_current_api_user),
-):
-    try:
-        workflow_config = await prisma.workflowconfig.create(
-            data={
-                **body.dict(),
-                "apiUserId": api_user.id,
-            }
-        )
-
-        return {"workflow_config": workflow_config}
-    except Exception as e:
-        raise HTTPException(
-            status_code=400, detail=f"Error creating workflow config: {str(e)}"
-        )
-
-
 class WorkflowConfigHandler:
-    def __init__(self, workflow_config_id: str, api_user):
-        self.workflow_config_id = workflow_config_id
+    def __init__(self, workflow_id: str, api_user):
+        self.workflow_id = workflow_id
         self.api_user = api_user
 
     async def delete_tool(self, tool_name: str, assistant_name: str):
-        workflow_config_agent = await prisma.agent.find_first(
+        workflow_steps = await prisma.workflowstep.find_many(
             where={
-                "name": assistant_name,
-                "workflowConfigId": self.workflow_config_id,
-                "apiUserId": self.api_user.id,
-            }
+                "workflowId": self.workflow_id,
+            },
+            include={
+                "agent": True,
+            },
         )
 
-        tool = await prisma.tool.find_first(
-            where={
-                "name": tool_name,
-                "workflowConfigId": self.workflow_config_id,
-                "workflowConfigAgentId": workflow_config_agent.id,
-                "apiUserId": self.api_user.id,
-            }
-        )
-
-        await api_delete_tool(
-            tool_id=tool.id,
-            api_user=self.api_user,
-        )
-
-        logger.info(f"Deleted tool: ${tool_name} - ${assistant_name}")
+        for workflow_step in workflow_steps:
+            if workflow_step.agent.name == assistant_name:
+                agent_tools = await prisma.agenttool.find_many(
+                    where={
+                        "agentId": workflow_step.agent.id,
+                    },
+                    include={
+                        "tool": True,
+                    },
+                )
+                for agent_tool in agent_tools:
+                    if agent_tool.tool.name == tool_name:
+                        await api_delete_tool(
+                            tool_id=agent_tool.tool.id,
+                            api_user=self.api_user,
+                        )
+                        logger.info(f"Deleted tool: {tool_name} - {assistant_name}")
 
     async def add_tool(self, assistant_name: str, type: str, data: Dict[str, str]):
-        agent = await prisma.agent.find_first(
-            where={
-                "name": assistant_name,
-                "workflowConfigId": self.workflow_config_id,
-                "apiUserId": self.api_user.id,
-            }
-        )
-
         rename_and_remove_key(data, "use_for", "description")
         data["type"] = type
-
-        data["workflowConfigId"] = self.workflow_config_id
-        data["workflowConfigAgentId"] = agent.id
 
         tool_res = await api_create_tool(
             body=ToolRequest(**data),
@@ -180,59 +155,51 @@ class WorkflowConfigHandler:
         logger.info(f"Added tool: ${new_tool.name} - ${assistant_name}")
 
     async def add_datasource(self, assistant_name: str, data: Dict[str, str]):
-        agent = await prisma.agent.find_first(
-            where={
-                "name": assistant_name,
-                "workflowConfigId": self.workflow_config_id,
-                "apiUserId": self.api_user.id,
-            }
-        )
         datasourceRes = await api_create_datasource(
-            body=DatasourceRequest(
-                **{
-                    **data,
-                    "workflowConfigId": self.workflow_config_id,
-                    "workflowConfigAgentId": agent.id,
-                }
-            ),
+            body=DatasourceRequest(**data),
             api_user=self.api_user,
         )
 
         new_datasource = datasourceRes.get("data", {})
 
         await self._add_agent_datasource(
-            agent_id=agent.id,
+            assistant_name=assistant_name,
             datasource_id=new_datasource.id,
         )
 
         logger.info(f"Added datasource: {data}")
 
     async def delete_datasource(self, assistant_name: str, datasource_name: str):
-        agent = await prisma.agent.find_first(
+        workflow_steps = await prisma.workflowstep.find_many(
             where={
-                "name": assistant_name,
-                "workflowConfigId": self.workflow_config_id,
-                "apiUserId": self.api_user.id,
-            }
+                "workflowId": self.workflow_id,
+            },
+            include={
+                "agent": True,
+            },
         )
 
-        datasource = await prisma.datasource.find_first(
-            where={
-                "name": datasource_name,
-                "workflowConfigId": self.workflow_config_id,
-                "workflowConfigAgentId": agent.id,
-                "apiUserId": self.api_user.id,
-            }
-        )
+        for workflow_step in workflow_steps:
+            if workflow_step.agent.name == assistant_name:
+                agent_datasources = await prisma.agentdatasource.find_many(
+                    where={
+                        "agentId": workflow_step.agent.id,
+                    },
+                    include={
+                        "datasource": True,
+                    },
+                )
+                for agent_datasource in agent_datasources:
+                    if agent_datasource.datasource.name == datasource_name:
+                        await api_delete_datasource(
+                            datasource_id=agent_datasource.datasource.id,
+                            api_user=self.api_user,
+                        )
+                        logger.info(
+                            f"Deleted datasource: {datasource_name} - {assistant_name}"
+                        )
 
-        await api_delete_datasource(
-            datasource_id=datasource.id,
-            api_user=self.api_user,
-        )
-
-        logger.info(f"Deleted datasource: {datasource_name} - {assistant_name}")
-
-    async def add_assistant(self, data: Dict[str, str]):
+    async def add_assistant(self, data: Dict[str, str], order: int):
         new_agent = data
 
         rename_and_remove_key(new_agent, "llm", "llmModel")
@@ -240,12 +207,20 @@ class WorkflowConfigHandler:
 
         new_agent["llmModel"] = LLM_REVERSE_MAPPING[new_agent["llmModel"]]
 
-        await api_create_agent(
-            body=AgentRequest(
+        new_agent_data = await api_create_agent(
+            body=AgentRequest(**new_agent),
+            api_user=self.api_user,
+        )
+
+        new_agent = new_agent_data.get("data", {})
+
+        await api_add_step_workflow(
+            workflow_id=self.workflow_id,
+            body=WorkflowStepRequest(
                 **{
-                    **new_agent,
-                    "workflowConfigId": self.workflow_config_id,
-                }
+                    "order": order,
+                    "agentId": new_agent.id,
+                },
             ),
             api_user=self.api_user,
         )
@@ -255,7 +230,6 @@ class WorkflowConfigHandler:
         agent = await prisma.agent.find_first(
             where={
                 "name": assistant_name,
-                "workflowConfigId": self.workflow_config_id,
                 "apiUserId": self.api_user.id,
             }
         )
@@ -270,7 +244,6 @@ class WorkflowConfigHandler:
         agent = await prisma.agent.find_first(
             where={
                 "name": assistant_name,
-                "workflowConfigId": self.workflow_config_id,
                 "apiUserId": self.api_user.id,
             }
         )
@@ -285,10 +258,9 @@ class WorkflowConfigHandler:
     async def update_tool(
         self, assistant_name: str, tool_name: str, data: Dict[str, str]
     ):
-        agent = await prisma.agent.find_first(
+        await prisma.agent.find_first(
             where={
                 "name": assistant_name,
-                "workflowConfigId": self.workflow_config_id,
                 "apiUserId": self.api_user.id,
             }
         )
@@ -296,8 +268,6 @@ class WorkflowConfigHandler:
         tool = await prisma.tool.find_first(
             where={
                 "name": tool_name,
-                "workflowConfigId": self.workflow_config_id,
-                "workflowConfigAgentId": agent.id,
                 "apiUserId": self.api_user.id,
             }
         )
@@ -312,34 +282,48 @@ class WorkflowConfigHandler:
         logger.info(f"Updated tool: {tool_name} - {assistant_name}")
 
     async def _add_agent_tool(self, assistant_name: str, tool_id: str):
-        agent = await prisma.agent.find_first(
+        workflow_steps = await prisma.workflowstep.find_many(
             where={
-                "name": assistant_name,
-                "workflowConfigId": self.workflow_config_id,
-                "apiUserId": self.api_user.id,
-            }
+                "workflowId": self.workflow_id,
+            },
+            include={
+                "agent": True,
+            },
         )
 
-        await api_add_agent_tool(
-            agent_id=agent.id,
-            body=AgentToolRequest(
-                toolId=tool_id,
-            ),
-            api_user=self.api_user,
-        )
-        logger.info(f"Added agent tool: {tool_id} - {assistant_name}")
+        for workflow_step in workflow_steps:
+            if workflow_step.agent.name == assistant_name:
+                await api_add_agent_tool(
+                    agent_id=workflow_step.agent.id,
+                    body=AgentToolRequest(
+                        toolId=tool_id,
+                    ),
+                    api_user=self.api_user,
+                )
+                logger.info(f"Added agent tool: {tool_id} - {assistant_name}")
 
-    async def _add_agent_datasource(self, agent_id: str, datasource_id: str):
-        await api_add_agent_datasource(
-            agent_id=agent_id,
-            body=AgentDatasourceRequest(
-                **{
-                    "datasourceId": datasource_id,
-                },
-            ),
-            api_user=self.api_user,
+    async def _add_agent_datasource(self, datasource_id: str, assistant_name: str):
+        workflow_steps = await prisma.workflowstep.find_many(
+            where={
+                "workflowId": self.workflow_id,
+            },
+            include={
+                "agent": True,
+            },
         )
-        logger.info(f"Added agent datasource: {agent_id} - {datasource_id}")
+
+        for workflow_step in workflow_steps:
+            if workflow_step.agent.name == assistant_name:
+                await api_add_agent_datasource(
+                    agent_id=workflow_step.agent.id,
+                    body=AgentDatasourceRequest(
+                        datasourceId=datasource_id,
+                    ),
+                    api_user=self.api_user,
+                )
+                logger.info(
+                    f"Added agent datasource: {datasource_id} - {assistant_name}"
+                )
 
     async def process_tools(self, old_tools, new_tools, assistant_name):
         # Process individual tools
@@ -414,7 +398,9 @@ class WorkflowConfigHandler:
                         },
                     )
 
-    async def process_assistant(self, old_assistant_obj, new_assistant_obj):
+    async def process_assistant(
+        self, old_assistant_obj, new_assistant_obj, workflow_step_order: int
+    ):
         old_type = next(iter(old_assistant_obj)) if old_assistant_obj else None
         new_type = next(iter(new_assistant_obj)) if new_assistant_obj else None
 
@@ -438,7 +424,7 @@ class WorkflowConfigHandler:
                 await self.delete_assistant(
                     assistant_name=old_assistant["name"],
                 )
-                await self.add_assistant(data=new_assistant)
+                await self.add_assistant(data=new_assistant, order=workflow_step_order)
                 # all tools and data should be re-created
                 await self.process_tools({}, new_tools, new_assistant.get("name"))
                 await self.process_data(
@@ -468,6 +454,7 @@ class WorkflowConfigHandler:
         elif new_type and not old_type:
             await self.add_assistant(
                 data=new_assistant,
+                order=workflow_step_order,
             )
             await self.process_tools(old_tools, new_tools, new_assistant.get("name"))
             await self.process_data(
@@ -480,21 +467,25 @@ class WorkflowConfigHandler:
         old_assistants = old_config.get("workflows", [])
         new_assistants = new_config.get("workflows", [])
 
+        workflow_step_order = 0
         for old_assistant, new_assistant in zip_longest(
             old_assistants, new_assistants, fillvalue={}
         ):
-            await self.process_assistant(old_assistant, new_assistant)
+            await self.process_assistant(
+                old_assistant, new_assistant, workflow_step_order
+            )
+            workflow_step_order += 1
 
 
-@router.post("/workflow-config/{workflow_config_id}/")
+@router.post("/workflows/{workflow_id}/config")
 async def parse_yaml(
-    workflow_config_id: str,
+    workflow_id: str,
     yaml_content: str = Body(..., media_type="application/x-yaml"),
     api_user=Depends(get_current_api_user),
 ):
     try:
-        workflow_config = await prisma.workflowconfig.find_unique(
-            where={"id": workflow_config_id}
+        workflow_config = await prisma.workflowconfig.find_first(
+            where={"workflowId": workflow_id}, order={"createdAt": "desc"}
         )
 
         try:
@@ -507,40 +498,22 @@ async def parse_yaml(
 
         new_config_str = json.dumps(new_config)
 
-        old_workflow_config_history = None
-        if workflow_config.latestWorkflowConfigHistoryId:
-            old_workflow_config_history = await prisma.workflowconfighistory.find_first(
-                where={
-                    "workflowConfigId": workflow_config_id,
-                    "id": workflow_config.latestWorkflowConfigHistoryId,
-                }
-            )
 
         new_config = json.loads(new_config_str)
-        old_config = (
-            {}
-            if not old_workflow_config_history
-            else old_workflow_config_history.configFile
-        )
+        old_config = {} if not workflow_config else workflow_config.config
 
         workflow_config_handler = WorkflowConfigHandler(
-            workflow_config_id=workflow_config_id,
+            workflow_id=workflow_id,
             api_user=api_user,
         )
         await workflow_config_handler.handle_changes(old_config, new_config)
 
-        new_workflow_config_history = await prisma.workflowconfighistory.create(
+        await prisma.workflowconfig.create(
             data={
-                "configFile": new_config_str,
-                "workflowConfigId": workflow_config_id,
+                "workflowId": workflow_id,
+                "config": new_config_str,
+                "apiUserId": api_user.id,
             }
-        )
-
-        await prisma.workflowconfig.update(
-            where={"id": workflow_config_id},
-            data={
-                "latestWorkflowConfigHistoryId": new_workflow_config_history.id,
-            },
         )
 
         return {"success": True}

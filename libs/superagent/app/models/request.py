@@ -18,7 +18,6 @@ class Agent(BaseModel):
     llmProvider: Optional[LLMProvider]  # either llmProvider or llmModel must be set
     description: Optional[str] = "An helpful agent."
     avatar: Optional[str]
-    workflowConfigId: Optional[str]
 
 
 class AgentUpdate(BaseModel):
@@ -29,7 +28,6 @@ class AgentUpdate(BaseModel):
     llmModel: Optional[str]
     description: Optional[str]
     avatar: Optional[str]
-    workflowConfigId: Optional[str]
 
 
 class AgentLLM(BaseModel):
@@ -61,8 +59,6 @@ class Datasource(BaseModel):
     url: Optional[str]
     metadata: Optional[Dict[Any, Any]]
     vectorDbId: Optional[str]
-    workflowConfigId: Optional[str]
-    workflowConfigAgentId: Optional[str]
 
 
 class Tool(BaseModel):
@@ -71,8 +67,6 @@ class Tool(BaseModel):
     type: str
     metadata: Optional[Dict[Any, Any]]
     returnDirect: Optional[bool] = False
-    workflowConfigId: Optional[str]
-    workflowConfigAgentId: Optional[str]
 
 
 class AgentTool(BaseModel):
