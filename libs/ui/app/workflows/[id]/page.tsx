@@ -22,9 +22,10 @@ export default async function Assistant({
     .single()
   const api = new Api(profile.api_key)
   const { data: workflow } = await api.getWorkflowById(id)
+  const { data: llms } = await api.getLLMs()
 
   return workflow ? (
-    <WorkflowDetail workflow={workflow} profile={profile} />
+    <WorkflowDetail workflow={workflow} profile={profile} llms={llms} />
   ) : (
     <div className="flex flex-1 flex-col items-center justify-center">
       <p className="text-sm font-medium">No assistant selected</p>

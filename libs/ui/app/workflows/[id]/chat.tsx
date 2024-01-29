@@ -172,7 +172,7 @@ export default function Chat({
   }, [messages])
 
   return (
-    <div className="relative flex h-full w-full flex-[60%] bg-muted text-sm">
+    <div className="relative flex h-full w-full flex-[60%] bg-background text-sm">
       <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-4">
         <p
           className={`${
