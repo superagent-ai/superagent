@@ -8,11 +8,6 @@ import relativeTime from "dayjs/plugin/relativeTime"
 import { v4 as uuidv4 } from "uuid"
 
 import { Profile } from "@/types/profile"
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToast } from "@/components/ui/use-toast"
 import Message from "@/components/message"
