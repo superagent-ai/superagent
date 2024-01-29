@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
 
 export interface PromptProps {
-  onSubmit: (value: string) => Promise<void>
+  onSubmit: (value?: string) => Promise<void>
   isLoading: boolean
   onCreateSession: (value: string) => Promise<void>
   onStop: () => void
@@ -82,6 +82,11 @@ export default function PromptFrom({
             </Button>
           ) : (
             <Button
+              onClick={async () => {
+                if (!input) {
+                  await onSubmit(input)
+                }
+              }}
               type="submit"
               className={cn(
                 buttonVariants({ size: "sm", variant: "secondary" }),

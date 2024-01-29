@@ -27,21 +27,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import LogList from "../../../components/log-list"
 import Chat from "./chat"
+import LLMDialog from "./llm-dialog"
 import Overview from "./overview"
 import Saml from "./saml"
 
 export default function WorkflowDetail({
   workflow,
   profile,
+  llms,
 }: {
   profile: any
   workflow: any
+  llms: any
 }) {
   const api = new Api(profile.api_key)
   const router = useRouter()
   const [name, setName] = React.useState<string>(workflow.name)
   const [editName, setEditName] = React.useState<boolean>(false)
   const [open, setOpen] = React.useState<boolean>(false)
+  const [isLLMModalOpen, setIsLLMModalOpen] = React.useState<boolean>(
+    llms.length === 0
+  )
   const { value: logs, loading } = useAsync(async () => {
     const { data } = await api.getRuns({
       workflow_id: workflow.id,
@@ -60,6 +66,13 @@ export default function WorkflowDetail({
 
   return (
     <div className="flex max-h-screen flex-1 flex-col space-y-5 pt-6">
+      <LLMDialog
+        isOpen={isLLMModalOpen}
+        onOpenChange={(change: any) => setIsLLMModalOpen(change)}
+        profile={profile}
+        title="Configure a Language Model"
+        description="Before you can start creating your first worflow you need to configure a Language Model from one of the options below."
+      />
       <div className="flex space-x-2 px-6 text-sm text-muted-foreground">
         <Link passHref href="/workflows">
           <span>Workflows</span>
@@ -175,7 +188,7 @@ export default function WorkflowDetail({
           )}
         </TabsContent>
         <TabsContent value="saml" className="flex h-full text-sm">
-          <Chat workflow={workflow} profile={profile} />
+          <Chat workflow={workflow} profile={profile} llms={llms} />
           <Saml workflow={workflow} profile={profile} />
         </TabsContent>
       </Tabs>

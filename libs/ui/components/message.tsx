@@ -91,7 +91,7 @@ export default function Message({
             type !== "human" && "text-green-400"
           }`}
         >
-          <AvatarFallback className="rounded-md bg-background">
+          <AvatarFallback className="rounded-md bg-muted">
             {type === "human"
               ? `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`
               : "A"}
