@@ -70,6 +70,7 @@ async def list(api_user=Depends(get_current_api_user), skip: int = 0, take: int 
         data = await prisma.workflow.find_many(
             where={"apiUserId": api_user.id},
             order={"createdAt": "desc"},
+            include={"steps": {"include": {"agent": True}}},
             skip=skip,
             take=take,
         )
@@ -95,7 +96,8 @@ async def get(workflow_id: str, api_user=Depends(get_current_api_user)):
     """Endpoint for getting a single workflow"""
     try:
         data = await prisma.workflow.find_first(
-            where={"id": workflow_id, "apiUserId": api_user.id}
+            where={"id": workflow_id, "apiUserId": api_user.id},
+            include={"steps": {"include": {"agent": True}}},
         )
         return {"success": True, "data": data}
     except Exception as e:

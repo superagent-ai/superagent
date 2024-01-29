@@ -28,21 +28,25 @@ import Chat from "./chat"
 import Overview from "./overview"
 import Saml from "./saml"
 
-interface Agent {
-  agent: any
+export default function WorkflowDetail({
+  workflow,
+  profile,
+}: {
   profile: any
-}
-
-export default function AssistantsDetail({ agent, profile }: Agent) {
+  workflow: any
+}) {
   const api = new Api(profile.api_key)
   const router = useRouter()
   const [open, setOpen] = React.useState<boolean>(false)
   const { value: logs, loading } = useAsync(async () => {
-    const { data } = await api.getRuns({ agent_id: agent.id, limit: 1000 })
+    const { data } = await api.getRuns({
+      workflow_id: workflow.id,
+      limit: 1000,
+    })
     return data
-  }, [agent])
+  }, [workflow])
 
-  return agent ? (
+  return (
     <div className="flex max-h-screen flex-1 flex-col space-y-5 pt-6">
       <div className="flex space-x-2 px-6 text-sm text-muted-foreground">
         <Link passHref href="/workflows">
@@ -52,30 +56,20 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
         <Badge variant="secondary">
           <div className="flex items-center space-x-1">
             <span className="font-mono font-normal text-muted-foreground">
-              {agent?.id}
+              {workflow?.id}
             </span>
           </div>
         </Badge>
       </div>
       <div className="flex items-center justify-between px-6">
         <div className="flex flex-col space-y-2">
-          <p className="text-2xl">{agent?.name}</p>
-          <div className="flex space-x-6">
-            <span className="font-mono text-xs font-normal text-muted-foreground">
-              <span>
-                MODEL:{" "}
-                <span className="text-foreground">
-                  {agent?.llmModel} ({agent?.llms[0]?.llm.provider})
-                </span>
-              </span>
+          <p className="text-2xl">{workflow?.name}</p>
+          <span className="font-mono text-xs font-normal text-muted-foreground">
+            <span>
+              CREATED AT:{" "}
+              <span className="text-foreground">{workflow.createdAt}</span>
             </span>
-            <span className="font-mono text-xs font-normal text-muted-foreground">
-              <span>
-                CREATED AT:{" "}
-                <span className="text-foreground">{agent?.createdAt}</span>
-              </span>
-            </span>
-          </div>
+          </span>
         </div>
         <AlertDialog open={open} onOpenChange={setOpen}>
           <Button
@@ -99,8 +93,8 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={async () => {
-                  await api.deleteAgentById(agent.id)
-                  router.push("/assistants")
+                  await api.deleteWorkflow(workflow.id)
+                  router.push("/workflow")
                 }}
               >
                 Yes, delete!
@@ -125,7 +119,7 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="stats" className="px-6 py-2 text-sm">
-          <Overview agent={agent} profile={profile} data={logs || []} />
+          <Overview profile={profile} data={logs || []} />
         </TabsContent>
         <TabsContent value="logs" className="h-full text-sm">
           {loading ? (
@@ -139,17 +133,10 @@ export default function AssistantsDetail({ agent, profile }: Agent) {
           )}
         </TabsContent>
         <TabsContent value="saml" className="flex h-full text-sm">
-          <Chat agent={agent} profile={profile} />
-          <Saml />
+          <Chat workflow={workflow} profile={profile} />
+          <Saml workflow={workflow} profile={profile} />
         </TabsContent>
       </Tabs>
-    </div>
-  ) : (
-    <div className="flex flex-1 flex-col items-center justify-center">
-      <p className="text-sm font-medium">No assistant selected</p>
-      <p className="text-sm">
-        View details about an assistant by navigating the list to the left
-      </p>
     </div>
   )
 }

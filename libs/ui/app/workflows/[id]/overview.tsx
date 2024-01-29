@@ -5,13 +5,7 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import { LogItem } from "@/types/log-item"
 import { Card, CardHeader } from "@/components/ui/card"
 
-export default function Overview({
-  data,
-}: {
-  agent: any
-  profile: any
-  data: LogItem[]
-}) {
+export default function Overview({ data }: { profile: any; data: LogItem[] }) {
   const chartData = data.reduce(
     (acc: Record<string, number>, logItem) => {
       const dateObject = new Date(logItem.received_at)

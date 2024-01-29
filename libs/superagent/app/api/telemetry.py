@@ -4,6 +4,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends
 from google.cloud import bigquery
+from app.utils.prisma import prisma
 
 from app.models.response import AgentRunList as AgentRunListResponse
 from app.utils.api import get_current_api_user
@@ -24,6 +25,7 @@ async def list_runs(
     from_page: Optional[int] = None,
     to_page: Optional[int] = None,
     limit: Optional[int] = None,
+    workflow_id: Optional[str] = None,
 ):
     """Endpoint for listing agent runs"""
     project_root = os.path.dirname(os.path.dirname(__file__))
@@ -36,10 +38,30 @@ async def list_runs(
     params = [
         bigquery.ScalarQueryParameter("user_id", "STRING", api_user.id),
     ]
+    agent_ids = []
 
-    if agent_id is not None:
-        query += " AND agent_id = @agent_id"
-        params.append(bigquery.ScalarQueryParameter("agent_id", "STRING", agent_id))
+    if agent_id:
+        agent_ids.append(agent_id)
+
+    if workflow_id:
+        steps = await prisma.workflowstep.find_many(
+            where={"workflowId": workflow_id},
+            order={"order": "asc"},
+            include={"agent": True},
+        )
+
+        for step in steps:
+            agent_ids.append(step.agentId)
+
+    if agent_ids:
+        agent_ids_placeholder = ", ".join(
+            ["@agent_id" + str(i) for i in range(len(agent_ids))]
+        )
+        query += f" AND agent_id IN ({agent_ids_placeholder})"
+        for i, agent_id in enumerate(agent_ids):
+            params.append(
+                bigquery.ScalarQueryParameter("agent_id" + str(i), "STRING", agent_id)
+            )
 
     # Add ORDER BY clause to sort by timestamp in descending order
     query += " ORDER BY timestamp DESC"
@@ -50,10 +72,10 @@ async def list_runs(
         query += " LIMIT @rows OFFSET @offset"
         params.append(bigquery.ScalarQueryParameter("rows", "INT64", rows))
         params.append(bigquery.ScalarQueryParameter("offset", "INT64", offset))
-    elif limit is not None:
+    if limit is not None:
         query += " LIMIT @limit"
         params.append(bigquery.ScalarQueryParameter("limit", "INT64", limit))
-
+    print(params)
     job_config = bigquery.QueryJobConfig()
     job_config.query_parameters = params
     query_job = client.query(query, job_config=job_config)
