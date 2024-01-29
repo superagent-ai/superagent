@@ -92,11 +92,14 @@ export default function OnboardingClientPage() {
       return
     }
 
-    toast({
-      description: "Settings updated!",
+    let client = new Api(api_key)
+
+    const { data: workflow } = await client.createWorkflow({
+      name: "My Workflow",
+      description: "My new workflow",
     })
 
-    window.location.href = "/llms"
+    window.location.href = `/workflows/${workflow.id}`
   }
 
   return (

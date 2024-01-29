@@ -9,11 +9,6 @@ export async function middleware(req: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // if user is signed in and the current path is / redirect the user to /agents
-  if (user && req.nextUrl.pathname === "/") {
-    return NextResponse.redirect(new URL("/workflows", req.url))
-  }
-
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
@@ -23,6 +18,10 @@ export async function middleware(req: NextRequest) {
 
     if (profile && !profile.is_onboarded) {
       return NextResponse.redirect(new URL("/onboarding", req.url))
+    }
+
+    if (user && req.nextUrl.pathname === "/") {
+      return NextResponse.redirect(new URL("/workflows", req.url))
     }
   }
 
