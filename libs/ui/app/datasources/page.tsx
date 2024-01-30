@@ -38,7 +38,7 @@ export default async function Datasources({
 
   return (
     <div className="flex min-h-full flex-col space-y-4 px-4 py-6">
-      <p className="text-lg">Datasources</p>
+      <p className="text-lg">Fuentes de Datos 💻🤖</p>
       <DataTable
         columns={columns}
         data={datasources}

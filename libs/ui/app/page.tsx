@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 
 import { Button } from "@/components/ui/button"
+import { ButtonAuth } from "@/components/ui/buttonAuth"
 import {
   Form,
   FormControl,
@@ -20,6 +21,8 @@ import { Spinner } from "@/components/ui/spinner"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 import Logo from "@/components/logo"
+import { GoogleIcon } from "@/components/svg/GoogleIcon"
+import { MicrosoftIcon } from "@/components/svg/MicrosoftIcon"
 
 const formSchema = z.object({
   email: z.string().email({
@@ -72,11 +75,10 @@ export default function IndexPage() {
 
   return (
     <section className="container flex h-screen max-w-md flex-col justify-center space-y-8">
-      <Logo width={50} height={50} />
-      <div className="flex flex-col space-y-4">
-        <p className="text-lg font-bold">Login to Superagent</p>
-        <p className="text-sm text-muted-foreground">
-          Enter your email to receive a one-time password
+      <div className="flex flex-col space-y-4 text-center">
+        <p className="text-3xl font-bold">Crea una cuenta</p>
+        <p className="text-muted-foreground text-sm">
+          Coloca tu email debajo para crear tu cuenta
         </p>
       </div>
       <Form {...form}>
@@ -105,7 +107,15 @@ export default function IndexPage() {
           </Button>
         </form>
       </Form>
-      <Separator />
+      <p className="my-6 text-center uppercase">Or continue with</p>
+      <div className="flex flex-col gap-5">
+        <ButtonAuth className="flex items-center gap-3"><GoogleIcon/> <span>Sign In with Google</span></ButtonAuth>
+        <ButtonAuth className="flex items-center gap-3"><MicrosoftIcon/> <span>Sign In with Microsoft</span></ButtonAuth>
+      </div>
+      <p className="mx-auto w-[60%] justify-center text-center text-xs text-gray-300">
+        By clicking continue, you agree to our Terms of Service and Privacy
+        Policy.
+      </p>
       <Toaster />
     </section>
   )

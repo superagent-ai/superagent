@@ -55,6 +55,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 import { DataTablePagination } from "@/components/data-table-pagination"
+import { PlusIcon } from "@/components/svg/PlusIcon"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -182,21 +183,14 @@ export function DataTable<TData, TValue>({
   const isAddNewAgentModalOpen = Boolean(searchParams.get("addNewAgentModal"))
 
   return (
-    <div>
+    <div className="p-5">
       <div className="flex items-center space-x-4 py-4">
-        <Input
-          placeholder="Filter by name..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
-          className="max-w-md"
-        />
         <Dialog defaultOpen={isAddNewAgentModalOpen}>
           <DialogTrigger
-            className={cn(buttonVariants({ variant: "default", size: "sm" }))}
+            className={cn(buttonVariants({ variant: "default", size: "sm" })) + "flex gap-3 p-3 rounded-sm items-center mb-5"}
           >
-            <p>New Agent</p>
+            <PlusIcon/>
+            <p>Crear un nuevo Agente</p>
           </DialogTrigger>
           <DialogContent>
             <Form {...form}>
@@ -325,59 +319,51 @@ export function DataTable<TData, TValue>({
         </Dialog>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  className="cursor-pointer"
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  onClick={() =>
-                    router.push(`/agents/${(row.original as any).id}`)
-                  }
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-3">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+      <div>
+        <div className="flex w-full">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <div className="grid flex-1 grid-cols-12 gap-4" key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <div className="col-span-3 text-xs text-gray-400" key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </div>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 flex w-full flex-col items-center gap-2">
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <div
+                className="grid flex-1 cursor-pointer grid-cols-12 gap-4 rounded-sm px-4 hover:bg-white-100"
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+                onClick={() =>
+                  router.push(`/agents/${(row.original as any).id}`)
+                }
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <div key={cell.id} className="col-span-3 py-3">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </div>
+                ))}
+              </div>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </div>
       </div>
 
       <DataTablePagination

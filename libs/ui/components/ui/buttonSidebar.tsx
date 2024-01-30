@@ -9,13 +9,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        active: "bg-white text-black",
-        default: "bg-white text-black",
-        destructive: "bg-white text-black",
-        outline: "bg-white text-black border border-input hover:bg-white hover:text-black",
-        secondary: "bg-white text-black",
-        ghost: "bg-white text-black hover:bg-white hover:text-black",
-        link: "bg-white text-black underline-offset-4 hover:underline",
+        active: "underline text-black hover:underline",
+        default: "text-black",
+        destructive: "text-black",
+        outline: "text-black border border-input hover:underline",
+        secondary: "text-black",
+        ghost: "text-black hover:underline",
+        link: "text-black underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 py-2 px-4",
@@ -37,7 +37,7 @@ export interface ButtonProps
   asChild?: boolean
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+const ButtonSidebar = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     return (
@@ -49,6 +49,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     )
   }
 )
-Button.displayName = "Button"
+ButtonSidebar.displayName = "ButtonSidebar"
 
-export { Button, buttonVariants }
+export { ButtonSidebar, buttonVariants }
