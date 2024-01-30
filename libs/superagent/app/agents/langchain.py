@@ -1,5 +1,6 @@
 import datetime
 import json
+import re
 from typing import Any, List
 
 from decouple import config
@@ -25,6 +26,21 @@ DEFAULT_PROMPT = (
     "You are a helpful AI Assistant, answer the users questions to "
     "the best of your ability."
 )
+
+
+def conform_function_name(url):
+    """
+    Validates OpenAI function names and modifies them to conform to the regex
+    """
+    regex_pattern = r"^[a-zA-Z0-9_-]{1,64}$"
+
+    # Check if the URL matches the regex
+    if re.match(regex_pattern, url):
+        return url  # URL is already valid
+    else:
+        # Modify the URL to conform to the regex
+        valid_url = re.sub(r"[^a-zA-Z0-9_-]", "", url)[:64]
+        return valid_url
 
 
 def recursive_json_loads(data):
@@ -84,7 +100,9 @@ class LangchainAgent(AgentBase):
                 PydanticModel = create_pydantic_model_from_object(args)
                 tool = create_tool(
                     tool_class=tool_info["class"],
-                    name=slugify(metadata.get("functionName", agent_tool.tool.name)),
+                    name=conform_function_name(
+                        slugify(metadata.get("functionName", agent_tool.tool.name))
+                    ),
                     description=agent_tool.tool.description,
                     metadata=agent_tool.tool.metadata,
                     args_schema=PydanticModel,
@@ -93,7 +111,7 @@ class LangchainAgent(AgentBase):
             else:
                 tool = create_tool(
                     tool_class=tool_info["class"],
-                    name=slugify(agent_tool.tool.name),
+                    name=conform_function_name(slugify(agent_tool.tool.name)),
                     description=agent_tool.tool.description,
                     metadata=agent_tool.tool.metadata,
                     args_schema=tool_info["schema"],
