@@ -1,10 +1,5 @@
 from typing import Any, List, Optional
 
-from agentops.langchain_callback_handler import (
-    AsyncCallbackHandler,
-    LangchainCallbackHandler,
-)
-
 from app.models.request import LLMParams
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
@@ -22,17 +17,15 @@ class AgentBase:
         session_id: str = None,
         enable_streaming: bool = False,
         output_schema: str = None,
-        callback: CustomAsyncIteratorCallbackHandler = None,
-        session_tracker: LangchainCallbackHandler | AsyncCallbackHandler = None,
+        callbacks: List[CustomAsyncIteratorCallbackHandler] = [],
         llm_params: Optional[LLMParams] = {},
         agent_config: Agent = None,
     ):
-        self.session_tracker = session_tracker
         self.agent_id = agent_id
         self.session_id = session_id
         self.enable_streaming = enable_streaming
         self.output_schema = output_schema
-        self.callback = callback
+        self.callbacks = callbacks
         self.llm_params = llm_params
         self.agent_config = agent_config
 
@@ -59,8 +52,7 @@ class AgentBase:
                 session_id=self.session_id,
                 enable_streaming=self.enable_streaming,
                 output_schema=self.output_schema,
-                callback=self.callback,
-                session_tracker=self.session_tracker,
+                callbacks=self.callbacks,
                 llm_params=self.llm_params,
             )
         else:
@@ -71,8 +63,7 @@ class AgentBase:
                 session_id=self.session_id,
                 enable_streaming=self.enable_streaming,
                 output_schema=self.output_schema,
-                callback=self.callback,
-                session_tracker=self.session_tracker,
+                callback=self.callbacks,
             )
 
         return await agent.get_agent(config=self.agent_config)

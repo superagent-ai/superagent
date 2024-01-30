@@ -111,18 +111,12 @@ class LangchainAgent(AgentBase):
             **(self.llm_params.dict() if self.llm_params else {}),
         }
 
-        callbacks = []
-        if self.enable_streaming:
-            callbacks.append(self.callback)
-        if self.session_tracker:
-            callbacks.append(self.session_tracker)
-
         if agent_llm.llm.provider == "OPENAI":
             return ChatOpenAI(
                 model=LLM_MAPPING[model],
                 openai_api_key=agent_llm.llm.apiKey,
                 streaming=self.enable_streaming,
-                callbacks=callbacks,
+                callbacks=self.callbacks,
                 **(agent_llm.llm.options if agent_llm.llm.options else {}),
                 **(llm_params),
             )
@@ -130,7 +124,7 @@ class LangchainAgent(AgentBase):
             return AzureChatOpenAI(
                 api_key=agent_llm.llm.apiKey,
                 streaming=self.enable_streaming,
-                callbacks=callbacks,
+                callbacks=self.callbacks,
                 **(agent_llm.llm.options if agent_llm.llm.options else {}),
                 **(llm_params),
             )

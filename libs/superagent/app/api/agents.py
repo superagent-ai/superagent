@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from typing import AsyncIterable
+from typing import AsyncIterable, List
 
 import segment.analytics as analytics
 from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
@@ -278,40 +278,39 @@ async def invoke(
                 "output": result.get("output", None),
                 "input": result.get("input", None),
                 "intermediate_steps": intermediate_steps_to_obj,
-                "prompt_tokens": costCallback.prompt_tokens,
-                "completion_tokens": costCallback.completion_tokens,
-                "prompt_tokens_cost_usd": costCallback.prompt_tokens_cost_usd,
-                "completion_tokens_cost_usd": costCallback.completion_tokens_cost_usd,
+                "prompt_tokens": cost_callback.prompt_tokens,
+                "completion_tokens": cost_callback.completion_tokens,
+                "prompt_tokens_cost_usd": cost_callback.prompt_tokens_cost_usd,
+                "completion_tokens_cost_usd": cost_callback.completion_tokens_cost_usd,
             },
         )
 
-    costCallback = CostCalcAsyncHandler(model=LLM_MAPPING[agent_config.llmModel])
-
-    agentCallbacks = [costCallback]
+    monitoring_callbacks = []
 
     if langfuse_handler:
-        agentCallbacks.append(langfuse_handler)
+        monitoring_callbacks.append(langfuse_handler)
 
     if agentops_handler:
-        agentCallbacks.append(agentops_handler)
+        monitoring_callbacks.append(agentops_handler)
 
     async def send_message(
         agent: LLMChain | AgentExecutor,
         content: str,
-        callback: CustomAsyncIteratorCallbackHandler,
+        streaming_callback: CustomAsyncIteratorCallbackHandler,
+        callbacks: List[CustomAsyncIteratorCallbackHandler] = [],
     ) -> AsyncIterable[str]:
         try:
             task = asyncio.ensure_future(
                 agent.ainvoke(
                     config={
-                        "callbacks": agentCallbacks,
+                        "callbacks": [streaming_callback, *callbacks],
                         "tags": [agent_id],
                     },
                     input=content,
                 )
             )
 
-            async for token in callback.aiter():
+            async for token in streaming_callback.aiter():
                 yield ("event: message\n" f"data: {token}\n\n")
 
             await task
@@ -344,7 +343,7 @@ async def invoke(
                     logging.error(f"Error tracking agent invocation: {e}")
             yield ("event: error\n" f"data: {error}\n\n")
         finally:
-            callback.done.set()
+            streaming_callback.done.set()
 
     logging.info("Invoking agent...")
     session_id = body.sessionId
@@ -352,14 +351,14 @@ async def invoke(
     enable_streaming = body.enableStreaming
     output_schema = body.outputSchema
 
-    callback = CustomAsyncIteratorCallbackHandler()
+    cost_callback = CostCalcAsyncHandler(model=LLM_MAPPING[agent_config.llmModel])
+    streaming_callback = CustomAsyncIteratorCallbackHandler()
     agent = await AgentBase(
         agent_id=agent_id,
         session_id=session_id,
         enable_streaming=enable_streaming,
         output_schema=output_schema,
-        callback=callback,
-        session_tracker=agentops_handler,
+        callbacks=monitoring_callbacks,
         llm_params=body.llm_params,
         agent_config=agent_config,
     ).get_agent()
@@ -367,14 +366,19 @@ async def invoke(
     if enable_streaming:
         logging.info("Streaming enabled. Preparing streaming response...")
 
-        generator = send_message(agent, content=input, callback=callback)
+        generator = send_message(
+            agent,
+            content=input,
+            streaming_callback=streaming_callback,
+            callbacks=[cost_callback],
+        )
         return StreamingResponse(generator, media_type="text/event-stream")
 
     logging.info("Streaming not enabled. Invoking agent synchronously...")
 
     output = await agent.ainvoke(
         config={
-            "callbacks": agentCallbacks,
+            "callbacks": [cost_callback],
             "tags": [agent_id],
         },
         input=input,
