@@ -4,10 +4,10 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends
 from google.cloud import bigquery
-from app.utils.prisma import prisma
 
 from app.models.response import AgentRunList as AgentRunListResponse
 from app.utils.api import get_current_api_user
+from app.utils.prisma import prisma
 
 router = APIRouter()
 logging.basicConfig(level=logging.INFO)

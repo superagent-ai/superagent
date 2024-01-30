@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from typing import AsyncIterable
+from typing import AsyncIterable, List
 
 import segment.analytics as analytics
 from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
@@ -46,15 +46,16 @@ from app.models.response import (
 from app.models.response import (
     AgentToolList as AgentToolListResponse,
 )
+from app.utils.analytics import track_agent_invocation
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.llm import LLM_MAPPING, LLM_PROVIDER_MAPPING
 from app.utils.prisma import prisma
 from app.utils.streaming import CostCalcAsyncHandler, CustomAsyncIteratorCallbackHandler
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
+analytics.write_key = SEGMENT_WRITE_KEY
 
 router = APIRouter()
-analytics.write_key = SEGMENT_WRITE_KEY
 logging.basicConfig(level=logging.INFO)
 
 
@@ -256,65 +257,32 @@ async def invoke(
         },
     )
 
-    def track_agent_invocation(result):
-        intermediate_steps_to_obj = [
-            {
-                **vars(toolClass),
-                "message_log": str(toolClass.message_log),
-                "response": response,
-            }
-            for toolClass, response in result.get("intermediate_steps", [])
-        ]
-
-        analytics.track(
-            api_user.id,
-            "Invoked Agent",
-            {
-                "agent": agent_config.id,
-                "llm_model": agent_config.llmModel,
-                "sessionId": session_id,
-                # default http status code is 200
-                "response": {
-                    "status_code": result.get("status_code", 200),
-                    "error": result.get("error", None),
-                },
-                "output": result.get("output", None),
-                "input": result.get("input", None),
-                "intermediate_steps": intermediate_steps_to_obj,
-                "prompt_tokens": costCallback.prompt_tokens,
-                "completion_tokens": costCallback.completion_tokens,
-                "prompt_tokens_cost_usd": costCallback.prompt_tokens_cost_usd,
-                "completion_tokens_cost_usd": costCallback.completion_tokens_cost_usd,
-            },
-        )
-
-    costCallback = CostCalcAsyncHandler(model=LLM_MAPPING[agent_config.llmModel])
-
-    agentCallbacks = [costCallback]
+    monitoring_callbacks = []
 
     if langfuse_handler:
-        agentCallbacks.append(langfuse_handler)
+        monitoring_callbacks.append(langfuse_handler)
 
     if agentops_handler:
-        agentCallbacks.append(agentops_handler)
+        monitoring_callbacks.append(agentops_handler)
 
     async def send_message(
         agent: LLMChain | AgentExecutor,
         content: str,
-        callback: CustomAsyncIteratorCallbackHandler,
+        streaming_callback: CustomAsyncIteratorCallbackHandler,
+        callbacks: List[CustomAsyncIteratorCallbackHandler] = [],
     ) -> AsyncIterable[str]:
         try:
             task = asyncio.ensure_future(
                 agent.ainvoke(
                     config={
-                        "callbacks": agentCallbacks,
+                        "callbacks": [streaming_callback, *callbacks],
                         "tags": [agent_id],
                     },
                     input=content,
                 )
             )
 
-            async for token in callback.aiter():
+            async for token in streaming_callback.aiter():
                 yield ("event: message\n" f"data: {token}\n\n")
 
             await task
@@ -323,7 +291,15 @@ async def invoke(
 
             if SEGMENT_WRITE_KEY:
                 try:
-                    track_agent_invocation(result)
+                    track_agent_invocation(
+                        {
+                            "user_id": api_user.id,
+                            "agent": agent_config,
+                            "session_id": body.sessionId,
+                            **result,
+                            **vars(cost_callback),
+                        }
+                    )
                 except Exception as e:
                     logging.error(f"Error tracking agent invocation: {e}")
 
@@ -342,12 +318,21 @@ async def invoke(
             logging.error(f"Error in send_message: {error}")
             if SEGMENT_WRITE_KEY:
                 try:
-                    track_agent_invocation({"error": str(error), "status_code": 500})
+                    track_agent_invocation(
+                        {
+                            "error": str(error),
+                            "status_code": 500,
+                            "user_id": api_user.id,
+                            "agent": agent_config,
+                            "session_id": body.sessionId,
+                            "input": content,
+                        }
+                    )
                 except Exception as e:
                     logging.error(f"Error tracking agent invocation: {e}")
             yield ("event: error\n" f"data: {error}\n\n")
         finally:
-            callback.done.set()
+            streaming_callback.done.set()
 
     logging.info("Invoking agent...")
     session_id = body.sessionId
@@ -355,14 +340,14 @@ async def invoke(
     enable_streaming = body.enableStreaming
     output_schema = body.outputSchema
 
-    callback = CustomAsyncIteratorCallbackHandler()
+    cost_callback = CostCalcAsyncHandler(model=LLM_MAPPING[agent_config.llmModel])
+    streaming_callback = CustomAsyncIteratorCallbackHandler()
     agent = await AgentBase(
         agent_id=agent_id,
         session_id=session_id,
         enable_streaming=enable_streaming,
         output_schema=output_schema,
-        callback=callback,
-        session_tracker=agentops_handler,
+        callbacks=monitoring_callbacks,
         llm_params=body.llm_params,
         agent_config=agent_config,
     ).get_agent()
@@ -370,14 +355,19 @@ async def invoke(
     if enable_streaming:
         logging.info("Streaming enabled. Preparing streaming response...")
 
-        generator = send_message(agent, content=input, callback=callback)
+        generator = send_message(
+            agent,
+            content=input,
+            streaming_callback=streaming_callback,
+            callbacks=[cost_callback],
+        )
         return StreamingResponse(generator, media_type="text/event-stream")
 
     logging.info("Streaming not enabled. Invoking agent synchronously...")
 
     output = await agent.ainvoke(
         config={
-            "callbacks": agentCallbacks,
+            "callbacks": [cost_callback],
             "tags": [agent_id],
         },
         input=input,
@@ -391,7 +381,15 @@ async def invoke(
 
     if not enable_streaming and SEGMENT_WRITE_KEY:
         try:
-            track_agent_invocation(output)
+            track_agent_invocation(
+                {
+                    "user_id": api_user.id,
+                    "agent": agent_config,
+                    "session_id": body.sessionId,
+                    **output,
+                    **vars(cost_callback),
+                }
+            )
         except Exception as e:
             logging.error(f"Error tracking agent invocation: {e}")
 
