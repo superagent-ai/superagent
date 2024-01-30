@@ -75,7 +75,7 @@ async def list_runs(
     if limit is not None:
         query += " LIMIT @limit"
         params.append(bigquery.ScalarQueryParameter("limit", "INT64", limit))
-    print(params)
+
     job_config = bigquery.QueryJobConfig()
     job_config.query_parameters = params
     query_job = client.query(query, job_config=job_config)
