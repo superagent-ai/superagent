@@ -13,6 +13,10 @@ export type SiteConfig = typeof siteConfig
 export const siteConfig = {
   name: "Superagent Cloud",
   description: "The agent framework for large language models",
+  paymentPlans: {
+    hobby: process.env.NEXT_PUBLIC_STRIPE_HOBBY_PLAN,
+    pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PLAN,
+  },
   mainNav: [
     {
       title: "Workflows",
@@ -49,21 +53,24 @@ export const siteConfig = {
   ],
   settingsNav: [
     {
+      id: "user",
       title: "User",
       href: "/settings",
     },
     {
+      id: "apiKeys",
       title: "Api keys",
       href: "/settings/api-keys",
     },
     {
+      id: "appearance",
       title: "Appearance",
       href: "/settings/appearance",
     },
     {
+      id: "billing",
       title: "Billing",
       href: "/settings/billing",
-      disabled: true,
     },
   ],
   defaultLLM: "GPT_3_5_TURBO_16K_0613",
