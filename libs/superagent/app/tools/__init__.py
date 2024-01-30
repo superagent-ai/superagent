@@ -83,7 +83,11 @@ def create_pydantic_model_from_object(obj: Dict[str, Any]) -> Any:
         "integer": int,
     }
     for key, value in obj.items():
-        field_type = type_mapping.get(value["type"], str)
+        if isinstance(value, dict):
+            field_type = type_mapping.get(value["type"], str)
+        else:
+            field_type = type_mapping.get(value, str)
+
         fields[key] = (field_type, ...)
     return create_model("DynamicModel", **fields)
 

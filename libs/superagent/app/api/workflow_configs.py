@@ -138,6 +138,13 @@ class WorkflowConfigHandler:
 
     async def add_tool(self, assistant_name: str, type: str, data: Dict[str, str]):
         rename_and_remove_key(data, "use_for", "description")
+
+        if type == "FUNCTION":
+            data["metadata"] = {
+                **data.get("metadata", {}),
+                "functionName": data.get("name"),
+            }
+
         data["type"] = type
 
         tool_res = await api_create_tool(
@@ -497,7 +504,6 @@ async def parse_yaml(
             raise HTTPException(status_code=400, detail=f"Error parsing YAML: {str(e)}")
 
         new_config_str = json.dumps(new_config)
-
 
         new_config = json.loads(new_config_str)
         old_config = {} if not workflow_config else workflow_config.config

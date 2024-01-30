@@ -84,7 +84,7 @@ class LangchainAgent(AgentBase):
                 PydanticModel = create_pydantic_model_from_object(args)
                 tool = create_tool(
                     tool_class=tool_info["class"],
-                    name=metadata.get("functionName"),
+                    name=slugify(metadata.get("functionName", agent_tool.tool.name)),
                     description=agent_tool.tool.description,
                     metadata=agent_tool.tool.metadata,
                     args_schema=PydanticModel,
