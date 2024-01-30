@@ -83,17 +83,18 @@ enum VectorDbProvider {
 }
 
 model ApiUser {
-  id          String       @id @default(uuid())
-  token       String?
-  email       String?      @db.Text
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  agents      Agent[]
-  llms        LLM[]
-  datasources Datasource[]
-  tools       Tool[]
-  workflows   Workflow[]
-  vectorDb    VectorDb[]
+  id              String           @id @default(uuid())
+  token           String?
+  email           String?          @db.Text
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  agents          Agent[]
+  llms            LLM[]
+  datasources     Datasource[]
+  tools           Tool[]
+  workflows       Workflow[]
+  vectorDb        VectorDb[]
+  workflowConfigs WorkflowConfig[]
 }
 
 model Agent {
@@ -137,7 +138,7 @@ model AgentDatasource {
   agentId      String
   datasourceId String
   agent        Agent      @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  datasource   Datasource @relation(fields: [datasourceId], references: [id])
+  datasource   Datasource @relation(fields: [datasourceId], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -163,7 +164,7 @@ model AgentTool {
   agentId   String
   toolId    String
   agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  tool      Tool     @relation(fields: [toolId], references: [id])
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -194,14 +195,26 @@ model AgentLLM {
 }
 
 model Workflow {
-  id          String         @id @default(uuid())
-  name        String
-  description String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  steps       WorkflowStep[]
-  apiUserId   String
-  apiUser     ApiUser        @relation(fields: [apiUserId], references: [id])
+  id              String           @id @default(uuid())
+  name            String
+  description     String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  steps           WorkflowStep[]
+  apiUserId       String
+  apiUser         ApiUser          @relation(fields: [apiUserId], references: [id])
+  workflowConfigs WorkflowConfig[]
+}
+
+model WorkflowConfig {
+  id         String   @id @default(uuid())
+  config     Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  ApiUser    ApiUser? @relation(fields: [apiUserId], references: [id])
+  apiUserId  String?
 }
 
 model WorkflowStep {

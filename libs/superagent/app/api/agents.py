@@ -28,6 +28,9 @@ from app.models.request import (
 from app.models.request import (
     AgentTool as AgentToolRequest,
 )
+from app.models.request import (
+    AgentUpdate as AgentUpdateRequest,
+)
 from app.models.response import (
     Agent as AgentResponse,
 )
@@ -182,7 +185,7 @@ async def delete(agent_id: str, api_user=Depends(get_current_api_user)):
     response_model=AgentResponse,
 )
 async def update(
-    agent_id: str, body: AgentRequest, api_user=Depends(get_current_api_user)
+    agent_id: str, body: AgentUpdateRequest, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for patching an agent"""
     try:
@@ -191,7 +194,7 @@ async def update(
         data = await prisma.agent.update(
             where={"id": agent_id},
             data={
-                **body.dict(exclude={"llmProvider"}),
+                **body.dict(exclude_unset=True),
                 "apiUserId": api_user.id,
             },
         )
