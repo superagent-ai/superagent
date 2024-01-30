@@ -305,10 +305,12 @@ async def invoke(
     ) -> AsyncIterable[str]:
         try:
             task = asyncio.ensure_future(
-                agent.acall(
-                    inputs={"input": content},
-                    tags=[agent_id],
-                    callbacks=agentCallbacks,
+                agent.ainvoke(
+                    config={
+                        "callbacks": agentCallbacks,
+                        "tags": [agent_id],
+                    },
+                    input=content,
                 )
             )
 
@@ -373,8 +375,12 @@ async def invoke(
 
     logging.info("Streaming not enabled. Invoking agent synchronously...")
 
-    output = await agent.acall(
-        inputs={"input": input}, tags=[agent_id], callbacks=agentCallbacks
+    output = await agent.ainvoke(
+        config={
+            "callbacks": agentCallbacks,
+            "tags": [agent_id],
+        },
+        input=input,
     )
 
     if output_schema:

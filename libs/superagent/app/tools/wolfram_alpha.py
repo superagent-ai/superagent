@@ -1,7 +1,7 @@
 import asyncio
 
-from langchain.tools import BaseTool
-from langchain.utilities.wolfram_alpha import WolframAlphaAPIWrapper
+from langchain_community.tools import BaseTool
+from langchain_community.utilities.wolfram_alpha import WolframAlphaAPIWrapper
 
 
 class WolframAlpha(BaseTool):

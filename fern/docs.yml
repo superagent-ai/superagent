@@ -96,6 +96,7 @@ navigation:
         api-name: prod 
         snippets: 
           python: superagent-py
+          typescript: superagentai-js
 colors:
   accentPrimary: "#FDC537"
   background: "#0F1117"
