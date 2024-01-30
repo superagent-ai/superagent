@@ -52,6 +52,7 @@
     "@supabase/auth-helpers-nextjs": "^0.7.4",
     "@supabase/supabase-js": "^2.33.1",
     "@tanstack/react-table": "^8.9.7",
+    "@types/yaml": "^1.9.7",
     "@uiw/codemirror-theme-github": "^4.21.21",
     "@uiw/codemirror-theme-vscode": "^4.21.20",
     "@uiw/react-codemirror": "^4.21.21",
@@ -93,6 +94,7 @@
     "tailwind-merge": "^1.13.2",
     "tailwindcss-animate": "^1.0.6",
     "uuid": "^9.0.0",
+    "yaml": "^2.3.4",
     "zod": "^3.22.2"
   },
   "devDependencies": {

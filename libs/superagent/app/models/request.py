@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
+from fastapi import Body
 
 from prisma.enums import LLMProvider, VectorDbProvider
 
@@ -93,6 +94,10 @@ class WorkflowInvoke(BaseModel):
     input: str
     enableStreaming: bool
     sessionId: Optional[str]
+
+
+class WorkflowConfig(BaseModel):
+    yaml_content: str
 
 
 class VectorDb(BaseModel):

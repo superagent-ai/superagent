@@ -154,7 +154,7 @@ export default function WorkflowDetail({
               <AlertDialogAction
                 onClick={async () => {
                   await api.deleteWorkflow(workflow.id)
-                  router.push("/workflow")
+                  router.push("/workflows")
                 }}
               >
                 Yes, delete!

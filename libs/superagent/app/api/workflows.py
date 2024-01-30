@@ -99,8 +99,15 @@ async def get(workflow_id: str, api_user=Depends(get_current_api_user)):
     try:
         data = await prisma.workflow.find_first(
             where={"id": workflow_id, "apiUserId": api_user.id},
-            include={"steps": {"include": {"agent": True}}},
+            include={
+                "steps": {"include": {"agent": True}},
+                "workflowConfigs": True,
+            },
         )
+
+        for config in data.workflowConfigs:
+            config.config = json.dumps(config.config)
+
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)

@@ -5,12 +5,13 @@ import { LanguageSupport, StreamLanguage } from "@codemirror/language"
 import * as yamlMode from "@codemirror/legacy-modes/mode/yaml"
 import { githubLight } from "@uiw/codemirror-theme-github"
 import CodeMirror from "@uiw/react-codemirror"
+import * as yaml from "js-yaml"
 
 import { Button } from "@/components/ui/button"
 
 const langYaml = new LanguageSupport(StreamLanguage.define(yamlMode.yaml))
 const initialValue =
-  "# 👋 Welcome! Orchestrate your worflows using yaml below.\n# More info in our docs: https://docs.superagent.sh\n\nworkflow:\n  "
+  "# 👋 Welcome! Create your worflows using yaml below.\n# More info in our docs: https://docs.superagent.sh"
 
 export default function Saml({
   workflow,
@@ -19,20 +20,22 @@ export default function Saml({
   workflow: any
   profile: any
 }) {
-  const [value, setValue] = React.useState<string>(initialValue)
+  const latestWorkflowConfig = workflow.workflowConfigs.sort(
+    (a: any, b: any) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )[0]
+  const workflowConfigsYaml = yaml.dump(latestWorkflowConfig.config, {
+    lineWidth: -1,
+  })
+  const [value, setValue] = React.useState<string>(
+    `${initialValue}\n\n${workflowConfigsYaml}`
+  )
   const onChange = React.useCallback((val: string) => {
     setValue(val)
   }, [])
 
   return (
     <div className="relative h-full flex-[40%] flex-col">
-      <div className="flex items-center justify-between border-b py-1 pl-2 pr-6">
-        <div className="flex space-x-0 p-1">
-          <p className="font-mono text-xs text-muted-foreground">
-            superagent.yml
-          </p>
-        </div>
-      </div>
       <CodeMirror
         theme={githubLight}
         value={value}
