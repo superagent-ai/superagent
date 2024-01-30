@@ -1,3 +1,4 @@
+import { Api } from "@/lib/api"
 import Sidebar from "@/components/sidebar"
 
 interface RootLayoutProps {

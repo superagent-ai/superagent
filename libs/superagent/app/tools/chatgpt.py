@@ -1,6 +1,6 @@
 from typing import Any
 
-from langchain.tools import AIPluginTool
+from langchain_community.tools import AIPluginTool
 
 
 def get_chatpgt_tool(metadata: dict | None, *_args, **_kwargs) -> Any:

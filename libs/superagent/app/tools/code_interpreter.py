@@ -1,7 +1,7 @@
 import aiohttp
 import requests
 from decouple import config
-from langchain.tools import BaseTool
+from langchain_community.tools import BaseTool
 
 
 class CodeInterpreter(BaseTool):

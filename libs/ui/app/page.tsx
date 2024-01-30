@@ -88,7 +88,7 @@ export default function IndexPage() {
   return (
     <section className="container flex h-screen max-w-md flex-col justify-center space-y-8">
       <Logo width={50} height={50} />
-      <div className="flex flex-col space-y-4">
+      <div className="flex flex-col space-y-0">
         <p className="text-lg font-bold">Login to Superagent</p>
         <p className="text-sm text-muted-foreground">
           Enter your email to receive a one-time password

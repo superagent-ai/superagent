@@ -1,5 +1,5 @@
 from langchain.llms.replicate import Replicate as ReplicateModel
-from langchain.tools import BaseTool
+from langchain_community.tools import BaseTool
 
 
 class Replicate(BaseTool):

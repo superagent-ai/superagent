@@ -54,8 +54,8 @@ class WorkflowBase:
             ).get_agent()
 
             task = asyncio.ensure_future(
-                agent.acall(
-                    inputs={"input": previous_output},
+                agent.ainvoke(
+                    input=previous_output,
                 )
             )
 

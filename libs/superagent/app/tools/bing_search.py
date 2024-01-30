@@ -1,7 +1,7 @@
 import asyncio
 
-from langchain.tools import BaseTool as LCBaseTool
-from langchain.utilities import BingSearchAPIWrapper
+from langchain_community.tools import BaseTool as LCBaseTool
+from langchain_community.utilities.bing_search import BingSearchAPIWrapper
 from pydantic import BaseModel, Field
 
 from app.tools.base import BaseTool
