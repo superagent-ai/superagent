@@ -80,7 +80,7 @@ export default function OnboardingClientPage() {
             price: siteConfig.paymentPlans.hobby,
           },
         ],
-        trial_period_days: 14,
+        trial_period_days: 7,
         payment_settings: {
           save_default_payment_method: "on_subscription",
         },
