@@ -1,8 +1,8 @@
 openapi: 3.0.2
 info:
   title: Superagent
-  description: The open source alternative to OpenAI Assistants API
-  version: 0.1.67
+  description: The Open Source AI Assistant Framework & API
+  version: 0.1.69
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -143,7 +143,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/app__models__request__Agent'
+              $ref: '#/components/schemas/AgentUpdate'
         required: true
       responses:
         '200':
@@ -195,8 +195,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
-      x-fern-sdk-method-name: invoke
       x-fern-sdk-group-name: agent
+      x-fern-sdk-method-name: invoke
   /api/v1/agents/{agent_id}/llms:
     post:
       tags:
@@ -1255,6 +1255,40 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
+  /api/v1/workflows/{workflow_id}/config:
+    post:
+      tags:
+        - Workflow Config
+      summary: Parse Yaml
+      operationId: parse_yaml_api_v1_workflows__workflow_id__config_post
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+      requestBody:
+        content:
+          application/x-yaml:
+            schema:
+              title: Yaml Content
+              type: string
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
   /api/v1/vector-db:
     post:
       tags:
@@ -1453,6 +1487,31 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__AgentTool'
+    AgentUpdate:
+      title: AgentUpdate
+      type: object
+      properties:
+        isActive:
+          title: Isactive
+          type: boolean
+        name:
+          title: Name
+          type: string
+        initialMessage:
+          title: Initialmessage
+          type: string
+        prompt:
+          title: Prompt
+          type: string
+        llmModel:
+          title: Llmmodel
+          type: string
+        description:
+          title: Description
+          type: string
+        avatar:
+          title: Avatar
+          type: string
     DatasourceList:
       title: DatasourceList
       required:
@@ -1644,6 +1703,41 @@ components:
         - SUPABASE
       type: string
       description: An enumeration.
+    WorkflowConfig:
+      title: WorkflowConfig
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - workflowId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        config:
+          title: Config
+          type: string
+          format: json-string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        workflowId:
+          title: Workflowid
+          type: string
+        workflow:
+          $ref: '#/components/schemas/prisma__models__Workflow'
+        ApiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+        apiUserId:
+          title: Apiuserid
+          type: string
+      description: Represents a WorkflowConfig record
     WorkflowInvoke:
       title: WorkflowInvoke
       required:
@@ -1696,7 +1790,6 @@ components:
       title: Agent
       required:
         - name
-        - description
       type: object
       properties:
         isActive:
@@ -1720,6 +1813,7 @@ components:
         description:
           title: Description
           type: string
+          default: An helpful agent.
         avatar:
           title: Avatar
           type: string
@@ -1829,9 +1923,7 @@ components:
       title: Tool
       required:
         - name
-        - description
         - type
-        - returnDirect
       type: object
       properties:
         name:
@@ -1840,6 +1932,7 @@ components:
         description:
           title: Description
           type: string
+          default: An helpful tool.
         type:
           title: Type
           type: string
@@ -1849,6 +1942,7 @@ components:
         returnDirect:
           title: Returndirect
           type: boolean
+          default: false
     app__models__request__VectorDb:
       title: VectorDb
       required:
@@ -2194,6 +2288,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__VectorDb'
+        workflowConfigs:
+          title: Workflowconfigs
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowConfig'
       description: Represents a ApiUser record
     prisma__models__Datasource:
       title: Datasource
@@ -2424,6 +2523,11 @@ components:
           type: string
         apiUser:
           $ref: '#/components/schemas/prisma__models__ApiUser'
+        workflowConfigs:
+          title: Workflowconfigs
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowConfig'
       description: Represents a Workflow record
     prisma__models__WorkflowStep:
       title: WorkflowStep
