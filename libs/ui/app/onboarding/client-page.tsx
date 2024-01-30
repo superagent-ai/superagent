@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form"
 import Stripe from "stripe"
 import * as z from "zod"
 
+import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
 import { stripe } from "@/lib/stripe"
 import { Button } from "@/components/ui/button"
@@ -66,10 +67,29 @@ export default function OnboardingClientPage() {
     } = await api.createApiKey(user.email)
     const params: Stripe.CustomerCreateParams = {
       name: company,
+      email: user.email,
     }
     let customer: Stripe.Customer | null = null
+    let subscription: Stripe.Subscription | null = null
     if (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
       customer = await stripe.customers.create(params)
+      subscription = await stripe.subscriptions.create({
+        customer: customer.id,
+        items: [
+          {
+            price: siteConfig.paymentPlans.hobby,
+          },
+        ],
+        trial_period_days: 14,
+        payment_settings: {
+          save_default_payment_method: "on_subscription",
+        },
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: "cancel",
+          },
+        },
+      })
     }
     const { error } = await supabase
       .from("profiles")
@@ -79,6 +99,7 @@ export default function OnboardingClientPage() {
         last_name,
         company,
         stripe_customer_id: customer?.id,
+        stripe_plan_id: subscription?.id,
         is_onboarded: true,
       })
       .eq("user_id", user?.id)
