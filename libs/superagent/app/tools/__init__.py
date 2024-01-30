@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import Any, Dict, Optional, Type
 
 from pydantic import create_model
@@ -84,7 +85,10 @@ def create_pydantic_model_from_object(obj: Dict[str, Any]) -> Any:
     }
     for key, value in obj.items():
         if isinstance(value, dict):
-            field_type = type_mapping.get(value["type"], str)
+            type = value.get("type")
+            if not type:
+                logging.warning(f"Type not found for {key}, defaulting to string")
+            field_type = type_mapping.get(type, str)
         else:
             field_type = type_mapping.get(value, str)
 
