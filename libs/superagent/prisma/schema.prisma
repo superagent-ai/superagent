@@ -83,18 +83,18 @@ enum VectorDbProvider {
 }
 
 model ApiUser {
-  id             String           @id @default(uuid())
-  token          String?
-  email          String?          @db.Text
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  agents         Agent[]
-  llms           LLM[]
-  datasources    Datasource[]
-  tools          Tool[]
-  workflows      Workflow[]
-  vectorDb       VectorDb[]
-  WorkflowConfig WorkflowConfig[]
+  id              String           @id @default(uuid())
+  token           String?
+  email           String?          @db.Text
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  agents          Agent[]
+  llms            LLM[]
+  datasources     Datasource[]
+  tools           Tool[]
+  workflows       Workflow[]
+  vectorDb        VectorDb[]
+  workflowConfigs WorkflowConfig[]
 }
 
 model Agent {
