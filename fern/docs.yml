@@ -42,6 +42,8 @@ navigation:
             path: ./mdx/sdk/local_tools.mdx
           - page: Assistant workflows
             path: ./mdx/sdk/workflows.mdx
+          - page: Configuring Vector Database
+            path: ./mdx/sdk/configure_vector_database.mdx
       - section: Deployments
         contents:
           - page: Docker
