@@ -26,7 +26,7 @@ export default function Overview({ data }: { profile: any; data: LogItem[] }) {
 
   return (
     <div className="flex space-x-6">
-      <div className="flex-1 flex-col space-y-4">
+      <div className="mt-8 flex-1 flex-col space-y-4">
         <Card className="bg-muted">
           <CardHeader>Requests</CardHeader>
           <ResponsiveContainer width="100%" height={200} className="p-0">

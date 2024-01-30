@@ -44,7 +44,7 @@ export default function PromptFrom({
       }}
       ref={formRef}
     >
-      <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-md sm:border sm:px-12">
+      <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-2xl sm:border sm:px-12">
         <button
           onClick={() => {
             onCreateSession(uuid())
