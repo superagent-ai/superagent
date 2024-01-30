@@ -201,7 +201,7 @@ export default function WorkflowDetail({
               withHandle
               className="w-2 rounded-lg bg-muted-foreground/5 transition-colors duration-500 data-[resize-handle-active]:bg-muted-foreground/50"
             />
-            <ResizablePanel defaultSize={40}>
+            <ResizablePanel maxSize={50} defaultSize={40}>
               <Saml workflow={workflow} profile={profile} />
             </ResizablePanel>
           </ResizablePanelGroup>

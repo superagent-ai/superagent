@@ -202,53 +202,54 @@ export default function Chat({
   }, [messages])
 
   return (
-    <div className="relative flex h-full w-full flex-[60%] bg-background text-sm">
-      <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-4">
-        <p
-          className={`${
-            timer === 0 ? "text-muted-foreground" : "text-primary"
-          } font-mono text-sm`}
-        >
-          {timer.toFixed(1)}s
-        </p>
-      </div>
-      <ScrollArea className="w-[100%]">
-        <div className="mx-auto mb-20 flex max-w-4xl flex-1 flex-col space-y-0 px-4 py-12">
-          {messages.map(({ type, message, steps }, index) => (
-            <Message
-              key={index}
-              type={type}
-              message={message}
-              steps={steps}
-              profile={profile}
-            />
-          ))}
+    <div className="h-full">
+      <div className="relative flex h-full w-full bg-background text-sm">
+        <div className="mt-12 flex-[20%] px-6">
+          <p
+            className={`${
+              timer === 0 ? "text-muted-foreground" : "text-primary"
+            } mb-4 font-mono text-sm`}
+          >
+            {timer.toFixed(1)}s
+          </p>
+          <FunctionCalls functionCalls={functionCalls} />
         </div>
-      </ScrollArea>
-      <div className="absolute inset-x-0 bottom-10 z-50 h-[100px] bg-gradient-to-t from-muted from-0% to-transparent to-50%">
-        <div className="relative mx-auto max-w-2xl px-8">
-          <PromptForm
-            onStop={() => abortStream()}
-            onSubmit={async (value) => {
-              if (llms.length === 0) {
-                setOpen(true)
-                return
-              }
 
-              onSubmit(value)
-            }}
-            onCreateSession={async (uuid) => {
-              setSession(uuid)
-              if (timerRef.current) {
-                clearInterval(timerRef.current)
-              }
-              setMessages([])
-              toast({
-                description: "New session created",
-              })
-            }}
-            isLoading={isLoading}
-          />
+        <div className="relative flex h-full flex-[80%] text-sm">
+          <ScrollArea className="w-full pr-20">
+            <div className="mb-20 flex max-w-4xl flex-1 flex-col space-y-0 px-4 py-12">
+              {messages.map(({ type, message, steps }, index) => (
+                <Message
+                  key={index}
+                  type={type}
+                  message={message}
+                  steps={steps}
+                  profile={profile}
+                />
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+        <div className="absolute inset-x-0 bottom-10 z-50 h-[100px] bg-gradient-to-t from-muted from-0% to-transparent to-50%">
+          <div className="relative mx-auto max-w-2xl px-8">
+            <PromptForm
+              onStop={() => abortStream()}
+              onSubmit={async (value) => {
+                onSubmit(value)
+              }}
+              onCreateSession={async (uuid) => {
+                setSession(uuid)
+                if (timerRef.current) {
+                  clearInterval(timerRef.current)
+                }
+                setMessages([])
+                toast({
+                  description: "New session created",
+                })
+              }}
+              isLoading={isLoading}
+            />
+          </div>
         </div>
       </div>
       <LLMDialog
