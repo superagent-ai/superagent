@@ -7,6 +7,7 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { siteConfig } from "@/config/site"
 import { fontSans } from "@/lib/fonts"
 import { cn } from "@/lib/utils"
+import Analytics from "@/components/analytics"
 import { ThemeProvider } from "@/components/theme-provider"
 
 import Container from "./container"
@@ -59,6 +60,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           </ThemeProvider>
         </body>
       </html>
+      <Analytics />
     </>
   )
 }
