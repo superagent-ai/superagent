@@ -16,7 +16,17 @@ class Agent(BaseModel):
     prompt: Optional[str]
     llmModel: Optional[str]
     llmProvider: Optional[LLMProvider]  # either llmProvider or llmModel must be set
-    description: str
+    description: Optional[str] = "An helpful agent."
+    avatar: Optional[str]
+
+
+class AgentUpdate(BaseModel):
+    isActive: Optional[bool]
+    name: Optional[str]
+    initialMessage: Optional[str]
+    prompt: Optional[str]
+    llmModel: Optional[str]
+    description: Optional[str]
     avatar: Optional[str]
 
 
@@ -53,10 +63,10 @@ class Datasource(BaseModel):
 
 class Tool(BaseModel):
     name: str
-    description: str
+    description: Optional[str] = "An helpful tool."
     type: str
     metadata: Optional[Dict[Any, Any]]
-    returnDirect: bool
+    returnDirect: Optional[bool] = False
 
 
 class AgentTool(BaseModel):
@@ -88,3 +98,8 @@ class WorkflowInvoke(BaseModel):
 class VectorDb(BaseModel):
     provider: VectorDbProvider
     options: Dict
+
+
+class WorkflowConfig(BaseModel):
+    name: str
+    description: Optional[str]

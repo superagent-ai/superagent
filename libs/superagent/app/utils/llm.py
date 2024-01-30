@@ -7,6 +7,9 @@ LLM_MAPPING = {
     "GPT_4_1106_PREVIEW": "gpt-4-1106-preview",
 }
 
+LLM_REVERSE_MAPPING = {v: k for k, v in LLM_MAPPING.items()}
+
+
 LLM_PROVIDER_MAPPING = {
     "OPENAI": [
         "GPT_3_5_TURBO_16K_0613",
