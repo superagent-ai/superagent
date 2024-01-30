@@ -22,9 +22,11 @@ from app.models.response import Workflow as WorkflowResponse
 from app.models.response import WorkflowList as WorkflowListResponse
 from app.models.response import WorkflowStep as WorkflowStepResponse
 from app.models.response import WorkflowStepList as WorkflowStepListResponse
+from app.utils.analytics import track_agent_invocation
 from app.utils.api import get_current_api_user, handle_exception
+from app.utils.llm import LLM_MAPPING
 from app.utils.prisma import prisma
-from app.utils.streaming import CustomAsyncIteratorCallbackHandler
+from app.utils.streaming import CostCalcAsyncHandler, CustomAsyncIteratorCallbackHandler
 from app.workflows.base import WorkflowBase
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
@@ -160,17 +162,22 @@ async def invoke(
     if SEGMENT_WRITE_KEY:
         analytics.track(api_user.id, "Invoked Workflow")
 
-    workflowData = await prisma.workflow.find_unique(
+    workflow_data = await prisma.workflow.find_unique(
         where={"id": workflow_id},
         include={"steps": {"include": {"agent": True}}},
     )
 
-    workflowSteps = [
+    workflow_steps = [
         {
-            "callback": CustomAsyncIteratorCallbackHandler(),
-            "agentName": workflowStep.agent.name,
+            "callbacks": {
+                "streaming": CustomAsyncIteratorCallbackHandler(),
+                "cost_calc": CostCalcAsyncHandler(
+                    model=LLM_MAPPING[workflow_step.agent.llmModel]
+                ),
+            },
+            "agent_name": workflow_step.agent.name,
         }
-        for workflowStep in workflowData.steps
+        for workflow_step in workflow_data.steps
     ]
 
     session_id = body.sessionId
@@ -185,12 +192,35 @@ async def invoke(
     )
 
     workflow = WorkflowBase(
-        workflow=workflowData,
+        workflow=workflow_data,
         enable_streaming=enable_streaming,
-        callbacks=[workflowStep["callback"] for workflowStep in workflowSteps],
-        session_tracker=agentops_handler,
+        callbacks=[
+            [
+                workflow_step["callbacks"]["streaming"],
+                workflow_step["callbacks"]["cost_calc"],
+            ]
+            for workflow_step in workflow_steps
+        ],
+        monitoring_callbacks=[agentops_handler],
         session_id=session_id,
     )
+
+    def track_invocation(output):
+        for index, workflow_step in enumerate(workflow_steps):
+            workflow_step_result = output.get("steps")[index]
+            cost_callback = workflow_step["callbacks"]["cost_calc"]
+            agent = workflow_data.steps[index].agent
+
+            track_agent_invocation(
+                {
+                    "workflow_id": workflow_id,
+                    "agent": agent,
+                    "user_id": api_user.id,
+                    "session_id": session_id,
+                    **workflow_step_result,
+                    **vars(cost_callback),
+                }
+            )
 
     if enable_streaming:
         logging.info("Streaming enabled. Preparing streaming response...")
@@ -198,17 +228,21 @@ async def invoke(
         async def send_message() -> AsyncIterable[str]:
             try:
                 task = asyncio.ensure_future(workflow.arun(input))
-                for workflowStep in workflowSteps:
-                    async for token in workflowStep["callback"].aiter():
-                        yield f"id: {workflowStep['agentName']}\ndata: {token}\n\n"
+                for workflow_step in workflow_steps:
+                    async for token in workflow_step["callbacks"]["streaming"].aiter():
+                        yield f"id: {workflow_step['agent_name']}\ndata: {token}\n\n"
+
                 await task
                 workflow_result = task.result()
 
-                for i in range(len(workflowSteps)):
-                    result = workflow_result.get("steps", {}).get(i, {})
+                for index, workflow_step in enumerate(workflow_steps):
+                    workflow_step_result = workflow_result.get("steps")[index]
 
-                    if "intermediate_steps" in result:
-                        for step in result["intermediate_steps"]:
+                    if SEGMENT_WRITE_KEY:
+                        track_invocation(workflow_result)
+
+                    if "intermediate_steps" in workflow_step_result:
+                        for step in workflow_step_result["intermediate_steps"]:
                             agent_action_message_log = step[0]
                             function = agent_action_message_log.tool
                             args = agent_action_message_log.tool_input
@@ -219,10 +253,30 @@ async def invoke(
                                     f'"args": {json.dumps(args)}}}\n\n'
                                 )
 
-            except Exception as e:
-                logging.error(f"Error in send_message: {e}")
+            except Exception as error:
+                yield (
+                    f"id: {workflow_step['agent_name']}\n"
+                    f"event: error\n"
+                    f"data: {error}\n\n"
+                )
+
+                if SEGMENT_WRITE_KEY:
+                    for workflow_step in workflow_data.steps:
+                        track_agent_invocation(
+                            {
+                                "workflow_id": workflow_id,
+                                "agent": workflow_step.agent,
+                                "user_id": api_user.id,
+                                "session_id": session_id,
+                                "error": str(error),
+                                "status_code": 500,
+                            }
+                        )
+
+                logging.error(f"Error in send_message: {error}")
             finally:
-                workflowStep["callback"].done.set()
+                for workflow_step in workflow_steps:
+                    workflow_step["callbacks"]["streaming"].done.set()
 
         generator = send_message()
         return StreamingResponse(generator, media_type="text/event-stream")
@@ -231,6 +285,9 @@ async def invoke(
     output = await workflow.arun(
         input,
     )
+
+    if SEGMENT_WRITE_KEY:
+        track_invocation(output)
 
     # End session
     agentops_handler.ao_client.end_session(

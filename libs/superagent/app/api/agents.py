@@ -43,15 +43,16 @@ from app.models.response import (
 from app.models.response import (
     AgentToolList as AgentToolListResponse,
 )
+from app.utils.analytics import track_agent_invocation
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.llm import LLM_MAPPING, LLM_PROVIDER_MAPPING
 from app.utils.prisma import prisma
 from app.utils.streaming import CostCalcAsyncHandler, CustomAsyncIteratorCallbackHandler
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
+analytics.write_key = SEGMENT_WRITE_KEY
 
 router = APIRouter()
-analytics.write_key = SEGMENT_WRITE_KEY
 logging.basicConfig(level=logging.INFO)
 
 
@@ -253,38 +254,6 @@ async def invoke(
         },
     )
 
-    def track_agent_invocation(result):
-        intermediate_steps_to_obj = [
-            {
-                **vars(toolClass),
-                "message_log": str(toolClass.message_log),
-                "response": response,
-            }
-            for toolClass, response in result.get("intermediate_steps", [])
-        ]
-
-        analytics.track(
-            api_user.id,
-            "Invoked Agent",
-            {
-                "agentId": agent_config.id,
-                "llm_model": agent_config.llmModel,
-                "sessionId": session_id,
-                # default http status code is 200
-                "response": {
-                    "status_code": result.get("status_code", 200),
-                    "error": result.get("error", None),
-                },
-                "output": result.get("output", None),
-                "input": result.get("input", None),
-                "intermediate_steps": intermediate_steps_to_obj,
-                "prompt_tokens": cost_callback.prompt_tokens,
-                "completion_tokens": cost_callback.completion_tokens,
-                "prompt_tokens_cost_usd": cost_callback.prompt_tokens_cost_usd,
-                "completion_tokens_cost_usd": cost_callback.completion_tokens_cost_usd,
-            },
-        )
-
     monitoring_callbacks = []
 
     if langfuse_handler:
@@ -319,7 +288,15 @@ async def invoke(
 
             if SEGMENT_WRITE_KEY:
                 try:
-                    track_agent_invocation(result)
+                    track_agent_invocation(
+                        {
+                            "user_id": api_user.id,
+                            "agent": agent_config,
+                            "session_id": body.sessionId,
+                            **result,
+                            **vars(cost_callback),
+                        }
+                    )
                 except Exception as e:
                     logging.error(f"Error tracking agent invocation: {e}")
 
@@ -338,7 +315,16 @@ async def invoke(
             logging.error(f"Error in send_message: {error}")
             if SEGMENT_WRITE_KEY:
                 try:
-                    track_agent_invocation({"error": str(error), "status_code": 500})
+                    track_agent_invocation(
+                        {
+                            "error": str(error),
+                            "status_code": 500,
+                            "user_id": api_user.id,
+                            "agent": agent_config,
+                            "session_id": body.sessionId,
+                            "input": content,
+                        }
+                    )
                 except Exception as e:
                     logging.error(f"Error tracking agent invocation: {e}")
             yield ("event: error\n" f"data: {error}\n\n")
@@ -392,7 +378,15 @@ async def invoke(
 
     if not enable_streaming and SEGMENT_WRITE_KEY:
         try:
-            track_agent_invocation(output)
+            track_agent_invocation(
+                {
+                    "user_id": api_user.id,
+                    "agent": agent_config,
+                    "session_id": body.sessionId,
+                    **output,
+                    **vars(cost_callback),
+                }
+            )
         except Exception as e:
             logging.error(f"Error tracking agent invocation: {e}")
 
