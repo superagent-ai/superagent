@@ -99,7 +99,10 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
         llm = await prisma.llm.find_first(
             where={"provider": provider, "apiUserId": api_user.id}
         )
-        await prisma.agentllm.create({"agentId": agent.id, "llmId": llm.id})
+
+        if llm:
+            await prisma.agentllm.create({"agentId": agent.id, "llmId": llm.id})
+
         return {"success": True, "data": agent}
     except Exception as e:
         handle_exception(e)

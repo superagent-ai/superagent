@@ -191,16 +191,6 @@ export default function Chat({
     }
   }
 
-  const messagesEndRef = React.useRef<HTMLDivElement>(null)
-
-  const scrollToMessagesBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
-  }
-
-  React.useEffect(() => {
-    scrollToMessagesBottom()
-  }, [messages])
-
   return (
     <div className="h-full">
       <div className="relative flex h-full w-full bg-background text-sm">
@@ -233,7 +223,7 @@ export default function Chat({
               <PromptForm
                 onStop={() => abortStream()}
                 onSubmit={async (value) => {
-                  onSubmit(value)
+                  llms.length > 0 ? onSubmit(value) : setOpen(true)
                 }}
                 onCreateSession={async (uuid) => {
                   setSession(uuid)
@@ -256,6 +246,7 @@ export default function Chat({
         onOpenChange={(change) => setOpen(change)}
         profile={profile}
         title="Heads up!"
+        workflow={workflow}
         description="Before you can test this workflow you need to configure a Language Model."
       />
     </div>

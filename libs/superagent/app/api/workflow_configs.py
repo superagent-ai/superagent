@@ -209,8 +209,10 @@ class WorkflowConfigHandler:
     async def add_assistant(self, data: Dict[str, str], order: int):
         new_agent = data
 
-        new_agent["llmModel"] = LLM_REVERSE_MAPPING[new_agent["llmModel"]]
+        rename_and_remove_key(new_agent, "llm", "llmModel")
+        rename_and_remove_key(new_agent, "intro", "initialMessage")
 
+        new_agent["llmModel"] = LLM_REVERSE_MAPPING[new_agent["llmModel"]]
         new_agent_data = await api_create_agent(
             body=AgentRequest(**new_agent),
             api_user=self.api_user,
@@ -262,8 +264,6 @@ class WorkflowConfigHandler:
     async def update_tool(
         self, assistant_name: str, tool_name: str, data: Dict[str, str]
     ):
-        rename_and_remove_key(data, "use_for", "description")
-
         await prisma.agent.find_first(
             where={
                 "name": assistant_name,
@@ -334,12 +334,6 @@ class WorkflowConfigHandler:
     async def process_tools(self, old_tools, new_tools, assistant_name):
         # Process individual tools
         tools_length = max(len(old_tools), len(new_tools))
-
-        for tool in new_tools:
-            rename_and_remove_key(tool, "use_for", "description")
-
-        for tool in old_tools:
-            rename_and_remove_key(tool, "use_for", "description")
 
         for tool_step in range(tools_length):
             old_tool_obj = old_tools[tool_step] if tool_step < len(old_tools) else {}
@@ -425,12 +419,6 @@ class WorkflowConfigHandler:
         old_tools = old_assistant.get("tools") or []
         new_tools = new_assistant.get("tools") or []
 
-        rename_and_remove_key(old_assistant, "llm", "llmModel")
-        rename_and_remove_key(old_assistant, "intro", "initialMessage")
-
-        rename_and_remove_key(new_assistant, "llm", "llmModel")
-        rename_and_remove_key(new_assistant, "intro", "initialMessage")
-
         # Remove 'data' and 'tools' keys from assistant objects
         remove_key_if_present(old_assistant, "data")
         remove_key_if_present(old_assistant, "tools")
@@ -505,7 +493,6 @@ async def add_config(
         workflow_config = await prisma.workflowconfig.find_first(
             where={"workflowId": workflow_id}, order={"createdAt": "desc"}
         )
-
         try:
             parsed_yaml = yaml.safe_load(yaml_content)
             # validating the parsed yaml
@@ -523,6 +510,7 @@ async def add_config(
             workflow_id=workflow_id,
             api_user=api_user,
         )
+
         await workflow_config_handler.handle_changes(old_config, new_config)
 
         config = await prisma.workflowconfig.create(

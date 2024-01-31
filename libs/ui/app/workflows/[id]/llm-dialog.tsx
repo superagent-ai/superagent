@@ -41,11 +41,13 @@ export default function LLMDialog({
   title,
   description,
   onOpenChange,
+  workflow,
 }: {
   profile: Profile
   isOpen: boolean
   title: string
   description: string
+  workflow?: any
   onOpenChange: (change: any) => void
 }) {
   const api = new Api(profile.api_key)
@@ -60,7 +62,10 @@ export default function LLMDialog({
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await api.createLLM({ ...values })
+    const { data: llm } = await api.createLLM({ ...values })
+    for (const _workflow of workflow?.steps) {
+      await api.createAgentLLM(_workflow.agentId, llm.id)
+    }
     onOpenChange(false)
     router.refresh()
   }

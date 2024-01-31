@@ -18,11 +18,7 @@ export default function Header({ profile }: { profile: Profile }) {
       name: "My Workflow",
       description: "My new workflow",
     })
-    const { data: config } = await api.generateWorkflow(
-      workflow.id,
-      defaultYaml
-    )
-    console.log(config)
+    await api.generateWorkflow(workflow.id, defaultYaml)
     router.push(`/workflows/${workflow.id}`)
   })
 

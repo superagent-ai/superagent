@@ -75,6 +75,7 @@ export default function WorkflowDetail({
         isOpen={isLLMModalOpen}
         onOpenChange={(change: any) => setIsLLMModalOpen(change)}
         profile={profile}
+        workflow={workflow}
         title="Configure a Language Model"
         description="Before you can start creating your first worflow you need to configure a Language Model from one of the options below."
       />
