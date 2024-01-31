@@ -1,15 +1,22 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import { LanguageSupport, StreamLanguage } from "@codemirror/language"
 import * as yamlMode from "@codemirror/legacy-modes/mode/yaml"
+import { keymap } from "@codemirror/view"
+import { indentationMarkers } from "@replit/codemirror-indentation-markers"
 import { githubLight } from "@uiw/codemirror-theme-github"
 import CodeMirror from "@uiw/react-codemirror"
 import * as yaml from "js-yaml"
+import { TbCommand } from "react-icons/tb"
+import { useAsyncFn } from "react-use"
 
-import { Button } from "@/components/ui/button"
+import { Api } from "@/lib/api"
+import { Spinner } from "@/components/ui/spinner"
 
 const langYaml = new LanguageSupport(StreamLanguage.define(yamlMode.yaml))
+
 const initialValue =
   "# 👋 Welcome! Create your worflows using yaml below.\n# More info in our docs: https://docs.superagent.sh"
 
@@ -20,6 +27,8 @@ export default function Saml({
   workflow: any
   profile: any
 }) {
+  const api = new Api(profile.api_key)
+  const router = useRouter()
   const latestWorkflowConfig = workflow.workflowConfigs.sort(
     (a: any, b: any) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -34,25 +43,34 @@ export default function Saml({
     setValue(val)
   }, [])
 
+  const [{ loading: isSavingConfig }, saveConfig] = useAsyncFn(async () => {
+    const { data: config } = await api.generateWorkflow(workflow.id, value)
+    router.refresh()
+    return config
+  }, [value, router, api])
+
+  const onTrigger = async () => {
+    await saveConfig()
+  }
+
+  const customKeymap = [
+    keymap.of([
+      {
+        key: "Cmd-s",
+        run: () => {
+          onTrigger()
+          return true
+        },
+      },
+    ]),
+  ]
+
   return (
     <div className="relative h-full flex-[40%] flex-col">
-      <CodeMirror
-        theme={githubLight}
-        value={value}
-        onChange={onChange}
-        extensions={[langYaml]}
-        height="100%"
-        indentWithTab={true}
-        style={{
-          border: "none",
-          outline: "none",
-          height: "100%",
-        }}
-      />
-      <div className="absolute bottom-4 flex w-full items-center justify-end space-x-4 px-6 py-12">
+      <div className="flex space-x-2 border-b px-3 py-2">
         <p className="text-xs text-muted-foreground">
           Last update:{" "}
-          {new Date(workflow.createdAt).toLocaleString("en-US", {
+          {new Date(latestWorkflowConfig.createdAt).toLocaleString("en-US", {
             year: "numeric",
             month: "2-digit",
             day: "2-digit",
@@ -61,7 +79,44 @@ export default function Saml({
             second: "2-digit",
           })}
         </p>
-        <Button size="sm">Save</Button>
+      </div>
+      <CodeMirror
+        autoFocus={true}
+        theme={githubLight}
+        value={value}
+        onChange={onChange}
+        extensions={[langYaml, indentationMarkers(), customKeymap]}
+        height="100%"
+        indentWithTab={true}
+        basicSetup={{
+          indentOnInput: true,
+          syntaxHighlighting: true,
+          highlightActiveLineGutter: true,
+        }}
+        style={{
+          border: "none",
+          outline: "none",
+          height: "100%",
+        }}
+      />
+      <div className="absolute bottom-4 flex w-full flex-col items-center justify-center space-y-4 px-6 py-12">
+        {isSavingConfig ? (
+          <div className="flex items-center space-x-1 py-1 text-sm text-muted-foreground">
+            <Spinner />
+            <span>Saving...</span>
+          </div>
+        ) : (
+          <p className="flex items-center space-x-1 text-sm text-muted-foreground">
+            <span>Press</span>
+            <code className="relative flex rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+              <div className="flex items-center">
+                <TbCommand />
+                <span>S</span>
+              </div>
+            </code>
+            <span>to save</span>
+          </p>
+        )}
       </div>
     </div>
   )
