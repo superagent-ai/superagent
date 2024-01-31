@@ -1,3 +1,14 @@
+export const defaultYaml = `workflows:
+  - superagent: 
+      name: Earnings assistant
+      llm: gpt-4-1106-preview
+      prompt: Use the earnings report to answer any questions
+      intro: 👋 Hi there! How can I help you?
+      data: # This is for structured and unstructured data
+        use_for: Answering questions about earning reports
+        urls:
+          - https://s2.q4cdn.com/299287126/files/doc_financials/2023/q3/AMZN-Q3-2023-Earnings-Release.pdf`
+
 export const yamlSchema = {
   workflows: [
     {

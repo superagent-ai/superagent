@@ -21,9 +21,9 @@ export class Api {
     const response = await fetch(url.toString(), {
       ...options,
       headers: {
-        ...options.headers,
         "Content-Type": "application/json",
         authorization: `Bearer ${this.apiKey}`,
+        ...options.headers,
       },
     })
 
@@ -202,6 +202,16 @@ export class Api {
     return this.fetchFromApi("/workflows", {
       method: "POST",
       body: JSON.stringify(payload),
+    })
+  }
+
+  async generateWorkflow(workflowId: string, payload: any) {
+    return this.fetchFromApi(`/workflows/${workflowId}/config`, {
+      method: "POST",
+      body: payload,
+      headers: {
+        "content-type": "application/x-yaml",
+      },
     })
   }
 

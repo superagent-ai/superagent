@@ -398,7 +398,7 @@ class WorkflowConfigHandler:
                         assistant_name=assistant_name,
                         data={
                             # TODO: this will be changed once we implement superrag
-                            "name": url,
+                            "name": f"{MIME_TYPE_TO_EXTENSION[type]} doc {new_data.get('use_for')}",
                             "description": new_data.get("use_for"),
                             "url": url,
                             "type": MIME_TYPE_TO_EXTENSION[type],
@@ -485,7 +485,7 @@ class WorkflowConfigHandler:
 
 
 @router.post("/workflows/{workflow_id}/config")
-async def parse_yaml(
+async def add_config(
     workflow_id: str,
     yaml_content: str = Body(..., media_type="application/x-yaml"),
     api_user=Depends(get_current_api_user),
@@ -514,7 +514,7 @@ async def parse_yaml(
         )
         await workflow_config_handler.handle_changes(old_config, new_config)
 
-        await prisma.workflowconfig.create(
+        config = await prisma.workflowconfig.create(
             data={
                 "workflowId": workflow_id,
                 "config": new_config_str,
@@ -522,6 +522,6 @@ async def parse_yaml(
             }
         )
 
-        return {"success": True}
+        return {"success": True, "data": config}
     except Exception as e:
         handle_exception(e)
