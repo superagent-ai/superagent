@@ -33,7 +33,7 @@ export default function Saml({
     (a: any, b: any) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   )[0]
-  const workflowConfigsYaml = yaml.dump(latestWorkflowConfig.config, {
+  const workflowConfigsYaml = yaml.dump(latestWorkflowConfig?.config, {
     lineWidth: -1,
   })
   const [value, setValue] = React.useState<string>(
@@ -70,7 +70,7 @@ export default function Saml({
       <div className="flex space-x-2 border-b px-3 py-2">
         <p className="text-xs text-muted-foreground">
           Last update:{" "}
-          {new Date(latestWorkflowConfig.createdAt).toLocaleString("en-US", {
+          {new Date(latestWorkflowConfig?.createdAt).toLocaleString("en-US", {
             year: "numeric",
             month: "2-digit",
             day: "2-digit",
