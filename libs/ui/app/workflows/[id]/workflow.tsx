@@ -164,7 +164,10 @@ export default function WorkflowDetail({
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      <Tabs defaultValue="saml" className="flex-1 space-y-0 overflow-hidden">
+      <Tabs
+        defaultValue="saml"
+        className="flex flex-1 flex-col space-y-0 overflow-hidden"
+      >
         <TabsList className="px-6 py-1.5">
           <TabsTrigger value="saml" className="space-x-1">
             <RxPlay size={12} />
@@ -193,7 +196,7 @@ export default function WorkflowDetail({
             <LogList profile={profile} data={logs || []} />
           )}
         </TabsContent>
-        <TabsContent value="saml" className="flex h-full text-sm">
+        <TabsContent value="saml" className="flex text-sm">
           <ResizablePanelGroup direction="horizontal">
             <ResizablePanel minSize={30}>
               <Chat workflow={workflow} profile={profile} llms={llms} />

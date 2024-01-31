@@ -47,7 +47,7 @@ export default function Chat({
   )
 
   const [functionCalls, setFunctionCalls] = React.useState<any[]>()
-
+  const lastMessageRef = React.useRef<HTMLDivElement | null>(null)
   const [timer, setTimer] = React.useState<number>(0)
   const [session, setSession] = React.useState<string | null>(uuidv4())
   const [open, setOpen] = React.useState<boolean>(false)
@@ -191,6 +191,10 @@ export default function Chat({
     }
   }
 
+  React.useEffect(() => {
+    lastMessageRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
+
   return (
     <div className="h-full">
       <div className="relative flex h-full w-full bg-background text-sm">
@@ -214,11 +218,16 @@ export default function Chat({
                   message={message}
                   steps={steps}
                   profile={profile}
+                  ref={
+                    messages.length !== 0 && index === messages.length - 1
+                      ? lastMessageRef
+                      : null
+                  }
                 />
               ))}
             </div>
           </ScrollArea>
-          <div className="absolute inset-x-0 bottom-10 z-50 h-[100px] bg-gradient-to-t from-muted from-0% to-transparent to-50%">
+          <div className="absolute inset-x-0 bottom-0 z-50 h-[100px] bg-gradient-to-t from-muted from-0% to-transparent to-50%">
             <div className="relative mx-auto max-w-2xl px-8">
               <PromptForm
                 onStop={() => abortStream()}

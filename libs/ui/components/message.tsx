@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { motion } from "framer-motion"
 import { LangfuseWeb } from "langfuse"
 import { AiOutlineExclamationCircle } from "react-icons/ai"
@@ -67,93 +68,94 @@ interface MessageProps {
   onResubmit?: () => void
 }
 
-export default function Message({
-  type,
-  message,
-  isSuccess = true,
-  steps,
-  profile,
-  onResubmit,
-}: MessageProps) {
-  const { toast } = useToast()
-  const handleCopy = () => {
-    navigator.clipboard.writeText(message)
-    toast({
-      description: "Message copied to clipboard!",
-    })
-  }
+const Message = React.forwardRef<HTMLDivElement, MessageProps>(
+  ({ type, message, isSuccess = true, steps, profile, onResubmit }, ref) => {
+    const { toast } = useToast()
+    const handleCopy = () => {
+      navigator.clipboard.writeText(message)
+      toast({
+        description: "Message copied to clipboard!",
+      })
+    }
 
-  return (
-    <div className="container flex max-w-4xl flex-col space-y-1 pb-4">
-      <div className="min-w-4xl flex max-w-4xl space-x-4 pb-2 font-mono">
-        <Avatar
-          className={`h-8 w-8 rounded-md ${
-            type !== "human" && "text-green-400"
-          }`}
-        >
-          <AvatarFallback className="rounded-md bg-background">
-            {type === "human"
-              ? `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`
-              : "A"}
-          </AvatarFallback>
-        </Avatar>
-        <div className="ml-4 mt-1 flex-1 flex-col space-y-2 overflow-hidden px-1">
-          {message?.length === 0 && !steps && <PulsatingCursor />}
-          {isSuccess ? (
-            <>
-              {steps
-                ? Object.entries(steps).map(([key, value], index) => (
-                    <Accordion
-                      defaultValue={Object.keys(steps)[0]}
-                      type="single"
-                      collapsible
-                    >
-                      <AccordionItem value={key}>
-                        <AccordionTrigger
-                          className={`mb-4 py-0 text-sm hover:no-underline ${
-                            index > 0 && "mt-2"
-                          }`}
-                        >
-                          <p className="font-semibold">{key}</p>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <CustomMarkdown message={value} />
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  ))
-                : message && <CustomMarkdown message={message} />}
-              {type === "ai" && message.length > 0 && (
-                <div className="flex space-x-2 ">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleCopy()}
-                    className="rounded-lg"
-                  >
-                    <RxCopy size="15px" />
-                  </Button>
-                  {onResubmit && (
+    return (
+      <div className="container flex max-w-4xl flex-col space-y-1 pb-4">
+        <div className="min-w-4xl flex max-w-4xl space-x-4 pb-2 font-mono">
+          <Avatar
+            className={`h-8 w-8 rounded-md ${
+              type !== "human" && "text-green-400"
+            }`}
+          >
+            <AvatarFallback className="rounded-md bg-background">
+              {type === "human"
+                ? `${profile.first_name.charAt(0)}${profile.last_name.charAt(
+                    0
+                  )}`
+                : "A"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="ml-4 mt-1 flex-1 flex-col space-y-2 overflow-hidden px-1">
+            {message?.length === 0 && !steps && <PulsatingCursor />}
+            {isSuccess ? (
+              <>
+                {steps
+                  ? Object.entries(steps).map(([key, value], index) => (
+                      <Accordion
+                        defaultValue={Object.keys(steps)[0]}
+                        type="single"
+                        collapsible
+                      >
+                        <AccordionItem value={key} ref={ref}>
+                          <AccordionTrigger
+                            className={`mb-4 py-0 text-sm hover:no-underline ${
+                              index > 0 && "mt-2"
+                            }`}
+                          >
+                            <p className="font-semibold">{key}</p>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <CustomMarkdown message={value} />
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    ))
+                  : message && <CustomMarkdown message={message} />}
+                {type === "ai" && message.length > 0 && (
+                  <div className="flex space-x-2 ">
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={onResubmit}
+                      onClick={() => handleCopy()}
                       className="rounded-lg"
                     >
-                      <RxReload size="15px" />
+                      <RxCopy size="15px" />
                     </Button>
-                  )}
-                </div>
-              )}
-            </>
-          ) : (
-            <MessageAlert error={message} />
-          )}
+                    {onResubmit && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={onResubmit}
+                        className="rounded-lg"
+                      >
+                        <RxReload size="15px" />
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <MessageAlert error={message} />
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
+)
+
+Message.displayName = "Message"
+
+export default Message
 
 interface CustomMarkdownProps {
   message: string
