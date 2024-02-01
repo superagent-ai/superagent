@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The Open Source AI Assistant Framework & API
-  version: 0.1.71
+  version: 0.1.72
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -1589,6 +1589,7 @@ components:
         - GPT_3_5_TURBO_16K_0613
         - GPT_3_5_TURBO_0613
         - GPT_3_5_TURBO_1106
+        - GPT_3_5_TURBO_0125
         - GPT_4_0613
         - GPT_4_32K_0613
         - GPT_4_1106_PREVIEW
