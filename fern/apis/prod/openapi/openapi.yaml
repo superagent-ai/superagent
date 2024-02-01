@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The Open Source AI Assistant Framework & API
-  version: 0.1.69
+  version: 0.1.72
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -195,8 +195,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
-      x-fern-sdk-group-name: agent
       x-fern-sdk-method-name: invoke
+      x-fern-sdk-group-name: agent
   /api/v1/agents/{agent_id}/llms:
     post:
       tags:
@@ -1589,9 +1589,11 @@ components:
         - GPT_3_5_TURBO_16K_0613
         - GPT_3_5_TURBO_0613
         - GPT_3_5_TURBO_1106
+        - GPT_3_5_TURBO_0125
         - GPT_4_0613
         - GPT_4_32K_0613
         - GPT_4_1106_PREVIEW
+        - GPT_4_TURBO_PREVIEW
         - MISTRAL_7B_INSTRUCT_V01
         - MIXTRAL_8X7B_INSTRUCT_V01
       type: string

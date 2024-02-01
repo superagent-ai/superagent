@@ -40,7 +40,6 @@ gitpython = "^3.1.36"
 python-pptx = "^0.6.22"
 openpyxl = "^3.1.2"
 unstructured = "^0.10.16"
-python-docx = "^0.8.11"
 requests = "^2.31.0"
 wolframalpha = "^5.0.0"
 bs4 = "^0.0.1"
@@ -63,6 +62,7 @@ agentops = {extras = ["langchain"], version = "^0.0.20"}
 langsmith = "^0.0.83"
 langchain = "^0.1.4"
 langchain-openai = "^0.0.5"
+python-docx = "^1.1.0"
 
 
 
