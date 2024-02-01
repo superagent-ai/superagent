@@ -9,7 +9,7 @@ export default async function AssistantsLayout({
 }: AssistantsLayoutProps) {
   return (
     <div className="flex h-screen flex-col justify-between space-y-0 overflow-hidden">
-      <div className="flex grow overflow-auto">{children}</div>
+      <div className="flex grow">{children}</div>
     </div>
   )
 }

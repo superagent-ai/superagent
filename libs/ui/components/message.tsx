@@ -84,10 +84,10 @@ export default function Message({
   }
 
   return (
-    <div className="container flex max-w-4xl flex-col space-y-1 pb-4">
-      <div className="min-w-4xl flex max-w-4xl space-x-4 pb-2 font-mono">
+    <div className="container flex flex-col space-y-1 pb-4 md:max-w-md lg:max-w-4xl">
+      <div className="flex max-w-4xl space-x-4 pb-2 font-mono">
         <Avatar
-          className={`h-8 w-8 rounded-md ${
+          className={`h-8 w-8 rounded-md border ${
             type !== "human" && "text-green-400"
           }`}
         >
@@ -97,17 +97,13 @@ export default function Message({
               : "A"}
           </AvatarFallback>
         </Avatar>
-        <div className="ml-4 mt-1 flex-1 flex-col space-y-2 overflow-hidden px-1">
+        <div className="ml-4 mt-2 flex-1 flex-col space-y-2 overflow-hidden px-1">
           {message?.length === 0 && !steps && <PulsatingCursor />}
           {isSuccess ? (
             <>
               {steps
                 ? Object.entries(steps).map(([key, value], index) => (
-                    <Accordion
-                      defaultValue={Object.keys(steps)[0]}
-                      type="single"
-                      collapsible
-                    >
+                    <Accordion defaultValue={key} type="single" collapsible>
                       <AccordionItem value={key}>
                         <AccordionTrigger
                           className={`mb-4 py-0 text-sm hover:no-underline ${

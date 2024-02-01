@@ -44,14 +44,14 @@ export default function PromptFrom({
       }}
       ref={formRef}
     >
-      <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-2xl sm:border sm:px-12">
+      <div className="relative flex max-h-60 grow flex-col overflow-hidden bg-background px-8 sm:rounded-2xl sm:border sm:px-12">
         <button
           onClick={() => {
             onCreateSession(uuid())
           }}
           className={cn(
             buttonVariants({ size: "sm", variant: "outline" }),
-            "absolute left-0 top-4 h-8 w-8 rounded-full bg-background p-0 sm:left-4"
+            "absolute bottom-4 left-0 h-8 w-8 rounded-full bg-background p-0 sm:left-4"
           )}
         >
           <RxPlus />
@@ -68,7 +68,7 @@ export default function PromptFrom({
           spellCheck={false}
           className="min-h-[60px] w-full resize-none bg-transparent px-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
         />
-        <div className="absolute right-0 top-2.5 sm:right-4">
+        <div className="absolute bottom-4 right-0 sm:right-4">
           {isLoading ? (
             <Button
               onClick={onStop}

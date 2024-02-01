@@ -99,7 +99,7 @@ export default function Saml({
           height: "100%",
         }}
       />
-      <div className="absolute bottom-4 flex w-full flex-col items-center justify-center space-y-4 px-6 py-12">
+      <div className="absolute bottom-4 flex w-full flex-col items-center justify-center space-y-4 px-6 pt-12">
         {isSavingConfig ? (
           <div className="flex items-center space-x-1 py-1 text-sm text-muted-foreground">
             <Spinner />

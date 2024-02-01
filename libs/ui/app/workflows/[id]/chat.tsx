@@ -47,7 +47,7 @@ export default function Chat({
   )
 
   const [functionCalls, setFunctionCalls] = React.useState<any[]>()
-
+  const endOfMessagesRef = React.useRef<HTMLDivElement | null>(null)
   const [timer, setTimer] = React.useState<number>(0)
   const [session, setSession] = React.useState<string | null>(uuidv4())
   const [open, setOpen] = React.useState<boolean>(false)
@@ -191,53 +191,60 @@ export default function Chat({
     }
   }
 
+  React.useEffect(() => {
+    endOfMessagesRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest",
+    })
+  }, [messages])
+
   return (
-    <div className="h-full">
-      <div className="relative flex h-full w-full bg-background text-sm">
-        <div className="mt-8 max-w-[15%] flex-[20%] flex-col items-start justify-start px-6">
-          <FunctionCalls functionCalls={functionCalls} />
-          <p
-            className={`${
-              timer === 0 ? "text-muted-foreground" : "text-primary"
-            } mt-4 font-mono text-sm`}
-          >
-            {timer.toFixed(1)}s
-          </p>
-        </div>
-        <div className="relative flex h-full flex-[80%] border-l bg-muted text-sm">
-          <ScrollArea className="w-full">
-            <div className="mb-20 flex flex-1 flex-1 flex-col space-y-0 px-4 pb-12 pt-8">
-              {messages.map(({ type, message, steps }, index) => (
-                <Message
-                  key={index}
-                  type={type}
-                  message={message}
-                  steps={steps}
-                  profile={profile}
-                />
-              ))}
-            </div>
-          </ScrollArea>
-          <div className="absolute inset-x-0 bottom-10 z-50 h-[100px] bg-gradient-to-t from-muted from-0% to-transparent to-50%">
-            <div className="relative mx-auto max-w-2xl px-8">
-              <PromptForm
-                onStop={() => abortStream()}
-                onSubmit={async (value) => {
-                  llms.length > 0 ? onSubmit(value) : setOpen(true)
-                }}
-                onCreateSession={async (uuid) => {
-                  setSession(uuid)
-                  if (timerRef.current) {
-                    clearInterval(timerRef.current)
-                  }
-                  setMessages([])
-                  toast({
-                    description: "New session created",
-                  })
-                }}
-                isLoading={isLoading}
+    <div className="relative flex flex-1 bg-background text-sm">
+      <div className="mt-8 max-w-[15%] flex-[20%] flex-col items-start justify-start px-6">
+        <FunctionCalls functionCalls={functionCalls} />
+        <p
+          className={`${
+            timer === 0 ? "text-muted-foreground" : "text-primary"
+          } mt-4 font-mono text-sm`}
+        >
+          {timer.toFixed(1)}s
+        </p>
+      </div>
+      <div className="relative flex flex-1 flex-col border-l bg-muted text-sm">
+        <ScrollArea className="flex-1 overflow-y-auto">
+          <div className="flex flex-1 flex-col space-y-0 px-4 pb-10 pt-8">
+            {messages.map(({ type, message, steps }, index) => (
+              <Message
+                key={index}
+                type={type}
+                message={message}
+                steps={steps}
+                profile={profile}
               />
-            </div>
+            ))}
+            <div ref={endOfMessagesRef} className="pt-20" />
+          </div>
+        </ScrollArea>
+        <div className="absolute bottom-0 z-50 flex w-full flex-col bg-gradient-to-t from-muted from-0% to-transparent to-50% pb-8 sm:px-5 lg:px-20">
+          <div className="container max-w-4xl grow self-center px-8">
+            <PromptForm
+              onStop={() => abortStream()}
+              onSubmit={async (value) => {
+                llms.length > 0 ? onSubmit(value) : setOpen(true)
+              }}
+              onCreateSession={async (uuid) => {
+                setSession(uuid)
+                if (timerRef.current) {
+                  clearInterval(timerRef.current)
+                }
+                setMessages([])
+                toast({
+                  description: "New session created",
+                })
+              }}
+              isLoading={isLoading}
+            />
           </div>
         </div>
       </div>
