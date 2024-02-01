@@ -20,6 +20,19 @@ const langYaml = new LanguageSupport(StreamLanguage.define(yamlMode.yaml))
 const initialValue =
   "# 👋 Welcome! Create your worflows using yaml below.\n# More info in our docs: https://docs.superagent.sh"
 
+function removeNullValues(obj: any) {
+  const newObj: any = Array.isArray(obj) ? [] : {}
+  for (const key in obj) {
+    if (obj[key] === null) continue
+    if (typeof obj[key] === "object") {
+      newObj[key] = removeNullValues(obj[key])
+    } else {
+      newObj[key] = obj[key]
+    }
+  }
+  return newObj
+}
+
 export default function Saml({
   workflow,
   profile,
@@ -33,7 +46,8 @@ export default function Saml({
     (a: any, b: any) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   )[0]
-  const workflowConfigsYaml = yaml.dump(latestWorkflowConfig?.config, {
+  const formattedConfig = removeNullValues(latestWorkflowConfig?.config)
+  const workflowConfigsYaml = yaml.dump(formattedConfig, {
     lineWidth: -1,
   })
   const [value, setValue] = React.useState<string>(
