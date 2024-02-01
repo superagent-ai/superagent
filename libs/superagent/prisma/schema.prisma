@@ -10,6 +10,11 @@ datasource db {
   shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
 }
 
+enum AgentType {
+  SUPERAGENT
+  OPENAI_ASSISTANT
+}
+
 enum LLMProvider {
   OPENAI
   AZURE_OPENAI
@@ -101,6 +106,7 @@ model ApiUser {
 
 model Agent {
   id             String            @id @default(uuid())
+  type           AgentType         @default(SUPERAGENT)
   name           String
   avatar         String?
   initialMessage String?           @db.Text()
