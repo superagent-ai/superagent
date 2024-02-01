@@ -54,6 +54,7 @@ Note that you usually only need to create the `llm` object once and re-use it f
         agent = client.agent.create(request={
             "name": "Chat Assistant",
             "description": "My first Assistant",
+            "type": "SUPERAGENT",
             "avatar": "https://myavatar.com/homanp.png",
             "isActive": True,
             "initialMessage": "Hi there! How can I help you?",
@@ -67,6 +68,7 @@ Note that you usually only need to create the `llm` object once and re-use it f
         const {data: agent} = await client.agent.create({
             name: "Chat Assistant",
             description: "My first Assistant",
+            type: "SUPERAGENT",
             avatar: "https://myavatar.com/homanp.png",
             isActive: true,
             initialMessage: "Hi there! How can I help you?",
