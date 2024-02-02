@@ -379,6 +379,7 @@ async def invoke(
             "completion_tokens": 0,
             "prompt_tokens_cost_usd": 0,
             "completion_tokens_cost_usd": 0,
+            "type": agent_config.type,
         }
 
         if SEGMENT_WRITE_KEY:
@@ -422,6 +423,7 @@ async def invoke(
                 "completion_tokens": costCallback.completion_tokens,
                 "prompt_tokens_cost_usd": costCallback.prompt_tokens_cost_usd,
                 "completion_tokens_cost_usd": costCallback.completion_tokens_cost_usd,
+                "type": agent_config.type,
             },
         )
 
