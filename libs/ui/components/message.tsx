@@ -3,8 +3,6 @@
 import { motion } from "framer-motion"
 import { LangfuseWeb } from "langfuse"
 import { AiOutlineExclamationCircle } from "react-icons/ai"
-import { GoThumbsdown, GoThumbsup } from "react-icons/go"
-import { RxCopy, RxReload } from "react-icons/rx"
 import remarkGfm from "remark-gfm"
 import remarkMath from "remark-math"
 
@@ -17,7 +15,6 @@ import {
 } from "@/components/ui/accordion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -104,7 +101,10 @@ export default function Message({
               {steps
                 ? Object.entries(steps).map(([key, value], index) => (
                     <Accordion defaultValue={key} type="single" collapsible>
-                      <AccordionItem value={key}>
+                      <AccordionItem
+                        value={key}
+                        className="border-muted-foreground"
+                      >
                         <AccordionTrigger
                           className={`mb-4 py-0 text-sm hover:no-underline ${
                             index > 0 && "mt-2"
@@ -119,28 +119,6 @@ export default function Message({
                     </Accordion>
                   ))
                 : message && <CustomMarkdown message={message} />}
-              {type === "ai" && message.length > 0 && (
-                <div className="flex space-x-2 ">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleCopy()}
-                    className="rounded-lg"
-                  >
-                    <RxCopy size="15px" />
-                  </Button>
-                  {onResubmit && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={onResubmit}
-                      className="rounded-lg"
-                    >
-                      <RxReload size="15px" />
-                    </Button>
-                  )}
-                </div>
-              )}
             </>
           ) : (
             <MessageAlert error={message} />

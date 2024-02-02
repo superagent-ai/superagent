@@ -6,6 +6,7 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { siteConfig } from "@/config/site"
 import { fontSans } from "@/lib/fonts"
+import PostHogClient from "@/lib/posthog"
 import { cn } from "@/lib/utils"
 import Analytics from "@/components/analytics"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -40,6 +41,10 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   const {
     data: { session },
   } = await supabase.auth.getSession()
+
+  if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+    PostHogClient()
+  }
 
   return (
     <>
