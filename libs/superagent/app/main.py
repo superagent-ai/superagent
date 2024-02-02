@@ -35,7 +35,7 @@ app = FastAPI(
     title="Superagent",
     docs_url="/",
     description="The Open Source AI Assistant Framework & API",
-    version="0.1.73",
+    version="0.1.74",
     servers=[{"url": "https://api.beta.superagent.sh"}],
 )
 
