@@ -1,17 +1,18 @@
+"use client"
+
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import * as yaml from "js-yaml"
 import * as monaco from "monaco-editor"
 import { useTheme } from "next-themes"
 import { TbCommand } from "react-icons/tb"
-import profile from "react-syntax-highlighter/dist/esm/languages/hljs/profile"
 import { useAsyncFn } from "react-use"
 
 import { initialSamlValue } from "@/config/saml"
 import { Api } from "@/lib/api"
 import { Spinner } from "@/components/ui/spinner"
 
-import { initMonaco } from "./init-editor"
+import { initMonaco } from "./editor"
 
 function removeNullValues(obj: any) {
   const newObj: any = Array.isArray(obj) ? [] : {}

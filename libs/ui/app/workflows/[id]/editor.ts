@@ -1,7 +1,7 @@
 import loader from "@monaco-editor/loader"
 import { configureMonacoYaml } from "monaco-yaml"
 
-import { initialSamlValue, yamlJsonSchema } from "@/config/saml"
+import { yamlJsonSchema } from "@/config/saml"
 
 window.MonacoEnvironment = {
   getWorker(_, label) {
@@ -45,7 +45,11 @@ export async function initMonaco(
     return monaco.editor.create(wrapperEl, {
       automaticLayout: true,
       model,
-      theme: theme === "dark" ? "vs-dark" : "vs-light",
+      scrollbar: {
+        vertical: "hidden",
+      },
+      fontSize: 14,
+      theme: theme === "dark" ? "github-dark" : "github-light",
       quickSuggestions: {
         other: true,
         comments: false,
