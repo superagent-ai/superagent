@@ -5,7 +5,7 @@ import { TbPlus } from "react-icons/tb"
 import { useAsyncFn } from "react-use"
 
 import { Profile } from "@/types/profile"
-import { defaultYaml } from "@/config/saml"
+import { initialSamlValue } from "@/config/saml"
 import { Api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
@@ -18,7 +18,7 @@ export default function Header({ profile }: { profile: Profile }) {
       name: "My Workflow",
       description: "My new workflow",
     })
-    await api.generateWorkflow(workflow.id, defaultYaml)
+    await api.generateWorkflow(workflow.id, initialSamlValue)
     router.push(`/workflows/${workflow.id}`)
   })
 

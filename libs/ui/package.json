@@ -70,6 +70,8 @@
     "langfuse": "^1.0.31",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "0.105.0-alpha.4",
+    "monaco-editor": "^0.45.0",
+    "monaco-yaml": "^5.1.1",
     "next": "^13.5.2",
     "next-themes": "^0.2.1",
     "npm": "^10.4.0",
