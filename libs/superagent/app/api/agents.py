@@ -8,6 +8,7 @@ from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
 from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse, StreamingResponse
+from openai import OpenAI
 from langchain.agents import AgentExecutor
 from langchain.chains import LLMChain
 from langfuse import Langfuse
@@ -66,6 +67,21 @@ logging.basicConfig(level=logging.INFO)
 )
 async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     """Endpoint for creating an agent"""
+    if body.type == "OPENAI_ASSISTANT":
+        # Create OPENAI ASSISTANT
+        # get the api key
+        llm = await prisma.llm.find_unique_or_raise(where={"provider": "OPENAI"})
+        oai = OpenAI(api_key=llm.apiKey)
+        oai_assistant = oai.beta.assistants.create(
+            model=body.llmModel,
+            instructions=body.prompt,
+            name=body.name,
+            description=body.description,
+            metadata=body.oai_options.metadata,
+            tools=body.oai_options.tools,
+            file_ids=body.oai_options.file_ids,
+        )
+
     try:
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Created Agent", {**body.dict()})
@@ -74,6 +90,7 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
             {
                 **body.dict(exclude={"llmProvider"}),
                 "apiUserId": api_user.id,
+                "openaiMetadata": oai_assistant.json(),
             },
             include={
                 "tools": {"include": {"tool": True}},
@@ -297,6 +314,9 @@ async def invoke(
 
     if agentops_handler:
         agentCallbacks.append(agentops_handler)
+
+    if agent_config.type == "OPENAI_ASSISTANT":
+        pass
 
     async def send_message(
         agent: LLMChain | AgentExecutor,
