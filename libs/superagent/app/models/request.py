@@ -100,15 +100,6 @@ class WorkflowInvoke(BaseModel):
     sessionId: Optional[str]
 
 
-class WorkflowConfig(BaseModel):
-    yaml_content: str
-
-
 class VectorDb(BaseModel):
     provider: VectorDbProvider
     options: Dict
-
-
-class WorkflowConfig(BaseModel):
-    name: str
-    description: Optional[str]

@@ -398,11 +398,15 @@ class WorkflowConfigHandler:
                 type = get_mimetype_from_url(url)
 
                 if type in MIME_TYPE_TO_EXTENSION:
+                    name = (
+                        f"{MIME_TYPE_TO_EXTENSION[type]} "
+                        f"doc {new_data.get('use_for')}"
+                    )
                     await self.add_datasource(
                         assistant_name=assistant_name,
                         data={
                             # TODO: this will be changed once we implement superrag
-                            "name": f"{MIME_TYPE_TO_EXTENSION[type]} doc {new_data.get('use_for')}",
+                            "name": name,
                             "description": new_data.get("use_for"),
                             "url": url,
                             "type": MIME_TYPE_TO_EXTENSION[type],
