@@ -219,7 +219,14 @@ async def delete(agent_id: str, api_user=Depends(get_current_api_user)):
     try:
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Deleted Agent")
-        await prisma.agent.delete(where={"id": agent_id})
+        deleted = await prisma.agent.delete(where={"id": agent_id})
+        openaiMetadata = json.loads(deleted.openaiMetadata)
+        if openaiMetadata.get("id", None):
+            llm = await prisma.llm.find_first_or_raise(
+                where={"provider": "OPENAI", "apiUserId": api_user.id}
+            )
+            oai = OpenAI(api_key=llm.apiKey)
+            oai.beta.assistants.delete(openaiMetadata.get("id"))
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
@@ -245,6 +252,28 @@ async def update(
                 "apiUserId": api_user.id,
             },
         )
+        openaiMetadata = json.loads(data.openaiMetadata)
+        if openaiMetadata:
+            llm = await prisma.llm.find_first_or_raise(
+                where={"provider": "OPENAI", "apiUserId": api_user.id}
+            )
+            oai = OpenAI(api_key=llm.apiKey)
+            oai_assistant = oai.beta.assistants.update(
+                assistant_id=openaiMetadata.get("id"),
+                name=data.name,
+                description=data.description,
+                instructions=data.prompt,
+                tools=openaiMetadata.get("tools", []),
+                file_ids=openaiMetadata.get("file_ids", []),
+                metadata=openaiMetadata.get("metadata", {}),
+            )
+            data = await prisma.agent.update(
+                where={"id": agent_id},
+                data={
+                    "openaiMetadata": json.dumps(oai_assistant.json()),
+                    "apiUserId": api_user.id,
+                },
+            )
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
