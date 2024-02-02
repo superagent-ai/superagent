@@ -1,7 +1,7 @@
 import asyncio
 import json
-import time
 import logging
+import time
 from typing import AsyncIterable
 
 import segment.analytics as analytics
@@ -9,10 +9,10 @@ from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
 from decouple import config
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse, StreamingResponse
-from openai import AsyncOpenAI
 from langchain.agents import AgentExecutor
 from langchain.chains import LLMChain
 from langfuse import Langfuse
+from openai import AsyncOpenAI
 
 from app.agents.base import AgentBase
 from app.models.request import (
