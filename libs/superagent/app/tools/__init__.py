@@ -1,9 +1,9 @@
 import json
 import logging
+from enum import Enum
 from typing import Any, Dict, Optional, Type
 
 from pydantic import create_model
-from enum import Enum
 
 from app.models.tools import (
     AgentInput,

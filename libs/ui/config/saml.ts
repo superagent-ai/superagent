@@ -1,4 +1,9 @@
-export const defaultYaml = `workflows:
+import { JSONSchema7 } from "json-schema"
+
+export const initialSamlValue = `# 👋 Welcome! Start creating your workflows using example yaml below.
+# More info in our docs: https://docs.superagent.sh
+
+workflows:
   - superagent: 
       name: Earnings assistant
       llm: gpt-4-1106-preview
@@ -7,112 +12,103 @@ export const defaultYaml = `workflows:
       data: # This is for structured and unstructured data
         use_for: Answering questions about earning reports
         urls:
-          - https://s2.q4cdn.com/299287126/files/doc_financials/2023/q3/AMZN-Q3-2023-Earnings-Release.pdf`
+          - "https://s2.q4cdn.com/299287126/files/doc_financials/2023/q3/AMZN-Q3-2023-Earnings-Release.pdf"
+`
+// TODO: get this from the backend after migrating to pydantic version 2
+export const yamlJsonSchema = {
+  $schema: "http://json-schema.org/draft-07/schema#",
 
-export const yamlSchema = {
-  workflows: [
-    {
-      superagent: {
-        name: "My assistant",
-        llm: "gpt-4-1106-preview",
-        prompt: "You are a helpful AI assitant.",
-        intro: "👋 Hi there! How can I help you?",
-        data: {
-          use_for: "Querying internal data",
-          urls: [
-            "https://acme.inc/test.pdf",
-            "https://acme.inc/transactions.csv",
-          ],
+  type: "object",
+  properties: {
+    workflows: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          superagent: {
+            $ref: "#/definitions/assistant",
+          },
+          opeani_assistants: {
+            $ref: "#/definitions/assistant",
+          },
         },
-        tools: [
-          {
-            browser: {
-              name: "Browser",
-              use_for: "Finding information on the internet",
-            },
-          },
-          {
-            code_interpreter: {
-              name: "Code interpreter",
-              use_for: "Writing and executing code",
-            },
-          },
-          {
-            human_handoff: {
-              name: "Human hand-off",
-            },
-          },
-          {
-            http: {
-              name: "My custom api",
-              use_for: "Use for making http requests",
-              metadata: {
-                headers: {
-                  Authorization: "Bearer <token>",
-                },
-                url: "<url>",
-                method: "post",
-                body: {
-                  title: "string",
-                },
-              },
-            },
-          },
-          {
-            bing_search: {
-              name: "Bing search",
-              use_for: "Use for accessing Bing Search",
-              metadata: {
-                bingSearchUrl: "<bing_search_url>",
-                bingSubscriptionKey: "<bing_subscription_key>",
-              },
-            },
-          },
-          {
-            replicate: {
-              name: "SDXL Image generator",
-              use_for: "Use for generating something with a model on Replicate",
-              metadata: {
-                model: "<model>",
-                apiKey: "<api_key>",
-                arguments: {
-                  key: "value",
-                },
-              },
-            },
-          },
-          {
-            algolia: {
-              name: "My index",
-              use_for: "Querying an index",
-              metadata: {
-                apiId: "<api_key>",
-                apiKey: "<api_key>",
-                index: "<index>",
-              },
-            },
-          },
-          {
-            metaphor: {
-              name: "Metaphor Search",
-              use_for: "Search the internet",
-              metadata: {
-                metaphorApiKey: "<api_key>",
-              },
-            },
-          },
-          {
-            function: {
-              name: "my_function",
-              use_for: "Call my custom function",
-              arguments: {
-                name: "string",
-                title: "string",
-              },
-            },
-          },
-        ],
       },
     },
-  ],
-}
+  },
+  definitions: {
+    assistant: {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        llm: { type: "string" },
+        prompt: { type: "string" },
+        intro: { type: "string" },
+        data: {
+          type: "object",
+          properties: {
+            use_for: { type: "string" },
+            urls: {
+              type: "array",
+              items: { type: "string" },
+            },
+          },
+        },
+        tools: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              browser: {
+                $ref: "#/definitions/tool",
+              },
+              code_executor: {
+                $ref: "#/definitions/tool",
+              },
+              hand_off: {
+                $ref: "#/definitions/tool",
+              },
+              http: {
+                $ref: "#/definitions/tool",
+              },
+              bing_search: {
+                $ref: "#/definitions/tool",
+              },
+              replicate: {
+                $ref: "#/definitions/tool",
+              },
+              algolia: {
+                $ref: "#/definitions/tool",
+              },
+              metaphor: {
+                $ref: "#/definitions/tool",
+              },
+              function: {
+                $ref: "#/definitions/tool",
+              },
+            },
+          },
+        },
+      },
+    },
+    tool: {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        use_for: { type: "string" },
+        metadata: {
+          type: "object",
+          properties: {
+            headers: {
+              type: "object",
+              additionalProperties: { type: "string" },
+            },
+            url: { type: "string" },
+            method: { type: "string" },
+            body: { type: "object" },
+          },
+        },
+      },
+    },
+  },
+  required: ["workflows"],
+} satisfies JSONSchema7

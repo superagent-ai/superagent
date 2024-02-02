@@ -3467,13 +3467,13 @@ dev = ["cairosvg", "codespell", "flaky", "ipython", "ipython (==8.12.*)", "jinja
 
 [[package]]
 name = "prisma"
-version = "0.9.1"
+version = "0.12.0"
 description = "Prisma Client Python is an auto-generated and fully type-safe database client"
 optional = false
 python-versions = ">=3.7.0"
 files = [
-    {file = "prisma-0.9.1-py3-none-any.whl", hash = "sha256:a59447cee28cb04a6c480f875d50bb1a1c1661013a81d3145114d39fd53a806c"},
-    {file = "prisma-0.9.1.tar.gz", hash = "sha256:c8a58845833890da931f0d04719ae6506dc86f018b46bb3084402d0d38af8e23"},
+    {file = "prisma-0.12.0-py3-none-any.whl", hash = "sha256:4b90438bb8030f71a33bfb66fdf2ce1e342a28ee524e4c2702d9f73643571d6f"},
+    {file = "prisma-0.12.0.tar.gz", hash = "sha256:ec22804caae37555bd9ffa5efdcc630b2bed77187d13da5269715b1ad51a35f9"},
 ]
 
 [package.dependencies]
@@ -3481,8 +3481,9 @@ click = ">=7.1.2"
 httpx = ">=0.19.0"
 jinja2 = ">=2.11.2"
 nodeenv = "*"
-pydantic = ">=1.8.0,<2.0.0"
+pydantic = ">=1.8.0,<3"
 python-dotenv = ">=0.12.0"
+StrEnum = {version = "*", markers = "python_version < \"3.11\""}
 tomlkit = "*"
 typing-extensions = ">=4.0.1"
 
@@ -4896,6 +4897,22 @@ typing-extensions = {version = ">=3.10.0", markers = "python_version < \"3.10\""
 full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart", "pyyaml"]
 
 [[package]]
+name = "strenum"
+version = "0.4.15"
+description = "An Enum that inherits from str."
+optional = false
+python-versions = "*"
+files = [
+    {file = "StrEnum-0.4.15-py3-none-any.whl", hash = "sha256:a30cda4af7cc6b5bf52c8055bc4bf4b2b6b14a93b574626da33df53cf7740659"},
+    {file = "StrEnum-0.4.15.tar.gz", hash = "sha256:878fb5ab705442070e4dd1929bb5e2249511c0bcf2b0eeacf3bcd80875c82eff"},
+]
+
+[package.extras]
+docs = ["myst-parser[linkify]", "sphinx", "sphinx-rtd-theme"]
+release = ["twine"]
+test = ["pylint", "pytest", "pytest-black", "pytest-cov", "pytest-pylint"]
+
+[[package]]
 name = "tabulate"
 version = "0.9.0"
 description = "Pretty-print tabular data"
@@ -6011,4 +6028,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1, <3.12"
-content-hash = "19c6d7be83d035e7226727c9ea75a5366ce38b0d149cd07f9fb48e9d06c95e56"
+content-hash = "cecbdbaeb3590b3f52f5b5b5720680f16782d622ae618fa3d57c8fb5b6900e46"

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { RxActivityLog, RxPieChart, RxPlay } from "react-icons/rx"
@@ -34,7 +35,10 @@ import LogList from "../../../components/log-list"
 import Chat from "./chat"
 import LLMDialog from "./llm-dialog"
 import Overview from "./overview"
-import Saml from "./saml"
+
+const Saml = dynamic(() => import("./saml"), {
+  ssr: false,
+})
 
 export default function WorkflowDetail({
   workflow,
@@ -201,7 +205,11 @@ export default function WorkflowDetail({
           className="flex flex-1 overflow-hidden text-sm"
         >
           <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel className="flex flex-1">
+            <ResizablePanel
+              defaultSize={60}
+              minSize={30}
+              className="flex flex-1"
+            >
               <Chat workflow={workflow} profile={profile} llms={llms} />
             </ResizablePanel>
             <ResizableHandle

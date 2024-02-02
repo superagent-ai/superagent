@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import Stripe from "stripe"
 import * as z from "zod"
 
-import { defaultYaml } from "@/config/saml"
+import { initialSamlValue } from "@/config/saml"
 import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
 import { stripe } from "@/lib/stripe"
@@ -121,7 +121,7 @@ export default function OnboardingClientPage() {
       description: "My new workflow",
     })
 
-    await client.generateWorkflow(workflow.id, defaultYaml)
+    await client.generateWorkflow(workflow.id, initialSamlValue)
 
     window.location.href = `/workflows/${workflow.id}`
   }

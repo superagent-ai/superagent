@@ -122,6 +122,7 @@ model Agent {
   datasources    AgentDatasource[]
   tools          AgentTool[]
   workflowSteps  WorkflowStep[]
+  openaiMetadata Json?
 }
 
 model Datasource {
