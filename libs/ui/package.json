@@ -77,6 +77,7 @@
     "next-themes": "^0.2.1",
     "npm": "^10.4.0",
     "openai": "^4.26.0",
+    "posthog-node": "^3.6.1",
     "react": "^18.2.0",
     "react-code-blocks": "^0.1.4",
     "react-dnd": "^16.0.1",
