@@ -64,15 +64,10 @@ export default function SAML({
         monacoEl.current!,
         theme,
         formattedConfig ? workflowConfigsYaml : initialSamlValue
-      ).then((editor) => {
-        setEditor(editor)
-        editor?.addCommand(
-          monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
-          saveConfig
-        )
-      })
+      ).then(setEditor)
     }
 
+    editor?.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, saveConfig)
     return () => editor?.dispose()
   }, [monacoEl.current])
 

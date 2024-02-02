@@ -1,7 +1,7 @@
-import * as monaco from "monaco-editor"
+import loader from "@monaco-editor/loader"
 import { configureMonacoYaml } from "monaco-yaml"
 
-import { yamlJsonSchema } from "@/config/saml"
+import { initialSamlValue, yamlJsonSchema } from "@/config/saml"
 
 window.MonacoEnvironment = {
   getWorker(_, label) {
@@ -23,33 +23,35 @@ export async function initMonaco(
   theme: string = "light",
   initialValue: string
 ) {
-  configureMonacoYaml(monaco, {
-    enableSchemaRequest: false,
-    schemas: [
-      {
-        fileMatch: ["*"],
-        uri: "http://example.com/schema-name.json",
-        schema: yamlJsonSchema,
+  return loader.init().then((monaco) => {
+    configureMonacoYaml(monaco, {
+      enableSchemaRequest: false,
+      schemas: [
+        {
+          fileMatch: ["*"],
+          uri: "http://example.com/schema-name.json",
+          schema: yamlJsonSchema,
+        },
+      ],
+    })
+
+    const modelUri = monaco.Uri.parse("config.yaml")
+    const model = monaco.editor.getModel(modelUri)
+
+    if (!model) {
+      monaco.editor.createModel(initialValue, "yaml", modelUri)
+    }
+
+    return monaco.editor.create(wrapperEl, {
+      automaticLayout: true,
+      model,
+      theme: theme === "dark" ? "vs-dark" : "vs-light",
+      quickSuggestions: {
+        other: true,
+        comments: false,
+        strings: true,
       },
-    ],
-  })
-
-  const modelUri = monaco.Uri.parse("config.yaml")
-  const model = monaco.editor.getModel(modelUri)
-
-  if (!model) {
-    monaco.editor.createModel(initialValue, "yaml", modelUri)
-  }
-
-  return monaco.editor.create(wrapperEl, {
-    automaticLayout: true,
-    model,
-    theme: theme === "dark" ? "vs-dark" : "vs-light",
-    quickSuggestions: {
-      other: true,
-      comments: false,
-      strings: true,
-    },
-    minimap: { enabled: false },
+      minimap: { enabled: false },
+    })
   })
 }
