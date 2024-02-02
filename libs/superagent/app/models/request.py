@@ -1,9 +1,8 @@
 from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
-from fastapi import Body
 
-from prisma.enums import LLMProvider, VectorDbProvider
+from prisma.enums import AgentType, LLMProvider, VectorDbProvider
 
 
 class ApiUser(BaseModel):
@@ -20,6 +19,7 @@ class Agent(BaseModel):
     llmProvider: Optional[LLMProvider]
     description: Optional[str]
     avatar: Optional[str]
+    type: Optional[AgentType] = AgentType.SUPERAGENT
     openaiOptions: Optional[Dict[str, Any]]
 
 
@@ -100,15 +100,6 @@ class WorkflowInvoke(BaseModel):
     sessionId: Optional[str]
 
 
-class WorkflowConfig(BaseModel):
-    yaml_content: str
-
-
 class VectorDb(BaseModel):
     provider: VectorDbProvider
     options: Dict
-
-
-class WorkflowConfig(BaseModel):
-    name: str
-    description: Optional[str]

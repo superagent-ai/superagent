@@ -1,12 +1,8 @@
 import asyncio
 import json
 import logging
-<<<<<<< HEAD
-from typing import AsyncIterable, List
-=======
 import time
-from typing import AsyncIterable
->>>>>>> main
+from typing import AsyncIterable, List
 
 import segment.analytics as analytics
 from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
@@ -52,7 +48,6 @@ from app.models.response import (
 from app.models.response import (
     AgentToolList as AgentToolListResponse,
 )
-from app.utils.analytics import track_agent_invocation
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.llm import LLM_MAPPING, LLM_PROVIDER_MAPPING
 from app.utils.prisma import prisma
@@ -115,7 +110,6 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
                 "llms": {"include": {"llm": True}},
             },
         )
-<<<<<<< HEAD
 
         provider = body.llmProvider
         if body.llmModel:
@@ -137,9 +131,6 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
         if llm:
             await prisma.agentllm.create({"agentId": agent.id, "llmId": llm.id})
 
-=======
-        await prisma.agentllm.create({"agentId": agent.id, "llmId": llm.id})
->>>>>>> main
         return {"success": True, "data": agent}
     else:
         try:
@@ -458,7 +449,7 @@ async def invoke(
 
     costCallback = CostCalcAsyncHandler(model=LLM_MAPPING[agent_config.llmModel])
 
-    agentCallbacks = [costCallback]
+    monitoring_callbacks = [costCallback]
 
     if langfuse_handler:
         monitoring_callbacks.append(langfuse_handler)
