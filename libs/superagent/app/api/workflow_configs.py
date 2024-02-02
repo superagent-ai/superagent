@@ -206,13 +206,15 @@ class WorkflowConfigHandler:
                             f"Deleted datasource: {datasource_name} - {assistant_name}"
                         )
 
-    async def add_assistant(self, data: Dict[str, str], order: int):
+    async def add_assistant(self, data: Dict[str, str], order: int, type: str):
         new_agent = data
 
         rename_and_remove_key(new_agent, "llm", "llmModel")
         rename_and_remove_key(new_agent, "intro", "initialMessage")
 
         new_agent["llmModel"] = LLM_REVERSE_MAPPING[new_agent["llmModel"]]
+        new_agent["type"] = type.upper()
+
         new_agent_data = await api_create_agent(
             body=AgentRequest(**new_agent),
             api_user=self.api_user,
@@ -430,7 +432,9 @@ class WorkflowConfigHandler:
                 await self.delete_assistant(
                     assistant_name=old_assistant["name"],
                 )
-                await self.add_assistant(data=new_assistant, order=workflow_step_order)
+                await self.add_assistant(
+                    data=new_assistant, order=workflow_step_order, type=new_type
+                )
                 # all tools and data should be re-created
                 await self.process_tools({}, new_tools, new_assistant.get("name"))
                 await self.process_data(
@@ -461,6 +465,7 @@ class WorkflowConfigHandler:
             await self.add_assistant(
                 data=new_assistant,
                 order=workflow_step_order,
+                type=new_type,
             )
             await self.process_tools(old_tools, new_tools, new_assistant.get("name"))
             await self.process_data(

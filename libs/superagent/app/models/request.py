@@ -1,9 +1,8 @@
 from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
-from fastapi import Body
 
-from prisma.enums import LLMProvider, VectorDbProvider
+from prisma.enums import AgentType, LLMProvider, VectorDbProvider
 
 
 class ApiUser(BaseModel):
@@ -19,6 +18,7 @@ class Agent(BaseModel):
     llmProvider: Optional[LLMProvider]  # either llmProvider or llmModel must be set
     description: Optional[str] = "An helpful agent."
     avatar: Optional[str]
+    type: Optional[AgentType] = AgentType.SUPERAGENT
 
 
 class AgentUpdate(BaseModel):
