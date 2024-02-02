@@ -12,14 +12,14 @@ class ApiUser(BaseModel):
 class Agent(BaseModel):
     isActive: bool = True
     name: str
-    type: Optional[str]
+    type: Optional[str] = "SUPERAGENT"
     initialMessage: Optional[str]
     prompt: Optional[str]
     llmModel: Optional[str]
     llmProvider: Optional[LLMProvider]
     description: Optional[str]
     avatar: Optional[str]
-    oai_options: Optional[Dict[str, Any]]
+    openaiOptions: Optional[Dict[str, Any]]
 
 
 class AgentUpdate(BaseModel):
@@ -30,6 +30,8 @@ class AgentUpdate(BaseModel):
     llmModel: Optional[str]
     description: Optional[str]
     avatar: Optional[str]
+    type: Optional[str]
+    openaiOptions: Optional[Dict[str, Any]]
 
 
 class AgentLLM(BaseModel):
