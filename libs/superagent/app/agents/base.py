@@ -44,7 +44,7 @@ class AgentBase:
         raise NotImplementedError
 
     async def get_agent(self):
-        if self.agent_config.llms[0].llm.provider in ["OPENAI", "AZURE_OPENAI"]:
+        if self.agent_config.type == "SUPERAGENT":
             from app.agents.langchain import LangchainAgent
 
             agent = LangchainAgent(
@@ -56,14 +56,6 @@ class AgentBase:
                 llm_params=self.llm_params,
             )
         else:
-            from app.agents.superagent import SuperagentAgent
-
-            agent = SuperagentAgent(
-                agent_id=self.agent_id,
-                session_id=self.session_id,
-                enable_streaming=self.enable_streaming,
-                output_schema=self.output_schema,
-                callback=self.callbacks,
-            )
+            pass
 
         return await agent.get_agent(config=self.agent_config)

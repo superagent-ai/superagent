@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The Open Source AI Assistant Framework & API
-  version: 0.1.72
+  version: 0.1.73
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -195,8 +195,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
-      x-fern-sdk-method-name: invoke
       x-fern-sdk-group-name: agent
+      x-fern-sdk-method-name: invoke
   /api/v1/agents/{agent_id}/llms:
     post:
       tags:
@@ -1487,6 +1487,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__AgentTool'
+    AgentType:
+      title: AgentType
+      enum:
+        - SUPERAGENT
+        - OPENAI_ASSISTANT
+      type: string
+      description: An enumeration.
     AgentUpdate:
       title: AgentUpdate
       type: object
@@ -2086,6 +2093,7 @@ components:
       title: Agent
       required:
         - id
+        - type
         - name
         - description
         - isActive
@@ -2097,6 +2105,8 @@ components:
         id:
           title: Id
           type: string
+        type:
+          $ref: '#/components/schemas/AgentType'
         name:
           title: Name
           type: string
