@@ -57,6 +57,17 @@ def rename_and_remove_key(dictionary, old_key, new_key):
         del dictionary[old_key]
 
 
+def rename_and_remove_keys(dictionary, key_map):
+    """
+    Renames a key in a dictionary and removes the old key if it exists
+
+    dictionary: The dictionary to rename the key in
+    key_map: A dictionary of old keys to new keys
+    """
+    for old_key, new_key in key_map.items():
+        rename_and_remove_key(dictionary, old_key, new_key)
+
+
 def parse_mimetype(mimetype):
     if not mimetype:
         return None

@@ -66,7 +66,7 @@ from app.utils.helpers import (
     compare_dicts,
     get_mimetype_from_url,
     remove_key_if_present,
-    rename_and_remove_key,
+    rename_and_remove_keys,
 )
 from app.utils.llm import LLM_REVERSE_MAPPING
 from app.utils.prisma import prisma
@@ -136,17 +136,7 @@ class WorkflowConfigHandler:
                         )
                         logger.info(f"Deleted tool: {tool_name} - {assistant_name}")
 
-    async def add_tool(self, assistant_name: str, type: str, data: Dict[str, str]):
-        rename_and_remove_key(data, "use_for", "description")
-
-        if type == "FUNCTION":
-            data["metadata"] = {
-                **data.get("metadata", {}),
-                "functionName": data.get("name"),
-            }
-
-        data["type"] = type
-
+    async def add_tool(self, assistant_name: str, data: Dict[str, str]):
         tool_res = await api_create_tool(
             body=ToolRequest(**data),
             api_user=self.api_user,
@@ -162,12 +152,12 @@ class WorkflowConfigHandler:
         logger.info(f"Added tool: ${new_tool.name} - ${assistant_name}")
 
     async def add_datasource(self, assistant_name: str, data: Dict[str, str]):
-        datasourceRes = await api_create_datasource(
+        datasource_res = await api_create_datasource(
             body=DatasourceRequest(**data),
             api_user=self.api_user,
         )
 
-        new_datasource = datasourceRes.get("data", {})
+        new_datasource = datasource_res.get("data", {})
 
         await self._add_agent_datasource(
             assistant_name=assistant_name,
@@ -206,14 +196,8 @@ class WorkflowConfigHandler:
                             f"Deleted datasource: {datasource_name} - {assistant_name}"
                         )
 
-    async def add_assistant(self, data: Dict[str, str], order: int, type: str):
+    async def add_assistant(self, data: Dict[str, str], order: int):
         new_agent = data
-
-        rename_and_remove_key(new_agent, "llm", "llmModel")
-        rename_and_remove_key(new_agent, "intro", "initialMessage")
-
-        new_agent["llmModel"] = LLM_REVERSE_MAPPING[new_agent["llmModel"]]
-        new_agent["type"] = type.upper()
 
         new_agent_data = await api_create_agent(
             body=AgentRequest(**new_agent),
@@ -334,7 +318,6 @@ class WorkflowConfigHandler:
                 )
 
     async def process_tools(self, old_tools, new_tools, assistant_name):
-        # Process individual tools
         tools_length = max(len(old_tools), len(new_tools))
 
         for tool_step in range(tools_length):
@@ -347,6 +330,28 @@ class WorkflowConfigHandler:
             old_tool = old_tool_obj.get(old_tool_type, {})
             new_tool = new_tool_obj.get(new_tool_type, {})
 
+            # Data manipulation
+            rename_and_remove_keys(old_tool, {"use_for": "description"})
+            rename_and_remove_keys(new_tool, {"use_for": "description"})
+
+            old_tool_type = old_tool_type.upper()
+            new_tool_type = new_tool_type.upper()
+
+            if old_tool_type == "FUNCTION":
+                old_tool["metadata"] = {
+                    "functionName": old_tool.get("name"),
+                    **old_tool.get("metadata", {}),
+                }
+
+            if new_tool_type == "FUNCTION":
+                new_tool["metadata"] = {
+                    "functionName": new_tool.get("name"),
+                    **new_tool.get("metadata", {}),
+                }
+
+            old_tool["type"] = old_tool_type
+            new_tool["type"] = new_tool_type
+
             if old_tool_type and new_tool_type:
                 if old_tool_type != new_tool_type:
                     await self.delete_tool(
@@ -355,7 +360,6 @@ class WorkflowConfigHandler:
                     )
                     await self.add_tool(
                         assistant_name=assistant_name,
-                        type=new_tool_type.upper(),
                         data=new_tool,
                     )
                 else:
@@ -375,7 +379,6 @@ class WorkflowConfigHandler:
             elif new_tool_type and not old_tool_type:
                 await self.add_tool(
                     assistant_name=assistant_name,
-                    type=new_tool_type.upper(),
                     data=new_tool,
                 )
 
@@ -421,11 +424,21 @@ class WorkflowConfigHandler:
         old_tools = old_assistant.get("tools") or []
         new_tools = new_assistant.get("tools") or []
 
-        # Remove 'data' and 'tools' keys from assistant objects
         remove_key_if_present(old_assistant, "data")
         remove_key_if_present(old_assistant, "tools")
         remove_key_if_present(new_assistant, "data")
         remove_key_if_present(new_assistant, "tools")
+        rename_and_remove_keys(
+            old_assistant, {"llm": "llmModel", "intro": "initialMessage"}
+        )
+        rename_and_remove_keys(
+            new_assistant, {"llm": "llmModel", "intro": "initialMessage"}
+        )
+
+        old_assistant["llmModel"] = LLM_REVERSE_MAPPING[old_assistant["llmModel"]]
+        old_assistant["type"] = old_type.upper()
+        new_assistant["llmModel"] = LLM_REVERSE_MAPPING[new_assistant["llmModel"]]
+        new_assistant["type"] = new_type.upper()
 
         if old_type and new_type:
             if old_type != new_type:
