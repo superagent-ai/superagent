@@ -205,7 +205,11 @@ export default function WorkflowDetail({
           className="flex flex-1 overflow-hidden text-sm"
         >
           <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel className="flex flex-1">
+            <ResizablePanel
+              defaultSize={60}
+              minSize={30}
+              className="flex flex-1"
+            >
               <Chat workflow={workflow} profile={profile} llms={llms} />
             </ResizablePanel>
             <ResizableHandle
