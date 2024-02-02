@@ -49,7 +49,7 @@ export async function initMonaco(
         vertical: "hidden",
       },
       fontSize: 14,
-      theme: theme === "dark" ? "github-dark" : "github-light",
+      theme: theme === "dark" ? "vs-dark" : "vs-light",
       quickSuggestions: {
         other: true,
         comments: false,
