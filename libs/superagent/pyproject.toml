@@ -25,7 +25,6 @@ python-slugify = "^8.0.1"
 asyncio = "^3.4.3"
 colorlog = "^6.7.0"
 vulture = "^2.7"
-prisma = "^0.9.1"
 lamini = "^0.0.21"
 pytest = "^7.4.0"
 prefect = "^2.11.4"
@@ -61,6 +60,7 @@ langsmith = "^0.0.83"
 langchain = "^0.1.4"
 langchain-openai = "^0.0.5"
 python-docx = "^1.1.0"
+prisma = "^0.12.0"
 
 
 [build-system]
