@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The Open Source AI Assistant Framework & API
-  version: 0.1.73
+  version: 0.1.74
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -1519,6 +1519,12 @@ components:
         avatar:
           title: Avatar
           type: string
+        type:
+          title: Type
+          type: string
+        openaiOptions:
+          title: Openaioptions
+          type: object
     DatasourceList:
       title: DatasourceList
       required:
@@ -1808,6 +1814,10 @@ components:
         name:
           title: Name
           type: string
+        type:
+          title: Type
+          type: string
+          default: SUPERAGENT
         initialMessage:
           title: Initialmessage
           type: string
@@ -1822,10 +1832,12 @@ components:
         description:
           title: Description
           type: string
-          default: An helpful agent.
         avatar:
           title: Avatar
           type: string
+        openaiOptions:
+          title: Openaioptions
+          type: object
     app__models__request__AgentDatasource:
       title: AgentDatasource
       required:
@@ -2160,6 +2172,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__WorkflowStep'
+        openaiMetadata:
+          title: Openaimetadata
+          type: string
+          format: json-string
       description: Represents a Agent record
     prisma__models__AgentDatasource:
       title: AgentDatasource
