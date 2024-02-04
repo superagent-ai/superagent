@@ -70,6 +70,7 @@ from app.utils.helpers import (
 )
 from app.utils.llm import LLM_REVERSE_MAPPING
 from app.utils.prisma import prisma
+from prisma.enums import AgentType
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
@@ -382,7 +383,7 @@ class WorkflowConfigHandler:
                     data=new_tool,
                 )
 
-    async def process_data(self, old_data, new_data, assistant_name):
+    async def process_data(self, old_data, new_data, assistant):
         old_urls = old_data.get("urls") or []
         new_urls = new_data.get("urls") or []
 
@@ -390,28 +391,58 @@ class WorkflowConfigHandler:
         for url in set(old_urls) | set(new_urls):
             if url in old_urls and url not in new_urls:
                 await self.delete_datasource(
-                    assistant_name,
+                    assistant_name=assistant.get("name"),
                     datasource_name=url,
                 )
 
             elif url in new_urls and url not in old_urls:
                 type = get_mimetype_from_url(url)
 
-                if type in MIME_TYPE_TO_EXTENSION:
-                    name = (
-                        f"{MIME_TYPE_TO_EXTENSION[type]} "
-                        f"doc {new_data.get('use_for')}"
-                    )
-                    await self.add_datasource(
-                        assistant_name=assistant_name,
-                        data={
-                            # TODO: this will be changed once we implement superrag
-                            "name": name,
-                            "description": new_data.get("use_for"),
-                            "url": url,
-                            "type": MIME_TYPE_TO_EXTENSION[type],
+                if assistant.get("type") == AgentType.SUPERAGENT:
+                    if type in MIME_TYPE_TO_EXTENSION:
+                        name = (
+                            f"{MIME_TYPE_TO_EXTENSION[type]} "
+                            f"doc {new_data.get('use_for')}"
+                        )
+                        await self.add_datasource(
+                            assistant_name=assistant.get("name"),
+                            data={
+                                # TODO: this will be changed once we implement superrag
+                                "name": name,
+                                "description": new_data.get("use_for"),
+                                "url": url,
+                                "type": MIME_TYPE_TO_EXTENSION[type],
+                            },
+                        )
+                elif assistant.get("type") == AgentType.OPENAI_ASSISTANT:
+                    from app.api.agents import AssistantHandler, OpenAIAssistant
+
+                    llm = await prisma.llm.find_first(where={"provider": "OPENAI"})
+
+                    assistant_handler = AssistantHandler(OpenAIAssistant(llm=llm))
+                    new_file = await assistant_handler.upload_file(url)
+
+                    workflow_steps = await prisma.workflowstep.find_many(
+                        where={
+                            "workflowId": self.workflow_id,
+                        },
+                        include={
+                            "agent": True,
                         },
                     )
+
+                    for workflow_step in workflow_steps:
+                        if workflow_step.agent.name == assistant.get("name"):
+                            # update agent metadata with the uploaded file
+                            metadata = workflow_step.agent.metadata
+                            metadata = json.loads(metadata) if metadata else {}
+                            metadata.get("file_ids").append(new_file.id)
+                            metadata = json.dumps(metadata)
+
+                            await prisma.agent.update(
+                                where={"id": workflow_step.agent.id},
+                                data={"metadata": metadata},
+                            )
 
     async def process_assistant(
         self, old_assistant_obj, new_assistant_obj, workflow_step_order: int
@@ -439,7 +470,9 @@ class WorkflowConfigHandler:
             new_assistant, {"llm": "llmModel", "intro": "initialMessage"}
         )
 
-        old_assistant["llmModel"] = LLM_REVERSE_MAPPING[old_assistant["llmModel"]]
+        if old_assistant.get("llmModel"):
+            old_assistant["llmModel"] = LLM_REVERSE_MAPPING[old_assistant["llmModel"]]
+
         old_assistant["type"] = old_type.upper()
         new_assistant["llmModel"] = LLM_REVERSE_MAPPING[new_assistant["llmModel"]]
         new_assistant["type"] = new_type.upper()
@@ -449,15 +482,13 @@ class WorkflowConfigHandler:
                 await self.delete_assistant(
                     assistant_name=old_assistant["name"],
                 )
-                await self.add_assistant(
-                    data=new_assistant, order=workflow_step_order, type=new_type
-                )
+                await self.add_assistant(data=new_assistant, order=workflow_step_order)
                 # all tools and data should be re-created
                 await self.process_tools({}, new_tools, new_assistant.get("name"))
                 await self.process_data(
                     {},
                     new_data,
-                    new_assistant.get("name"),
+                    new_assistant,
                 )
 
             else:
@@ -468,7 +499,7 @@ class WorkflowConfigHandler:
                 await self.process_data(
                     old_data,
                     new_data,
-                    old_assistant.get("name"),
+                    old_assistant,
                 )
                 if changes:
                     await self.update_assistant(
@@ -482,13 +513,12 @@ class WorkflowConfigHandler:
             await self.add_assistant(
                 data=new_assistant,
                 order=workflow_step_order,
-                type=new_type,
             )
             await self.process_tools(old_tools, new_tools, new_assistant.get("name"))
             await self.process_data(
                 old_data,
                 new_data,
-                new_assistant.get("name"),
+                new_assistant,
             )
 
     async def handle_changes(self, old_config, new_config):
