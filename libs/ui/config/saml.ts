@@ -28,7 +28,7 @@ export const yamlJsonSchema = {
           superagent: {
             $ref: "#/definitions/assistant",
           },
-          opeani_assistants: {
+          openai_assistant: {
             $ref: "#/definitions/assistant",
           },
         },
