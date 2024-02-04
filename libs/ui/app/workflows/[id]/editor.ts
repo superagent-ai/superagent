@@ -1,4 +1,5 @@
 import loader from "@monaco-editor/loader"
+import * as monaco from "monaco-editor"
 import { configureMonacoYaml } from "monaco-yaml"
 
 import { yamlJsonSchema } from "@/config/saml"
@@ -18,44 +19,37 @@ window.MonacoEnvironment = {
   },
 }
 
-export async function initMonaco(
-  wrapperEl: HTMLElement,
-  theme: string = "light",
-  initialValue: string
+configureMonacoYaml(monaco, {
+  enableSchemaRequest: false,
+  schemas: [
+    {
+      fileMatch: ["*"],
+      uri: "http://example.com/schema-name.json",
+      schema: yamlJsonSchema,
+    },
+  ],
+})
+
+const modelUri = monaco.Uri.parse("config.yaml")
+let model = monaco.editor.createModel("initialValue", "yaml", modelUri)
+
+export function initCodeEditor(
+  wrapperElement: HTMLElement,
+  theme: string = "light"
 ) {
-  return loader.init().then((monaco) => {
-    configureMonacoYaml(monaco, {
-      enableSchemaRequest: false,
-      schemas: [
-        {
-          fileMatch: ["*"],
-          uri: "http://example.com/schema-name.json",
-          schema: yamlJsonSchema,
-        },
-      ],
-    })
-
-    const modelUri = monaco.Uri.parse("config.yaml")
-    const model = monaco.editor.getModel(modelUri)
-
-    if (!model) {
-      monaco.editor.createModel(initialValue, "yaml", modelUri)
-    }
-
-    return monaco.editor.create(wrapperEl, {
-      automaticLayout: true,
-      model,
-      scrollbar: {
-        vertical: "hidden",
-      },
-      fontSize: 14,
-      theme: theme === "dark" ? "vs-dark" : "vs-light",
-      quickSuggestions: {
-        other: true,
-        comments: false,
-        strings: true,
-      },
-      minimap: { enabled: false },
-    })
+  return monaco.editor.create(wrapperElement, {
+    automaticLayout: true,
+    model,
+    scrollbar: {
+      vertical: "hidden",
+    },
+    fontSize: 14,
+    theme: theme === "dark" ? "github-dark" : "github-light",
+    quickSuggestions: {
+      other: true,
+      comments: false,
+      strings: true,
+    },
+    minimap: { enabled: false },
   })
 }

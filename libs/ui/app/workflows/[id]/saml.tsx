@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import React, { useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import * as yaml from "js-yaml"
 import * as monaco from "monaco-editor"
@@ -8,11 +8,10 @@ import { useTheme } from "next-themes"
 import { TbCommand } from "react-icons/tb"
 import { useAsyncFn } from "react-use"
 
-import { initialSamlValue } from "@/config/saml"
 import { Api } from "@/lib/api"
 import { Spinner } from "@/components/ui/spinner"
 
-import { initMonaco } from "./editor"
+import { initCodeEditor } from "./editor"
 
 function removeNullValues(obj: any) {
   const newObj: any = Array.isArray(obj) ? [] : {}
@@ -48,29 +47,34 @@ export default function SAML({
   const [{ loading: isSavingConfig }, saveConfig] = useAsyncFn(async () => {
     const { data: config } = await api.generateWorkflow(
       workflow.id,
-      editor?.getValue()
+      editorRef?.current?.getValue()
     )
     router.refresh()
     return config
   }, [router, api])
 
   const { theme } = useTheme()
-  const [editor, setEditor] =
-    React.useState<monaco.editor.IStandaloneCodeEditor | null>(null)
-  const monacoEl = React.useRef(null)
+  const codeEditorRef = useRef(null)
 
-  React.useEffect(() => {
-    if (monacoEl && !editor) {
-      initMonaco(
-        monacoEl.current!,
-        theme,
-        formattedConfig ? workflowConfigsYaml : initialSamlValue
-      ).then(setEditor)
+  let editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
+
+  useEffect(() => {
+    if (codeEditorRef.current) {
+      editorRef.current = initCodeEditor(codeEditorRef.current, theme)
+      editorRef?.current?.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
+        saveConfig
+      )
     }
 
-    editor?.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, saveConfig)
-    return () => editor?.dispose()
-  }, [monacoEl.current])
+    return () => {
+      editorRef.current?.dispose()
+    }
+  }, [])
+
+  useEffect(() => {
+    editorRef?.current?.setValue(workflowConfigsYaml)
+  }, [workflowConfigsYaml])
 
   return (
     <div className="relative h-full">
@@ -87,7 +91,7 @@ export default function SAML({
           })}
         </p>
       </div>
-      <div className="h-full w-full" ref={monacoEl} />
+      <div className="h-full w-full" ref={codeEditorRef} />
       <div className="absolute bottom-4 flex w-full flex-col items-center justify-center space-y-4 px-6 pt-12">
         {isSavingConfig ? (
           <div className="flex items-center space-x-1 py-1 text-sm text-muted-foreground">
