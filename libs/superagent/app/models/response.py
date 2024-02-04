@@ -34,6 +34,12 @@ from prisma.models import (
 )
 
 
+# this is a small hack to avoid fastapi error
+# https://github.com/tiangolo/fastapi/discussions/8480
+class AgentDbModel(AgentModel):
+    metadata: Optional[dict]
+
+
 class ApiUser(BaseModel):
     success: bool
     data: Optional[ApiUserModel]
@@ -41,7 +47,7 @@ class ApiUser(BaseModel):
 
 class Agent(BaseModel):
     success: bool
-    data: Optional[AgentModel]
+    data: Optional[AgentDbModel]
 
 
 class AgentDatasource(BaseModel):
@@ -98,7 +104,7 @@ class ToolList(BaseModel):
 
 class AgentList(BaseModel):
     success: bool
-    data: Optional[List[AgentModel]]
+    data: Optional[List[AgentDbModel]]
     total_pages: int
 
 

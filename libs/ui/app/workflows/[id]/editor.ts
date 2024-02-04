@@ -1,4 +1,3 @@
-import loader from "@monaco-editor/loader"
 import * as monaco from "monaco-editor"
 import { configureMonacoYaml } from "monaco-yaml"
 
@@ -44,7 +43,7 @@ export function initCodeEditor(
       vertical: "hidden",
     },
     fontSize: 14,
-    theme: theme === "dark" ? "github-dark" : "github-light",
+    theme: theme === "dark" ? "vs-dark" : "vs-light",
     quickSuggestions: {
       other: true,
       comments: false,
