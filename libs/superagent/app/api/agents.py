@@ -318,21 +318,15 @@ async def delete(agent_id: str, api_user=Depends(get_current_api_user)):
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Deleted Agent")
         deleted = await prisma.agent.delete(where={"id": agent_id})
-        metadata = json.loads(deleted.metadata)
-
-        if deleted.type:
-            if deleted.type == AgentType.OPENAI_ASSISTANT:
-                llm = await prisma.llm.find_first_or_raise(
-                    where={"provider": "OPENAI", "apiUserId": api_user.id}
-                )
-                assistant_factory = OpenAIAssistant(llm)
-                assistant_id = metadata.get("id")
-
-            assistant = AssistantHandler(assistant_factory)
-
-            if assistant_id:
-                await assistant.delete_assistant(assistant_id)
-
+        if deleted.openaiMetadata is None:
+            return {"success": True, "data": None}
+        openaiMetadata = json.loads(deleted.openaiMetadata)
+        if openaiMetadata.get("id", None):
+            llm = await prisma.llm.find_first_or_raise(
+                where={"provider": "OPENAI", "apiUserId": api_user.id}
+            )
+            oai = AsyncOpenAI(api_key=llm.apiKey)
+            await oai.beta.assistants.delete(openaiMetadata.get("id"))
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
@@ -381,9 +375,30 @@ async def update(
             where={"id": agent_id},
             data=new_agent_data,
         )
-
-        data.metadata = json.dumps(data.metadata)
-
+        if data.openaiMetadata is None:
+            return {"success": True, "data": data}
+        openaiMetadata = json.loads(data.openaiMetadata)
+        if openaiMetadata:
+            llm = await prisma.llm.find_first_or_raise(
+                where={"provider": "OPENAI", "apiUserId": api_user.id}
+            )
+            oai = AsyncOpenAI(api_key=llm.apiKey)
+            oai_assistant = await oai.beta.assistants.update(
+                assistant_id=openaiMetadata.get("id"),
+                name=data.name,
+                description=data.description,
+                instructions=data.prompt,
+                tools=openaiMetadata.get("tools", []),
+                file_ids=openaiMetadata.get("file_ids", []),
+                metadata=openaiMetadata.get("metadata", {}),
+            )
+            data = await prisma.agent.update(
+                where={"id": agent_id},
+                data={
+                    "openaiMetadata": json.dumps(oai_assistant.json()),
+                    "apiUserId": api_user.id,
+                },
+            )
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -598,16 +613,7 @@ async def invoke(
             logging.error(f"Error in send_message: {error}")
             if SEGMENT_WRITE_KEY:
                 try:
-                    track_agent_invocation(
-                        {
-                            "error": str(error),
-                            "status_code": 500,
-                            "user_id": api_user.id,
-                            "agent": agent_config,
-                            "session_id": body.sessionId,
-                            "input": content,
-                        }
-                    )
+                    track_agent_invocation({"error": str(error), "status_code": 500})
                 except Exception as e:
                     logging.error(f"Error tracking agent invocation: {e}")
             yield ("event: error\n" f"data: {error}\n\n")
