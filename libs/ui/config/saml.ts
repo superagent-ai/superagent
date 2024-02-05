@@ -85,6 +85,14 @@ export const yamlJsonSchema = {
               function: {
                 $ref: "#/definitions/tool",
               },
+              // for openai assistant
+              code_interpreter: {
+                $ref: "#/definitions/tool",
+              },
+              // for openai assistant
+              retrieval: {
+                $ref: "#/definitions/tool",
+              },
             },
           },
         },
