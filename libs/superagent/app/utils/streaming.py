@@ -33,12 +33,7 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
         """Run when LLM starts running."""
         pass
 
-    async def on_llm_start(
-        self,
-        _serialized: Dict[str, Any],
-        _prompts: List[str],
-        **_kwargs: Any,
-    ) -> None:
+    async def on_llm_start(self) -> None:
         # If two calls are made in a row, this resets the state
         self.done.clear()
 

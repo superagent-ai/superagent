@@ -473,7 +473,8 @@ class WorkflowConfigHandler:
         if old_assistant.get("llmModel"):
             old_assistant["llmModel"] = LLM_REVERSE_MAPPING[old_assistant["llmModel"]]
 
-        old_assistant["type"] = old_type.upper()
+        if old_type:
+            old_assistant["type"] = old_type.upper()
         new_assistant["llmModel"] = LLM_REVERSE_MAPPING[new_assistant["llmModel"]]
         new_assistant["type"] = new_type.upper()
 

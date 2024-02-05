@@ -112,6 +112,9 @@ async def get(workflow_id: str, api_user=Depends(get_current_api_user)):
         for workflow_config in data.workflowConfigs:
             workflow_config.config = json.dumps(workflow_config.config)
 
+        for step in data.steps:
+            step.agent.metadata = json.dumps(step.agent.metadata)
+
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)

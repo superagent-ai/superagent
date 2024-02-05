@@ -2,7 +2,6 @@ import asyncio
 import json
 import logging
 import tempfile
-import time
 from abc import ABC, abstractmethod
 from typing import AsyncIterable, List, Optional
 
@@ -458,65 +457,6 @@ async def invoke(
         },
     )
 
-    """Run OAI Assistants API"""
-    if agent_config.type == "OPENAI_ASSISTANT":
-
-        async def wait_on_run(run, thread_id):
-            while run.status == "queued" or run.status == "in_progress":
-                run = await oai.beta.threads.runs.retrieve(
-                    thread_id=thread_id,
-                    run_id=run.id,
-                )
-                time.sleep(0.5)
-            return run
-
-        llm = next(
-            (
-                llm_item.llm
-                for llm_item in agent_config.llms
-                if llm_item.llm.provider == "OPENAI"
-            ),
-        )
-        oai = AsyncOpenAI(api_key=llm.apiKey)
-        thread_id = body.sessionId
-        openaiMetadata = json.loads(agent_config.metadata)
-        if not thread_id:
-            thread_id = (await oai.beta.threads.create()).id
-        else:
-            await oai.beta.threads.messages.create(
-                thread_id=thread_id, role="user", content=body.input
-            )
-
-        run = await oai.beta.threads.runs.create(
-            thread_id=thread_id, assistant_id=openaiMetadata.get("id")
-        )
-        await wait_on_run(run=run, thread_id=thread_id)
-        messages = await oai.beta.threads.messages.list(thread_id=thread_id)
-        data = {
-            "output": messages.data[0].content[0].text.value,
-            "input": body.input,
-            "sessionId": body.sessionId,
-            "llm_model": agent_config.llmModel,
-            "intermediate_steps": [],
-            "prompt_tokens": 0,
-            "completion_tokens": 0,
-            "prompt_tokens_cost_usd": 0,
-            "completion_tokens_cost_usd": 0,
-            "type": agent_config.type,
-        }
-
-        if SEGMENT_WRITE_KEY:
-            analytics.track(
-                api_user.id,
-                "Invoked Agent",
-                {**data},
-            )
-
-        return {
-            "success": True,
-            "data": data,
-        }
-
     def track_agent_invocation(result):
         intermediate_steps_to_obj = [
             {
@@ -567,13 +507,22 @@ async def invoke(
         callbacks: List[CustomAsyncIteratorCallbackHandler] = [],
     ) -> AsyncIterable[str]:
         try:
+            agent_input = {
+                "input": content,
+            }
+
+            if agent_config.type == AgentType.OPENAI_ASSISTANT:
+                agent_input = {
+                    "content": agent_input,
+                }
+
             task = asyncio.ensure_future(
                 agent.ainvoke(
+                    input=agent_input,
                     config={
                         "callbacks": [streaming_callback, *callbacks],
                         "tags": [agent_id],
                     },
-                    input=content,
                 )
             )
 
@@ -651,12 +600,22 @@ async def invoke(
 
     logging.info("Streaming not enabled. Invoking agent synchronously...")
 
+    agent_input = {
+        "input": input,
+    }
+
+    if agent_config.type == AgentType.OPENAI_ASSISTANT:
+        agent_input = {
+            "content": agent_input,
+            # TODO: Add thread_id
+        }
+
     output = await agent.ainvoke(
+        input=agent_input,
         config={
             "callbacks": [cost_callback],
             "tags": [agent_id],
         },
-        input=input,
     )
 
     if output_schema:
