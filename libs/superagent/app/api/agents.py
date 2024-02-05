@@ -117,7 +117,7 @@ class Assistant(ABC):
         pass
 
 
-class OpenAIAssistant(Assistant):
+class OpenAIAssistantSdk(Assistant):
     def __init__(self, llm: Optional[LLM] = None):
         self.llm = llm
         self.openai = AsyncOpenAI(api_key=self.llm.apiKey)
@@ -143,19 +143,20 @@ class OpenAIAssistant(Assistant):
     async def delete_assistant(self, assistant_id: str):
         return await self.openai.beta.assistants.delete(assistant_id)
 
-    async def update_assistant(self, assistant_id: str, body: AgentRequest) -> dict:
-        openai_options = body.parameters or {}
-        metadata = openai_options.get("metadata", {})
-        tools = openai_options.get("tools", [])
-        file_ids = openai_options.get("file_ids", [])
+    async def update_assistant(
+        self, assistant_id: str, body: AgentUpdateRequest
+    ) -> dict:
+        metadata = body.metadata or {}
+        tools = metadata.get("tools", [])
+        file_ids = metadata.get("file_ids", [])
 
         oai_assistant = await self.openai.beta.assistants.update(
             assistant_id=assistant_id,
-            model=LLM_MAPPING[body.llmModel],
-            instructions=body.prompt,
-            name=body.name,
-            description=body.description,
-            metadata=metadata,
+            # model=LLM_MAPPING.get(body.llmModel, None),
+            # instructions=body.prompt,
+            # name=body.name,
+            # description=body.description,
+            # metadata=metadata,
             tools=tools,
             file_ids=file_ids,
         )
@@ -172,22 +173,8 @@ class OpenAIAssistant(Assistant):
             purpose="assistants",
         )
 
-
-class AssistantHandler:
-    def __init__(self, factory: Assistant):
-        self.factory = factory
-
-    async def create_assistant(self, body: AgentRequest) -> dict:
-        return await self.factory.create_assistant(body)
-
-    async def delete_assistant(self, assistant_id: str):
-        return await self.factory.delete_assistant(assistant_id)
-
-    async def update_assistant(self, assistant_id: str, body: AgentRequest) -> dict:
-        return await self.factory.update_assistant(assistant_id, body)
-
-    async def upload_file(self, url: str):
-        return await self.factory.upload_file(url)
+    async def delete_file(self, file_id: str):
+        return await self.openai.files.delete(file_id)
 
 
 @router.post(
@@ -213,12 +200,9 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     metadata = {}
 
     if body.type:
-        assistant_factory = None
         if body.type == AgentType.OPENAI_ASSISTANT:
-            assistant_factory = OpenAIAssistant(llm)
+            assistant = OpenAIAssistantSdk(llm)
 
-        if assistant_factory:
-            assistant = AssistantHandler(assistant_factory)
             metadata = await assistant.create_assistant(body)
 
     agent = await prisma.agent.create(
@@ -317,15 +301,15 @@ async def delete(agent_id: str, api_user=Depends(get_current_api_user)):
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Deleted Agent")
         deleted = await prisma.agent.delete(where={"id": agent_id})
-        if deleted.openaiMetadata is None:
+        if deleted.metadata is None:
             return {"success": True, "data": None}
-        openaiMetadata = json.loads(deleted.openaiMetadata)
-        if openaiMetadata.get("id", None):
+        metadata = json.loads(deleted.metadata)
+        if metadata.get("id", None):
             llm = await prisma.llm.find_first_or_raise(
                 where={"provider": "OPENAI", "apiUserId": api_user.id}
             )
             oai = AsyncOpenAI(api_key=llm.apiKey)
-            await oai.beta.assistants.delete(openaiMetadata.get("id"))
+            await oai.beta.assistants.delete(metadata.get("id"))
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
@@ -354,13 +338,11 @@ async def update(
                 llm = await prisma.llm.find_first_or_raise(
                     where={"provider": "OPENAI", "apiUserId": api_user.id}
                 )
-                assistant_factory = OpenAIAssistant(llm)
+                assistant = OpenAIAssistantSdk(llm)
                 if body.metadata:
                     assistant_id = body.metadata.get("id")
-
-        if assistant_id:
-            assistant = AssistantHandler(assistant_factory)
-            metadata = await assistant.update_assistant(assistant_id, body)
+                    if assistant_id:
+                        metadata = await assistant.update_assistant(assistant_id, body)
 
         new_agent_data = {
             **body.dict(exclude_unset=True),
@@ -374,27 +356,27 @@ async def update(
             where={"id": agent_id},
             data=new_agent_data,
         )
-        if data.openaiMetadata is None:
+        if data.metadata is None:
             return {"success": True, "data": data}
-        openaiMetadata = json.loads(data.openaiMetadata)
-        if openaiMetadata:
+        metadata = json.loads(data.metadata)
+        if metadata:
             llm = await prisma.llm.find_first_or_raise(
                 where={"provider": "OPENAI", "apiUserId": api_user.id}
             )
             oai = AsyncOpenAI(api_key=llm.apiKey)
             oai_assistant = await oai.beta.assistants.update(
-                assistant_id=openaiMetadata.get("id"),
+                assistant_id=metadata.get("id"),
                 name=data.name,
                 description=data.description,
                 instructions=data.prompt,
-                tools=openaiMetadata.get("tools", []),
-                file_ids=openaiMetadata.get("file_ids", []),
-                metadata=openaiMetadata.get("metadata", {}),
+                tools=metadata.get("tools", []),
+                file_ids=metadata.get("file_ids", []),
+                metadata=metadata.get("metadata", {}),
             )
             data = await prisma.agent.update(
                 where={"id": agent_id},
                 data={
-                    "openaiMetadata": json.dumps(oai_assistant.json()),
+                    "metadata": json.dumps(oai_assistant.json()),
                     "apiUserId": api_user.id,
                 },
             )
