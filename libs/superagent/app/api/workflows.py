@@ -83,6 +83,10 @@ async def list(api_user=Depends(get_current_api_user), skip: int = 0, take: int 
         # Calculate the total number of pages
         total_pages = math.ceil(total_count / take)
 
+        for workflow in data:
+            for step in workflow.steps:
+                step.agent.metadata = json.dumps(step.agent.metadata)
+
         return {"success": True, "data": data, "total_pages": total_pages}
     except Exception as e:
         handle_exception(e)
