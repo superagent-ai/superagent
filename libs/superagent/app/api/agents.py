@@ -137,7 +137,6 @@ class OpenAIAssistantSdk(Assistant):
             tools=tools,
             file_ids=file_ids,
         )
-
         return oai_assistant.json()
 
     async def delete_assistant(self, assistant_id: str):
@@ -152,13 +151,20 @@ class OpenAIAssistantSdk(Assistant):
 
         oai_assistant = await self.openai.beta.assistants.update(
             assistant_id=assistant_id,
-            # model=LLM_MAPPING.get(body.llmModel, None),
-            # instructions=body.prompt,
-            # name=body.name,
-            # description=body.description,
-            # metadata=metadata,
-            tools=tools,
-            file_ids=file_ids,
+            # passing only non-None values
+            **{
+                key: value
+                for key, value in {
+                    "model": body.llmModel,
+                    "instructions": body.prompt,
+                    "name": body.name,
+                    "description": body.description,
+                    "metadata": metadata,
+                    "tools": tools,
+                    "file_ids": file_ids,
+                }.items()
+                if value is not None
+            },
         )
 
         return oai_assistant.json()
@@ -209,7 +215,7 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
         {
             **body.dict(exclude={"llmProvider", "parameters"}),
             "apiUserId": user_id,
-            "metadata": json.dumps(metadata),
+            "metadata": metadata,
         },
         include={
             "tools": {"include": {"tool": True}},
@@ -275,8 +281,7 @@ async def get(agent_id: str, api_user=Depends(get_current_api_user)):
             },
         )
         # TODO: Remove all stringifiying, create a new Pydantic model for the response
-        if isinstance(data.metadata, dict):
-            data.metadata = json.dumps(data.metadata)
+        data.metadata = json.dumps(data.metadata)
 
         for llm in data.llms:
             llm.llm.options = json.dumps(llm.llm.options)
@@ -303,7 +308,8 @@ async def delete(agent_id: str, api_user=Depends(get_current_api_user)):
         deleted = await prisma.agent.delete(where={"id": agent_id})
         if deleted.metadata is None:
             return {"success": True, "data": None}
-        metadata = json.loads(deleted.metadata)
+
+        metadata = deleted.metadata
         if metadata.get("id", None):
             llm = await prisma.llm.find_first_or_raise(
                 where={"provider": "OPENAI", "apiUserId": api_user.id}
@@ -339,10 +345,9 @@ async def update(
                     where={"provider": "OPENAI", "apiUserId": api_user.id}
                 )
                 assistant = OpenAIAssistantSdk(llm)
-                if body.metadata:
-                    assistant_id = body.metadata.get("id")
-                    if assistant_id:
-                        metadata = await assistant.update_assistant(assistant_id, body)
+                assistant_id = metadata.get("id")
+                if assistant_id:
+                    metadata = await assistant.update_assistant(assistant_id, body)
 
         new_agent_data = {
             **body.dict(exclude_unset=True),
@@ -356,30 +361,6 @@ async def update(
             where={"id": agent_id},
             data=new_agent_data,
         )
-        if data.metadata is None:
-            return {"success": True, "data": data}
-        metadata = json.loads(data.metadata)
-        if metadata:
-            llm = await prisma.llm.find_first_or_raise(
-                where={"provider": "OPENAI", "apiUserId": api_user.id}
-            )
-            oai = AsyncOpenAI(api_key=llm.apiKey)
-            oai_assistant = await oai.beta.assistants.update(
-                assistant_id=metadata.get("id"),
-                name=data.name,
-                description=data.description,
-                instructions=data.prompt,
-                tools=metadata.get("tools", []),
-                file_ids=metadata.get("file_ids", []),
-                metadata=metadata.get("metadata", {}),
-            )
-            data = await prisma.agent.update(
-                where={"id": agent_id},
-                data={
-                    "metadata": json.dumps(oai_assistant.json()),
-                    "apiUserId": api_user.id,
-                },
-            )
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
