@@ -242,6 +242,8 @@ async def delete(agent_id: str, api_user=Depends(get_current_api_user)):
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Deleted Agent")
         deleted = await prisma.agent.delete(where={"id": agent_id})
+        if deleted.openaiMetadata is None:
+            return {"success": True, "data": None}
         openaiMetadata = json.loads(deleted.openaiMetadata)
         if openaiMetadata.get("id", None):
             llm = await prisma.llm.find_first_or_raise(
@@ -274,6 +276,8 @@ async def update(
                 "apiUserId": api_user.id,
             },
         )
+        if data.openaiMetadata is None:
+            return {"success": True, "data": data}
         openaiMetadata = json.loads(data.openaiMetadata)
         if openaiMetadata:
             llm = await prisma.llm.find_first_or_raise(
@@ -510,16 +514,7 @@ async def invoke(
             logging.error(f"Error in send_message: {error}")
             if SEGMENT_WRITE_KEY:
                 try:
-                    track_agent_invocation(
-                        {
-                            "error": str(error),
-                            "status_code": 500,
-                            "user_id": api_user.id,
-                            "agent": agent_config,
-                            "session_id": body.sessionId,
-                            "input": content,
-                        }
-                    )
+                    track_agent_invocation({"error": str(error), "status_code": 500})
                 except Exception as e:
                     logging.error(f"Error tracking agent invocation: {e}")
             yield ("event: error\n" f"data: {error}\n\n")
