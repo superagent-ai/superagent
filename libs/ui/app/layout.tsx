@@ -49,7 +49,12 @@ export default async function RootLayout({ children }: RootLayoutProps) {
   return (
     <>
       <html lang="en" suppressHydrationWarning>
-        <head />
+        <head>
+          <script
+            async
+            src="https://js.stripe.com/v3/pricing-table.js"
+          ></script>
+        </head>
         <body
           className={cn(
             "min-h-screen bg-background font-sans antialiased",
