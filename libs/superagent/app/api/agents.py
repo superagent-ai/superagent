@@ -256,6 +256,9 @@ async def list(api_user=Depends(get_current_api_user), skip: int = 0, take: int 
         # Calculate the total number of pages
         total_pages = math.ceil(total_count / take)
 
+        for agent in data:
+            agent.metadata = json.dumps(agent.metadata)
+
         return {"success": True, "data": data, "total_pages": total_pages}
     except Exception as e:
         handle_exception(e)
