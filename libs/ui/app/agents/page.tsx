@@ -48,7 +48,7 @@ export default async function Agents({
           <br />
           For creating new agents, please use the workflows page.{" "}
           <Link href="/workflows" className="font-bold underline">
-            Click here to create a new workflows page.
+            Click here to create a new workflows.
           </Link>
         </AlertDescription>
       </Alert>
