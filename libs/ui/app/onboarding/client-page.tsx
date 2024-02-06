@@ -69,13 +69,17 @@ export default function OnboardingClientPage() {
     const params: Stripe.CustomerCreateParams = {
       name: company,
       email: user.email,
+      metadata: {
+        first_name,
+        last_name,
+      },
     }
     let customer: Stripe.Customer | null = null
     let subscription: Stripe.Subscription | null = null
     if (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
       customer = await stripe.customers.create(params)
       subscription = await stripe.subscriptions.create({
-        customer: customer.id,
+        customer: customer?.id,
         items: [
           {
             price: siteConfig.paymentPlans.hobby,

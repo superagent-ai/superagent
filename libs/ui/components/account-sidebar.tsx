@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
+import { siteConfig } from "@/config/site"
 import { stripe } from "@/lib/stripe"
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -34,7 +35,7 @@ export function SettingsSidebar({
       {...props}
     >
       {items.map((item) =>
-        item.id === "billing" ? (
+        item.id === "billing" && profile?.stripe_plan_id ? (
           <Button
             className="justify-start"
             onClick={async () => {
