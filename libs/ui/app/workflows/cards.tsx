@@ -23,6 +23,15 @@ export default function WorkflowCards({
                     <TbStack2 fontSize="20px" />
                     <p className="font-semibold">{workflow.name}</p>
                   </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Badge
+                    className="space-x-1 self-start bg-background"
+                    variant="outline"
+                  >
+                    <TbBolt size={15} />
+                    <span>{workflow.steps.length}</span>
+                  </Badge>
                   <p className="font-mono text-xs text-muted-foreground">
                     {new Date(workflow.createdAt).toLocaleString("en-US", {
                       year: "numeric",
@@ -31,13 +40,6 @@ export default function WorkflowCards({
                     })}
                   </p>
                 </div>
-                <Badge
-                  className="space-x-1 self-start bg-background"
-                  variant="outline"
-                >
-                  <TbBolt size={15} />
-                  <span>{workflow.steps.length}</span>
-                </Badge>
               </div>
             </Link>
           ))}

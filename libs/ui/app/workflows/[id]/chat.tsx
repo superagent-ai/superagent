@@ -200,7 +200,7 @@ export default function Chat({
   }, [messages])
 
   return (
-    <div className="relative flex flex-1 bg-background text-sm">
+    <div className="relative flex flex-1 text-sm">
       <div className="mt-8 max-w-[15%] flex-[20%] flex-col items-start justify-start px-6">
         <FunctionCalls functionCalls={functionCalls} />
         <p

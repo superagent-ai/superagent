@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 import Stripe from "stripe"
 
 import { stripe } from "@/lib/stripe"
 
 export async function POST(request: NextRequest) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICEROLE_KEY!
+  )
   const { data, type } = await request.json()
+  const customer = data.object.customer
   switch (type) {
     case "customer.subscription.trial_will_end":
-      const customer = data.object.customer
       const c_data: Stripe.Response<Stripe.Customer | Stripe.DeletedCustomer> =
         await stripe.customers.retrieve(customer)
 
@@ -32,6 +37,24 @@ export async function POST(request: NextRequest) {
       })
 
       return NextResponse.json({ success: true })
+    case "customer.subscription.deleted":
+      await supabase
+        .from("profiles")
+        .update({ stripe_plan_id: null })
+        .eq("stripe_customer_id", customer)
+        .select()
+      return NextResponse.json({ success: true })
+    case "customer.subscription.created":
+      await supabase
+        .from("profiles")
+        .update({ stripe_plan_id: data.object.id })
+        .eq("stripe_customer_id", customer)
+      return NextResponse.json({ success: true })
+    case "customer.subscription.updated":
+      await supabase
+        .from("profiles")
+        .update({ stripe_plan_id: data.object.id })
+        .eq("stripe_customer_id", customer)
     default:
       return NextResponse.json({ success: false })
   }
