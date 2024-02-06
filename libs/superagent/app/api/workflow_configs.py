@@ -137,6 +137,8 @@ class WorkflowConfigHandler:
                             api_user=self.api_user,
                         )
                         logger.info(f"Deleted tool: {tool_name} - {assistant_name}")
+                        break
+                break
 
     async def add_tool(self, assistant_name: str, data: Dict[str, str]):
         tool_res = await api_create_tool(
@@ -197,6 +199,8 @@ class WorkflowConfigHandler:
                         logger.info(
                             f"Deleted datasource: {datasource_name} - {assistant_name}"
                         )
+                        break
+                break
 
     async def add_assistant(self, data: Dict[str, str], order: int):
         new_agent = data
@@ -238,6 +242,7 @@ class WorkflowConfigHandler:
                     api_user=self.api_user,
                 )
                 logger.info(f"Deleted agent: {assistant_name}")
+                break
 
     async def update_assistant(self, assistant_name: str, data: Dict[str, str]):
         workflow_steps = await prisma.workflowstep.find_many(
@@ -259,6 +264,7 @@ class WorkflowConfigHandler:
                     api_user=self.api_user,
                 )
                 logger.info(f"Updated agent: {assistant_name} - {data}")
+                break
 
     async def update_tool(
         self, assistant_name: str, tool_name: str, data: Dict[str, str]
@@ -306,6 +312,7 @@ class WorkflowConfigHandler:
                     api_user=self.api_user,
                 )
                 logger.info(f"Added agent tool: {tool_id} - {assistant_name}")
+                break
 
     async def _add_agent_datasource(self, datasource_id: str, assistant_name: str):
         workflow_steps = await prisma.workflowstep.find_many(
@@ -329,6 +336,7 @@ class WorkflowConfigHandler:
                 logger.info(
                     f"Added agent datasource: {datasource_id} - {assistant_name}"
                 )
+                break
 
     async def process_tools(self, old_tools, new_tools, assistant):
         if assistant.get("type") == AgentType.SUPERAGENT:
@@ -446,6 +454,7 @@ class WorkflowConfigHandler:
                                 name=assistant.get("name"),
                             ),
                         )
+                        break
 
     async def process_data(self, old_data, new_data, assistant):
         old_urls = old_data.get("urls") or []
@@ -526,6 +535,7 @@ class WorkflowConfigHandler:
                                 }
                             ),
                         )
+                        break
 
     async def process_assistant(
         self, old_assistant_obj, new_assistant_obj, workflow_step_order: int
