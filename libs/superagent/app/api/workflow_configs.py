@@ -401,7 +401,7 @@ class WorkflowConfigHandler:
                         data=new_tool,
                     )
         elif assistant.get("type") == AgentType.OPENAI_ASSISTANT:
-            if set(old_tools) != set(new_tools):
+            if old_tools != new_tools:
                 workflow_steps = await prisma.workflowstep.find_many(
                     where={
                         "workflowId": self.workflow_id,
@@ -420,7 +420,6 @@ class WorkflowConfigHandler:
                         )
 
                         assistant_sdk = OpenAIAssistantSdk(llm)
-                        print(type(step.agent.metadata), step.agent.metadata)
                         metadata = step.agent.metadata
 
                         tool_types = [
@@ -499,7 +498,7 @@ class WorkflowConfigHandler:
                         assistant_sdk = OpenAIAssistantSdk(llm)
                         metadata = step.agent.metadata
 
-                        file_ids = metadata.get("fileIds", [])
+                        file_ids = metadata.get("file_ids", [])
                         assistant_id = metadata.get("id")
 
                         while len(file_ids) > 0:
@@ -510,7 +509,7 @@ class WorkflowConfigHandler:
                             file = await assistant_sdk.upload_file(url)
                             file_ids.append(file.id)
 
-                        metadata["fileIds"] = file_ids
+                        metadata["file_ids"] = file_ids
                         await prisma.agent.update(
                             where={"id": step.agent.id},
                             data={"metadata": json.dumps(metadata)},
@@ -520,7 +519,7 @@ class WorkflowConfigHandler:
                             assistant_id=assistant_id,
                             body=AgentUpdateRequest(
                                 metadata={
-                                    "fileIds": file_ids,
+                                    "file_ids": file_ids,
                                 }
                             ),
                         )
@@ -579,16 +578,16 @@ class WorkflowConfigHandler:
 
             else:
                 changes = compare_dicts(old_assistant, new_assistant)
+                if changes:
+                    await self.update_assistant(
+                        assistant_name=old_assistant["name"], data=changes
+                    )
                 await self.process_tools(old_tools, new_tools, old_assistant)
                 await self.process_data(
                     old_data,
                     new_data,
                     old_assistant,
                 )
-                if changes:
-                    await self.update_assistant(
-                        assistant_name=old_assistant["name"], data=changes
-                    )
         elif old_type and not new_type:
             await self.delete_assistant(
                 assistant_name=old_assistant["name"],

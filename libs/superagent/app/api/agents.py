@@ -159,7 +159,7 @@ class OpenAIAssistantSdk(Assistant):
                     "instructions": body.prompt,
                     "name": body.name,
                     "description": body.description,
-                    "metadata": metadata,
+                    # "metadata": metadata,
                     "tools": tools,
                     "file_ids": file_ids,
                 }.items()
@@ -194,7 +194,7 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     user_id = api_user.id
     llm_provider = body.llmProvider
     llm_model = body.llmModel
-    metadata = {}
+    metadata = "{}"
 
     if SEGMENT_WRITE_KEY:
         analytics.track(user_id, "Created Agent", {**body.dict()})
@@ -202,8 +202,6 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     llm = await get_llm_or_raise(
         LLMPayload(provider=llm_provider, model=llm_model, user_id=user_id)
     )
-
-    metadata = {}
 
     if body.type:
         if body.type == AgentType.OPENAI_ASSISTANT:
@@ -306,8 +304,6 @@ async def delete(agent_id: str, api_user=Depends(get_current_api_user)):
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Deleted Agent")
         deleted = await prisma.agent.delete(where={"id": agent_id})
-        if deleted.metadata is None:
-            return {"success": True, "data": None}
 
         metadata = deleted.metadata
         if metadata.get("id", None):
@@ -353,9 +349,8 @@ async def update(
             **body.dict(exclude_unset=True),
         }
 
-        metadata = json.dumps(metadata)
-        if metadata != json.dumps(agent.metadata):
-            new_agent_data["metadata"] = metadata
+        if json.dumps(metadata) != json.dumps(agent.metadata):
+            new_agent_data["metadata"] = json.dumps(metadata)
 
         data = await prisma.agent.update(
             where={"id": agent_id},
