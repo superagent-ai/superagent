@@ -7,10 +7,7 @@ interface RootLayoutProps {
   session: any
 }
 
-export default async function RootLayout({
-  children,
-  session,
-}: RootLayoutProps) {
+export default function RootLayout({ children, session }: RootLayoutProps) {
   return (
     <section className="flex h-screen">
       {process.env.NEXT_PUBLIC_STRIPE_DARK_PRICING_TABLE_ID && (
