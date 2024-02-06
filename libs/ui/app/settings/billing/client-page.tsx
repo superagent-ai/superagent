@@ -1,21 +1,5 @@
 "use client"
 
-import { Profile } from "@/types/profile"
-import { siteConfig } from "@/config/site"
-import { stripe } from "@/lib/stripe"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-
-interface ApiKeysPageProps {
-  profile: any
-}
-
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -27,29 +11,7 @@ declare global {
   }
 }
 
-const BillingClientPage: React.FC<ApiKeysPageProps> = ({ profile }) => {
-  const onSubscribe = async (plan: string) => {
-    await stripe.subscriptions.create({
-      customer: profile?.stripe_customer_id,
-      items: [
-        {
-          price:
-            siteConfig.paymentPlans[
-              plan as keyof typeof siteConfig.paymentPlans
-            ],
-        },
-      ],
-      trial_period_days: 0,
-      payment_settings: {
-        save_default_payment_method: "off",
-      },
-    })
-    const { url } = await stripe.billingPortal.sessions.create({
-      customer: profile?.stripe_customer_id,
-    })
-    window.location.href = url
-  }
-
+const BillingClientPage = () => {
   return (
     <div className="flex flex-col space-y-8">
       <div className="flex flex-col space-y-2">
