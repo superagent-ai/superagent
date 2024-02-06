@@ -13,7 +13,9 @@ export default async function RootLayout({
 }: RootLayoutProps) {
   return (
     <section className="flex h-screen">
-      <BillingModal session={session} />
+      {process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID && (
+        <BillingModal session={session} />
+      )}
       <Sidebar />
       <div className="flex-1 overflow-auto">{children}</div>
     </section>
