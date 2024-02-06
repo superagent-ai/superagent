@@ -9,6 +9,7 @@ from agentops.langchain_callback_handler import (
 from app.agents.base import AgentBase
 from app.utils.prisma import prisma
 from app.utils.streaming import CustomAsyncIteratorCallbackHandler
+from prisma.enums import AgentType
 from prisma.models import Workflow
 
 
@@ -53,12 +54,20 @@ class WorkflowBase:
                 agent_config=agent_config,
             ).get_agent()
 
+            agent_input = {
+                "input": previous_output,
+            }
+            if agent_config.type == AgentType.OPENAI_ASSISTANT:
+                agent_input = {
+                    "content": previous_output,
+                }
+
             task = asyncio.ensure_future(
                 agent.ainvoke(
+                    input=agent_input,
                     config={
                         "callbacks": self.callbacks[stepIndex],
                     },
-                    input=previous_output,
                 )
             )
 

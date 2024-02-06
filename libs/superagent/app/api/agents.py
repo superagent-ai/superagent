@@ -1,14 +1,16 @@
 import asyncio
 import json
 import logging
-import time
-from typing import AsyncIterable, List
+import tempfile
+from abc import ABC, abstractmethod
+from typing import AsyncIterable, List, Optional
 
+import requests
 import segment.analytics as analytics
 from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
 from decouple import config
-from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from langchain.agents import AgentExecutor
 from langchain.chains import LLMChain
 from langfuse import Langfuse
@@ -52,12 +54,133 @@ from app.utils.api import get_current_api_user, handle_exception
 from app.utils.llm import LLM_MAPPING, LLM_PROVIDER_MAPPING
 from app.utils.prisma import prisma
 from app.utils.streaming import CostCalcAsyncHandler, CustomAsyncIteratorCallbackHandler
+from prisma.enums import AgentType
+from prisma.models import LLM
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 analytics.write_key = SEGMENT_WRITE_KEY
 
 router = APIRouter()
 logging.basicConfig(level=logging.INFO)
+
+
+class LLMPayload:
+    def __init__(self, provider: str, model: str, user_id: str):
+        self.provider = provider
+        self.model = model
+        self.user_id = user_id
+
+
+async def get_llm_or_raise(data: LLMPayload) -> LLM:
+    provider = data.provider
+
+    if data.model:
+        for key, models in LLM_PROVIDER_MAPPING.items():
+            if data.model in models:
+                provider = key
+                break
+
+    if not provider:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="LLM provider not found",
+        )
+
+    llm = await prisma.llm.find_first(
+        where={"provider": provider, "apiUserId": data.user_id}
+    )
+
+    if not llm:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please set an LLM first",
+        )
+
+    return llm
+
+
+class Assistant(ABC):
+    @abstractmethod
+    async def create_assistant(self, body: AgentRequest) -> dict:
+        pass
+
+    @abstractmethod
+    async def delete_assistant(self, assistant_id: str):
+        pass
+
+    @abstractmethod
+    async def update_assistant(self, assistant_id: str, body: AgentRequest) -> dict:
+        pass
+
+    @abstractmethod
+    async def upload_file(self, url: str):
+        pass
+
+
+class OpenAIAssistantSdk(Assistant):
+    def __init__(self, llm: Optional[LLM] = None):
+        self.llm = llm
+        self.openai = AsyncOpenAI(api_key=self.llm.apiKey)
+
+    async def create_assistant(self, body: AgentRequest) -> dict:
+        openai_options = body.parameters or {}
+        metadata = openai_options.get("metadata", {})
+        tools = openai_options.get("tools", [])
+        file_ids = openai_options.get("file_ids", [])
+
+        oai_assistant = await self.openai.beta.assistants.create(
+            model=LLM_MAPPING[body.llmModel],
+            instructions=body.prompt,
+            name=body.name,
+            description=body.description,
+            metadata=metadata,
+            tools=tools,
+            file_ids=file_ids,
+        )
+        return oai_assistant.json()
+
+    async def delete_assistant(self, assistant_id: str):
+        return await self.openai.beta.assistants.delete(assistant_id)
+
+    async def update_assistant(
+        self, assistant_id: str, body: AgentUpdateRequest
+    ) -> dict:
+        metadata = body.metadata or {}
+        tools = metadata.get("tools", [])
+        file_ids = metadata.get("file_ids", [])
+
+        oai_assistant = await self.openai.beta.assistants.update(
+            assistant_id=assistant_id,
+            # passing only non-None values
+            **{
+                key: value
+                for key, value in {
+                    "model": body.llmModel,
+                    "instructions": body.prompt,
+                    "name": body.name,
+                    "description": body.description,
+                    # "metadata": metadata,
+                    "tools": tools,
+                    "file_ids": file_ids,
+                }.items()
+                if value is not None
+            },
+        )
+
+        return oai_assistant.json()
+
+    async def upload_file(self, url: str):
+        with tempfile.TemporaryFile() as temp_file:
+            temp_file.write(requests.get(url).content)
+            temp_file.seek(0)
+            file = temp_file.read()
+        return await self.openai.files.create(
+            file=file,
+            purpose="assistants",
+        )
+
+    async def delete_file(self, file_id: str):
+        return await self.openai.files.delete(file_id)
 
 
 @router.post(
@@ -68,104 +191,45 @@ logging.basicConfig(level=logging.INFO)
 )
 async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     """Endpoint for creating an agent"""
+    user_id = api_user.id
+    llm_provider = body.llmProvider
+    llm_model = body.llmModel
+    metadata = "{}"
+
     if SEGMENT_WRITE_KEY:
-        analytics.track(api_user.id, "Created Agent", {**body.dict()})
+        analytics.track(user_id, "Created Agent", {**body.dict()})
 
-    if body.type == "OPENAI_ASSISTANT":
-        llm = await prisma.llm.find_first_or_raise(
-            where={"provider": "OPENAI", "apiUserId": api_user.id}
-        )
+    llm = await get_llm_or_raise(
+        LLMPayload(provider=llm_provider, model=llm_model, user_id=user_id)
+    )
 
-        if not llm:
-            return JSONResponse(
-                status_code=400,
-                content={"message": "LLM provider not found"},
-            )
+    if body.type:
+        if body.type == AgentType.OPENAI_ASSISTANT:
+            assistant = OpenAIAssistantSdk(llm)
 
-        oai = AsyncOpenAI(api_key=llm.apiKey)
-        openai_options = body.metadata if body.metadata else {}
-        metadata = openai_options.get("metadata", {})
-        tools = openai_options.get("tools", [])
-        file_ids = openai_options.get("file_ids", [])
-        oai_assistant = await oai.beta.assistants.create(
-            model=LLM_MAPPING[body.llmModel],
-            instructions=body.prompt,
-            name=body.name,
-            description=body.description,
-            metadata=metadata,
-            tools=tools,
-            file_ids=file_ids,
-        )
+            metadata = await assistant.create_assistant(body)
 
-        oai_json = oai_assistant.json()
-        agent = await prisma.agent.create(
-            {
-                **body.dict(exclude={"llmProvider", "metadata"}),
-                "apiUserId": api_user.id,
-                "metadata": json.dumps(oai_json),
-            },
-            include={
-                "tools": {"include": {"tool": True}},
-                "datasources": {"include": {"datasource": True}},
-                "llms": {"include": {"llm": True}},
-            },
-        )
+    agent = await prisma.agent.create(
+        {
+            **body.dict(exclude={"llmProvider", "parameters"}),
+            "apiUserId": user_id,
+            "metadata": metadata,
+        },
+        include={
+            "tools": {"include": {"tool": True}},
+            "datasources": {"include": {"datasource": True}},
+            "llms": {"include": {"llm": True}},
+        },
+    )
 
-        provider = body.llmProvider
-        if body.llmModel:
-            for key, models in LLM_PROVIDER_MAPPING.items():
-                if body.llmModel in models:
-                    provider = key
-                    break
+    await prisma.agentllm.create({"agentId": agent.id, "llmId": llm.id})
 
-        if not provider:
-            return JSONResponse(
-                status_code=400,
-                content={"message": "LLM provider not found"},
-            )
+    agent.metadata = json.dumps(metadata)
 
-        llm = await prisma.llm.find_first(
-            where={"provider": provider, "apiUserId": api_user.id}
-        )
-
-        if llm:
-            await prisma.agentllm.create({"agentId": agent.id, "llmId": llm.id})
-
-        return {"success": True, "data": agent}
-    else:
-        try:
-            agent = await prisma.agent.create(
-                {
-                    **body.dict(exclude={"llmProvider", "metadata"}),
-                    "apiUserId": api_user.id,
-                },
-                include={
-                    "tools": {"include": {"tool": True}},
-                    "datasources": {"include": {"datasource": True}},
-                    "llms": {"include": {"llm": True}},
-                },
-            )
-
-            provider = body.llmProvider
-            if body.llmModel:
-                for key, models in LLM_PROVIDER_MAPPING.items():
-                    if body.llmModel in models:
-                        provider = key
-                        break
-
-            if not provider:
-                return JSONResponse(
-                    status_code=400,
-                    content={"message": "LLM provider not found"},
-                )
-
-            llm = await prisma.llm.find_first(
-                where={"provider": provider, "apiUserId": api_user.id}
-            )
-            await prisma.agentllm.create({"agentId": agent.id, "llmId": llm.id})
-            return {"success": True, "data": agent}
-        except Exception as e:
-            handle_exception(e)
+    return {
+        "success": True,
+        "data": agent,
+    }
 
 
 @router.get(
@@ -186,15 +250,14 @@ async def list(api_user=Depends(get_current_api_user), skip: int = 0, take: int 
             include={"llms": True},
         )
 
-        for item in data:
-            if isinstance(item.metadata, dict):
-                item.metadata = json.dumps(item.metadata)
-
         # Get the total count of agents
         total_count = await prisma.agent.count(where={"apiUserId": api_user.id})
 
         # Calculate the total number of pages
         total_pages = math.ceil(total_count / take)
+
+        for agent in data:
+            agent.metadata = json.dumps(agent.metadata)
 
         return {"success": True, "data": data, "total_pages": total_pages}
     except Exception as e:
@@ -218,13 +281,15 @@ async def get(agent_id: str, api_user=Depends(get_current_api_user)):
                 "llms": {"include": {"llm": True}},
             },
         )
-        if isinstance(data.metadata, dict):
-            data.metadata = json.dumps(data.metadata)
+        # TODO: Remove all stringifiying, create a new Pydantic model for the response
+        data.metadata = json.dumps(data.metadata)
+
         for llm in data.llms:
             llm.llm.options = json.dumps(llm.llm.options)
         for tool in data.tools:
             if isinstance(tool.tool.toolConfig, dict):
                 tool.tool.toolConfig = json.dumps(tool.tool.toolConfig)
+
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -242,9 +307,8 @@ async def delete(agent_id: str, api_user=Depends(get_current_api_user)):
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Deleted Agent")
         deleted = await prisma.agent.delete(where={"id": agent_id})
-        if deleted.metadata is None:
-            return {"success": True, "data": None}
-        metadata = json.loads(deleted.metadata)
+
+        metadata = deleted.metadata
         if metadata.get("id", None):
             llm = await prisma.llm.find_first_or_raise(
                 where={"provider": "OPENAI", "apiUserId": api_user.id}
@@ -269,37 +333,32 @@ async def update(
     try:
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Updated Agent")
+
+        agent = await prisma.agent.find_unique_or_raise(where={"id": agent_id})
+        metadata = agent.metadata
+        if agent.type:
+            assistant_id = None
+
+            if agent.type == AgentType.OPENAI_ASSISTANT:
+                llm = await prisma.llm.find_first_or_raise(
+                    where={"provider": "OPENAI", "apiUserId": api_user.id}
+                )
+                assistant = OpenAIAssistantSdk(llm)
+                assistant_id = metadata.get("id")
+                if assistant_id:
+                    metadata = await assistant.update_assistant(assistant_id, body)
+
+        new_agent_data = {
+            **body.dict(exclude_unset=True),
+        }
+
+        if json.dumps(metadata) != json.dumps(agent.metadata):
+            new_agent_data["metadata"] = json.dumps(metadata)
+
         data = await prisma.agent.update(
             where={"id": agent_id},
-            data={
-                **body.dict(exclude_unset=True),
-                "apiUserId": api_user.id,
-            },
+            data=new_agent_data,
         )
-        if data.metadata is None:
-            return {"success": True, "data": data}
-        metadata = json.loads(data.metadata)
-        if metadata:
-            llm = await prisma.llm.find_first_or_raise(
-                where={"provider": "OPENAI", "apiUserId": api_user.id}
-            )
-            oai = AsyncOpenAI(api_key=llm.apiKey)
-            oai_assistant = await oai.beta.assistants.update(
-                assistant_id=metadata.get("id"),
-                name=data.name,
-                description=data.description,
-                instructions=data.prompt,
-                tools=metadata.get("tools", []),
-                file_ids=metadata.get("file_ids", []),
-                metadata=metadata.get("metadata", {}),
-            )
-            data = await prisma.agent.update(
-                where={"id": agent_id},
-                data={
-                    "metadata": json.dumps(oai_assistant.json()),
-                    "apiUserId": api_user.id,
-                },
-            )
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
@@ -359,65 +418,6 @@ async def invoke(
         },
     )
 
-    """Run OAI Assistants API"""
-    if agent_config.type == "OPENAI_ASSISTANT":
-
-        async def wait_on_run(run, thread_id):
-            while run.status == "queued" or run.status == "in_progress":
-                run = await oai.beta.threads.runs.retrieve(
-                    thread_id=thread_id,
-                    run_id=run.id,
-                )
-                time.sleep(0.5)
-            return run
-
-        llm = next(
-            (
-                llm_item.llm
-                for llm_item in agent_config.llms
-                if llm_item.llm.provider == "OPENAI"
-            ),
-        )
-        oai = AsyncOpenAI(api_key=llm.apiKey)
-        thread_id = body.sessionId
-        metadata = json.loads(agent_config.metadata)
-        if not thread_id:
-            thread_id = (await oai.beta.threads.create()).id
-        else:
-            await oai.beta.threads.messages.create(
-                thread_id=thread_id, role="user", content=body.input
-            )
-
-        run = await oai.beta.threads.runs.create(
-            thread_id=thread_id, assistant_id=metadata.get("id")
-        )
-        await wait_on_run(run=run, thread_id=thread_id)
-        messages = await oai.beta.threads.messages.list(thread_id=thread_id)
-        data = {
-            "output": messages.data[0].content[0].text.value,
-            "input": body.input,
-            "sessionId": body.sessionId,
-            "llm_model": agent_config.llmModel,
-            "intermediate_steps": [],
-            "prompt_tokens": 0,
-            "completion_tokens": 0,
-            "prompt_tokens_cost_usd": 0,
-            "completion_tokens_cost_usd": 0,
-            "type": agent_config.type,
-        }
-
-        if SEGMENT_WRITE_KEY:
-            analytics.track(
-                api_user.id,
-                "Invoked Agent",
-                {**data},
-            )
-
-        return {
-            "success": True,
-            "data": data,
-        }
-
     def track_agent_invocation(result):
         intermediate_steps_to_obj = [
             {
@@ -468,13 +468,22 @@ async def invoke(
         callbacks: List[CustomAsyncIteratorCallbackHandler] = [],
     ) -> AsyncIterable[str]:
         try:
+            agent_input = {
+                "input": content,
+            }
+
+            if agent_config.type == AgentType.OPENAI_ASSISTANT:
+                agent_input = {
+                    "content": agent_input,
+                }
+
             task = asyncio.ensure_future(
                 agent.ainvoke(
+                    input=agent_input,
                     config={
                         "callbacks": [streaming_callback, *callbacks],
                         "tags": [agent_id],
                     },
-                    input=content,
                 )
             )
 
@@ -552,12 +561,22 @@ async def invoke(
 
     logging.info("Streaming not enabled. Invoking agent synchronously...")
 
+    agent_input = {
+        "input": input,
+    }
+
+    if agent_config.type == AgentType.OPENAI_ASSISTANT:
+        agent_input = {
+            "content": agent_input,
+            # TODO: Add thread_id
+        }
+
     output = await agent.ainvoke(
+        input=agent_input,
         config={
             "callbacks": [cost_callback],
             "tags": [agent_id],
         },
-        input=input,
     )
 
     if output_schema:

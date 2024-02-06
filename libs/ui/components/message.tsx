@@ -101,10 +101,7 @@ export default function Message({
               {steps
                 ? Object.entries(steps).map(([key, value], index) => (
                     <Accordion defaultValue={key} type="single" collapsible>
-                      <AccordionItem
-                        value={key}
-                        className="border-muted-foreground"
-                      >
+                      <AccordionItem value={key} className="border-muted">
                         <AccordionTrigger
                           className={`mb-4 py-0 text-sm hover:no-underline ${
                             index > 0 && "mt-2"
