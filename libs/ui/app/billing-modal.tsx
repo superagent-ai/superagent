@@ -1,20 +1,19 @@
 "use client"
 
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { useTheme } from "next-themes"
 import { useAsync } from "react-use"
 
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
 export default function BillingModal({ session }: { session: any }) {
+  const theme = useTheme()
   const supabase = createClientComponentClient()
   const { loading, value: profile } = useAsync(async () => {
     const { data: profile } = await supabase
@@ -26,9 +25,14 @@ export default function BillingModal({ session }: { session: any }) {
     return profile
   })
 
+  const pricingTableID =
+    theme.theme === "dark"
+      ? process.env.NEXT_PUBLIC_STRIPE_DARK_PRICING_TABLE_ID
+      : process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICING_TABLE_ID
+
   return (
     <AlertDialog open={!loading && !profile?.stripe_plan_id}>
-      <AlertDialogContent className="max-w-[800px]">
+      <AlertDialogContent className="max-w-[700px]">
         <AlertDialogHeader>
           <AlertDialogTitle>Your free trial has ended!</AlertDialogTitle>
           <AlertDialogDescription>
@@ -36,9 +40,9 @@ export default function BillingModal({ session }: { session: any }) {
             subscribe to one of our plans to get access to your agents.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <div className="">
+        <div className="mt-4">
           <stripe-pricing-table
-            pricing-table-id={process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID}
+            pricing-table-id={pricingTableID}
             publishable-key={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
           />
         </div>
