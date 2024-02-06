@@ -52,6 +52,7 @@ export default function OnboardingClientPage() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    let client = null
     const { first_name, last_name, company } = values
     const {
       data: { user },
@@ -63,9 +64,27 @@ export default function OnboardingClientPage() {
       })
       return
     }
-    const {
-      data: { token: api_key },
-    } = await api.createApiKey(user.email)
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user?.id)
+      .single()
+
+    if (!profile.api_key) {
+      const {
+        data: { token: api_key },
+      } = await api.createApiKey(user.email)
+      await supabase
+        .from("profiles")
+        .update({
+          api_key,
+        })
+        .eq("user_id", user?.id)
+      client = new Api(api_key)
+    } else {
+      client = new Api(profile.api_key)
+    }
+
     const params: Stripe.CustomerCreateParams = {
       name: company,
       email: user.email,
@@ -99,7 +118,6 @@ export default function OnboardingClientPage() {
     const { error } = await supabase
       .from("profiles")
       .update({
-        api_key,
         first_name,
         last_name,
         company,
@@ -117,8 +135,6 @@ export default function OnboardingClientPage() {
 
       return
     }
-
-    let client = new Api(api_key)
 
     const { data: workflow } = await client.createWorkflow({
       name: "My Workflow",

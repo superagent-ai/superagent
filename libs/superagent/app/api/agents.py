@@ -90,11 +90,11 @@ async def get_llm_or_raise(data: LLMPayload) -> LLM:
         where={"provider": provider, "apiUserId": data.user_id}
     )
 
-    if not llm:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Please set an LLM first",
-        )
+    # if not llm:
+    #    raise HTTPException(
+    #        status_code=status.HTTP_400_BAD_REQUEST,
+    #        detail="Please set an LLM first",
+    #    )
 
     return llm
 
@@ -222,7 +222,8 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
         },
     )
 
-    await prisma.agentllm.create({"agentId": agent.id, "llmId": llm.id})
+    if llm:
+        await prisma.agentllm.create({"agentId": agent.id, "llmId": llm.id})
 
     agent.metadata = json.dumps(metadata)
 

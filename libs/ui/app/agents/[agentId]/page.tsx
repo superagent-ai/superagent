@@ -1,6 +1,7 @@
 import { cookies } from "next/headers"
 import Link from "next/link"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { TbBrandOpenai } from "react-icons/tb"
 
 import { Api } from "@/lib/api"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -49,18 +50,19 @@ export default async function AgentPage({ params }: { params: any }) {
           />
         </div>
       ) : (
-        <div className="mx-auto mt-20">
-          <Alert className="" variant="destructive">
-            <AlertTitle>Deprecated</AlertTitle>
-            <AlertDescription>
-              This page is deprecated and will be removed in a future release.
-              <br />
-              For creating new agents, please use the workflows page.{" "}
-              <Link href="/workflows" className="font-bold underline">
-                Click here to create a new workflows page.
-              </Link>
-            </AlertDescription>
-          </Alert>
+        <div className="container mt-20 flex max-w-lg flex-col space-y-4 rounded-lg border py-6 text-sm">
+          <TbBrandOpenai fontSize="30px" />
+          <div className="flex flex-col space-y-2">
+            <p className="font-semibold">OpenAI Assistants</p>
+            <p className="text-muted-foreground">
+              We currently don&apos; support running OpenAI Assistants outside
+              of workflows. Please visit the{" "}
+              <Link className="underline" href="/workflows">
+                workflows page
+              </Link>{" "}
+              to run this assistant.
+            </p>
+          </div>
         </div>
       )}
     </div>

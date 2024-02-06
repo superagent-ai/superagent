@@ -1,5 +1,6 @@
 "use client"
 
+import { usePathname } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useTheme } from "next-themes"
 import { useAsync } from "react-use"
@@ -14,6 +15,7 @@ import {
 
 export default function BillingModal({ session }: { session: any }) {
   const theme = useTheme()
+  const pathname = usePathname()
   const supabase = createClientComponentClient()
   const { loading, value: profile } = useAsync(async () => {
     const { data: profile } = await supabase
@@ -31,7 +33,14 @@ export default function BillingModal({ session }: { session: any }) {
       : process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICING_TABLE_ID
 
   return (
-    <AlertDialog open={!loading && !profile?.stripe_plan_id}>
+    <AlertDialog
+      open={
+        !loading &&
+        !profile?.stripe_plan_id &&
+        pathname !== "/onboarding" &&
+        pathname !== "/"
+      }
+    >
       <AlertDialogContent className="max-w-[700px]">
         <AlertDialogHeader>
           <AlertDialogTitle>Your free trial has ended!</AlertDialogTitle>
