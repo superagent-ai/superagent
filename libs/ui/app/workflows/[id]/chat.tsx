@@ -211,7 +211,7 @@ export default function Chat({
           {timer.toFixed(1)}s
         </p>
       </div>
-      <div className="relative flex flex-1 flex-col border-l bg-muted text-sm">
+      <div className="relative flex flex-1 flex-col border-l bg-background text-sm">
         <ScrollArea className="flex-1 overflow-y-auto">
           <div className="flex flex-1 flex-col space-y-0 px-4 pb-10 pt-8">
             {messages.map(({ type, message, steps }, index) => (
@@ -226,7 +226,7 @@ export default function Chat({
             <div ref={endOfMessagesRef} className="pt-20" />
           </div>
         </ScrollArea>
-        <div className="absolute bottom-0 z-50 flex w-full flex-col bg-gradient-to-t from-muted from-0% to-transparent to-50% pb-8 sm:px-5 lg:px-20">
+        <div className="from-bg-background absolute bottom-0 z-50 flex w-full flex-col bg-gradient-to-t from-0% to-transparent to-50% pb-8 sm:px-5 lg:px-20">
           <div className="container max-w-4xl grow self-center px-8">
             <PromptForm
               onStop={() => abortStream()}

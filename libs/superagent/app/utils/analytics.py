@@ -40,7 +40,7 @@ def track_agent_invocation(data: AgentInvocationData):
         {
             "agentId": data.get("agent", {}).id,
             "workflowId": data.get("workflow_id", None),
-            "llm_model": data.get("agent", {}).get("llmModel", None),
+            "llm_model": data.get("agent", {}).llmModel,
             "sessionId": data["session_id"],
             # default http status code is 200
             "response": {
