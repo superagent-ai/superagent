@@ -211,12 +211,7 @@ export default function Chat({
           <div className="mb-20 mt-10 flex flex-col space-y-5 py-5">
             <div className="container mx-auto flex max-w-4xl flex-col">
               {messages.map((message, index) => (
-                <Message
-                  key={index}
-                  traceId={session ? `${agent.id}-${session}` : agent.id}
-                  profile={profile}
-                  {...message}
-                />
+                <Message key={index} profile={profile} {...message} />
               ))}
               <div ref={messagesEndRef} />
             </div>
