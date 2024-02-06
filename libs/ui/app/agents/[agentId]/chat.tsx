@@ -238,7 +238,6 @@ export default function Chat({
                   <CardContent>
                     <ScrollArea className="relative flex max-h-40 grow flex-col rounded-lg border p-3">
                       <Message
-                        traceId={session ? `${agent.id}-${session}` : agent.id}
                         type="ai"
                         message={run.outputs?.output}
                         profile={profile}
