@@ -19,7 +19,7 @@ class Agent(BaseModel):
     llmProvider: Optional[LLMProvider]
     description: Optional[str]
     avatar: Optional[str]
-    openaiOptions: Optional[Dict[str, Any]]
+    metadata: Optional[Dict[str, Any]]
 
 
 class AgentUpdate(BaseModel):
@@ -31,7 +31,7 @@ class AgentUpdate(BaseModel):
     description: Optional[str]
     avatar: Optional[str]
     type: Optional[str]
-    openaiOptions: Optional[Dict[str, Any]]
+    metadata: Optional[Dict[str, Any]]
 
 
 class AgentLLM(BaseModel):
