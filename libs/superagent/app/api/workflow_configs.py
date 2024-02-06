@@ -353,8 +353,10 @@ class WorkflowConfigHandler:
                 rename_and_remove_keys(old_tool, {"use_for": "description"})
                 rename_and_remove_keys(new_tool, {"use_for": "description"})
 
-                old_tool_type = old_tool_type.upper()
-                new_tool_type = new_tool_type.upper()
+                if old_tool_type:
+                    old_tool_type = old_tool_type.upper()
+                if new_tool_type:
+                    new_tool_type = new_tool_type.upper()
 
                 if old_tool_type == "FUNCTION":
                     old_tool["metadata"] = {
@@ -477,6 +479,7 @@ class WorkflowConfigHandler:
                             },
                         )
         elif assistant.get("type") == AgentType.OPENAI_ASSISTANT:
+
             if set(old_urls) != set(new_urls):
                 workflow_steps = await prisma.workflowstep.find_many(
                     where={
