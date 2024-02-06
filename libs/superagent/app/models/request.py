@@ -20,7 +20,7 @@ class Agent(BaseModel):
     description: Optional[str]
     avatar: Optional[str]
     type: Optional[AgentType] = AgentType.SUPERAGENT
-    openaiOptions: Optional[Dict[str, Any]]
+    metadata: Optional[Dict[str, Any]]
 
 
 class AgentUpdate(BaseModel):
@@ -32,7 +32,7 @@ class AgentUpdate(BaseModel):
     description: Optional[str]
     avatar: Optional[str]
     type: Optional[str]
-    openaiOptions: Optional[Dict[str, Any]]
+    metadata: Optional[Dict[str, Any]]
 
 
 class AgentLLM(BaseModel):

@@ -83,7 +83,7 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
             )
 
         oai = AsyncOpenAI(api_key=llm.apiKey)
-        openai_options = body.openaiOptions if body.openaiOptions else {}
+        openai_options = body.metadata if body.metadata else {}
         metadata = openai_options.get("metadata", {})
         tools = openai_options.get("tools", [])
         file_ids = openai_options.get("file_ids", [])
@@ -100,9 +100,9 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
         oai_json = oai_assistant.json()
         agent = await prisma.agent.create(
             {
-                **body.dict(exclude={"llmProvider", "openaiOptions"}),
+                **body.dict(exclude={"llmProvider", "metadata"}),
                 "apiUserId": api_user.id,
-                "openaiMetadata": json.dumps(oai_json),
+                "metadata": json.dumps(oai_json),
             },
             include={
                 "tools": {"include": {"tool": True}},
@@ -136,7 +136,7 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
         try:
             agent = await prisma.agent.create(
                 {
-                    **body.dict(exclude={"llmProvider", "openaiOptions"}),
+                    **body.dict(exclude={"llmProvider", "metadata"}),
                     "apiUserId": api_user.id,
                 },
                 include={
@@ -187,8 +187,8 @@ async def list(api_user=Depends(get_current_api_user), skip: int = 0, take: int 
         )
 
         for item in data:
-            if isinstance(item.openaiMetadata, dict):
-                item.openaiMetadata = json.dumps(item.openaiMetadata)
+            if isinstance(item.metadata, dict):
+                item.metadata = json.dumps(item.metadata)
 
         # Get the total count of agents
         total_count = await prisma.agent.count(where={"apiUserId": api_user.id})
@@ -218,8 +218,8 @@ async def get(agent_id: str, api_user=Depends(get_current_api_user)):
                 "llms": {"include": {"llm": True}},
             },
         )
-        if isinstance(data.openaiMetadata, dict):
-            data.openaiMetadata = json.dumps(data.openaiMetadata)
+        if isinstance(data.metadata, dict):
+            data.metadata = json.dumps(data.metadata)
         for llm in data.llms:
             llm.llm.options = json.dumps(llm.llm.options)
         for tool in data.tools:
@@ -242,15 +242,15 @@ async def delete(agent_id: str, api_user=Depends(get_current_api_user)):
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Deleted Agent")
         deleted = await prisma.agent.delete(where={"id": agent_id})
-        if deleted.openaiMetadata is None:
+        if deleted.metadata is None:
             return {"success": True, "data": None}
-        openaiMetadata = json.loads(deleted.openaiMetadata)
-        if openaiMetadata.get("id", None):
+        metadata = json.loads(deleted.metadata)
+        if metadata.get("id", None):
             llm = await prisma.llm.find_first_or_raise(
                 where={"provider": "OPENAI", "apiUserId": api_user.id}
             )
             oai = AsyncOpenAI(api_key=llm.apiKey)
-            await oai.beta.assistants.delete(openaiMetadata.get("id"))
+            await oai.beta.assistants.delete(metadata.get("id"))
         return {"success": True, "data": None}
     except Exception as e:
         handle_exception(e)
@@ -276,27 +276,27 @@ async def update(
                 "apiUserId": api_user.id,
             },
         )
-        if data.openaiMetadata is None:
+        if data.metadata is None:
             return {"success": True, "data": data}
-        openaiMetadata = json.loads(data.openaiMetadata)
-        if openaiMetadata:
+        metadata = json.loads(data.metadata)
+        if metadata:
             llm = await prisma.llm.find_first_or_raise(
                 where={"provider": "OPENAI", "apiUserId": api_user.id}
             )
             oai = AsyncOpenAI(api_key=llm.apiKey)
             oai_assistant = await oai.beta.assistants.update(
-                assistant_id=openaiMetadata.get("id"),
+                assistant_id=metadata.get("id"),
                 name=data.name,
                 description=data.description,
                 instructions=data.prompt,
-                tools=openaiMetadata.get("tools", []),
-                file_ids=openaiMetadata.get("file_ids", []),
-                metadata=openaiMetadata.get("metadata", {}),
+                tools=metadata.get("tools", []),
+                file_ids=metadata.get("file_ids", []),
+                metadata=metadata.get("metadata", {}),
             )
             data = await prisma.agent.update(
                 where={"id": agent_id},
                 data={
-                    "openaiMetadata": json.dumps(oai_assistant.json()),
+                    "metadata": json.dumps(oai_assistant.json()),
                     "apiUserId": api_user.id,
                 },
             )
@@ -380,7 +380,7 @@ async def invoke(
         )
         oai = AsyncOpenAI(api_key=llm.apiKey)
         thread_id = body.sessionId
-        openaiMetadata = json.loads(agent_config.openaiMetadata)
+        metadata = json.loads(agent_config.metadata)
         if not thread_id:
             thread_id = (await oai.beta.threads.create()).id
         else:
@@ -389,7 +389,7 @@ async def invoke(
             )
 
         run = await oai.beta.threads.runs.create(
-            thread_id=thread_id, assistant_id=openaiMetadata.get("id")
+            thread_id=thread_id, assistant_id=metadata.get("id")
         )
         await wait_on_run(run=run, thread_id=thread_id)
         messages = await oai.beta.threads.messages.list(thread_id=thread_id)
