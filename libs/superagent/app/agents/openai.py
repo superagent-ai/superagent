@@ -1,5 +1,9 @@
+import asyncio
+
 from langchain.agents import AgentExecutor
 from langchain.agents.openai_assistant import OpenAIAssistantRunnable
+from langchain.schema.messages import AIMessage
+from langchain.schema.output import ChatGeneration, LLMResult
 
 from app.agents.base import AgentBase
 
@@ -19,9 +23,30 @@ class OpenAiAssistant(AgentBase):
                     # TODO: find a better way to get the streaming callback
                     streaming = kwargs["config"]["callbacks"][0]
                     await streaming.on_llm_start()
+
+                    # stream the tokens. after finishing, call the on_llm_end. (make sure you call it after all the tokens are streamed)
+                    # make sure to call on_llm_end after all the tokens are streamed
+                    tasks = []
+
                     for token in output:
-                        # send word to callback
-                        await streaming.on_llm_new_token(token + " ")
+                        task = streaming.on_llm_new_token(token + " ")
+                        tasks.append(task)
+
+                    await asyncio.gather(*tasks)
+
+                    await streaming.on_llm_end(
+                        response=LLMResult(
+                            generations=[
+                                [
+                                    ChatGeneration(
+                                        message=AIMessage(
+                                            content=res.get("output"),
+                                        )
+                                    )
+                                ]
+                            ],
+                        )
+                    )
 
                 return res
 
