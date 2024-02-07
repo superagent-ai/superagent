@@ -360,6 +360,8 @@ async def update(
             where={"id": agent_id},
             data=new_agent_data,
         )
+        data.metadata = json.dumps(data.metadata)
+
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)

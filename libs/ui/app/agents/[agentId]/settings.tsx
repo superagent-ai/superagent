@@ -30,11 +30,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 
+import AddDatasource from "./add-datasource"
+import AddTool from "./add-tool"
 import Avatar from "./avatar"
 
 const formSchema = z.object({
@@ -318,15 +321,24 @@ export default function Settings({
               </div>
             )}
           </div>
+
+          <Separator className="!my-8 flex items-center justify-center">
+            <span className="text-muted-foreground">Tools & Datasources</span>
+          </Separator>
+
           <FormField
             control={form.control}
             name="tools"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>APIs</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Tools</FormLabel>
+                  <AddTool profile={profile} />
+                </div>
+
                 <FormControl>
                   <MultiSelect
-                    placeholder="Select api..."
+                    placeholder="Select tool..."
                     data={tools.map((tool: any) => ({
                       value: tool.id,
                       label: tool.name,
@@ -349,7 +361,10 @@ export default function Settings({
             name="datasources"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Datasources</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Datasources</FormLabel>
+                  <AddDatasource profile={profile} />
+                </div>
                 <FormControl>
                   <MultiSelect
                     placeholder="Select datasource..."
