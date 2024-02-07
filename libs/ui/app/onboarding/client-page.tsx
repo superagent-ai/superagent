@@ -35,7 +35,7 @@ import { useToast } from "@/components/ui/use-toast"
 const formSchema = z.object({
   first_name: z.string().nonempty("Invalid first name."),
   last_name: z.string().nonempty("Invalid last name."),
-  company: z.string(),
+  company: z.string().nonempty("Enter a company name"),
 })
 
 export default function OnboardingClientPage() {
