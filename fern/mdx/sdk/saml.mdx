@@ -1,0 +1,104 @@
+# SuperAgent Markup Language
+
+SuperAgent Markup Language (SAML) is a powerful tool used in the SuperAgent framework. It allows developers to define and control the behavior of their agents in a structured and readable format. SAML is designed to be easy to use, yet flexible enough to handle complex scenarios. It provides a way to specify how an agent should respond to different types of user input, manage state, and interact with external APIs and services. With SAML, you can create agents that can handle a wide range of tasks, from simple FAQs to complex workflows involving multiple steps and external services. To use SAML, you define your agent's behavior in a SAML file, which is then processed by the SuperAgent framework. The framework interprets the SAML file and uses it to control the agent's behavior.
+
+Below are all the available options:
+
+```yaml
+workflows:
+    - superagent: 
+        name: My assistant
+        llm: gpt-4-1106-preview
+        prompt: You are a helpful AI assitant.
+        intro: 👋 Hi there! How can I help you?
+        data: # This is for structured and unstructured data
+            use_for: Querying internal data
+            urls:
+            - https://acme.inc/test.pdf
+            - https://acme.inc/transactions.csv
+        tools: 
+            - browser: 
+                name: Browser
+                use_for: Finding information on the internet
+            - code_executor: 
+                name: Code executor
+                use_for: Writing and executing code
+            - hand_off: 
+                name: Human hand-off
+            - http: 
+                name: My custom api
+                use_for: Use for making http requests
+                metadata: 
+                headers:
+                    Authorization: Bearer <token>
+                    url: <url>
+                    method: post
+                    body:
+                    title: string
+            - bing_search: 
+                name: Bing search
+                use_for: Use for accessing Bing Search
+                metadata:
+                bingSearchUrl: <bing_search_url>
+                bingSubscriptionKey: <bing_subscription_key>
+
+            - replicate: 
+                name: SDXL Image generator
+                use_for: Use for generating something with a model on Replicate
+                metadata:
+                model: <model>
+                apiKey: <api_key>
+                # arguments:
+                    # key: value
+
+            - algolia: 
+                name: My index
+                use_for: Querying an index
+                metadata:
+                apiId: <api_key>
+                apiKey: <api_key>
+                index: <index>
+
+            - metaphor: 
+                name: Metaphor Search
+                use_for: Search the internet
+                metadata:
+                metaphorApiKey: <api_key>
+            - function:
+                name: my_function
+                use_for: Call my custom function
+                metadata:
+                args:
+                    name: string
+                    title: string
+
+    - openai_assistants:
+        name: My OAI assistant
+        prompt: You are a personal math tutor.
+        llm: gpt-4-1106-preview
+        tools:
+            # Mandatory if you are passing files
+            - retrieval:
+                name: Retrieval
+                use_for: Retrieving content from files
+            # Mandatory for structured files such as CSV, XLSX etc.
+            - code_interpreter:
+                name: Code interpreter
+                use_for: Evaluating code, doing computation
+            - function: 
+                name: my_function
+                use_for: Call my custom function
+                metadata:
+                args:
+                    name: string
+                    title: string
+                    # required: # TODO: update this for support for required args (https://github.com/homanp/superagent/blob/main/libs/superagent/app/tools/__init__.py#L79)
+                    #   - name
+                    #   - title
+        data:
+            # Uses OAI embeddings
+            # Supported files https://platform.openai.com/docs/assistants/tools/supported-files
+            urls:
+            - https://acme.inc/test.pdf
+            - https://acme.inc/transactions.csv
+```
