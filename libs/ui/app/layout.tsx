@@ -1,7 +1,7 @@
 import "@/styles/globals.css"
 
 import { Metadata } from "next"
-//import { cookies } from "next/headers"
+import { cookies } from "next/headers"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { siteConfig } from "@/config/site"
@@ -37,14 +37,14 @@ interface RootLayoutProps {
 export const dynamic = "force-dynamic"
 
 export default async function RootLayout({ children }: RootLayoutProps) {
-  /*const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createRouteHandlerClient({ cookies })
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
   if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     PostHogClient()
-  }*/
+  }
 
   return (
     <>
