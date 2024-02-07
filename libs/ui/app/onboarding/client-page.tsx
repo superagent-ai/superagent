@@ -73,7 +73,12 @@ export default function OnboardingClientPage() {
     if (!profile.api_key) {
       const {
         data: { token: api_key },
-      } = await api.createApiKey(user.email)
+      } = await api.createApiKey({
+        email: user.email,
+        firstName: first_name,
+        lastName: last_name,
+        company,
+      })
       await supabase
         .from("profiles")
         .update({

@@ -34,6 +34,13 @@ export class Api {
     return await response.json()
   }
 
+  async indentifyUser(payload: any) {
+    return this.fetchFromApi("/api-users/identify", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+  }
+
   async createAgent(payload: any) {
     return this.fetchFromApi("/agents", {
       method: "POST",
@@ -55,10 +62,10 @@ export class Api {
     })
   }
 
-  async createApiKey(email: string) {
+  async createApiKey(payload: any) {
     return this.fetchFromApi("/api-users", {
       method: "POST",
-      body: JSON.stringify({ email }),
+      body: JSON.stringify(payload),
     })
   }
 

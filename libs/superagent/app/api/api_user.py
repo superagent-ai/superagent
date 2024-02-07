@@ -67,4 +67,17 @@ async def delete(api_user=Depends(get_current_api_user)):
         handle_exception(e)
 
 
-# Add an endpoint for regenerating token
+@router.post(
+    "/api-users/identify",
+    name="indentify",
+    description="Indentify an api user",
+    response_model=None,
+)
+async def identify(body: ApiUserRequest, api_user=Depends(get_current_api_user)):
+    """Endpoint for deleting an api user"""
+    try:
+        if SEGMENT_WRITE_KEY:
+            analytics.identify(api_user.id, {**body.dict()})
+            analytics.track(api_user.id, "Signed In")
+    except Exception as e:
+        handle_exception(e)
