@@ -17,15 +17,6 @@ export default function IntegrationsClientPage({
         <TabsTrigger value="storage" className="space-x-1">
           <span>STORAGE</span>
         </TabsTrigger>
-        <TabsTrigger value="logging" className="space-x-1">
-          <span>LOGGING</span>
-        </TabsTrigger>
-        <TabsTrigger value="datasources" className="space-x-1">
-          <span>DATASOURCES</span>
-        </TabsTrigger>
-        <TabsTrigger value="tools" className="space-x-1">
-          <span>TOOLS</span>
-        </TabsTrigger>
       </TabsList>
       <TabsContent value="storage" className="px-6 py-2 text-sm">
         <Storage profile={profile} configuredDBs={configuredDBs} />
