@@ -1,104 +1,107 @@
-# SuperAgent Markup Language
+# Building AI-Based Assistants with SuperAgent Markup Language (SAML)
 
-SuperAgent Markup Language (SAML) is a powerful tool used in the SuperAgent framework. It allows developers to define and control the behavior of their agents in a structured and readable format. SAML is designed to be easy to use, yet flexible enough to handle complex scenarios. It provides a way to specify how an agent should respond to different types of user input, manage state, and interact with external APIs and services. With SAML, you can create agents that can handle a wide range of tasks, from simple FAQs to complex workflows involving multiple steps and external services. To use SAML, you define your agent's behavior in a SAML file, which is then processed by the SuperAgent framework. The framework interprets the SAML file and uses it to control the agent's behavior.
+SuperAgent Markup Language (SAML) is a powerful way for teams to quickly design, iterate, and deploy AI-based assistants. By defining assistants' capabilities, data sources, and tools in a structured format, SAML enables rapid development and deployment of AI agents.
 
-Below are all the available options:
+## Step 1: Creating a Basic Assistant
+
+Begin by defining a straightforward SuperAgent assistant without external tools or data sources using SAML.
+
+### Basic Assistant Configuration
 
 ```yaml
 workflows:
-    - superagent: 
-        name: My assistant
-        llm: gpt-4-1106-preview
-        prompt: You are a helpful AI assitant.
-        intro: 👋 Hi there! How can I help you?
-        data: # This is for structured and unstructured data
-            use_for: Querying internal data
-            urls:
-            - https://acme.inc/test.pdf
-            - https://acme.inc/transactions.csv
-        tools: 
-            - browser: 
-                name: Browser
-                use_for: Finding information on the internet
-            - code_executor: 
-                name: Code executor
-                use_for: Writing and executing code
-            - hand_off: 
-                name: Human hand-off
-            - http: 
-                name: My custom api
-                use_for: Use for making http requests
-                metadata: 
-                headers:
-                    Authorization: Bearer <token>
-                    url: <url>
-                    method: post
-                    body:
-                    title: string
-            - bing_search: 
-                name: Bing search
-                use_for: Use for accessing Bing Search
-                metadata:
-                bingSearchUrl: <bing_search_url>
-                bingSubscriptionKey: <bing_subscription_key>
-
-            - replicate: 
-                name: SDXL Image generator
-                use_for: Use for generating something with a model on Replicate
-                metadata:
-                model: <model>
-                apiKey: <api_key>
-                # arguments:
-                    # key: value
-
-            - algolia: 
-                name: My index
-                use_for: Querying an index
-                metadata:
-                apiId: <api_key>
-                apiKey: <api_key>
-                index: <index>
-
-            - metaphor: 
-                name: Metaphor Search
-                use_for: Search the internet
-                metadata:
-                metaphorApiKey: <api_key>
-            - function:
-                name: my_function
-                use_for: Call my custom function
-                metadata:
-                args:
-                    name: string
-                    title: string
-
-    - openai_assistants:
-        name: My OAI assistant
-        prompt: You are a personal math tutor.
-        llm: gpt-4-1106-preview
-        tools:
-            # Mandatory if you are passing files
-            - retrieval:
-                name: Retrieval
-                use_for: Retrieving content from files
-            # Mandatory for structured files such as CSV, XLSX etc.
-            - code_interpreter:
-                name: Code interpreter
-                use_for: Evaluating code, doing computation
-            - function: 
-                name: my_function
-                use_for: Call my custom function
-                metadata:
-                args:
-                    name: string
-                    title: string
-                    # required: # TODO: update this for support for required args (https://github.com/homanp/superagent/blob/main/libs/superagent/app/tools/__init__.py#L79)
-                    #   - name
-                    #   - title
-        data:
-            # Uses OAI embeddings
-            # Supported files https://platform.openai.com/docs/assistants/tools/supported-files
-            urls:
-            - https://acme.inc/test.pdf
-            - https://acme.inc/transactions.csv
+  - superagent: 
+      name: Basic Assistant
+      llm: gpt-4-1106-preview
+      prompt: You are a simple AI assistant.
+      intro: 👋 Hi! How can I assist you today?
 ```
+
+- `name`: Sets the assistant's name.
+- `llm`: Specifies the language model used, such as `gpt-4-1106-preview`.
+- `prompt`: Establishes the assistant's behavior context.
+- `intro`: Provides an introductory message for user interactions.
+
+## Step 2: Adding Data Sources
+
+Enhance the assistant's capabilities by adding data sources to provide it with specific information it can utilize.
+
+### Data Integration
+
+```yaml
+      data:
+         use_for: Accessing Acme Inc. data
+         urls:
+            - https://acme.inc/test.pdf  # Unstructured data
+            - https://acme.inc/transactions.csv  # Structured data
+```
+
+- `data`: Defines the data your assistant can access.
+- `urls`: Lists the data sources, enabling the assistant to pull information from these files.
+
+## Step 3: Defining Multiple Specialized Assistants in a Single Workflow
+
+Use SAML to set up multiple assistants within the same workflow, each with its own specialized tasks.
+
+### Combined Workflow Configuration
+
+```yaml
+workflows:
+  - superagent: 
+      name: Web Scraping Assistant
+      llm: gpt-4-1106-preview
+      prompt: You are an AI assistant specialized in web scraping.
+      tools:
+         - browser:
+            name: Browser
+            use_for: Scraping web pages
+
+  - openai_assistants:
+      name: Summarizing Assistant
+      prompt: You are an AI assistant that excels in summarizing content.
+      llm: gpt-4-1106-preview
+```
+
+- The first assistant, "Web Scraping Assistant," uses the Browser tool to scrape web pages.
+- The second assistant, "Summarizing Assistant," focuses on summarizing content, leveraging its prompt configuration to guide its functionality without the need for additional tools.
+
+The Browser tool enables the assistant to search the internet for information. When integrated into an assistant, the Browser tool can be configured to scrape data from specific web pages or perform searches based on user queries. This capability is particularly useful for assistants that need to provide up-to-date information or conduct research on behalf of the user.
+
+By leveraging SAML to define and integrate these tools, teams can create versatile AI assistants capable of performing a wide range of tasks, from data retrieval and content summarization to custom functions and internet searches.
+
+### Tools and Their Parameters
+
+Here's an overview of the tools and their parameters provided in the example:
+
+1. **Browser**
+   - `name`: Identifier for the tool.
+   - `use_for`: Describes the tool's purpose, such as scraping web pages.
+
+2. **Code Executor**
+   - `name`: Identifier for the tool.
+   - `use_for`: Describes the tool's purpose, such as executing code snippets.
+
+3. **HTTP**
+   - `name`: Identifier for the tool.
+   - `use_for`: Describes the tool's purpose, such as making HTTP requests.
+   - `metadata`: Contains configuration details like headers, URL, method, and body.
+
+4. **Replicate**
+   - `name`: Identifier for the tool.
+   - `use_for`: Describes the tool's purpose, such as generating content with a model on Replicate.
+   - `metadata`: Includes details like the model and API key.
+
+5. **Algolia**
+   - `name`: Identifier for the tool.
+   - `use_for`: Describes the tool's purpose, such as querying an index.
+   - `metadata`: Includes details like API ID, API key, and index name.
+
+6. **Metaphor Search**
+   - `name`: Identifier for the tool.
+   - `use_for`: Describes the tool's purpose, such as searching the internet.
+   - `metadata`: Includes the API key for Metaphor.
+
+7. **Function**
+   - `name`: Identifier for the tool.
+   - `use_for`: Describes the tool's purpose, such as calling a custom function.
+   - `metadata`: Includes arguments like `name` and `title`.
