@@ -1,25 +1,32 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
+from openai.types.beta.assistant_create_params import Tool as OpenAiAssistantTool
 from pydantic import BaseModel
 
-from prisma.enums import LLMProvider, VectorDbProvider
+from prisma.enums import AgentType, LLMProvider, VectorDbProvider
 
 
 class ApiUser(BaseModel):
     email: str
 
 
+class OpenAiAssistantParameters(BaseModel):
+    metadata: Optional[Dict[str, Any]]
+    fileIds: Optional[List[str]]
+    tools: Optional[List[OpenAiAssistantTool]]
+
+
 class Agent(BaseModel):
-    isActive: bool = True
+    isActive: Optional[bool] = True
     name: str
-    type: Optional[str] = "SUPERAGENT"
     initialMessage: Optional[str]
     prompt: Optional[str]
     llmModel: Optional[str]
     llmProvider: Optional[LLMProvider]
-    description: Optional[str]
+    description: Optional[str] = "An helpful agent."
     avatar: Optional[str]
-    metadata: Optional[Dict[str, Any]]
+    type: Optional[AgentType] = AgentType.SUPERAGENT
+    parameters: Optional[OpenAiAssistantParameters]
 
 
 class AgentUpdate(BaseModel):
@@ -102,8 +109,3 @@ class WorkflowInvoke(BaseModel):
 class VectorDb(BaseModel):
     provider: VectorDbProvider
     options: Dict
-
-
-class WorkflowConfig(BaseModel):
-    name: str
-    description: Optional[str]

@@ -3,8 +3,6 @@
 import { motion } from "framer-motion"
 import { LangfuseWeb } from "langfuse"
 import { AiOutlineExclamationCircle } from "react-icons/ai"
-import { GoThumbsdown, GoThumbsup } from "react-icons/go"
-import { RxCopy, RxReload } from "react-icons/rx"
 import remarkGfm from "remark-gfm"
 import remarkMath from "remark-math"
 
@@ -17,7 +15,6 @@ import {
 } from "@/components/ui/accordion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -59,7 +56,6 @@ function PulsatingCursor() {
 }
 
 interface MessageProps {
-  traceId: string
   type: string
   message: string
   isSuccess?: boolean
@@ -69,7 +65,6 @@ interface MessageProps {
 }
 
 export default function Message({
-  traceId,
   type,
   message,
   isSuccess = true,
@@ -78,23 +73,6 @@ export default function Message({
   onResubmit,
 }: MessageProps) {
   const { toast } = useToast()
-  const handleFeedback = async (value: number) => {
-    if (!langfuseWeb) {
-      return
-    }
-
-    await langfuseWeb.score({
-      traceId,
-      name: "user-feedback",
-      value,
-      comment: "I like how personalized the response is",
-    })
-
-    toast({
-      description: "Feedback submitted!",
-    })
-  }
-
   const handleCopy = () => {
     navigator.clipboard.writeText(message)
     toast({
@@ -103,27 +81,27 @@ export default function Message({
   }
 
   return (
-    <div className="flex flex-col space-y-1 pb-4">
-      <div className="min-w-4xl flex max-w-4xl space-x-4  pb-2">
-        <Avatar className="h-8 w-8 rounded-md">
-          <AvatarImage src={type === "ai" ? "/logo.png" : undefined} />
-          <AvatarFallback className="rounded-md">
-            {type === "human" &&
-              `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`}
+    <div className="container flex flex-col space-y-1 pb-4 md:max-w-md lg:max-w-4xl">
+      <div className="flex max-w-4xl space-x-4 pb-2 font-mono">
+        <Avatar
+          className={`h-8 w-8 rounded-md border ${
+            type !== "human" && "text-green-400"
+          }`}
+        >
+          <AvatarFallback className="rounded-md bg-background">
+            {type === "human"
+              ? `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`
+              : "A"}
           </AvatarFallback>
         </Avatar>
-        <div className="ml-4 mt-1 flex-1 flex-col space-y-2 overflow-hidden px-1">
+        <div className="ml-4 mt-2 flex-1 flex-col space-y-2 overflow-hidden px-1">
           {message?.length === 0 && !steps && <PulsatingCursor />}
           {isSuccess ? (
             <>
               {steps
                 ? Object.entries(steps).map(([key, value], index) => (
-                    <Accordion
-                      defaultValue={Object.keys(steps)[0]}
-                      type="single"
-                      collapsible
-                    >
-                      <AccordionItem value={key}>
+                    <Accordion defaultValue={key} type="single" collapsible>
+                      <AccordionItem value={key} className="border-muted">
                         <AccordionTrigger
                           className={`mb-4 py-0 text-sm hover:no-underline ${
                             index > 0 && "mt-2"
@@ -138,48 +116,6 @@ export default function Message({
                     </Accordion>
                   ))
                 : message && <CustomMarkdown message={message} />}
-              {type === "ai" && message.length > 0 && (
-                <div className="flex space-x-2 ">
-                  {langfuseWeb && (
-                    <div className="flex space-x-2 ">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleFeedback(1)}
-                        className="rounded-lg"
-                      >
-                        <GoThumbsup size="15px" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleFeedback(0)}
-                        className="rounded-lg"
-                      >
-                        <GoThumbsdown size="15px" />
-                      </Button>
-                    </div>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleCopy()}
-                    className="rounded-lg"
-                  >
-                    <RxCopy size="15px" />
-                  </Button>
-                  {onResubmit && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={onResubmit}
-                      className="rounded-lg"
-                    >
-                      <RxReload size="15px" />
-                    </Button>
-                  )}
-                </div>
-              )}
             </>
           ) : (
             <MessageAlert error={message} />

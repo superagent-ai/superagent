@@ -1,7 +1,9 @@
 import { cookies } from "next/headers"
+import Link from "next/link"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { Api } from "@/lib/api"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
@@ -38,6 +40,18 @@ export default async function Agents({
   return (
     <div className="flex flex-col space-y-4 px-4 py-6">
       <p className="text-lg">Agents</p>
+
+      <Alert variant="destructive">
+        <AlertTitle>Deprecated</AlertTitle>
+        <AlertDescription>
+          This page is deprecated and will be removed in a future release.
+          <br />
+          For creating new agents, please use the workflows page.{" "}
+          <Link href="/workflows" className="font-bold underline">
+            Click here to create a new workflows.
+          </Link>
+        </AlertDescription>
+      </Alert>
       <DataTable
         columns={columns}
         data={agents}

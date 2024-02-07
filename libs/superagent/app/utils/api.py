@@ -12,7 +12,7 @@ security = HTTPBearer()
 
 
 def handle_exception(e):
-    logger.error(e)
+    logger.exception(e)
     raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
     )

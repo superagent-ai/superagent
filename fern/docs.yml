@@ -44,6 +44,8 @@ navigation:
             path: ./mdx/sdk/workflows.mdx
           - page: Configuring Vector Database
             path: ./mdx/sdk/configure_vector_database.mdx
+          - page: SuperAgent Markup Language
+            path: ./mdx/sdk/saml.mdx
       - section: Deployments
         contents:
           - page: Docker

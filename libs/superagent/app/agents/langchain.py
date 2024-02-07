@@ -73,12 +73,16 @@ class LangchainAgent(AgentBase):
             metadata = (
                 {
                     "datasource_id": agent_datasource.datasource.id,
-                    "options": agent_datasource.datasource.vectorDb.options
-                    if agent_datasource.datasource.vectorDb
-                    else {},
-                    "provider": agent_datasource.datasource.vectorDb.provider
-                    if agent_datasource.datasource.vectorDb
-                    else None,
+                    "options": (
+                        agent_datasource.datasource.vectorDb.options
+                        if agent_datasource.datasource.vectorDb
+                        else {}
+                    ),
+                    "provider": (
+                        agent_datasource.datasource.vectorDb.provider
+                        if agent_datasource.datasource.vectorDb
+                        else None
+                    ),
                     "query_type": "document",
                 }
                 if tool_type == DatasourceTool
@@ -115,9 +119,11 @@ class LangchainAgent(AgentBase):
                     description=agent_tool.tool.description,
                     metadata=agent_tool.tool.metadata,
                     args_schema=tool_info["schema"],
-                    session_id=f"{self.agent_id}-{self.session_id}"
-                    if self.session_id
-                    else f"{self.agent_id}",
+                    session_id=(
+                        f"{self.agent_id}-{self.session_id}"
+                        if self.session_id
+                        else f"{self.agent_id}"
+                    ),
                     return_direct=agent_tool.tool.returnDirect,
                 )
             tools.append(tool)
@@ -129,18 +135,12 @@ class LangchainAgent(AgentBase):
             **(self.llm_params.dict() if self.llm_params else {}),
         }
 
-        callbacks = []
-        if self.enable_streaming:
-            callbacks.append(self.callback)
-        if self.session_tracker:
-            callbacks.append(self.session_tracker)
-
         if agent_llm.llm.provider == "OPENAI":
             return ChatOpenAI(
                 model=LLM_MAPPING[model],
                 openai_api_key=agent_llm.llm.apiKey,
                 streaming=self.enable_streaming,
-                callbacks=callbacks,
+                callbacks=self.callbacks,
                 **(agent_llm.llm.options if agent_llm.llm.options else {}),
                 **(llm_params),
             )
@@ -148,7 +148,7 @@ class LangchainAgent(AgentBase):
             return AzureChatOpenAI(
                 api_key=agent_llm.llm.apiKey,
                 streaming=self.enable_streaming,
-                callbacks=callbacks,
+                callbacks=self.callbacks,
                 **(agent_llm.llm.options if agent_llm.llm.options else {}),
                 **(llm_params),
             )
@@ -182,9 +182,11 @@ class LangchainAgent(AgentBase):
 
     async def _get_memory(self) -> List:
         memory = MotorheadMemory(
-            session_id=f"{self.agent_id}-{self.session_id}"
-            if self.session_id
-            else f"{self.agent_id}",
+            session_id=(
+                f"{self.agent_id}-{self.session_id}"
+                if self.session_id
+                else f"{self.agent_id}"
+            ),
             memory_key="chat_history",
             url=config("MEMORY_API_URL"),
             return_messages=True,
@@ -193,12 +195,15 @@ class LangchainAgent(AgentBase):
         await memory.init()
         return memory
 
-    async def get_agent(self, config: Agent):
-        llm = await self._get_llm(agent_llm=config.llms[0], model=config.llmModel)
-        tools = await self._get_tools(
-            agent_datasources=config.datasources, agent_tools=config.tools
+    async def get_agent(self):
+        llm = await self._get_llm(
+            agent_llm=self.agent_config.llms[0], model=self.agent_config.llmModel
         )
-        prompt = await self._get_prompt(agent=config)
+        tools = await self._get_tools(
+            agent_datasources=self.agent_config.datasources,
+            agent_tools=self.agent_config.tools,
+        )
+        prompt = await self._get_prompt(agent=self.agent_config)
         memory = await self._get_memory()
 
         if len(tools) > 0:
@@ -219,8 +224,8 @@ class LangchainAgent(AgentBase):
             return agent
         else:
             prompt_base = (
-                f"{config.prompt.replace('{', '{{').replace('}', '}}')}"
-                if config.prompt
+                f"{self.agent_config.prompt.replace('{', '{{').replace('}', '}}')}"
+                if self.agent_config.prompt
                 else None
             )
             prompt_base = prompt_base or DEFAULT_PROMPT

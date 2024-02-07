@@ -21,9 +21,9 @@ export class Api {
     const response = await fetch(url.toString(), {
       ...options,
       headers: {
-        ...options.headers,
         "Content-Type": "application/json",
         authorization: `Bearer ${this.apiKey}`,
+        ...options.headers,
       },
     })
 
@@ -121,7 +121,7 @@ export class Api {
   }
 
   async getAgents(
-    searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
+    searchParams: { take?: number; skip?: number } = { skip: 0, take: 300 }
   ) {
     return this.fetchFromApi("/agents", {}, searchParams)
   }
@@ -148,6 +148,16 @@ export class Api {
     searchParams: { take?: number; skip?: number } = { skip: 0, take: 50 }
   ) {
     return this.fetchFromApi("/tools", {}, searchParams)
+  }
+
+  async getRuns(searchParams?: {
+    workflow_id?: string
+    agent_id?: string
+    limit?: number
+    from_page?: number
+    to_page?: number
+  }) {
+    return this.fetchFromApi("/runs", {}, searchParams)
   }
 
   async patchAgent(id: string, payload: any) {
@@ -192,6 +202,16 @@ export class Api {
     return this.fetchFromApi("/workflows", {
       method: "POST",
       body: JSON.stringify(payload),
+    })
+  }
+
+  async generateWorkflow(workflowId: string, payload: any) {
+    return this.fetchFromApi(`/workflows/${workflowId}/config`, {
+      method: "POST",
+      body: payload,
+      headers: {
+        "content-type": "application/x-yaml",
+      },
     })
   }
 
