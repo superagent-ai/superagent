@@ -53,14 +53,14 @@ export default function SAML({
     return config
   }, [router, api])
 
-  const { theme } = useTheme()
+  const { resolvedTheme } = useTheme()
   const codeEditorRef = useRef(null)
 
   let editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
 
   useEffect(() => {
     if (codeEditorRef.current) {
-      editorRef.current = initCodeEditor(codeEditorRef.current, theme)
+      editorRef.current = initCodeEditor(codeEditorRef.current, resolvedTheme)
       editorRef?.current?.addCommand(
         monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
         saveConfig

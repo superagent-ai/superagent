@@ -28,7 +28,7 @@ export default function BillingModal({ session }: { session: any }) {
   })
 
   const pricingTableID =
-    theme.theme === "dark"
+    theme.resolvedTheme === "dark"
       ? process.env.NEXT_PUBLIC_STRIPE_DARK_PRICING_TABLE_ID
       : process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICING_TABLE_ID
 
