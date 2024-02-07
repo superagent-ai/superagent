@@ -8,6 +8,9 @@ from prisma.enums import AgentType, LLMProvider, VectorDbProvider
 
 class ApiUser(BaseModel):
     email: str
+    firstName: Optional[str]
+    lastName: Optional[str]
+    company: Optional[str]
 
 
 class OpenAiAssistantParameters(BaseModel):
