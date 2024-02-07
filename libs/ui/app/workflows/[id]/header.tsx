@@ -1,9 +1,7 @@
-"use client"
-
-import * as React from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Agent } from "@/models/models"
+import { Workflow } from "@/models/models"
 import { TbTrash } from "react-icons/tb"
 
 import { Profile } from "@/types/profile"
@@ -20,70 +18,60 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { toast } from "@/components/ui/use-toast"
-import { useEditableField } from "@/components/hooks"
+import { useEditableField } from "@/components/hooks/"
 
-type Mode = "view" | "edit"
-
-export default function Header({
-  agent,
-  profile,
-}: {
-  agent: Agent
+interface HeaderProps {
   profile: Profile
-}) {
-  const api = new Api(profile.api_key)
+  workflow: Workflow
+}
+
+const Header = ({ profile, workflow }: HeaderProps) => {
   const router = useRouter()
-  const [isDeleteModalOpen, setDeleteModalOpen] = React.useState<boolean>(false)
+  const api = new Api(profile.api_key)
+  const [open, setOpen] = useState(false)
 
-  const onAgentDelete = async () => {
-    await api.deleteAgentById(agent.id)
-    toast({
-      description: `Agent with ID: ${agent.id} deleted!`,
+  const updateName = async (name: string) => {
+    await api.patchWorkflow(workflow.id, {
+      ...workflow,
+      name,
     })
-    router.refresh()
-    router.push("/agents")
-  }
-
-  const onUpdateAgentName = async (name: string) => {
-    await api.patchAgent(agent.id, { name })
     router.refresh()
   }
 
   return (
     <>
-      <div className="flex space-x-2 px-6 py-2 text-sm text-muted-foreground">
-        <Link passHref href="/agents">
-          <span>Agents</span>
+      <div className="flex space-x-2 px-6 text-sm text-muted-foreground">
+        <Link passHref href="/workflows">
+          <span>Workflows</span>
         </Link>
         <span>/</span>
         <Badge variant="secondary">
           <div className="flex items-center space-x-1">
             <span className="font-mono font-normal text-muted-foreground">
-              {agent?.id}
+              {workflow?.id}
             </span>
           </div>
         </Badge>
       </div>
       <div className="flex items-center justify-between px-6">
         <div className="flex flex-col space-y-2">
-          {useEditableField(agent.name, onUpdateAgentName)}
+          {useEditableField(workflow.name, updateName)}
 
           <span className="font-mono text-xs font-normal text-muted-foreground">
             <span>
               CREATED AT:{" "}
               <span className="text-foreground">
-                {agent.createdAt.toString()}
+                {workflow.createdAt.toString()}
               </span>
             </span>
           </span>
         </div>
-        <AlertDialog open={isDeleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <AlertDialog open={open} onOpenChange={setOpen}>
           <Button
             className="space-x-2"
             size="sm"
             variant="outline"
-            onClick={() => setDeleteModalOpen(true)}
+            onClick={() => setOpen(true)}
           >
             <TbTrash size={20} />
             <span>Delete</span>
@@ -98,7 +86,12 @@ export default function Header({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={onAgentDelete}>
+              <AlertDialogAction
+                onClick={async () => {
+                  await api.deleteWorkflow(workflow.id)
+                  router.push("/workflows")
+                }}
+              >
                 Yes, delete!
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -108,3 +101,5 @@ export default function Header({
     </>
   )
 }
+
+export default Header
