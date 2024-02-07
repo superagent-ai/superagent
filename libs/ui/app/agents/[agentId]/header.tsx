@@ -51,60 +51,62 @@ export default function Header({
   }
 
   return (
-    <>
-      <div className="flex space-x-2 px-6 py-2 text-sm text-muted-foreground">
-        <Link passHref href="/agents">
-          <span>Agents</span>
-        </Link>
-        <span>/</span>
-        <Badge variant="secondary">
-          <div className="flex items-center space-x-1">
-            <span className="font-mono font-normal text-muted-foreground">
-              {agent?.id}
-            </span>
-          </div>
-        </Badge>
-      </div>
-      <div className="flex items-center justify-between px-6">
-        <div className="flex flex-col space-y-2">
-          {useEditableField(agent.name, onUpdateAgentName)}
+    <div className="flex items-center justify-between border-b px-6 py-4">
+      <div className="flex flex-col">
+        <div className="flex space-x-2 py-2 text-sm text-muted-foreground">
+          <Link passHref href="/agents">
+            <span>Agents</span>
+          </Link>
+          <span>/</span>
+          <Badge variant="secondary">
+            <div className="flex items-center space-x-1">
+              <span className="font-mono font-normal text-muted-foreground">
+                {agent?.id}
+              </span>
+            </div>
+          </Badge>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col space-y-2">
+            {useEditableField(agent.name, onUpdateAgentName)}
 
-          <span className="font-mono text-xs font-normal text-muted-foreground">
-            <span>
-              CREATED AT:{" "}
-              <span className="text-foreground">
-                {agent.createdAt.toString()}
+            <span className="font-mono text-xs font-normal text-muted-foreground">
+              <span>
+                CREATED AT:{" "}
+                <span className="text-foreground">
+                  {agent.createdAt.toString()}
+                </span>
               </span>
             </span>
-          </span>
+          </div>
         </div>
-        <AlertDialog open={isDeleteModalOpen} onOpenChange={setDeleteModalOpen}>
-          <Button
-            className="space-x-2"
-            size="sm"
-            variant="outline"
-            onClick={() => setDeleteModalOpen(true)}
-          >
-            <TbTrash size={20} />
-            <span>Delete</span>
-          </Button>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your
-                account and remove your data from our servers.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={onAgentDelete}>
-                Yes, delete!
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
-    </>
+      <AlertDialog open={isDeleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <Button
+          className="space-x-2"
+          size="sm"
+          variant="outline"
+          onClick={() => setDeleteModalOpen(true)}
+        >
+          <TbTrash size={20} />
+          <span>Delete</span>
+        </Button>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your
+              account and remove your data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={onAgentDelete}>
+              Yes, delete!
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   )
 }

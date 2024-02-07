@@ -180,7 +180,7 @@ export default function Chat({
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden border-r">
-      <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between p-4">
+      <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-4">
         <p
           className={`${
             timer === 0 ? "text-muted-foreground" : "text-primary"

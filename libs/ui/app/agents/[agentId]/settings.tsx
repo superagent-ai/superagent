@@ -175,7 +175,7 @@ export default function Settings({
   )
 
   return (
-    <ScrollArea className="relative flex max-w-lg flex-1 grow p-4">
+    <ScrollArea className="relative flex max-w-lg flex-1 grow px-4 py-2">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -206,7 +206,7 @@ export default function Settings({
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea
+                  <Input
                     placeholder="E.g this agent is an expert at..."
                     {...field}
                   />
@@ -223,7 +223,7 @@ export default function Settings({
                 <FormLabel>Prompt</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="h-[200px]"
+                    className="h-[100px]"
                     placeholder="E.g you are an ai assistant that..."
                     {...field}
                   />
@@ -323,7 +323,9 @@ export default function Settings({
           </div>
 
           <Separator className="!my-8 flex items-center justify-center">
-            <span className="text-muted-foreground">Tools & Datasources</span>
+            <span className="text-sm text-muted-foreground">
+              Tools & Datasources
+            </span>
           </Separator>
 
           <FormField
