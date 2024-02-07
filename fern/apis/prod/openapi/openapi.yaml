@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The Open Source AI Assistant Framework & API
-  version: 0.2.0
+  version: 0.2.1
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -620,6 +620,33 @@ paths:
           content:
             application/json:
               schema: {}
+      security:
+        - HTTPBearer: []
+  /api/v1/api-users/identify:
+    post:
+      tags:
+        - Api user
+      summary: Indentify
+      description: Indentify an api user
+      operationId: indentify_api_v1_api_users_identify_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__ApiUser'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
   /api/v1/datasources:
@@ -1259,8 +1286,8 @@ paths:
     post:
       tags:
         - Workflow Config
-      summary: Parse Yaml
-      operationId: parse_yaml_api_v1_workflows__workflow_id__config_post
+      summary: Add Config
+      operationId: add_config_api_v1_workflows__workflow_id__config_post
       parameters:
         - required: true
           schema:
@@ -1409,6 +1436,30 @@ paths:
             title: Agent Id
             type: string
           name: agent_id
+          in: query
+        - required: false
+          schema:
+            title: From Page
+            type: integer
+          name: from_page
+          in: query
+        - required: false
+          schema:
+            title: To Page
+            type: integer
+          name: to_page
+          in: query
+        - required: false
+          schema:
+            title: Limit
+            type: integer
+          name: limit
+          in: query
+        - required: false
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
           in: query
       responses:
         '200':
@@ -1573,6 +1624,19 @@ components:
         - FUNCTION
       type: string
       description: An enumeration.
+    FunctionDefinition:
+      title: FunctionDefinition
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        parameters:
+          title: Parameters
+          type: object
     HTTPValidationError:
       title: HTTPValidationError
       type: object
@@ -1632,6 +1696,55 @@ components:
         - HUGGINGFACE
       type: string
       description: An enumeration.
+    OpenAiAssistantParameters:
+      title: OpenAiAssistantParameters
+      type: object
+      properties:
+        metadata:
+          title: Metadata
+          type: object
+        fileIds:
+          title: Fileids
+          type: array
+          items:
+            type: string
+        tools:
+          title: Tools
+          type: array
+          items:
+            anyOf:
+              - $ref: '#/components/schemas/ToolAssistantToolsCode'
+              - $ref: '#/components/schemas/ToolAssistantToolsRetrieval'
+              - $ref: '#/components/schemas/ToolAssistantToolsFunction'
+    ToolAssistantToolsCode:
+      title: ToolAssistantToolsCode
+      type: object
+      properties:
+        type:
+          title: Type
+          enum:
+            - code_interpreter
+          type: string
+    ToolAssistantToolsFunction:
+      title: ToolAssistantToolsFunction
+      type: object
+      properties:
+        function:
+          $ref: '#/components/schemas/FunctionDefinition'
+        type:
+          title: Type
+          enum:
+            - function
+          type: string
+    ToolAssistantToolsRetrieval:
+      title: ToolAssistantToolsRetrieval
+      type: object
+      properties:
+        type:
+          title: Type
+          enum:
+            - retrieval
+          type: string
     ToolList:
       title: ToolList
       required:
@@ -1814,10 +1927,6 @@ components:
         name:
           title: Name
           type: string
-        type:
-          title: Type
-          type: string
-          default: SUPERAGENT
         initialMessage:
           title: Initialmessage
           type: string
@@ -1832,12 +1941,16 @@ components:
         description:
           title: Description
           type: string
+          default: An helpful agent.
         avatar:
           title: Avatar
           type: string
-        metadata:
-          title: Metadata
-          type: object
+        type:
+          allOf:
+            - $ref: '#/components/schemas/AgentType'
+          default: SUPERAGENT
+        parameters:
+          $ref: '#/components/schemas/OpenAiAssistantParameters'
     app__models__request__AgentDatasource:
       title: AgentDatasource
       required:
@@ -1894,6 +2007,15 @@ components:
       properties:
         email:
           title: Email
+          type: string
+        firstName:
+          title: Firstname
+          type: string
+        lastName:
+          title: Lastname
+          type: string
+        company:
+          title: Company
           type: string
     app__models__request__Datasource:
       title: Datasource
