@@ -28,8 +28,12 @@ async def list_runs(
     workflow_id: Optional[str] = None,
 ):
     """Endpoint for listing agent runs"""
-    project_root = os.path.dirname(os.path.dirname(__file__))
-    service_key_path = os.path.join(project_root, "google_cloud_service_key.json")
+    if os.path.isfile("/etc/secrets/service_key.json"):
+        service_key_path = "/etc/secrets/service_key.json"
+    else:
+        # If not, fall back to the app's root directory
+        project_root = os.path.dirname(os.path.dirname(__file__))
+        service_key_path = os.path.join(project_root, "google_cloud_service_key.json")
     client = bigquery.Client.from_service_account_json(service_key_path)
     query = """
         SELECT * FROM `website_prod.invoked_agent`
