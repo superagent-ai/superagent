@@ -180,7 +180,7 @@ export default function Chat({
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden border-r">
-      <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between p-4">
+      <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-4">
         <p
           className={`${
             timer === 0 ? "text-muted-foreground" : "text-primary"
@@ -208,7 +208,7 @@ export default function Chat({
       <ScrollArea className="relative flex grow flex-col px-4">
         <div className="absolute inset-x-0 top-0 z-20 h-20 bg-gradient-to-b from-background from-0% to-transparent to-50%" />
         {selectedView === "chat" ? (
-          <div className="mb-20 mt-10 flex flex-col space-y-5 py-5">
+          <div className="mb-20 mt-2 flex flex-col space-y-5 py-5">
             <div className="container mx-auto flex max-w-4xl flex-col">
               {messages.map((message, index) => (
                 <Message key={index} profile={profile} {...message} />

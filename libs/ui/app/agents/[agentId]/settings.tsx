@@ -30,11 +30,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 
+import AddDatasource from "./add-datasource"
+import AddTool from "./add-tool"
 import Avatar from "./avatar"
 
 const formSchema = z.object({
@@ -172,7 +175,7 @@ export default function Settings({
   )
 
   return (
-    <ScrollArea className="relative flex max-w-lg flex-1 grow p-4">
+    <ScrollArea className="relative flex max-w-lg flex-1 grow px-4 py-2">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -203,7 +206,7 @@ export default function Settings({
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea
+                  <Input
                     placeholder="E.g this agent is an expert at..."
                     {...field}
                   />
@@ -220,7 +223,7 @@ export default function Settings({
                 <FormLabel>Prompt</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="h-[200px]"
+                    className="h-[100px]"
                     placeholder="E.g you are an ai assistant that..."
                     {...field}
                   />
@@ -318,15 +321,32 @@ export default function Settings({
               </div>
             )}
           </div>
+
+          <Separator className="!my-8 flex items-center justify-center">
+            <span className="text-sm text-muted-foreground">
+              Tools & Datasources
+            </span>
+          </Separator>
+
           <FormField
             control={form.control}
             name="tools"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>APIs</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Tools</FormLabel>
+                  <AddTool
+                    profile={profile}
+                    agent={agent}
+                    onSuccess={() => {
+                      window.location.reload()
+                    }}
+                  />
+                </div>
+
                 <FormControl>
                   <MultiSelect
-                    placeholder="Select api..."
+                    placeholder="Select tool..."
                     data={tools.map((tool: any) => ({
                       value: tool.id,
                       label: tool.name,
@@ -349,7 +369,16 @@ export default function Settings({
             name="datasources"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Datasources</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Datasources</FormLabel>
+                  <AddDatasource
+                    profile={profile}
+                    agent={agent}
+                    onSuccess={() => {
+                      window.location.reload()
+                    }}
+                  />
+                </div>
                 <FormControl>
                   <MultiSelect
                     placeholder="Select datasource..."
@@ -372,7 +401,7 @@ export default function Settings({
               </FormItem>
             )}
           />
-          <div className="inset-x-0 bottom-0 flex py-4">
+          <div className="absolute inset-x-0 bottom-2 left-5 right-5 flex py-4">
             <Button
               type="submit"
               size="sm"
