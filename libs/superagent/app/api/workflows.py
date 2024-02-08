@@ -227,7 +227,7 @@ async def invoke(
         workflow=workflow_data,
         enable_streaming=enable_streaming,
         callbacks=workflow_callbacks,
-        monitoring_callbacks=[agentops_handler],
+        constructor_callbacks=[agentops_handler],
         session_id=session_id,
     )
 
