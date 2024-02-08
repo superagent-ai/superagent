@@ -25,12 +25,6 @@ export const siteConfig = {
       icon: TbStack2,
     },
     {
-      title: "Agents",
-      href: "/agents",
-      icon: TbRobot,
-    },
-
-    {
       title: "Logs",
       href: "/logs",
       icon: TbTerminal2,

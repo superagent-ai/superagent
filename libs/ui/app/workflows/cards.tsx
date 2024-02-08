@@ -12,7 +12,7 @@ export default function WorkflowCards({
   workflows: Array<any>
 }) {
   return (
-    <ScrollArea className="flex grow overflow-auto border-t px-6 pt-6">
+    <ScrollArea className="flex grow overflow-auto px-6">
       <div className="w-full">
         {workflows.length === 0 ? (
           <div className="container flex max-w-lg flex-col space-y-4 rounded-lg border p-4 text-sm">
