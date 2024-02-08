@@ -24,9 +24,13 @@ from app.models.response import WorkflowStep as WorkflowStepResponse
 from app.models.response import WorkflowStepList as WorkflowStepListResponse
 from app.utils.analytics import track_agent_invocation
 from app.utils.api import get_current_api_user, handle_exception
+from app.utils.callbacks import (
+    CostCalcAsyncHandler,
+    CustomAsyncIteratorCallbackHandler,
+    get_session_tracker_handler,
+)
 from app.utils.llm import LLM_MAPPING
 from app.utils.prisma import prisma
-from app.utils.streaming import CostCalcAsyncHandler, CustomAsyncIteratorCallbackHandler
 from app.workflows.base import WorkflowBase
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
@@ -181,8 +185,9 @@ async def invoke(
         include={"steps": {"include": {"agent": True}}},
     )
 
-    workflow_steps = [
-        {
+    workflow_steps = []
+    for workflow_step in workflow_data.steps:
+        item = {
             "callbacks": {
                 "streaming": CustomAsyncIteratorCallbackHandler(),
                 "cost_calc": CostCalcAsyncHandler(
@@ -191,8 +196,21 @@ async def invoke(
             },
             "agent_name": workflow_step.agent.name,
         }
-        for workflow_step in workflow_data.steps
-    ]
+        session_tracker_handler = get_session_tracker_handler(
+            workflow_data.id, workflow_step.agent.id, body.sessionId, api_user.id
+        )
+
+        if session_tracker_handler:
+            item["callbacks"]["session_tracker"] = session_tracker_handler
+
+        workflow_steps.append(item)
+    workflow_callbacks = []
+
+    for s in workflow_steps:
+        callbacks = []
+        for _, v in s["callbacks"].items():
+            callbacks.append(v)
+        workflow_callbacks.append(callbacks)
 
     session_id = body.sessionId
     input = body.input
@@ -208,13 +226,7 @@ async def invoke(
     workflow = WorkflowBase(
         workflow=workflow_data,
         enable_streaming=enable_streaming,
-        callbacks=[
-            [
-                workflow_step["callbacks"]["streaming"],
-                workflow_step["callbacks"]["cost_calc"],
-            ]
-            for workflow_step in workflow_steps
-        ],
+        callbacks=workflow_callbacks,
         monitoring_callbacks=[agentops_handler],
         session_id=session_id,
     )

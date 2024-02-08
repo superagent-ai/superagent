@@ -7,8 +7,8 @@ from agentops.langchain_callback_handler import (
 )
 
 from app.agents.base import AgentBase
+from app.utils.callbacks import CustomAsyncIteratorCallbackHandler
 from app.utils.prisma import prisma
-from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.enums import AgentType
 from prisma.models import Workflow
 
