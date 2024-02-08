@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
 import { RxCross2 } from "react-icons/rx"
+import { TbPlus } from "react-icons/tb"
 import { v4 as uuidv4 } from "uuid"
 import * as z from "zod"
 
@@ -46,7 +47,15 @@ const formSchema = z.object({
   metadata: z.any(),
 })
 
-function AddDatasource({ profile }: { profile: any }) {
+function AddDatasource({
+  profile,
+  agent,
+  onSuccess,
+}: {
+  profile: any
+  agent: any
+  onSuccess: () => void
+}) {
   const supabase = createClientComponentClient()
   const router = useRouter()
   const { toast } = useToast()
@@ -78,16 +87,18 @@ function AddDatasource({ profile }: { profile: any }) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const { data: vectorDbs } = await api.getVectorDbs()
-      await api.createDatasource({
+      const { data: datasource } = await api.createDatasource({
         ...values,
         vectorDbId: vectorDbs[0]?.id,
       })
+      await api.createAgentDatasource(agent.id, datasource.id)
+      form.reset()
       toast({
         description: "Datasource created successfully",
       })
-      router.refresh()
       setOpen(false)
       form.reset()
+      onSuccess()
     } catch (error: any) {
       toast({
         description: error?.message,
@@ -155,104 +166,113 @@ function AddDatasource({ profile }: { profile: any }) {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="ghost" size="sm" className="text-green-400">
           {form.control._formState.isSubmitting ? (
             <Spinner />
           ) : (
-            "New Datasource"
+            <div className="flex items-center space-x-2">
+              <TbPlus />
+              <span>New</span>
+            </div>
           )}
         </Button>
       </DialogTrigger>
 
       <DialogContent>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="w-full space-y-6"
+          <div
+            onSubmit={(event) => {
+              event.stopPropagation()
+            }}
           >
-            <DialogHeader>
-              <DialogTitle>Create new datasource</DialogTitle>
-              <DialogDescription>
-                Connect your to your custom datasources or files.
-              </DialogDescription>
-            </DialogHeader>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="w-full space-y-6"
+            >
+              <DialogHeader>
+                <DialogTitle>Create new datasource</DialogTitle>
+                <DialogDescription>
+                  Connect your to your custom datasources or files.
+                </DialogDescription>
+              </DialogHeader>
 
-            <div className="flex flex-col space-y-2">
-              <>
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="E.g My API" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Useful for doing X..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
+              <div className="flex flex-col space-y-2">
+                <>
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="E.g My API" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Useful for doing X..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
 
-              <div>
-                {!selectedFile ? (
-                  <div className="relative flex flex-col items-center justify-between space-y-4 rounded-lg border border-dashed p-4">
-                    <div className="flex flex-col items-center justify-center">
-                      <p className="text-sm">Select files</p>
-                      <p className="text-sm text-muted-foreground">
-                        Upload local files from your device
-                      </p>
+                <div>
+                  {!selectedFile ? (
+                    <div className="relative flex flex-col items-center justify-between space-y-4 rounded-lg border border-dashed p-4">
+                      <div className="flex flex-col items-center justify-center">
+                        <p className="text-sm">Select files</p>
+                        <p className="text-sm text-muted-foreground">
+                          Upload local files from your device
+                        </p>
+                      </div>
+                      <UploadButton
+                        accept={supportedMimeTypes.join(",")}
+                        label="Upload file"
+                        onSelect={async (file) => {
+                          handleLocalFileUpload(file)
+                          setSelectedFile(file)
+                        }}
+                      />
                     </div>
-                    <UploadButton
-                      accept={supportedMimeTypes.join(",")}
-                      label="Upload file"
-                      onSelect={async (file) => {
-                        handleLocalFileUpload(file)
-                        setSelectedFile(file)
-                      }}
-                    />
-                  </div>
-                ) : (
-                  // eslint-disable-next-line tailwindcss/migration-from-tailwind-2
-                  <div className="flex items-center justify-between rounded-lg border border-green-900 bg-green-900 bg-opacity-20 py-1 pl-4 pr-2">
-                    <p className="text-sm">{selectedFile.name}</p>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setSelectedFile(null)}
-                    >
-                      <RxCross2 size="20px" />
-                    </Button>
-                  </div>
-                )}
+                  ) : (
+                    // eslint-disable-next-line tailwindcss/migration-from-tailwind-2
+                    <div className="flex items-center justify-between rounded-lg border border-green-900 bg-green-900 bg-opacity-20 py-1 pl-4 pr-2">
+                      <p className="text-sm">{selectedFile.name}</p>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setSelectedFile(null)}
+                      >
+                        <RxCross2 size="20px" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit" size="sm" className="w-full">
-                {form.control._formState.isSubmitting || isDownloadingFile ? (
-                  <Spinner />
-                ) : (
-                  "Create datasource"
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
+              <DialogFooter>
+                <Button type="submit" size="sm" className="w-full">
+                  {form.control._formState.isSubmitting || isDownloadingFile ? (
+                    <Spinner />
+                  ) : (
+                    "Create datasource"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </div>
         </Form>
       </DialogContent>
     </Dialog>

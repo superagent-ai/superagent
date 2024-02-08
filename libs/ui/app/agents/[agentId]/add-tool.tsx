@@ -8,6 +8,7 @@ import { ColumnFiltersState } from "@tanstack/react-table"
 import { vscodeDark } from "@uiw/codemirror-theme-vscode"
 import CodeMirror from "@uiw/react-codemirror"
 import { useForm } from "react-hook-form"
+import { TbPlus } from "react-icons/tb"
 import * as z from "zod"
 
 import { siteConfig } from "@/config/site"
@@ -57,7 +58,15 @@ const formSchema = z.object({
   returnDirect: z.boolean(),
 })
 
-function AddTool({ profile }: { profile: any }) {
+function AddTool({
+  profile,
+  agent,
+  onSuccess,
+}: {
+  profile: any
+  agent: any
+  onSuccess: () => void
+}) {
   const router = useRouter()
   const { toast } = useToast()
   const api = new Api(profile.api_key)
@@ -77,14 +86,16 @@ function AddTool({ profile }: { profile: any }) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await api.createTool({
+      const { data: tool } = await api.createTool({
         ...values,
       })
+      await api.createAgentTool(agent.id, tool.id)
       toast({
         description: "Tool created successfully",
       })
+      form.reset()
       setOpen(false)
-      router.refresh()
+      onSuccess()
     } catch (error: any) {
       toast({
         description: error?.message,
@@ -103,139 +114,157 @@ function AddTool({ profile }: { profile: any }) {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          {form.control._formState.isSubmitting ? <Spinner /> : "New Tool"}
+        <Button variant="ghost" size="sm" className="text-green-400">
+          {form.control._formState.isSubmitting ? (
+            <Spinner />
+          ) : (
+            <div className="flex items-center space-x-2">
+              <TbPlus />
+              <span>New</span>
+            </div>
+          )}
         </Button>
       </DialogTrigger>
 
       <DialogContent>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="w-full space-y-4"
+          <div
+            onSubmit={(event) => {
+              event.stopPropagation()
+            }}
           >
-            <DialogHeader>
-              <DialogTitle>Create new API connection</DialogTitle>
-              <DialogDescription>
-                Connect your agents to thousands of third-party APIs and tools.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-col space-y-2">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="E.g My API" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Useful for doing X..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="w-full space-y-4"
+            >
+              <DialogHeader>
+                <DialogTitle>Create new API connection</DialogTitle>
+                <DialogDescription>
+                  Connect your agents to thousands of third-party APIs and
+                  tools.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-col space-y-2">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select tool type" />
-                        </SelectTrigger>
+                        <Input placeholder="E.g My API" {...field} />
                       </FormControl>
-                      <SelectContent>
-                        {siteConfig.toolTypes.map((toolType) => (
-                          <SelectItem
-                            key={toolType.value}
-                            value={toolType.value}
-                          >
-                            {toolType.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {siteConfig.toolTypes
-                .find((toolType) => toolType.value === type)
-                ?.metadata.map((metadataField) => (
-                  <FormField
-                    key={metadataField.key}
-                    control={form.control}
-                    name={`metadata.${metadataField.key}`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{metadataField.label}</FormLabel>
-                        {metadataField.type === "input" && (
-                          <FormControl>
-                            <Input {...field} type="text" />
-                          </FormControl>
-                        )}
-                        {metadataField.type === "password" && (
-                          <FormControl>
-                            <Input {...field} type="password" />
-                          </FormControl>
-                        )}
-                        {metadataField.type === "json" && (
-                          <div className="overflow-hidden rounded-lg">
-                            <CodeMirror
-                              className="rounded-lg text-xs"
-                              extensions={[json()]}
-                              theme={vscodeDark}
-                              onChange={field.onChange}
-                              value={
-                                "json" in metadataField
-                                  ? JSON.stringify(metadataField.json, null, 2)
-                                  : undefined
-                              }
-                            />
-                          </div>
-                        )}
-                        {"helpText" in metadataField && (
-                          <FormDescription>
-                            {metadataField.helpText}
-                          </FormDescription>
-                        )}
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ))}
-            </div>
-            <DialogFooter>
-              <Button type="submit" size="sm" className="w-full">
-                {form.control._formState.isSubmitting ? (
-                  <Spinner />
-                ) : (
-                  "Create API"
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Useful for doing X..."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select tool type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {siteConfig.toolTypes.map((toolType) => (
+                            <SelectItem
+                              key={toolType.value}
+                              value={toolType.value}
+                            >
+                              {toolType.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {siteConfig.toolTypes
+                  .find((toolType) => toolType.value === type)
+                  ?.metadata.map((metadataField) => (
+                    <FormField
+                      key={metadataField.key}
+                      control={form.control}
+                      name={`metadata.${metadataField.key}`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{metadataField.label}</FormLabel>
+                          {metadataField.type === "input" && (
+                            <FormControl>
+                              <Input {...field} type="text" />
+                            </FormControl>
+                          )}
+                          {metadataField.type === "password" && (
+                            <FormControl>
+                              <Input {...field} type="password" />
+                            </FormControl>
+                          )}
+                          {metadataField.type === "json" && (
+                            <div className="overflow-hidden rounded-lg">
+                              <CodeMirror
+                                className="rounded-lg text-xs"
+                                extensions={[json()]}
+                                theme={vscodeDark}
+                                onChange={field.onChange}
+                                value={
+                                  "json" in metadataField
+                                    ? JSON.stringify(
+                                        metadataField.json,
+                                        null,
+                                        2
+                                      )
+                                    : undefined
+                                }
+                              />
+                            </div>
+                          )}
+                          {"helpText" in metadataField && (
+                            <FormDescription>
+                              {metadataField.helpText}
+                            </FormDescription>
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ))}
+              </div>
+              <DialogFooter>
+                <Button type="submit" size="sm" className="w-full">
+                  {form.control._formState.isSubmitting ? (
+                    <Spinner />
+                  ) : (
+                    "Create API"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </div>
         </Form>
       </DialogContent>
     </Dialog>

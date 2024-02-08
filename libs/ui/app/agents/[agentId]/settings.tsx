@@ -335,7 +335,13 @@ export default function Settings({
               <FormItem>
                 <div className="flex items-center justify-between">
                   <FormLabel>Tools</FormLabel>
-                  <AddTool profile={profile} />
+                  <AddTool
+                    profile={profile}
+                    agent={agent}
+                    onSuccess={() => {
+                      window.location.reload()
+                    }}
+                  />
                 </div>
 
                 <FormControl>
@@ -365,7 +371,13 @@ export default function Settings({
               <FormItem>
                 <div className="flex items-center justify-between">
                   <FormLabel>Datasources</FormLabel>
-                  <AddDatasource profile={profile} />
+                  <AddDatasource
+                    profile={profile}
+                    agent={agent}
+                    onSuccess={() => {
+                      window.location.reload()
+                    }}
+                  />
                 </div>
                 <FormControl>
                   <MultiSelect
@@ -389,7 +401,7 @@ export default function Settings({
               </FormItem>
             )}
           />
-          <div className="inset-x-0 bottom-0 flex py-4">
+          <div className="absolute inset-x-0 bottom-2 left-5 right-5 flex py-4">
             <Button
               type="submit"
               size="sm"
