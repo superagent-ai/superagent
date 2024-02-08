@@ -25,7 +25,7 @@ export default async function Agents() {
 
   const { data: workflows } = await api.getWorkflows()
 
-  const showAlert = new Date(profile.created_at) >= new Date("2024-02-06")
+  const showAlert = new Date(profile.created_at) < new Date("2024-02-07")
 
   return (
     <div className="flex h-screen w-full flex-col justify-between space-y-4 overflow-hidden">
