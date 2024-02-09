@@ -55,7 +55,7 @@ export default async function AgentPage({ params }: { params: any }) {
           <div className="flex flex-col space-y-2">
             <p className="font-semibold">OpenAI Assistants</p>
             <p className="text-muted-foreground">
-              We currently don&apos; support running OpenAI Assistants outside
+              We currently don&apos;t support running OpenAI Assistants outside
               of workflows. Please visit the{" "}
               <Link className="underline" href="/workflows">
                 workflows page

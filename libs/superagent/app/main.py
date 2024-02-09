@@ -4,6 +4,7 @@ import time
 import colorlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from decouple import config
 
 from app.routers import router
 from app.utils.prisma import prisma
@@ -36,7 +37,7 @@ app = FastAPI(
     docs_url="/",
     description="The Open Source AI Assistant Framework & API",
     version="0.2.1",
-    servers=[{"url": "https://api.beta.superagent.sh"}],
+    servers=[{"url": config("SUPERAGENT_API_URL")}],
 )
 
 app.add_middleware(

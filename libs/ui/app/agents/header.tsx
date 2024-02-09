@@ -14,20 +14,22 @@ export default function Header({ profile }: { profile: Profile }) {
   const api = new Api(profile.api_key)
   const router = useRouter()
   const [{ loading }, createWorkflow] = useAsyncFn(async () => {
-    const { data: workflow } = await api.createWorkflow({
-      name: "My Workflow",
-      description: "My new workflow",
+    const { data: agent } = await api.createAgent({
+      name: "My Agent",
+      description: "",
+      llmModel: "GPT_3_5_TURBO_16K_0613",
+      isActive: true,
+      prompt: "You are an helpful AI Assistant",
     })
-    await api.generateWorkflow(workflow.id, initialSamlValue)
-    router.push(`/workflows/${workflow.id}`)
+    router.push(`/agents/${agent.id}`)
   })
 
   return (
-    <div className="font-mediu flex items-center justify-between border-b px-6 py-3">
-      <span>Workflows</span>
+    <div className="flex items-center justify-between border-b px-6 py-3 font-medium">
+      <span>Agents</span>
       <Button size="sm" className="space-x-2" onClick={createWorkflow}>
         {loading ? <Spinner /> : <TbPlus />}
-        <span>New workflow</span>
+        <span>New agent</span>
       </Button>
     </div>
   )
