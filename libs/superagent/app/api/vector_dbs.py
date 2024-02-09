@@ -93,7 +93,7 @@ async def update(
         data = await prisma.vectordb.update(
             where={"id": vector_db_id},
             data={
-                **body.dict(),
+                **body.dict(exclude_unset=True),
                 "apiUserId": api_user.id,
                 "options": Json(body.options),
             },

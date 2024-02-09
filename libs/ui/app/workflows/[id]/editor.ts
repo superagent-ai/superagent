@@ -49,6 +49,10 @@ export function initCodeEditor(
       comments: false,
       strings: true,
     },
+    tabSize: 2,
+    guides: {
+      highlightActiveIndentation: true,
+    },
     minimap: { enabled: false },
   })
 }

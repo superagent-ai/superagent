@@ -1,7 +1,7 @@
 import json
 import logging
 from itertools import zip_longest
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import segment.analytics as analytics
 import yaml
@@ -9,7 +9,9 @@ from decouple import config
 from fastapi import APIRouter, Body, Depends, HTTPException
 from pydantic import BaseModel
 
-from app.api.agents import OpenAIAssistantSdk
+from app.api.agents import (
+    OpenAIAssistantSdk,
+)
 from app.api.agents import (
     add_datasource as api_add_agent_datasource,
 )
@@ -37,6 +39,9 @@ from app.api.tools import (
 from app.api.tools import (
     delete as api_delete_tool,
 )
+from app.api.tools import (
+    update as api_update_tool,
+)
 from app.api.workflows import (
     add_step as api_add_step_workflow,
 )
@@ -56,7 +61,13 @@ from app.models.request import (
     Datasource as DatasourceRequest,
 )
 from app.models.request import (
+    DatasourceUpdate as DatasourceUpdateRequest,
+)
+from app.models.request import (
     Tool as ToolRequest,
+)
+from app.models.request import (
+    ToolUpdate as ToolUpdateRequest,
 )
 from app.models.request import (
     WorkflowStep as WorkflowStepRequest,
@@ -97,20 +108,62 @@ class WorkflowAssistant(BaseModel):
     prompt: str
     intro: Optional[str]  # an alias for initialMessage
 
-    tools: Optional[List[Dict[str, WorkflowTool]]]
+    # tools: Optional[List[Dict[str, WorkflowTool]]]
     data: Optional[WorkflowDatasource]
 
 
+class NestedWorkflowAssistant(WorkflowAssistant):
+    tools: Optional[List[Dict[str, Union[WorkflowAssistant, WorkflowTool]]]]
+
+
 class WorkflowConfig(BaseModel):
-    workflows: List[Dict[str, WorkflowAssistant]]
+    workflows: List[Dict[str, NestedWorkflowAssistant]]
 
 
-class WorkflowConfigHandler:
+class DataTransformer:
+    @staticmethod
+    def transform_tool(tool: WorkflowTool, tool_type: str):
+        rename_and_remove_keys(tool, {"use_for": "description"})
+
+        if tool_type:
+            tool["type"] = tool_type.upper()
+
+        if tool.get("type") == "FUNCTION":
+            tool["metadata"] = {
+                "functionName": tool.get("name"),
+                **tool.get("metadata", {}),
+            }
+
+    @staticmethod
+    def transform_assistant(assistant: WorkflowAssistant, assistant_type: str):
+        remove_key_if_present(assistant, "data")
+        remove_key_if_present(assistant, "tools")
+        rename_and_remove_keys(
+            assistant, {"llm": "llmModel", "intro": "initialMessage"}
+        )
+
+        if assistant.get("llmModel"):
+            assistant["llmModel"] = LLM_REVERSE_MAPPING[assistant["llmModel"]]
+
+        if assistant_type:
+            assistant["type"] = assistant_type.upper()
+
+
+def get_first_key(dictionary) -> str | None:
+    return next(iter(dictionary)) if dictionary else None
+
+
+class WorkflowManager:
+    """
+    This class is responsible for managing the workflow.
+    It provides methods to add, delete, update tools, assistants, and datasources.
+    """
+
     def __init__(self, workflow_id: str, api_user):
         self.workflow_id = workflow_id
         self.api_user = api_user
 
-    async def delete_tool(self, tool_name: str, assistant_name: str):
+    async def get_assistant(self, assistant: Optional[AgentUpdateRequest]):
         workflow_steps = await prisma.workflowstep.find_many(
             where={
                 "workflowId": self.workflow_id,
@@ -119,429 +172,355 @@ class WorkflowConfigHandler:
                 "agent": True,
             },
         )
+        for step in workflow_steps:
+            if step.agent.name == assistant.name:
+                return step.agent
 
-        for workflow_step in workflow_steps:
-            if workflow_step.agent.name == assistant_name:
-                agent_tools = await prisma.agenttool.find_many(
-                    where={
-                        "agentId": workflow_step.agent.id,
-                    },
-                    include={
-                        "tool": True,
-                    },
-                )
-                for agent_tool in agent_tools:
-                    if agent_tool.tool.name == tool_name:
-                        await api_delete_tool(
-                            tool_id=agent_tool.tool.id,
-                            api_user=self.api_user,
-                        )
-                        logger.info(f"Deleted tool: {tool_name} - {assistant_name}")
-                        break
-                break
-
-    async def add_tool(self, assistant_name: str, data: Dict[str, str]):
-        tool_res = await api_create_tool(
-            body=ToolRequest(**data),
-            api_user=self.api_user,
-        )
-
-        new_tool = tool_res.get("data", {})
-
-        await self._add_agent_tool(
-            assistant_name=assistant_name,
-            tool_id=new_tool.id,
-        )
-
-        logger.info(f"Added tool: ${new_tool.name} - ${assistant_name}")
-
-    async def add_datasource(self, assistant_name: str, data: Dict[str, str]):
-        datasource_res = await api_create_datasource(
-            body=DatasourceRequest(**data),
-            api_user=self.api_user,
-        )
-
-        new_datasource = datasource_res.get("data", {})
-
-        await self._add_agent_datasource(
-            assistant_name=assistant_name,
-            datasource_id=new_datasource.id,
-        )
-
-        logger.info(f"Added datasource: {data}")
-
-    async def delete_datasource(self, assistant_name: str, datasource_name: str):
-        workflow_steps = await prisma.workflowstep.find_many(
+    async def get_datasource(
+        self, assistant: AgentUpdateRequest, datasource: DatasourceUpdateRequest
+    ):
+        agent = await self.get_assistant(assistant)
+        agent_datasources = await prisma.agentdatasource.find_many(
             where={
-                "workflowId": self.workflow_id,
+                "agentId": agent.id,
             },
             include={
-                "agent": True,
+                "datasource": True,
             },
         )
+        for agent_datasource in agent_datasources:
+            if agent_datasource.datasource.name == datasource.name:
+                return agent_datasource.datasource
 
-        for workflow_step in workflow_steps:
-            if workflow_step.agent.name == assistant_name:
-                agent_datasources = await prisma.agentdatasource.find_many(
-                    where={
-                        "agentId": workflow_step.agent.id,
-                    },
-                    include={
-                        "datasource": True,
-                    },
-                )
-                for agent_datasource in agent_datasources:
-                    if agent_datasource.datasource.name == datasource_name:
-                        await api_delete_datasource(
-                            datasource_id=agent_datasource.datasource.id,
-                            api_user=self.api_user,
-                        )
-                        logger.info(
-                            f"Deleted datasource: {datasource_name} - {assistant_name}"
-                        )
-                        break
-                break
+    async def get_tool(self, assistant: AgentUpdateRequest, tool: ToolUpdateRequest):
+        agent = await self.get_assistant(assistant)
+        agent_tools = await prisma.agenttool.find_many(
+            where={
+                "agentId": agent.id,
+            },
+            include={
+                "tool": True,
+            },
+        )
+        for agent_tool in agent_tools:
+            if agent_tool.tool.name == tool.name:
+                return agent_tool.tool
 
-    async def add_assistant(self, data: Dict[str, str], order: int):
-        new_agent = data
-
-        new_agent_data = await api_create_agent(
-            body=AgentRequest(**new_agent),
+    async def create_assistant(self, data: AgentRequest):
+        res = await api_create_agent(
+            body=data,
             api_user=self.api_user,
         )
 
-        new_agent = new_agent_data.get("data", {})
+        new_agent = res.get("data", {})
 
-        await api_add_step_workflow(
-            workflow_id=self.workflow_id,
-            body=WorkflowStepRequest(
-                **{
-                    "order": order,
-                    "agentId": new_agent.id,
-                },
+        logger.info(f"Created agent: {new_agent}")
+        return new_agent
+
+    async def create_datasource(self, data: DatasourceRequest):
+        res = await api_create_datasource(
+            body=data,
+            api_user=self.api_user,
+        )
+
+        new_datasource = res.get("data", {})
+
+        logger.info(f"Created datasource: {data}")
+        return new_datasource
+
+    async def create_tool(self, assistant: AgentUpdateRequest, data: ToolRequest):
+        res = await api_create_tool(
+            body=data,
+            api_user=self.api_user,
+        )
+
+        new_tool = res.get("data", {})
+
+        logger.info(f"Created tool: ${new_tool.name} - ${assistant.name}")
+        return new_tool
+
+    async def add_datasource(
+        self, assistant: AgentUpdateRequest, data: DatasourceRequest
+    ):
+        agent = await self.get_assistant(assistant)
+        new_datasource = await self.create_datasource(data)
+
+        await api_add_agent_datasource(
+            agent_id=agent.id,
+            body=AgentDatasourceRequest(
+                datasourceId=new_datasource.id,
             ),
             api_user=self.api_user,
         )
-        logger.info(f"Added agent: {new_agent}")
+        logger.info(f"Added datasource: {new_datasource.name} - {assistant.name}")
 
-    async def delete_assistant(self, assistant_name: str):
-        workflow_steps = await prisma.workflowstep.find_many(
-            where={
-                "workflowId": self.workflow_id,
-            },
-            include={
-                "agent": True,
-            },
+    async def add_tool(self, assistant: AgentUpdateRequest, data: ToolRequest):
+        agent = await self.get_assistant(assistant)
+        new_tool = await self.create_tool(assistant, data)
+
+        await api_add_agent_tool(
+            agent_id=agent.id,
+            body=AgentToolRequest(
+                toolId=new_tool.id,
+            ),
+            api_user=self.api_user,
         )
-        for workflow_step in workflow_steps:
-            if workflow_step.agent.name == assistant_name:
-                agent = workflow_step.agent
+        logger.info(f"Added tool: {new_tool.name} - {assistant.name}")
 
-                await api_delete_agent(
-                    agent_id=agent.id,
-                    api_user=self.api_user,
-                )
-                logger.info(f"Deleted agent: {assistant_name}")
-                break
+    async def add_assistant(self, data: AgentRequest, order: int | None = None):
+        new_agent = await self.create_assistant(data)
 
-    async def update_assistant(self, assistant_name: str, data: Dict[str, str]):
-        workflow_steps = await prisma.workflowstep.find_many(
-            where={
-                "workflowId": self.workflow_id,
-            },
-            include={
-                "agent": True,
-            },
+        if order is not None:
+            await api_add_step_workflow(
+                workflow_id=self.workflow_id,
+                body=WorkflowStepRequest(
+                    agentId=new_agent.id,
+                    order=order,
+                ),
+                api_user=self.api_user,
+            )
+            logger.info(f"Added assistant: {new_agent.name}")
+        return new_agent
+
+    async def delete_assistant(self, assistant: AgentUpdateRequest):
+        agent = await self.get_assistant(assistant)
+
+        await api_delete_agent(
+            agent_id=agent.id,
+            api_user=self.api_user,
         )
+        logger.info(f"Deleted assistant: {agent.name}")
 
-        for workflow_step in workflow_steps:
-            if workflow_step.agent.name == assistant_name:
-                agent = workflow_step.agent
+    async def delete_datasource(
+        self, assistant: AgentUpdateRequest, datasource: DatasourceUpdateRequest
+    ):
+        datasource = await self.get_datasource(assistant, datasource)
 
-                await api_update_agent(
-                    agent_id=agent.id,
-                    body=AgentUpdateRequest(**data),
-                    api_user=self.api_user,
-                )
-                logger.info(f"Updated agent: {assistant_name} - {data}")
-                break
+        await api_delete_datasource(
+            datasource_id=datasource.id,
+            api_user=self.api_user,
+        )
+        logger.info(f"Deleted datasource: {datasource.name} - {assistant.name}")
+
+    async def delete_tool(self, assistant: AgentUpdateRequest, tool: ToolUpdateRequest):
+        tool = await self.get_tool(assistant, tool)
+
+        await api_delete_tool(
+            tool_id=tool.id,
+            api_user=self.api_user,
+        )
+        logger.info(f"Deleted tool: {tool.name} - {assistant.name}")
+
+    async def update_assistant(
+        self, assistant: AgentUpdateRequest, data: AgentUpdateRequest
+    ):
+        agent = await self.get_assistant(assistant)
+
+        await api_update_agent(
+            agent_id=agent.id,
+            body=data,
+            api_user=self.api_user,
+        )
+        logger.info(f"Updated assistant: {agent.name}")
 
     async def update_tool(
-        self, assistant_name: str, tool_name: str, data: Dict[str, str]
+        self,
+        assistant: AgentUpdateRequest,
+        tool: ToolUpdateRequest,
+        data: ToolUpdateRequest,
     ):
-        await prisma.agent.find_first(
-            where={
-                "name": assistant_name,
-                "apiUserId": self.api_user.id,
-            }
+        tool = await self.get_tool(assistant, tool)
+
+        await api_update_tool(
+            tool_id=tool.id,
+            body=data,
+            api_user=self.api_user,
         )
+        logger.info(f"Updated tool: {tool.name} - {assistant.name}")
 
-        tool = await prisma.tool.find_first(
-            where={
-                "name": tool_name,
-                "apiUserId": self.api_user.id,
-            }
-        )
 
-        await prisma.tool.update(
-            where={
-                "id": tool.id,
-            },
-            data=data,
-        )
-
-        logger.info(f"Updated tool: {tool_name} - {assistant_name}")
-
-    async def _add_agent_tool(self, assistant_name: str, tool_id: str):
-        workflow_steps = await prisma.workflowstep.find_many(
-            where={
-                "workflowId": self.workflow_id,
-            },
-            include={
-                "agent": True,
-            },
-        )
-
-        for workflow_step in workflow_steps:
-            if workflow_step.agent.name == assistant_name:
-                await api_add_agent_tool(
-                    agent_id=workflow_step.agent.id,
-                    body=AgentToolRequest(
-                        toolId=tool_id,
-                    ),
-                    api_user=self.api_user,
-                )
-                logger.info(f"Added agent tool: {tool_id} - {assistant_name}")
-                break
-
-    async def _add_agent_datasource(self, datasource_id: str, assistant_name: str):
-        workflow_steps = await prisma.workflowstep.find_many(
-            where={
-                "workflowId": self.workflow_id,
-            },
-            include={
-                "agent": True,
-            },
-        )
-
-        for workflow_step in workflow_steps:
-            if workflow_step.agent.name == assistant_name:
-                await api_add_agent_datasource(
-                    agent_id=workflow_step.agent.id,
-                    body=AgentDatasourceRequest(
-                        datasourceId=datasource_id,
-                    ),
-                    api_user=self.api_user,
-                )
-                logger.info(
-                    f"Added agent datasource: {datasource_id} - {assistant_name}"
-                )
-                break
+class SuperagentProcessor:
+    def __init__(self, api_user, workflow_manager: WorkflowManager):
+        self.api_user = api_user
+        self.workflow_manager = workflow_manager
 
     async def process_tools(self, old_tools, new_tools, assistant):
-        if assistant.get("type") == AgentType.SUPERAGENT:
-            assistant_name = assistant.get("name")
-            tools_length = max(len(old_tools), len(new_tools))
+        for old_tool_obj, new_tool_obj in zip_longest(
+            old_tools, new_tools, fillvalue={}
+        ):
+            old_tool = old_tool_obj.get(get_first_key(old_tool_obj), {})
+            new_tool = new_tool_obj.get(get_first_key(new_tool_obj), {})
 
-            for tool_step in range(tools_length):
-                old_tool_obj = (
-                    old_tools[tool_step] if tool_step < len(old_tools) else {}
-                )
-                new_tool_obj = (
-                    new_tools[tool_step] if tool_step < len(new_tools) else {}
-                )
+            old_tool_type = old_tool.get("type")
+            new_tool_type = new_tool.get("type")
 
-                old_tool_type: str = next(iter(old_tool_obj)) if old_tool_obj else None
-                new_tool_type: str = next(iter(new_tool_obj)) if new_tool_obj else None
-
-                old_tool = old_tool_obj.get(old_tool_type, {})
-                new_tool = new_tool_obj.get(new_tool_type, {})
-
-                # Data manipulation
-                rename_and_remove_keys(old_tool, {"use_for": "description"})
-                rename_and_remove_keys(new_tool, {"use_for": "description"})
-
-                if old_tool_type:
-                    old_tool_type = old_tool_type.upper()
-                if new_tool_type:
-                    new_tool_type = new_tool_type.upper()
-
-                if old_tool_type == "FUNCTION":
-                    old_tool["metadata"] = {
-                        "functionName": old_tool.get("name"),
-                        **old_tool.get("metadata", {}),
-                    }
-
-                if new_tool_type == "FUNCTION":
-                    new_tool["metadata"] = {
-                        "functionName": new_tool.get("name"),
-                        **new_tool.get("metadata", {}),
-                    }
-
-                old_tool["type"] = old_tool_type
-                new_tool["type"] = new_tool_type
-
-                if old_tool_type and new_tool_type:
-                    if old_tool_type != new_tool_type:
-                        await self.delete_tool(
-                            tool_name=old_tool.get("name"),
-                            assistant_name=assistant_name,
-                        )
-                        await self.add_tool(
-                            assistant_name=assistant_name,
-                            data=new_tool,
-                        )
-                    else:
-                        changes = compare_dicts(old_tool, new_tool)
-                        if changes:
-                            await self.update_tool(
-                                assistant_name=assistant_name,
-                                tool_name=old_tool["name"],
-                                data=changes,
-                            )
-                elif old_tool_type and not new_tool_type:
-                    await self.delete_tool(
-                        tool_name=old_tool.get("name"),
-                        assistant_name=assistant_name,
+            if old_tool_type and new_tool_type:
+                if old_tool_type != new_tool_type:
+                    await self.workflow_manager.delete_tool(
+                        tool=ToolRequest(**old_tool),
+                        assistant=assistant,
                     )
-
-                elif new_tool_type and not old_tool_type:
-                    await self.add_tool(
-                        assistant_name=assistant_name,
-                        data=new_tool,
+                    await self.workflow_manager.add_tool(
+                        assistant=assistant,
+                        data=ToolRequest(
+                            **new_tool,
+                        ),
                     )
-        elif assistant.get("type") == AgentType.OPENAI_ASSISTANT:
-            if old_tools != new_tools:
-                workflow_steps = await prisma.workflowstep.find_many(
-                    where={
-                        "workflowId": self.workflow_id,
-                    },
-                    include={
-                        "agent": True,
-                    },
-                )
-                for step in workflow_steps:
-                    if step.agent.name == assistant.get("name"):
-                        llm = await prisma.llm.find_first(
-                            where={
-                                "provider": "OPENAI",
-                                "apiUserId": self.api_user.id,
-                            }
-                        )
-
-                        assistant_sdk = OpenAIAssistantSdk(llm)
-                        metadata = step.agent.metadata
-
-                        tool_types = [
-                            {
-                                "type": next(iter(tool)),
-                            }
-                            for tool in new_tools
-                        ]
-
-                        metadata["tools"] = tool_types
-                        await prisma.agent.update(
-                            where={"id": step.agent.id},
-                            data={"metadata": json.dumps(metadata)},
-                        )
-
-                        await assistant_sdk.update_assistant(
-                            assistant_id=metadata.get("id"),
-                            body=AgentUpdateRequest(
-                                metadata={
-                                    "tools": tool_types,
-                                },
-                                name=assistant.get("name"),
+                else:
+                    changes = compare_dicts(old_tool, new_tool)
+                    if changes:
+                        await self.workflow_manager.update_tool(
+                            assistant=assistant,
+                            tool=ToolUpdateRequest(**old_tool),
+                            data=ToolUpdateRequest(
+                                **changes,
                             ),
                         )
-                        break
+
+            elif old_tool_type and not new_tool_type:
+                await self.workflow_manager.delete_tool(
+                    tool=ToolRequest(**old_tool),
+                    assistant=assistant,
+                )
+
+            elif new_tool_type and not old_tool_type:
+                await self.workflow_manager.add_tool(
+                    assistant=assistant,
+                    data=ToolRequest(
+                        **new_tool,
+                    ),
+                )
+
+    async def process_data(self, old_data, new_data, assistant):
+        old_urls = old_data.get("urls") or []
+        new_urls = new_data.get("urls") or []
+        # Process data URLs changes
+        for url in set(old_urls) | set(new_urls):
+            type = get_mimetype_from_url(url)
+
+            use_for = new_data.get("use_for") or old_data.get("use_for") or ""
+
+            datasource_name = f"{MIME_TYPE_TO_EXTENSION[type]} doc {use_for}"
+
+            if url in old_urls and url not in new_urls:
+                # TODO: find a better way to deciding which datasource to delete
+                await self.workflow_manager.delete_datasource(
+                    assistant=assistant,
+                    datasource=DatasourceUpdateRequest(name=datasource_name),
+                )
+
+            elif url in new_urls and url not in old_urls:
+                if type in MIME_TYPE_TO_EXTENSION:
+                    await self.workflow_manager.add_datasource(
+                        assistant,
+                        data=DatasourceRequest(
+                            # TODO: this will be changed once we implement superrag
+                            name=datasource_name,
+                            description=new_data.get("use_for"),
+                            url=url,
+                            type=MIME_TYPE_TO_EXTENSION[type],
+                        ),
+                    )
+
+
+class OpenaiProcessor:
+    def __init__(self, api_user, workflow_manager: WorkflowManager):
+        self.api_user = api_user
+        self.workflow_manager = workflow_manager
+
+    async def process_tools(self, old_tools, new_tools, assistant):
+        if old_tools != new_tools:
+            agent = await self.workflow_manager.get_assistant(assistant)
+
+            metadata = agent.metadata
+
+            tool_types = [
+                {
+                    "type": get_first_key(tool),
+                }
+                for tool in new_tools
+            ]
+
+            metadata["tools"] = tool_types
+
+            await self.workflow_manager.update_assistant(
+                assistant=assistant,
+                data=AgentUpdateRequest(
+                    metadata=metadata,
+                ),
+            )
 
     async def process_data(self, old_data, new_data, assistant):
         old_urls = old_data.get("urls") or []
         new_urls = new_data.get("urls") or []
 
-        if assistant.get("type") == AgentType.SUPERAGENT:
-            # Process data URLs changes
-            for url in set(old_urls) | set(new_urls):
-                if url in old_urls and url not in new_urls:
-                    await self.delete_datasource(
-                        assistant_name=assistant.get("name"),
-                        datasource_name=url,
-                    )
+        if set(old_urls) != set(new_urls):
+            agent = await self.workflow_manager.get_assistant(assistant)
+            llm = await prisma.llm.find_first(
+                where={
+                    "provider": "OPENAI",
+                    "apiUserId": self.api_user.id,
+                }
+            )
 
-                elif url in new_urls and url not in old_urls:
-                    type = get_mimetype_from_url(url)
+            assistant_sdk = OpenAIAssistantSdk(llm)
+            metadata = agent.metadata
 
-                    if type in MIME_TYPE_TO_EXTENSION:
-                        name = (
-                            f"{MIME_TYPE_TO_EXTENSION[type]} "
-                            f"doc {new_data.get('use_for')}"
-                        )
-                        await self.add_datasource(
-                            assistant_name=assistant.get("name"),
-                            data={
-                                # TODO: this will be changed once we implement superrag
-                                "name": name,
-                                "description": new_data.get("use_for"),
-                                "url": url,
-                                "type": MIME_TYPE_TO_EXTENSION[type],
-                            },
-                        )
-        elif assistant.get("type") == AgentType.OPENAI_ASSISTANT:
+            file_ids = metadata.get("file_ids", [])
 
-            if set(old_urls) != set(new_urls):
-                workflow_steps = await prisma.workflowstep.find_many(
-                    where={
-                        "workflowId": self.workflow_id,
-                    },
-                    include={
-                        "agent": True,
-                    },
-                )
-                for step in workflow_steps:
-                    if step.agent.name == assistant.get("name"):
-                        llm = await prisma.llm.find_first(
-                            where={
-                                "provider": "OPENAI",
-                                "apiUserId": self.api_user.id,
-                            }
-                        )
+            while len(file_ids) > 0:
+                file_id = file_ids.pop()
+                await assistant_sdk.delete_file(file_id)
 
-                        assistant_sdk = OpenAIAssistantSdk(llm)
-                        metadata = step.agent.metadata
+            for url in new_urls:
+                file = await assistant_sdk.upload_file(url)
+                file_ids.append(file.id)
 
-                        file_ids = metadata.get("file_ids", [])
-                        assistant_id = metadata.get("id")
+            metadata["file_ids"] = file_ids
 
-                        while len(file_ids) > 0:
-                            file_id = file_ids.pop()
-                            await assistant_sdk.delete_file(file_id)
+            await self.workflow_manager.update_assistant(
+                assistant,
+                data={
+                    "metadata": metadata,
+                },
+            )
 
-                        for url in new_urls:
-                            file = await assistant_sdk.upload_file(url)
-                            file_ids.append(file.id)
 
-                        metadata["file_ids"] = file_ids
-                        await prisma.agent.update(
-                            where={"id": step.agent.id},
-                            data={"metadata": json.dumps(metadata)},
-                        )
+class ProcessorManager:
+    def __init__(self, api_user, workflow_manager: WorkflowManager):
+        self.api_user = api_user
+        self.workflow_manager = workflow_manager
 
-                        await assistant_sdk.update_assistant(
-                            assistant_id=assistant_id,
-                            body=AgentUpdateRequest(
-                                metadata={
-                                    "file_ids": file_ids,
-                                }
-                            ),
-                        )
-                        break
+    async def get_processor(self, assistant):
+        if assistant.type == AgentType.SUPERAGENT:
+            return SuperagentProcessor(self.api_user, self.workflow_manager)
+        elif assistant.type == AgentType.OPENAI_ASSISTANT:
+            return OpenaiProcessor(self.api_user, self.workflow_manager)
+
+    async def process_tools(self, old_tools, new_tools, assistant):
+        processor = await self.get_processor(assistant)
+        await processor.process_tools(old_tools, new_tools, assistant)
+
+    async def process_data(self, old_data, new_data, assistant):
+        processor = await self.get_processor(assistant)
+        await processor.process_data(old_data, new_data, assistant)
+
+
+class WorkflowProcessor:
+    def __init__(self, api_user, workflow_manager: WorkflowManager):
+        self.api_user = api_user
+        self.workflow_manager = workflow_manager
+        self.processor = ProcessorManager(self.api_user, self.workflow_manager)
 
     async def process_assistant(
-        self, old_assistant_obj, new_assistant_obj, workflow_step_order: int
+        self,
+        old_assistant_obj,
+        new_assistant_obj,
+        workflow_step_order: int | None = None,
     ):
-        old_type = next(iter(old_assistant_obj)) if old_assistant_obj else None
-        new_type = next(iter(new_assistant_obj)) if new_assistant_obj else None
+        new_agent = None
+        old_type = get_first_key(old_assistant_obj)
+        new_type = get_first_key(new_assistant_obj)
 
         old_assistant = old_assistant_obj.get(old_type, {})
         new_assistant = new_assistant_obj.get(new_type, {})
@@ -552,81 +531,95 @@ class WorkflowConfigHandler:
         old_tools = old_assistant.get("tools") or []
         new_tools = new_assistant.get("tools") or []
 
-        remove_key_if_present(old_assistant, "data")
-        remove_key_if_present(old_assistant, "tools")
-        remove_key_if_present(new_assistant, "data")
-        remove_key_if_present(new_assistant, "tools")
-        rename_and_remove_keys(
-            old_assistant, {"llm": "llmModel", "intro": "initialMessage"}
-        )
-        rename_and_remove_keys(
-            new_assistant, {"llm": "llmModel", "intro": "initialMessage"}
-        )
+        dt = DataTransformer()
+        dt.transform_assistant(new_assistant, new_type)
+        dt.transform_assistant(old_assistant, old_type)
 
-        if old_assistant.get("llmModel"):
-            old_assistant["llmModel"] = LLM_REVERSE_MAPPING[old_assistant["llmModel"]]
+        for tool in old_tools:
+            tool_type = get_first_key(tool)
+            tool = tool.get(tool_type, {})
 
-        if old_type:
-            old_assistant["type"] = old_type.upper()
+            dt.transform_tool(tool, tool_type)
 
-        if new_assistant.get("llmModel"):
-            new_assistant["llmModel"] = LLM_REVERSE_MAPPING[new_assistant["llmModel"]]
+        for tool in new_tools:
+            tool_type = get_first_key(tool)
+            tool = tool.get(tool_type, {})
 
-        if new_type:
-            new_assistant["type"] = new_type.upper()
+            dt.transform_tool(tool, tool_type)
 
         if old_type and new_type:
+            old_assistant = AgentRequest(**old_assistant)
+            new_assistant = AgentRequest(**new_assistant)
+
             if old_type != new_type:
-                await self.delete_assistant(
-                    assistant_name=old_assistant["name"],
+                await self.workflow_manager.delete_assistant(
+                    assistant=old_assistant,
                 )
-                await self.add_assistant(data=new_assistant, order=workflow_step_order)
+                await self.workflow_manager.add_assistant(
+                    data=new_assistant,
+                    order=workflow_step_order,
+                )
                 # all tools and data should be re-created
-                await self.process_tools({}, new_tools, new_assistant)
-                await self.process_data(
+                await self.processor.process_tools([], new_tools, new_assistant)
+                await self.processor.process_data(
                     {},
                     new_data,
                     new_assistant,
                 )
 
             else:
-                changes = compare_dicts(old_assistant, new_assistant)
+                changes = compare_dicts(old_assistant.dict(), new_assistant.dict())
                 if changes:
-                    await self.update_assistant(
-                        assistant_name=old_assistant["name"], data=changes
+                    await self.workflow_manager.update_assistant(
+                        assistant=old_assistant,
+                        data=AgentUpdateRequest(**changes),
                     )
-                await self.process_tools(old_tools, new_tools, old_assistant)
-                await self.process_data(
+                await self.processor.process_tools(old_tools, new_tools, new_assistant)
+                await self.processor.process_data(
                     old_data,
                     new_data,
-                    old_assistant,
+                    new_assistant,
                 )
         elif old_type and not new_type:
-            await self.delete_assistant(
-                assistant_name=old_assistant["name"],
+            old_assistant = AgentRequest(**old_assistant)
+            await self.processor.process_tools(old_tools, [], old_assistant)
+            await self.processor.process_data(
+                old_data,
+                {},
+                old_assistant,
+            )
+
+            await self.workflow_manager.delete_assistant(
+                assistant=old_assistant,
             )
         elif new_type and not old_type:
-            await self.add_assistant(
+            new_assistant = AgentRequest(**new_assistant)
+
+            new_agent = await self.workflow_manager.add_assistant(
                 data=new_assistant,
                 order=workflow_step_order,
             )
-            await self.process_tools(old_tools, new_tools, new_assistant)
-            await self.process_data(
+
+            await self.processor.process_tools(old_tools, new_tools, new_assistant)
+            await self.processor.process_data(
                 old_data,
                 new_data,
                 new_assistant,
             )
+        return new_agent
 
-    async def handle_changes(self, old_config, new_config):
+    async def process_assistants(self, old_config, new_config):
         old_assistants = old_config.get("workflows", [])
         new_assistants = new_config.get("workflows", [])
 
         workflow_step_order = 0
-        for old_assistant, new_assistant in zip_longest(
+        for old_assistant_obj, new_assistant_obj in zip_longest(
             old_assistants, new_assistants, fillvalue={}
         ):
             await self.process_assistant(
-                old_assistant, new_assistant, workflow_step_order
+                old_assistant_obj,
+                new_assistant_obj,
+                workflow_step_order,
             )
             workflow_step_order += 1
 
@@ -654,12 +647,13 @@ async def add_config(
         new_config = json.loads(new_config_str)
         old_config = {} if not workflow_config else workflow_config.config
 
-        workflow_config_handler = WorkflowConfigHandler(
-            workflow_id=workflow_id,
-            api_user=api_user,
+        workflow_manager = WorkflowManager(workflow_id, api_user)
+        workflow_processor = WorkflowProcessor(
+            api_user,
+            workflow_manager,
         )
 
-        await workflow_config_handler.handle_changes(old_config, new_config)
+        await workflow_processor.process_assistants(old_config, new_config)
 
         config = await prisma.workflowconfig.create(
             data={

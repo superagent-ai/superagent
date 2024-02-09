@@ -67,8 +67,18 @@ class AgentInvoke(BaseModel):
 
 class Datasource(BaseModel):
     name: str
-    description: str
+    description: Optional[str]
     type: str
+    content: Optional[str]
+    url: Optional[str]
+    metadata: Optional[Dict[Any, Any]]
+    vectorDbId: Optional[str]
+
+
+class DatasourceUpdate(BaseModel):
+    name: Optional[str]
+    description: Optional[str]
+    type: Optional[str]
     content: Optional[str]
     url: Optional[str]
     metadata: Optional[Dict[Any, Any]]
@@ -81,6 +91,14 @@ class Tool(BaseModel):
     type: str
     metadata: Optional[Dict[Any, Any]]
     returnDirect: Optional[bool] = False
+
+
+class ToolUpdate(BaseModel):
+    name: Optional[str]
+    description: Optional[str]
+    type: Optional[str]
+    metadata: Optional[Dict[Any, Any]]
+    returnDirect: Optional[bool]
 
 
 class AgentTool(BaseModel):
