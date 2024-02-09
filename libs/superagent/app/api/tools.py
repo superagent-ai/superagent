@@ -4,7 +4,12 @@ import segment.analytics as analytics
 from decouple import config
 from fastapi import APIRouter, Depends
 
-from app.models.request import Tool as ToolRequest
+from app.models.request import (
+    Tool as ToolRequest,
+)
+from app.models.request import (
+    ToolUpdate as ToolUpdateRequest,
+)
 from app.models.response import (
     Tool as ToolResponse,
 )
@@ -110,7 +115,7 @@ async def get(tool_id: str, api_user=Depends(get_current_api_user)):
     response_model=ToolResponse,
 )
 async def update(
-    tool_id: str, body: ToolRequest, api_user=Depends(get_current_api_user)
+    tool_id: str, body: ToolUpdateRequest, api_user=Depends(get_current_api_user)
 ):
     """Endpoint for updating a specific tool"""
     if SEGMENT_WRITE_KEY:
@@ -119,7 +124,7 @@ async def update(
     data = await prisma.tool.update(
         where={"id": tool_id},
         data={
-            **body.dict(),
+            **body.dict(exclude_unset=True),
             "apiUserId": api_user.id,
         },
     )

@@ -136,7 +136,7 @@ async def workflow_update(
         data = await prisma.workflow.update(
             where={"id": workflow_id},
             data={
-                **body.dict(),
+                **body.dict(exclude_unset=True),
                 "apiUserId": api_user.id,
             },
         )
@@ -394,7 +394,7 @@ async def workflow_step_update(
         data = await prisma.workflowstep.update(
             where={"id": step_id},
             data={
-                **body.dict(),
+                **body.dict(exclude_unset=True),
                 "workflowId": workflow_id,
             },
         )

@@ -316,7 +316,7 @@ async def delete(agent_id: str, api_user=Depends(get_current_api_user)):
             )
             oai = AsyncOpenAI(api_key=llm.apiKey)
             await oai.beta.assistants.delete(metadata.get("id"))
-        return {"success": True, "data": None}
+        return {"success": True, "data": deleted}
     except Exception as e:
         handle_exception(e)
 
