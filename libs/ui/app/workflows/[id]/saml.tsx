@@ -10,6 +10,8 @@ import { useAsyncFn } from "react-use"
 
 import { Api } from "@/lib/api"
 import { Spinner } from "@/components/ui/spinner"
+import { Toaster } from "@/components/ui/toaster"
+import { useToast } from "@/components/ui/use-toast"
 
 import { initCodeEditor } from "./editor"
 
@@ -33,6 +35,8 @@ export default function SAML({
   workflow: any
   profile: any
 }) {
+  const { toast } = useToast()
+
   const api = new Api(profile.api_key)
   const router = useRouter()
   const latestWorkflowConfig = workflow.workflowConfigs.sort(
@@ -45,12 +49,22 @@ export default function SAML({
   })
 
   const [{ loading: isSavingConfig }, saveConfig] = useAsyncFn(async () => {
-    const { data: config } = await api.generateWorkflow(
-      workflow.id,
-      editorRef?.current?.getValue()
-    )
-    router.refresh()
-    return config
+    try {
+      const res = await api.generateWorkflow(
+        workflow.id,
+        editorRef?.current?.getValue()
+      )
+
+      router.refresh()
+      toast({
+        title: "Config saved!",
+      })
+      return res?.data
+    } catch (error) {
+      toast({
+        title: "Couldn't save config",
+      })
+    }
   }, [router, api])
 
   const { resolvedTheme } = useTheme()
@@ -111,6 +125,7 @@ export default function SAML({
           </div>
         )}
       </div>
+      <Toaster />
     </div>
   )
 }
