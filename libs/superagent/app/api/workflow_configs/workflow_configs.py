@@ -11,8 +11,8 @@ from app.api.workflow_configs.api.api_manager import ApiManager
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
 
-from .workflow_configs.processors.agent_processor import AgentProcessor
-from .workflow_configs.saml_schema import WorkflowConfig
+from .processors.agent_processor import AgentProcessor
+from .saml_schema import WorkflowConfig
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
