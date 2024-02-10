@@ -207,37 +207,46 @@ class WorkflowManager:
                 return agent_tool.tool
 
     async def create_assistant(self, data: AgentRequest):
-        res = await api_create_agent(
-            body=data,
-            api_user=self.api_user,
-        )
+        try:
+            res = await api_create_agent(
+                body=data,
+                api_user=self.api_user,
+            )
 
-        new_agent = res.get("data", {})
+            new_agent = res.get("data", {})
 
-        logger.info(f"Created agent: {new_agent}")
-        return new_agent
+            logger.info(f"Created agent: {new_agent}")
+            return new_agent
+        except Exception as e:
+            logger.error("Error creating agent: ", e)
 
     async def create_datasource(self, data: DatasourceRequest):
-        res = await api_create_datasource(
-            body=data,
-            api_user=self.api_user,
-        )
+        try:
+            res = await api_create_datasource(
+                body=data,
+                api_user=self.api_user,
+            )
 
-        new_datasource = res.get("data", {})
+            new_datasource = res.get("data", {})
 
-        logger.info(f"Created datasource: {data}")
-        return new_datasource
+            logger.info(f"Created datasource: {data}")
+            return new_datasource
+        except Exception as e:
+            logger.error("Error creating datasource: ", e)
 
     async def create_tool(self, assistant: AgentUpdateRequest, data: ToolRequest):
-        res = await api_create_tool(
-            body=data,
-            api_user=self.api_user,
-        )
+        try:
+            res = await api_create_tool(
+                body=data,
+                api_user=self.api_user,
+            )
 
-        new_tool = res.get("data", {})
+            new_tool = res.get("data", {})
 
-        logger.info(f"Created tool: ${new_tool.name} - ${assistant.name}")
-        return new_tool
+            logger.info(f"Created tool: ${new_tool.name} - ${assistant.name}")
+            return new_tool
+        except Exception as e:
+            logger.error("Error creating tool: ", e)
 
     async def add_datasource(
         self, assistant: AgentUpdateRequest, data: DatasourceRequest
@@ -245,83 +254,104 @@ class WorkflowManager:
         agent = await self.get_assistant(assistant)
         new_datasource = await self.create_datasource(data)
 
-        await api_add_agent_datasource(
-            agent_id=agent.id,
-            body=AgentDatasourceRequest(
-                datasourceId=new_datasource.id,
-            ),
-            api_user=self.api_user,
-        )
-        logger.info(f"Added datasource: {new_datasource.name} - {assistant.name}")
+        try:
+            await api_add_agent_datasource(
+                agent_id=agent.id,
+                body=AgentDatasourceRequest(
+                    datasourceId=new_datasource.id,
+                ),
+                api_user=self.api_user,
+            )
+            logger.info(f"Added datasource: {new_datasource.name} - {assistant.name}")
+        except Exception as e:
+            logger.error("Error adding datasource: ", e)
 
     async def add_tool(self, assistant: AgentUpdateRequest, data: ToolRequest):
         agent = await self.get_assistant(assistant)
         new_tool = await self.create_tool(assistant, data)
 
-        await api_add_agent_tool(
-            agent_id=agent.id,
-            body=AgentToolRequest(
-                toolId=new_tool.id,
-            ),
-            api_user=self.api_user,
-        )
-        logger.info(f"Added tool: {new_tool.name} - {assistant.name}")
-
-    async def add_assistant(self, data: AgentRequest, order: int | None = None):
-        new_agent = await self.create_assistant(data)
-
-        if order is not None:
-            await api_add_step_workflow(
-                workflow_id=self.workflow_id,
-                body=WorkflowStepRequest(
-                    agentId=new_agent.id,
-                    order=order,
+        try:
+            await api_add_agent_tool(
+                agent_id=agent.id,
+                body=AgentToolRequest(
+                    toolId=new_tool.id,
                 ),
                 api_user=self.api_user,
             )
-            logger.info(f"Added assistant: {new_agent.name}")
-        return new_agent
+            logger.info(f"Added tool: {new_tool.name} - {assistant.name}")
+        except Exception as e:
+            logger.error("Error adding tool: ", e)
+
+    async def add_assistant(self, data: AgentRequest, order: int | None = None):
+        try:
+            new_agent = await self.create_assistant(data)
+
+            if order is not None:
+                await api_add_step_workflow(
+                    workflow_id=self.workflow_id,
+                    body=WorkflowStepRequest(
+                        agentId=new_agent.id,
+                        order=order,
+                    ),
+                    api_user=self.api_user,
+                )
+                logger.info(f"Added assistant: {new_agent.name}")
+            return new_agent
+        except Exception as e:
+            logger.error("Error adding assistant: ", e)
 
     async def delete_assistant(self, assistant: AgentUpdateRequest):
-        agent = await self.get_assistant(assistant)
+        try:
+            agent = await self.get_assistant(assistant)
 
-        await api_delete_agent(
-            agent_id=agent.id,
-            api_user=self.api_user,
-        )
-        logger.info(f"Deleted assistant: {agent.name}")
+            await api_delete_agent(
+                agent_id=agent.id,
+                api_user=self.api_user,
+            )
+            logger.info(f"Deleted assistant: {agent.name}")
+        except Exception as e:
+            logger.error("Error deleting assistant: ", e)
 
     async def delete_datasource(
         self, assistant: AgentUpdateRequest, datasource: DatasourceUpdateRequest
     ):
-        datasource = await self.get_datasource(assistant, datasource)
+        try:
+            datasource = await self.get_datasource(assistant, datasource)
 
-        await api_delete_datasource(
-            datasource_id=datasource.id,
-            api_user=self.api_user,
-        )
-        logger.info(f"Deleted datasource: {datasource.name} - {assistant.name}")
+            await api_delete_datasource(
+                datasource_id=datasource.id,
+                api_user=self.api_user,
+            )
+            logger.info(f"Deleted datasource: {datasource.name} - {assistant.name}")
+        except Exception as e:
+            logger.error("Error deleting datasource: ", e)
 
     async def delete_tool(self, assistant: AgentUpdateRequest, tool: ToolUpdateRequest):
-        tool = await self.get_tool(assistant, tool)
+        try:
+            tool = await self.get_tool(assistant, tool)
 
-        await api_delete_tool(
-            tool_id=tool.id,
-            api_user=self.api_user,
-        )
-        logger.info(f"Deleted tool: {tool.name} - {assistant.name}")
+            await api_delete_tool(
+                tool_id=tool.id,
+                api_user=self.api_user,
+            )
+            logger.info(f"Deleted tool: {tool.name} - {assistant.name}")
+        except Exception as e:
+            logger.error("Error deleting tool: ", e)
 
     async def update_assistant(
         self, assistant: AgentUpdateRequest, data: AgentUpdateRequest
     ):
-        agent = await self.get_assistant(assistant)
+        try:
+            agent = await self.get_assistant(assistant)
 
-        await api_update_agent(
-            agent_id=agent.id,
-            body=data,
-            api_user=self.api_user,
-        )
-        logger.info(f"Updated assistant: {agent.name}")
+            await api_update_agent(
+                agent_id=agent.id,
+                body=data,
+                api_user=self.api_user,
+            )
+            logger.info(f"Updated assistant: {agent.name}")
+        except Exception as e:
+            logger.error("Error updating assistant: ", e)
 
     async def update_tool(
         self,
@@ -329,14 +359,17 @@ class WorkflowManager:
         tool: ToolUpdateRequest,
         data: ToolUpdateRequest,
     ):
-        tool = await self.get_tool(assistant, tool)
+        try:
+            tool = await self.get_tool(assistant, tool)
 
-        await api_update_tool(
-            tool_id=tool.id,
-            body=data,
-            api_user=self.api_user,
-        )
-        logger.info(f"Updated tool: {tool.name} - {assistant.name}")
+            await api_update_tool(
+                tool_id=tool.id,
+                body=data,
+                api_user=self.api_user,
+            )
+            logger.info(f"Updated tool: {tool.name} - {assistant.name}")
+        except Exception as e:
+            logger.error("Error updating tool: ", e)
 
 
 class SuperagentProcessor:
@@ -398,11 +431,9 @@ class SuperagentProcessor:
         for url in set(old_urls) | set(new_urls):
             type = get_mimetype_from_url(url)
 
-            use_for = new_data.get("use_for") or old_data.get("use_for") or ""
-
-            datasource_name = f"{MIME_TYPE_TO_EXTENSION[type]} doc {use_for}"
-
             if url in old_urls and url not in new_urls:
+                use_for = old_data.get("use_for") or ""
+                datasource_name = f"{MIME_TYPE_TO_EXTENSION[type]} doc {use_for}"
                 # TODO: find a better way to deciding which datasource to delete
                 await self.workflow_manager.delete_datasource(
                     assistant=assistant,
@@ -410,6 +441,8 @@ class SuperagentProcessor:
                 )
 
             elif url in new_urls and url not in old_urls:
+                use_for = new_data.get("use_for") or ""
+                datasource_name = f"{MIME_TYPE_TO_EXTENSION[type]} doc {use_for}"
                 if type in MIME_TYPE_TO_EXTENSION:
                     await self.workflow_manager.add_datasource(
                         assistant,
