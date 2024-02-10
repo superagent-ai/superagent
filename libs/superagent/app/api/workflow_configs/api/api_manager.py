@@ -66,6 +66,7 @@ class ApiManager:
             body=data,
             api_user=self.api_user,
         )
+        logger.info(f"Updated tool: {tool.name} - {assistant.name}")
 
     async def delete_tool(self, assistant: AgentUpdateRequest, tool: ToolUpdateRequest):
         tool = await self.agent_manager.get_tool(assistant, tool)
@@ -74,6 +75,7 @@ class ApiManager:
             tool_id=tool.id,
             api_user=self.api_user,
         )
+        logger.info(f"Deleted tool: {tool.name} - {assistant.name}")
 
     async def delete_datasource(
         self, assistant: AgentUpdateRequest, datasource: DatasourceUpdateRequest
@@ -84,6 +86,7 @@ class ApiManager:
             datasource_id=datasource.id,
             api_user=self.api_user,
         )
+        logger.info(f"Deleted datasource: {datasource.name} - {assistant.name}")
 
     async def create_datasource(self, data: DatasourceRequest):
         res = await api_create_datasource(
@@ -133,5 +136,4 @@ class ApiManager:
             ),
             api_user=self.api_user,
         )
-        print("added tool", new_tool, assistant)
         logger.info(f"Added tool: {new_tool.name} - {assistant.name}")

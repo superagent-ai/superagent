@@ -113,15 +113,14 @@ class ApiAgentManager(BaseApiAgentManager):
         return new_agent
 
     async def delete_assistant(self, assistant: AgentUpdateRequest):
-        print(assistant)
         assistant = await self.get_assistant(assistant)
-
-        print(assistant)
 
         await api_delete_agent(
             agent_id=assistant.id,
             api_user=self.api_user,
         )
+
+        logger.info(f"Deleted assistant: {assistant.name}")
 
     async def update_assistant(
         self, assistant: AgentUpdateRequest, data: AgentUpdateRequest
@@ -132,3 +131,4 @@ class ApiAgentManager(BaseApiAgentManager):
             body=data,
             api_user=self.api_user,
         )
+        logger.info(f"Updated assistant: {agent.name}")

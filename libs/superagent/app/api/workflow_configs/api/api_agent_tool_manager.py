@@ -69,7 +69,6 @@ class ApiAgentToolManager(BaseApiAgentManager):
             },
         )
 
-        print("agent_tools", self.parent_agent.id, agent_tools)
         for agent_tool in agent_tools:
             if agent_tool.tool.name == assistant.name:
                 # get agent from tool's metadata agent id
@@ -187,6 +186,7 @@ class ApiAgentToolManager(BaseApiAgentManager):
             tool_id=tool.id,
             api_user=self.api_user,
         )
+        logger.info(f"Deleted assistant: {assistant.name}")
 
     async def update_assistant(
         self, assistant: AgentUpdateRequest, data: AgentUpdateRequest
@@ -207,3 +207,4 @@ class ApiAgentToolManager(BaseApiAgentManager):
             ),
             api_user=self.api_user,
         )
+        logger.info(f"Updated assistant: {assistant.name}")
