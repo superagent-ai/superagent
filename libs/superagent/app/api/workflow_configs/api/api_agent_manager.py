@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from app.api.agents import (
     create as api_create_agent,
@@ -43,7 +42,9 @@ class ApiAgentManager(BaseApiAgentManager):
         self.workflow_id = workflow_id
         self.api_user = api_user
 
-    async def get_assistant(self, assistant: Optional[AgentUpdateRequest]):
+    async def get_assistant(self, assistant: dict):
+        assistant = AgentRequest.parse_obj(assistant)
+
         workflow_steps = await prisma.workflowstep.find_many(
             where={
                 "workflowId": self.workflow_id,
@@ -56,9 +57,8 @@ class ApiAgentManager(BaseApiAgentManager):
             if step.agent.name == assistant.name:
                 return step.agent
 
-    async def get_datasource(
-        self, assistant: AgentUpdateRequest, datasource: DatasourceUpdateRequest
-    ):
+    async def get_datasource(self, assistant: dict, datasource: dict):
+        datasource = DatasourceUpdateRequest.parse_obj(datasource)
         agent = await self.get_assistant(assistant)
         agent_datasources = await prisma.agentdatasource.find_many(
             where={
@@ -72,7 +72,8 @@ class ApiAgentManager(BaseApiAgentManager):
             if agent_datasource.datasource.name == datasource.name:
                 return agent_datasource.datasource
 
-    async def get_tool(self, assistant: AgentUpdateRequest, tool: ToolUpdateRequest):
+    async def get_tool(self, assistant: dict, tool: dict):
+        tool = ToolUpdateRequest.parse_obj(tool)
         agent = await self.get_assistant(assistant)
         agent_tools = await prisma.agenttool.find_many(
             where={
@@ -86,9 +87,9 @@ class ApiAgentManager(BaseApiAgentManager):
             if agent_tool.tool.name == tool.name:
                 return agent_tool.tool
 
-    async def create_assistant(self, data: AgentRequest):
+    async def create_assistant(self, data: dict):
         res = await api_create_agent(
-            body=data,
+            body=AgentRequest.parse_obj(data),
             api_user=self.api_user,
         )
 
@@ -97,7 +98,7 @@ class ApiAgentManager(BaseApiAgentManager):
         logger.info(f"Created agent: {new_agent}")
         return new_agent
 
-    async def add_assistant(self, data: AgentRequest, order: int | None = None):
+    async def add_assistant(self, data: dict, order: int | None = None):
         new_agent = await self.create_assistant(data)
 
         if order is not None:
@@ -112,7 +113,7 @@ class ApiAgentManager(BaseApiAgentManager):
             logger.info(f"Added assistant: {new_agent.name}")
         return new_agent
 
-    async def delete_assistant(self, assistant: AgentUpdateRequest):
+    async def delete_assistant(self, assistant: dict):
         assistant = await self.get_assistant(assistant)
 
         await api_delete_agent(
@@ -122,13 +123,11 @@ class ApiAgentManager(BaseApiAgentManager):
 
         logger.info(f"Deleted assistant: {assistant.name}")
 
-    async def update_assistant(
-        self, assistant: AgentUpdateRequest, data: AgentUpdateRequest
-    ):
+    async def update_assistant(self, assistant: dict, data: dict):
         agent = await self.get_assistant(assistant)
         await api_update_agent(
             agent_id=agent.id,
-            body=data,
+            body=AgentUpdateRequest.parse_obj(data),
             api_user=self.api_user,
         )
         logger.info(f"Updated assistant: {agent.name}")

@@ -10,7 +10,7 @@ class WorkflowDatasource(BaseModel):
 
 class WorkflowTool(BaseModel):
     name: str
-    use_for: Optional[str]  # an alias for description
+    use_for: str  # an alias for description
     metadata: Optional[Dict[Any, Any]]
 
 
@@ -24,8 +24,12 @@ class WorkflowAssistant(BaseModel):
     data: Optional[WorkflowDatasource]
 
 
+class WorkflowAssistantAsTool(WorkflowAssistant):
+    use_for: str  # an alias for description
+
+
 class NestedWorkflowAssistant(WorkflowAssistant):
-    tools: Optional[List[Dict[str, Union[WorkflowAssistant, WorkflowTool]]]]
+    tools: Optional[List[Dict[str, Union[WorkflowAssistantAsTool, WorkflowTool]]]]
 
 
 class WorkflowConfig(BaseModel):

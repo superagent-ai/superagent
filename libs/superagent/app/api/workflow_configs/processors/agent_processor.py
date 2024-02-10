@@ -3,12 +3,6 @@ from itertools import zip_longest
 from app.api.workflow_configs.api.api_manager import ApiManager
 from app.api.workflow_configs.processors.processor import Processor
 from app.api.workflow_configs.processors.utils import get_first_key
-from app.models.request import (
-    Agent as AgentRequest,
-)
-from app.models.request import (
-    AgentUpdate as AgentUpdateRequest,
-)
 from app.utils.helpers import compare_dicts
 
 from ..data_transformer import DataTransformer
@@ -55,7 +49,6 @@ class AgentProcessor:
             dt.transform_tool(tool, tool_type)
 
         if old_assistant:
-            old_assistant = AgentRequest(**old_assistant)
             old_tool_processor = Processor(
                 self.api_user, self.api_manager
             ).get_tool_processor(old_assistant)
@@ -64,7 +57,6 @@ class AgentProcessor:
             ).get_data_processor(old_assistant)
 
         if new_assistant:
-            new_assistant = AgentRequest(**new_assistant)
             new_tool_processor = Processor(
                 self.api_user, self.api_manager
             ).get_tool_processor(new_assistant)
@@ -89,11 +81,11 @@ class AgentProcessor:
                 await new_data_processor.process({}, new_data)
 
             else:
-                changes = compare_dicts(old_assistant.dict(), new_assistant.dict())
+                changes = compare_dicts(old_assistant, new_assistant)
                 if changes:
                     await self.api_manager.agent_manager.update_assistant(
                         assistant=old_assistant,
-                        data=AgentUpdateRequest(**changes),
+                        data=changes,
                     )
                 await new_tool_processor.process(old_tools, new_tools)
                 await new_data_processor.process(old_data, new_data)

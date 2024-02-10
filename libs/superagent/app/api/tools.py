@@ -42,6 +42,7 @@ async def create(
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Created Tool")
         body.metadata = json.dumps(body.metadata) if body.metadata else ""
+        print({**body.dict(), "apiUserId": api_user.id})
         data = await prisma.tool.create({**body.dict(), "apiUserId": api_user.id})
 
         # async def run_generate_tool_config(tool: ToolResponse):

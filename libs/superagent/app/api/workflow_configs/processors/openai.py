@@ -1,7 +1,6 @@
 from app.api.agents import OpenAIAssistantSdk
 from app.api.workflow_configs.processors.base import BaseProcessor
 from app.api.workflow_configs.processors.utils import get_first_key
-from app.models.request import AgentUpdate as AgentUpdateRequest
 from app.utils.prisma import prisma
 
 
@@ -37,9 +36,9 @@ class OpenaiDataProcessor(BaseProcessor):
 
             await self.api_manager.agent_manager.update_assistant(
                 assistant=self.assistant,
-                data=AgentUpdateRequest(
-                    metadata=metadata,
-                ),
+                data={
+                    "metadata": metadata,
+                },
             )
 
 
@@ -61,7 +60,7 @@ class OpenaiToolProcessor(BaseProcessor):
 
             await self.api_manager.agent_manager.update_assistant(
                 assistant=self.assistant,
-                data=AgentUpdateRequest(
-                    metadata=metadata,
-                ),
+                data={
+                    "metadata": metadata,
+                },
             )

@@ -58,7 +58,9 @@ class ApiAgentToolManager(BaseApiAgentManager):
         self.parent_agent = parent_agent
         self.api_user = api_user
 
-    async def get_assistant(self, assistant: AgentUpdateRequest):
+    async def get_assistant(self, assistant: dict):
+        assistant = AgentUpdateRequest.parse_obj(assistant)
+
         agent_tools = await prisma.agenttool.find_many(
             where={
                 "agentId": self.parent_agent.id,
@@ -80,7 +82,8 @@ class ApiAgentToolManager(BaseApiAgentManager):
                 )
                 return agent
 
-    async def get_tool(self, assistant: AgentUpdateRequest, tool: ToolUpdateRequest):
+    async def get_tool(self, assistant: dict, tool: dict):
+        tool = ToolRequest.parse_obj(tool)
         agent = await self.get_assistant(assistant)
         agent_tools = await prisma.agenttool.find_many(
             where={
@@ -95,9 +98,8 @@ class ApiAgentToolManager(BaseApiAgentManager):
             if agent_tool.tool.name == tool.name:
                 return agent_tool.tool
 
-    async def get_datasource(
-        self, assistant: AgentUpdateRequest, datasource: DatasourceUpdateRequest
-    ):
+    async def get_datasource(self, assistant: dict, datasource: dict):
+        datasource = DatasourceUpdateRequest.parse_obj(datasource)
         agent = await self.get_assistant(assistant)
 
         agent_datasources = await prisma.agentdatasource.find_many(
@@ -113,9 +115,9 @@ class ApiAgentToolManager(BaseApiAgentManager):
             if agent_datasource.datasource.name == datasource.name:
                 return agent_datasource.datasource
 
-    async def create_assistant(self, data: AgentRequest):
+    async def create_assistant(self, data: dict):
         res = await api_create_agent(
-            body=data,
+            body=AgentRequest.parse_obj(data),
             api_user=self.api_user,
         )
 
@@ -124,30 +126,31 @@ class ApiAgentToolManager(BaseApiAgentManager):
         logger.info(f"Created agent: {new_agent}")
         return new_agent
 
-    async def create_tool(self, assistant: AgentUpdateRequest, data: ToolRequest):
+    async def create_tool(self, assistant: dict, data: dict):
         res = await api_create_tool(
-            body=data,
+            body=ToolRequest.parse_obj(data),
             api_user=self.api_user,
         )
 
         new_tool = res.get("data", {})
 
-        logger.info(f"Created tool: {new_tool.name} - {assistant.name}")
+        logger.info(f"Created tool: {new_tool.name} - {assistant.get('name')}")
         return new_tool
 
-    async def add_assistant(self, data: AgentRequest, order: int | None = None):
+    async def add_assistant(self, data: dict, order: int | None = None):
         new_agent = await self.create_assistant(data)
 
         new_tool = await self.create_tool(
-            assistant=self.parent_agent,
-            data=ToolRequest(
-                name=new_agent.name,
-                metadata={
+            assistant=self.parent_agent.dict(),
+            data={
+                "name": new_agent.name,
+                "description": data.get("description"),
+                "metadata": {
                     "agentId": new_agent.id,
                     "apiKey": "",
                 },
-                type="AGENT",
-            ),
+                "type": "AGENT",
+            },
         )
 
         await api_add_agent_tool(
@@ -160,7 +163,9 @@ class ApiAgentToolManager(BaseApiAgentManager):
         logger.info(f"Added assistant: {new_agent.name} - {self.parent_agent.name}")
         return new_agent
 
-    async def get_agent_tool(self, assistant: AgentUpdateRequest):
+    async def get_agent_tool(self, assistant: dict):
+        assistant = AgentUpdateRequest.parse_obj(assistant)
+
         agent_tools = await prisma.agenttool.find_many(
             where={
                 "agentId": self.parent_agent.id,
@@ -173,7 +178,7 @@ class ApiAgentToolManager(BaseApiAgentManager):
             if agent_tool.tool.name == assistant.name:
                 return agent_tool.tool
 
-    async def delete_assistant(self, assistant: AgentUpdateRequest):
+    async def delete_assistant(self, assistant: dict):
         agent = await self.get_assistant(assistant)
 
         await api_delete_agent(
@@ -186,15 +191,13 @@ class ApiAgentToolManager(BaseApiAgentManager):
             tool_id=tool.id,
             api_user=self.api_user,
         )
-        logger.info(f"Deleted assistant: {assistant.name}")
+        logger.info(f"Deleted assistant: {assistant.get('name')}")
 
-    async def update_assistant(
-        self, assistant: AgentUpdateRequest, data: AgentUpdateRequest
-    ):
+    async def update_assistant(self, assistant: dict, data: dict):
         agent = await self.get_assistant(assistant)
         await api_update_agent(
             agent_id=agent.id,
-            body=data,
+            body=AgentUpdateRequest.parse_obj(data),
             api_user=self.api_user,
         )
 
@@ -203,8 +206,9 @@ class ApiAgentToolManager(BaseApiAgentManager):
         await api_update_tool(
             tool_id=tool.id,
             body=ToolUpdateRequest(
-                name=data.name,
+                name=data.get("name"),
+                description=data.get("description"),
             ),
             api_user=self.api_user,
         )
-        logger.info(f"Updated assistant: {assistant.name}")
+        logger.info(f"Updated assistant: {assistant.get('name')}")

@@ -1,12 +1,5 @@
 from abc import ABC, abstractmethod
 
-from app.models.request import (
-    Agent as AgentRequest,
-    AgentUpdate as AgentUpdateRequest,
-    DatasourceUpdate as DatasourceUpdateRequest,
-    ToolUpdate as ToolUpdateRequest,
-)
-
 
 class BaseApiAgentManager(ABC):
     """
@@ -15,33 +8,29 @@ class BaseApiAgentManager(ABC):
     """
 
     @abstractmethod
-    async def get_assistant(self, assistant: AgentUpdateRequest):
+    async def get_assistant(self, assistant: dict):
         pass
 
     @abstractmethod
-    async def get_datasource(
-        self, assistant: AgentUpdateRequest, datasource: DatasourceUpdateRequest
-    ):
+    async def get_datasource(self, assistant: dict, datasource: dict):
         pass
 
     @abstractmethod
-    async def get_tool(self, assistant: AgentUpdateRequest, tool: ToolUpdateRequest):
+    async def get_tool(self, assistant: dict, tool: dict):
         pass
 
     @abstractmethod
-    async def add_assistant(self, data: AgentRequest, order: int | None = None):
+    async def add_assistant(self, data: dict, order: int | None = None):
         pass
 
     @abstractmethod
-    async def create_assistant(self, data: AgentRequest):
+    async def create_assistant(self, data: dict):
         pass
 
     @abstractmethod
-    async def delete_assistant(self, assistant: AgentUpdateRequest):
+    async def delete_assistant(self, assistant: dict):
         pass
 
     @abstractmethod
-    async def update_assistant(
-        self, assistant: AgentUpdateRequest, data: AgentUpdateRequest
-    ):
+    async def update_assistant(self, assistant: dict, data: dict):
         pass

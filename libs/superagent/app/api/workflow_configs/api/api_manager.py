@@ -28,13 +28,7 @@ from app.models.request import (
     AgentTool as AgentToolRequest,
 )
 from app.models.request import (
-    AgentUpdate as AgentUpdateRequest,
-)
-from app.models.request import (
     Datasource as DatasourceRequest,
-)
-from app.models.request import (
-    DatasourceUpdate as DatasourceUpdateRequest,
 )
 from app.models.request import (
     Tool as ToolRequest,
@@ -55,42 +49,40 @@ class ApiManager:
 
     async def update_tool(
         self,
-        assistant: AgentUpdateRequest,
-        tool: ToolUpdateRequest,
-        data: ToolUpdateRequest,
+        assistant: dict,
+        tool: dict,
+        data: dict,
     ):
         tool = await self.agent_manager.get_tool(assistant, tool)
 
         await api_update_tool(
             tool_id=tool.id,
-            body=data,
+            body=ToolUpdateRequest.parse_obj(data),
             api_user=self.api_user,
         )
-        logger.info(f"Updated tool: {tool.name} - {assistant.name}")
+        logger.info(f"Updated tool: {tool.name} - {assistant.get('name')}")
 
-    async def delete_tool(self, assistant: AgentUpdateRequest, tool: ToolUpdateRequest):
+    async def delete_tool(self, assistant: dict, tool: dict):
         tool = await self.agent_manager.get_tool(assistant, tool)
 
         await api_delete_tool(
             tool_id=tool.id,
             api_user=self.api_user,
         )
-        logger.info(f"Deleted tool: {tool.name} - {assistant.name}")
+        logger.info(f"Deleted tool: {tool.name} - {assistant.get('name')}")
 
-    async def delete_datasource(
-        self, assistant: AgentUpdateRequest, datasource: DatasourceUpdateRequest
-    ):
+    async def delete_datasource(self, assistant: dict, datasource: dict):
         datasource = await self.agent_manager.get_datasource(assistant, datasource)
 
         await api_delete_datasource(
             datasource_id=datasource.id,
             api_user=self.api_user,
         )
-        logger.info(f"Deleted datasource: {datasource.name} - {assistant.name}")
+        logger.info(f"Deleted datasource: {datasource.name} - {assistant.get('name')}")
 
-    async def create_datasource(self, data: DatasourceRequest):
+    async def create_datasource(self, data: dict):
         res = await api_create_datasource(
-            body=data,
+            body=DatasourceRequest.parse_obj(data),
             api_user=self.api_user,
         )
 
@@ -99,20 +91,18 @@ class ApiManager:
         logger.info(f"Created datasource: {data}")
         return new_datasource
 
-    async def create_tool(self, assistant: AgentUpdateRequest, data: ToolRequest):
+    async def create_tool(self, assistant: dict, data: dict):
         res = await api_create_tool(
-            body=data,
+            body=ToolRequest.parse_obj(data),
             api_user=self.api_user,
         )
 
         new_tool = res.get("data", {})
 
-        logger.info(f"Created tool: ${new_tool.name} - ${assistant.name}")
+        logger.info(f"Created tool: ${new_tool.name} - ${assistant.get('name')}")
         return new_tool
 
-    async def add_datasource(
-        self, assistant: AgentUpdateRequest, data: DatasourceRequest
-    ):
+    async def add_datasource(self, assistant: dict, data: dict):
         assistant = await self.agent_manager.get_assistant(assistant)
         new_datasource = await self.create_datasource(data)
 
@@ -125,10 +115,10 @@ class ApiManager:
         )
         logger.info(f"Added datasource: {new_datasource.name} - {assistant.name}")
 
-    async def add_tool(self, assistant: AgentUpdateRequest, data: ToolRequest):
-        assistant = await self.agent_manager.get_assistant(assistant)
+    async def add_tool(self, assistant: dict, data: dict):
         new_tool = await self.create_tool(assistant, data)
 
+        assistant = await self.agent_manager.get_assistant(assistant)
         await api_add_agent_tool(
             agent_id=assistant.id,
             body=AgentToolRequest(

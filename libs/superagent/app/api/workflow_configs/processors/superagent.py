@@ -5,18 +5,6 @@ from app.api.workflow_configs.api.api_agent_tool_manager import (
 )
 from app.api.workflow_configs.api.api_manager import ApiManager
 from app.api.workflow_configs.processors.base import BaseProcessor
-from app.models.request import (
-    Datasource as DatasourceRequest,
-)
-from app.models.request import (
-    DatasourceUpdate as DatasourceUpdateRequest,
-)
-from app.models.request import (
-    Tool as ToolRequest,
-)
-from app.models.request import (
-    ToolUpdate as ToolUpdateRequest,
-)
 from app.utils.helpers import (
     MIME_TYPE_TO_EXTENSION,
     compare_dicts,
@@ -45,20 +33,22 @@ class SuperagentDataProcessor(BaseProcessor):
                 # TODO: find a better way to deciding which datasource to delete
                 await self.api_manager.delete_datasource(
                     assistant=self.assistant,
-                    datasource=DatasourceUpdateRequest(name=datasource_name),
+                    datasource={
+                        "name": datasource_name,
+                    },
                 )
 
             elif url in new_urls and url not in old_urls:
                 if type in MIME_TYPE_TO_EXTENSION:
                     await self.api_manager.add_datasource(
                         self.assistant,
-                        data=DatasourceRequest(
+                        data={
                             # TODO: this will be changed once we implement superrag
-                            name=datasource_name,
-                            description=new_data.get("use_for"),
-                            url=url,
-                            type=MIME_TYPE_TO_EXTENSION[type],
-                        ),
+                            "name": datasource_name,
+                            "description": new_data.get("use_for"),
+                            "url": url,
+                            "type": MIME_TYPE_TO_EXTENSION[type],
+                        },
                     )
 
 
@@ -94,16 +84,14 @@ class SuperagentToolProcessor(BaseProcessor):
                 if old_tool_type != new_tool_type:
                     if not check_is_agent_tool(old_tool_type):
                         await self.api_manager.delete_tool(
-                            tool=ToolRequest(**old_tool),
+                            tool=old_tool,
                             assistant=self.assistant,
                         )
 
                     if not check_is_agent_tool(new_tool_type):
                         await self.api_manager.add_tool(
                             assistant=self.assistant,
-                            data=ToolRequest(
-                                **new_tool,
-                            ),
+                            data=new_tool,
                         )
 
                     if check_is_agent_tool(new_tool_type):
@@ -128,10 +116,8 @@ class SuperagentToolProcessor(BaseProcessor):
                         if changes:
                             await self.api_manager.update_tool(
                                 assistant=self.assistant,
-                                tool=ToolUpdateRequest(**old_tool),
-                                data=ToolUpdateRequest(
-                                    **changes,
-                                ),
+                                tool=old_tool,
+                                data=changes,
                             )
 
             elif old_tool_type and not new_tool_type:
@@ -144,7 +130,7 @@ class SuperagentToolProcessor(BaseProcessor):
                     )
                 else:
                     await self.api_manager.delete_tool(
-                        tool=ToolRequest(**old_tool),
+                        tool=old_tool,
                         assistant=self.assistant,
                     )
 
@@ -160,8 +146,5 @@ class SuperagentToolProcessor(BaseProcessor):
                     )
                 else:
                     await self.api_manager.add_tool(
-                        assistant=self.assistant,
-                        data=ToolRequest(
-                            **new_tool,
-                        ),
+                        assistant=self.assistant, data=new_tool
                     )

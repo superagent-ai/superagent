@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 
 from app.api.workflow_configs.api.api_manager import ApiManager
-from app.models.request import AgentUpdate as AgentUpdateRequest
 
 
 class BaseProcessor(ABC):
     def __init__(
         self,
-        assistant: AgentUpdateRequest,
+        assistant: dict,
         api_manager: ApiManager,
     ):
         self.assistant = assistant
