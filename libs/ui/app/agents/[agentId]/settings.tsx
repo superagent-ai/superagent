@@ -4,6 +4,7 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+import { toast } from "sonner"
 import * as z from "zod"
 
 import { Agent } from "@/types/agent"
@@ -33,8 +34,6 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
-import { Toaster } from "@/components/ui/toaster"
-import { useToast } from "@/components/ui/use-toast"
 
 import AddDatasource from "./add-datasource"
 import AddTool from "./add-tool"
@@ -82,7 +81,6 @@ export default function Settings({
 }: SettingsProps) {
   const api = new Api(profile.api_key)
   const router = useRouter()
-  const { toast } = useToast()
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -155,15 +153,10 @@ export default function Settings({
         }
       }
 
-      toast({
-        description: "Agent updated",
-      })
+      toast("Agent updated")
       router.refresh()
     } catch (error: any) {
-      toast({
-        description: error.message,
-        variant: "destructive",
-      })
+      toast(error.message)
     }
   }
 
@@ -417,7 +410,6 @@ export default function Settings({
           </div>
         </form>
       </Form>
-      <Toaster />
     </ScrollArea>
   )
 }

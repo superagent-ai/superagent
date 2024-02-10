@@ -1,3 +1,6 @@
+"use client"
+
+import { Toaster } from "@/components/ui/sonner"
 import Sidebar from "@/components/sidebar"
 
 import BillingModal from "./billing-modal"
@@ -15,6 +18,7 @@ export default function RootLayout({ children, session }: RootLayoutProps) {
       )}
       <Sidebar />
       <div className="flex-1 overflow-auto">{children}</div>
+      <Toaster />
     </section>
   )
 }

@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import dynamic from "next/dynamic"
-import { useRouter } from "next/navigation"
 import { RxActivityLog, RxPieChart, RxPlay } from "react-icons/rx"
 import { useAsync } from "react-use"
 

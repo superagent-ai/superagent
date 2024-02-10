@@ -7,6 +7,7 @@ import * as monaco from "monaco-editor"
 import { useTheme } from "next-themes"
 import { TbCommand } from "react-icons/tb"
 import { useAsyncFn } from "react-use"
+import { toast } from "sonner"
 
 import { Api } from "@/lib/api"
 import { Spinner } from "@/components/ui/spinner"
@@ -50,6 +51,7 @@ export default function SAML({
       editorRef?.current?.getValue()
     )
     router.refresh()
+    toast("Config saved")
     return config
   }, [router, api])
 

@@ -2,7 +2,6 @@
 "use client"
 
 import { ChangeEvent, useRef, useState } from "react"
-import Image from "next/image"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { RxImage } from "react-icons/rx"
 import { v4 as uuid } from "uuid"

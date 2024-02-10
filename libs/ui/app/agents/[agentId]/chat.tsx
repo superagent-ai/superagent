@@ -6,6 +6,7 @@ import dayjs from "dayjs"
 import relativeTime from "dayjs/plugin/relativeTime"
 import { RxChatBubble, RxCode } from "react-icons/rx"
 import { useAsyncFn } from "react-use"
+import { toast } from "sonner"
 import { v4 as uuidv4 } from "uuid"
 
 import { Agent } from "@/types/agent"
@@ -15,7 +16,6 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Toaster } from "@/components/ui/toaster"
-import { useToast } from "@/components/ui/use-toast"
 import Message from "@/components/message"
 
 import PromptForm from "./prompt-form"
@@ -40,7 +40,6 @@ export default function Chat({
   const [timer, setTimer] = React.useState<number>(0)
   const [session, setSession] = React.useState<string | null>(uuidv4())
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
-  const { toast } = useToast()
 
   const [{ loading: isLoadingRuns, value: runs = [] }, getAgentRuns] =
     useAsyncFn(async () => {
@@ -298,9 +297,7 @@ export default function Chat({
                   clearInterval(timerRef.current)
                 }
                 setMessages([])
-                toast({
-                  description: "New session created",
-                })
+                toast("New session created")
               }}
               isLoading={isLoading}
             />

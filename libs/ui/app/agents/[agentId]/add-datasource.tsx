@@ -1,12 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
 import { RxCross2 } from "react-icons/rx"
 import { TbPlus } from "react-icons/tb"
+import { toast } from "sonner"
 import { v4 as uuidv4 } from "uuid"
 import * as z from "zod"
 
@@ -32,7 +32,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/components/ui/use-toast"
 import { UploadButton } from "@/components/upload-button"
 
 const formSchema = z.object({
@@ -57,8 +56,6 @@ function AddDatasource({
   onSuccess: () => void
 }) {
   const supabase = createClientComponentClient()
-  const router = useRouter()
-  const { toast } = useToast()
   const api = new Api(profile.api_key)
 
   const [open, setOpen] = React.useState(false)
@@ -93,16 +90,12 @@ function AddDatasource({
       })
       await api.createAgentDatasource(agent.id, datasource.id)
       form.reset()
-      toast({
-        description: "Datasource created successfully",
-      })
+      toast("Datasource created successfully")
       setOpen(false)
       form.reset()
       onSuccess()
     } catch (error: any) {
-      toast({
-        description: error?.message,
-      })
+      toast(error?.message)
     }
   }
 
@@ -148,10 +141,7 @@ function AddDatasource({
     setIsDownloadingFile(false)
 
     if (error) {
-      toast({
-        description: "Ooops, something went wrong, please try again!",
-        variant: "destructive",
-      })
+      toast("Ooops, something went wrong, please try again!")
     }
   }
 

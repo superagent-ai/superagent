@@ -3,6 +3,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Workflow } from "@/models/models"
 import { TbTrash } from "react-icons/tb"
+import { toast } from "sonner"
 
 import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
@@ -35,6 +36,7 @@ const Header = ({ profile, workflow }: HeaderProps) => {
       ...workflow,
       name,
     })
+    toast("Name updated")
     router.refresh()
   }
 
@@ -90,6 +92,7 @@ const Header = ({ profile, workflow }: HeaderProps) => {
                 onClick={async () => {
                   await api.deleteWorkflow(workflow.id)
                   router.push("/workflows")
+                  toast("Worflow deleted")
                 }}
               >
                 Yes, delete!

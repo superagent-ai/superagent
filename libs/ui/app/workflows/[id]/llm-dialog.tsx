@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { SiMicrosoftazure, SiOpenai } from "react-icons/si"
+import { toast } from "sonner"
 import * as z from "zod"
 
 import { Profile } from "@/types/profile"
@@ -68,6 +69,7 @@ export default function LLMDialog({
     }
     onOpenChange(false)
     router.refresh()
+    toast("Saved successfully")
   }
 
   return (

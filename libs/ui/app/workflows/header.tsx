@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { TbPlus } from "react-icons/tb"
 import { useAsyncFn } from "react-use"
+import { toast } from "sonner"
 
 import { Profile } from "@/types/profile"
 import { initialSamlValue } from "@/config/saml"
@@ -20,6 +21,7 @@ export default function Header({ profile }: { profile: Profile }) {
     })
     await api.generateWorkflow(workflow.id, initialSamlValue)
     router.push(`/workflows/${workflow.id}`)
+    toast("Worflow created")
   })
 
   return (

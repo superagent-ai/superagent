@@ -42,7 +42,6 @@ export default async function Agents({
       <DataTable
         columns={columns}
         data={agents}
-        profile={profile}
         pagination={{
           take,
           currentPageNumber: page,

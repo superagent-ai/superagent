@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Agent } from "@/models/models"
 import { TbTrash } from "react-icons/tb"
+import { toast } from "sonner"
 
 import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
@@ -20,10 +21,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { toast } from "@/components/ui/use-toast"
 import { useEditableField } from "@/components/hooks"
-
-type Mode = "view" | "edit"
 
 export default function Header({
   agent,
@@ -38,9 +36,7 @@ export default function Header({
 
   const onAgentDelete = async () => {
     await api.deleteAgentById(agent.id)
-    toast({
-      description: `Agent with ID: ${agent.id} deleted!`,
-    })
+    toast(`Agent with ID: ${agent.id} deleted!`)
     router.refresh()
     router.push("/agents")
   }

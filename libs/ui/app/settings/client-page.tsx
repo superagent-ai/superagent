@@ -1,10 +1,10 @@
 "use client"
 
 import { useCallback } from "react"
-import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
+import { toast } from "sonner"
 import * as z from "zod"
 
 import { Profile } from "@/types/profile"
@@ -20,7 +20,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
-import { useToast } from "@/components/ui/use-toast"
 
 interface SettingsClientPageProps {
   profile: Profile
@@ -37,9 +36,7 @@ const SettingsClientPage: React.FC<SettingsClientPageProps> = ({
   profile,
   user,
 }) => {
-  const router = useRouter()
   const supabase = createClientComponentClient()
-  const { toast } = useToast()
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -62,16 +59,12 @@ const SettingsClientPage: React.FC<SettingsClientPageProps> = ({
       .eq("id", profile.id)
 
     if (error) {
-      toast({
-        description: `Ooops! ${error?.message}`,
-      })
+      toast(`Ooops! ${error?.message}`)
 
       return
     }
 
-    toast({
-      description: `Settings have been saved!`,
-    })
+    toast("Settings have been saved!")
   }
 
   return (

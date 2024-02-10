@@ -1,21 +1,20 @@
 "use client"
 
 import { RxCopy } from "react-icons/rx"
+import { toast } from "sonner"
 
 import { Profile } from "@/types/profile"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useToast } from "@/components/ui/use-toast"
 
 interface ApiKeysPageProps {
   profile: Profile
 }
 
 const ApiKeysClientPage: React.FC<ApiKeysPageProps> = ({ profile }) => {
-  const { toast } = useToast()
   const copyToClipboard = () => {
     navigator.clipboard.writeText(profile.api_key)
-    toast({ description: "API key copied to clipboard" })
+    toast("API key copied to clipboard")
   }
 
   return (

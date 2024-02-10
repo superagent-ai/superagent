@@ -1,14 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
 import { json } from "@codemirror/lang-json"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ColumnFiltersState } from "@tanstack/react-table"
 import { vscodeDark } from "@uiw/codemirror-theme-vscode"
 import CodeMirror from "@uiw/react-codemirror"
 import { useForm } from "react-hook-form"
 import { TbPlus } from "react-icons/tb"
+import { toast } from "sonner"
 import * as z from "zod"
 
 import { siteConfig } from "@/config/site"
@@ -42,7 +41,6 @@ import {
 } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/components/ui/use-toast"
 
 const formSchema = z.object({
   name: z.string().nonempty({
@@ -67,8 +65,6 @@ function AddTool({
   agent: any
   onSuccess: () => void
 }) {
-  const router = useRouter()
-  const { toast } = useToast()
   const api = new Api(profile.api_key)
   const [open, setOpen] = React.useState(false)
 
@@ -90,16 +86,12 @@ function AddTool({
         ...values,
       })
       await api.createAgentTool(agent.id, tool.id)
-      toast({
-        description: "Tool created successfully",
-      })
+      toast("Tool created successfully")
       form.reset()
       setOpen(false)
       onSuccess()
     } catch (error: any) {
-      toast({
-        description: error?.message,
-      })
+      toast(error?.message)
     }
   }
 

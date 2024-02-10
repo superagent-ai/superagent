@@ -2,7 +2,7 @@ import { cookies } from "next/headers"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { siteConfig } from "@/config/site"
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/sonner"
 import { SettingsSidebar } from "@/components/account-sidebar"
 
 interface SettingsLayoutProps {
@@ -29,6 +29,7 @@ export default async function SettingsLayout({
         <SettingsSidebar items={siteConfig.settingsNav} profile={profile} />
         <div className="flex flex-1 flex-col space-y-8">{children}</div>
       </div>
+      <Toaster />
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
 import { RxGithubLogo } from "react-icons/rx"
+import { toast } from "sonner"
 import * as z from "zod"
 
 import { Api } from "@/lib/api"
@@ -20,7 +21,6 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import { Toaster } from "@/components/ui/toaster"
-import { useToast } from "@/components/ui/use-toast"
 import Logo from "@/components/logo"
 
 const formSchema = z.object({
@@ -31,7 +31,6 @@ const formSchema = z.object({
 
 export default function IndexPage() {
   const supabase = createClientComponentClient()
-  const { toast } = useToast()
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -46,16 +45,12 @@ export default function IndexPage() {
     })
 
     if (error) {
-      toast({
-        description: `Ooops! ${error?.message}`,
-      })
+      toast(`Ooops! ${error?.message}`)
 
       return
     }
 
-    toast({
-      description: "🎉 Yay! Check your email for sign in link.",
-    })
+    toast("🎉 Yay! Check your email for sign in link.")
   }
 
   async function handleGithubLogin() {
@@ -64,9 +59,7 @@ export default function IndexPage() {
     })
 
     if (error) {
-      toast({
-        description: `Ooops! ${error?.message}`,
-      })
+      toast(`Ooops! ${error?.message}`)
 
       return
     }

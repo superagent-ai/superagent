@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
+import { toast } from "sonner"
 import Stripe from "stripe"
 import * as z from "zod"
 
@@ -30,7 +31,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Toaster } from "@/components/ui/toaster"
-import { useToast } from "@/components/ui/use-toast"
 
 const formSchema = z.object({
   first_name: z.string().nonempty("Invalid first name."),
@@ -41,7 +41,6 @@ const formSchema = z.object({
 export default function OnboardingClientPage() {
   const api = new Api()
   const supabase = createClientComponentClient()
-  const { toast } = useToast()
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,10 +57,7 @@ export default function OnboardingClientPage() {
       data: { user },
     } = await supabase.auth.getUser()
     if (!user?.email) {
-      toast({
-        description: `Ooops! User email is missing!`,
-        variant: "destructive",
-      })
+      toast("User email is missing!")
       return
     }
     const { data: profile } = await supabase
@@ -133,10 +129,7 @@ export default function OnboardingClientPage() {
       .eq("user_id", user?.id)
 
     if (error) {
-      toast({
-        description: `Ooops! ${error?.message}`,
-        variant: "destructive",
-      })
+      toast(`Ooops! ${error?.message}`)
 
       return
     }

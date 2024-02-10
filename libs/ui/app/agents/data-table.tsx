@@ -13,7 +13,6 @@ import {
 } from "@tanstack/react-table"
 
 import { Profile } from "@/types/profile"
-import { Api } from "@/lib/api"
 import {
   Table,
   TableBody,
@@ -22,14 +21,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Toaster } from "@/components/ui/toaster"
-import { useToast } from "@/components/ui/use-toast"
 import { DataTablePagination } from "@/components/data-table-pagination"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  profile: Profile
   pagination: {
     take: number
     currentPageNumber: number
@@ -40,12 +36,9 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({
   columns,
   data,
-  profile,
   pagination: { currentPageNumber, take, totalPages },
 }: DataTableProps<TData, TValue>) {
   const router = useRouter()
-  const { toast } = useToast()
-  const api = new Api(profile.api_key)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
@@ -129,7 +122,6 @@ export function DataTable<TData, TValue>({
         table={table}
         currentPageNumber={currentPageNumber}
       />
-      <Toaster />
     </div>
   )
 }
