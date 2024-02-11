@@ -1,13 +1,15 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import * as yaml from "js-yaml"
 import * as monaco from "monaco-editor"
 import { useTheme } from "next-themes"
 import { TbCommand } from "react-icons/tb"
 
+import { exampleConfigs } from "@/config/saml"
 import { Api } from "@/lib/api"
+import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
@@ -36,7 +38,6 @@ export default function SAML({
 }) {
   const { toast } = useToast()
 
-  const api = new Api(profile.api_key)
   const router = useRouter()
   const latestWorkflowConfig = workflow.workflowConfigs.sort(
     (a: any, b: any) =>
@@ -64,32 +65,40 @@ export default function SAML({
     }
   }, [])
 
-  useEffect(() => {
-    const saveConfig = async () => {
-      if (isSavingConfig) return
-      setSavingConfig(true)
+  const saveConfig = useCallback(async () => {
+    const api = new Api(profile.api_key)
+    if (isSavingConfig) return
+    setSavingConfig(true)
 
-      try {
-        await api.generateWorkflow(workflow.id, editorRef?.current?.getValue())
+    try {
+      await api.generateWorkflow(workflow.id, editorRef?.current?.getValue())
 
-        router.refresh()
-        toast({
-          title: "Config saved!",
-        })
-      } catch (error) {
-        toast({
-          title: "Couldn't save config",
-        })
-      }
-
-      setSavingConfig(false)
+      router.refresh()
+      toast({
+        title: "Config saved!",
+      })
+    } catch (error) {
+      toast({
+        title: "Couldn't save config",
+      })
     }
 
+    setSavingConfig(false)
+  }, [isSavingConfig, workflow.id, router, toast, profile.api_key])
+
+  useEffect(() => {
     editorRef?.current?.addCommand(
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
       saveConfig
     )
-  }, [isSavingConfig])
+  }, [isSavingConfig, saveConfig])
+
+  useEffect(() => {
+    editorRef?.current?.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
+      saveConfig
+    )
+  }, [isSavingConfig, saveConfig])
 
   useEffect(() => {
     editorRef?.current?.setValue(workflowConfigsYaml)
@@ -111,7 +120,35 @@ export default function SAML({
         </p>
       </div>
       <div className="h-full w-full" ref={codeEditorRef} />
-      <div className="absolute bottom-4 flex w-full flex-col items-center justify-center">
+      <div className="absolute bottom-4 flex w-full flex-col items-center justify-center space-y-4">
+        <div className="flex space-x-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() =>
+              editorRef?.current?.setValue(exampleConfigs.browserYaml)
+            }
+          >
+            Browser
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => editorRef?.current?.setValue(exampleConfigs.ragYaml)}
+          >
+            Documents
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() =>
+              editorRef?.current?.setValue(exampleConfigs.multiAssistantYaml)
+            }
+          >
+            Multi-agent
+          </Button>
+        </div>
+
         {isSavingConfig ? (
           <div className="flex items-center space-x-1 py-1 text-sm text-muted-foreground">
             <Spinner />
