@@ -466,23 +466,14 @@ async def invoke(
 
     async def send_message(
         agent: LLMChain | AgentExecutor,
-        content: str,
+        input: dict[str, str],
         streaming_callback: CustomAsyncIteratorCallbackHandler,
         callbacks: List[CustomAsyncIteratorCallbackHandler] = [],
     ) -> AsyncIterable[str]:
         try:
-            agent_input = {
-                "input": content,
-            }
-
-            if agent_config.type == AgentType.OPENAI_ASSISTANT:
-                agent_input = {
-                    "content": agent_input,
-                }
-
             task = asyncio.ensure_future(
                 agent.ainvoke(
-                    input=agent_input,
+                    input,
                     config={
                         "callbacks": [streaming_callback, *callbacks],
                         "tags": [agent_id],
@@ -541,7 +532,7 @@ async def invoke(
 
     cost_callback = CostCalcAsyncHandler(model=LLM_MAPPING[agent_config.llmModel])
     streaming_callback = CustomAsyncIteratorCallbackHandler()
-    agent = await AgentBase(
+    agent_base = AgentBase(
         agent_id=agent_id,
         session_id=session_id,
         enable_streaming=enable_streaming,
@@ -549,30 +540,26 @@ async def invoke(
         callbacks=monitoring_callbacks,
         llm_params=body.llm_params,
         agent_config=agent_config,
-    ).get_agent()
+    )
+    agent = await agent_base.get_agent()
+
+    agent_input = agent_base.get_input(
+        input,
+        agent_type=agent_config.type,
+    )
 
     if enable_streaming:
         logging.info("Streaming enabled. Preparing streaming response...")
 
         generator = send_message(
             agent,
-            content=input,
+            input=agent_input,
             streaming_callback=streaming_callback,
             callbacks=[cost_callback],
         )
         return StreamingResponse(generator, media_type="text/event-stream")
 
     logging.info("Streaming not enabled. Invoking agent synchronously...")
-
-    agent_input = {
-        "input": input,
-    }
-
-    if agent_config.type == AgentType.OPENAI_ASSISTANT:
-        agent_input = {
-            "content": agent_input,
-            # TODO: Add thread_id
-        }
 
     output = await agent.ainvoke(
         input=agent_input,
