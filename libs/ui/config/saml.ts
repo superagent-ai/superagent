@@ -1,7 +1,7 @@
 import { JSONSchema7 } from "json-schema"
 
 export const initialSamlValue = `# 👋 Welcome! Start creating your workflows using example yaml below.
-# More info in our docs: https://docs.superagent.sh
+# More info in our docs: https://docs.superagent.sh/overview/getting-started/super-agent-markup-language
 
 workflows:
   - superagent: 
@@ -14,6 +14,22 @@ workflows:
         urls:
           - "https://s2.q4cdn.com/299287126/files/doc_financials/2023/q3/AMZN-Q3-2023-Earnings-Release.pdf"
 `
+
+export const exampleConfigs = {
+  browserYaml: `# 🤖 This agent workflow has access to the browser tool and can access the internet in real-time.
+# More info in our docs: https://docs.superagent.sh/overview/getting-started/super-agent-markup-language
+
+workflows:
+- superagent: 
+    name: Browser assistant
+    llm: gpt-3.5-turbo-16k-0613
+    prompt: Use the browser to answer all questions
+    intro: 👋 Hi there! How can I help you?
+    tools:
+      - browser:
+          name: browser tool
+          use_for: searching the internet`,
+}
 // TODO: get this from the backend after migrating to pydantic version 2
 export const yamlJsonSchema = {
   $schema: "http://json-schema.org/draft-07/schema#",

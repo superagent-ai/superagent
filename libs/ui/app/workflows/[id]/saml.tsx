@@ -7,7 +7,9 @@ import * as monaco from "monaco-editor"
 import { useTheme } from "next-themes"
 import { TbCommand } from "react-icons/tb"
 
+import { exampleConfigs } from "@/config/saml"
 import { Api } from "@/lib/api"
+import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
@@ -111,7 +113,33 @@ export default function SAML({
         </p>
       </div>
       <div className="h-full w-full" ref={codeEditorRef} />
-      <div className="absolute bottom-4 flex w-full flex-col items-center justify-center">
+      <div className="absolute bottom-4 flex w-full flex-col items-center justify-center space-y-4">
+        <div className="flex space-x-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() =>
+              editorRef?.current?.setValue(exampleConfigs.browserYaml)
+            }
+          >
+            Browser
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => console.log("OK")}
+          >
+            Documents
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => console.log("OK")}
+          >
+            Multiassistants
+          </Button>
+        </div>
+
         {isSavingConfig ? (
           <div className="flex items-center space-x-1 py-1 text-sm text-muted-foreground">
             <Spinner />
