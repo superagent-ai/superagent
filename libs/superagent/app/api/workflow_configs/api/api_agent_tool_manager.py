@@ -137,7 +137,7 @@ class ApiAgentToolManager(BaseApiAgentManager):
         logger.info(f"Created tool: {new_tool.name} - {assistant.get('name')}")
         return new_tool
 
-    async def add_assistant(self, data: dict, order: int | None = None):
+    async def add_assistant(self, data: dict):
         new_agent = await self.create_assistant(data)
 
         new_tool = await self.create_tool(
@@ -147,7 +147,6 @@ class ApiAgentToolManager(BaseApiAgentManager):
                 "description": data.get("description"),
                 "metadata": {
                     "agentId": new_agent.id,
-                    "apiKey": "",
                 },
                 "type": "AGENT",
             },
