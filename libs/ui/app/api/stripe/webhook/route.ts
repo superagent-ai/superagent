@@ -5,8 +5,8 @@ import Stripe from "stripe"
 import { stripe } from "@/lib/stripe"
 
 const supabase: SupabaseClient = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICEROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.SUPABASE_SERVICEROLE_KEY || ""
 )
 
 interface EventData {
