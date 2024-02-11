@@ -77,8 +77,19 @@ export default function WorkflowDetail({
             <span>LOGS</span>
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="stats" className="px-6 py-2 text-sm">
-          <Overview profile={profile} data={logs || []} />
+        <TabsContent value="stats" className="h-full px-6 py-2 text-sm">
+          {/* <Overview profile={profile} data={logs || []} /> */}
+          <div className="flex h-full items-center justify-center ">
+            <div className="container flex max-w-lg flex-col space-y-6 rounded-lg border p-6">
+              <RxPieChart size={20} />
+              <div className="flex flex-col space-y-2">
+                <p className="text-sm font-semibold">Coming soon</p>
+                <p className="text-sm text-muted-foreground">
+                  We will be rolling out detailed logs for your workflows soon!
+                </p>
+              </div>
+            </div>
+          </div>
         </TabsContent>
         <TabsContent value="logs" className="h-full text-sm">
           {loading ? (
@@ -88,7 +99,19 @@ export default function WorkflowDetail({
               ))}
             </div>
           ) : (
-            <LogList profile={profile} data={logs || []} />
+            //<LogList profile={profile} data={logs || []} />
+            <div className="flex h-full items-center justify-center ">
+              <div className="container flex max-w-lg flex-col space-y-6 rounded-lg border p-6">
+                <RxActivityLog size={20} />
+                <div className="flex flex-col space-y-2">
+                  <p className="text-sm font-semibold">Coming soon</p>
+                  <p className="text-sm text-muted-foreground">
+                    We will be rolling out detailed logs for your workflows
+                    soon!
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
         </TabsContent>
         <TabsContent
