@@ -71,8 +71,8 @@ class AgentProcessor:
                     assistant=old_assistant,
                 )
                 await self.api_manager.agent_manager.add_assistant(
-                    data=new_assistant,
-                    order=workflow_step_order,
+                    new_assistant,
+                    workflow_step_order,
                 )
                 # all tools and data should be re-created
                 await old_tool_processor.process(old_tools, [])
@@ -99,8 +99,8 @@ class AgentProcessor:
             )
         elif new_type and not old_type:
             new_agent = await self.api_manager.agent_manager.add_assistant(
-                data=new_assistant,
-                order=workflow_step_order,
+                new_assistant,
+                workflow_step_order,
             )
 
             await new_tool_processor.process([], new_tools)
