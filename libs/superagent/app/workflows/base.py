@@ -7,8 +7,8 @@ from agentops.langchain_callback_handler import (
 )
 
 from app.agents.base import AgentBase
+from app.utils.callbacks import CustomAsyncIteratorCallbackHandler
 from app.utils.prisma import prisma
-from app.utils.streaming import CustomAsyncIteratorCallbackHandler
 from prisma.enums import AgentType
 from prisma.models import Workflow
 
@@ -19,7 +19,7 @@ class WorkflowBase:
         workflow: Workflow,
         callbacks: List[CustomAsyncIteratorCallbackHandler],
         session_id: str,
-        monitoring_callbacks: List[
+        constructor_callbacks: List[
             AsyncCallbackHandler | LangchainCallbackHandler
         ] = None,
         enable_streaming: bool = False,
@@ -27,7 +27,7 @@ class WorkflowBase:
         self.workflow = workflow
         self.enable_streaming = enable_streaming
         self.session_id = session_id
-        self.monitoring_callbacks = monitoring_callbacks
+        self.constructor_callbacks = constructor_callbacks
         self.callbacks = callbacks
 
     async def arun(self, input: Any):
@@ -49,7 +49,7 @@ class WorkflowBase:
             agent = await AgentBase(
                 agent_id=step.agentId,
                 enable_streaming=True,
-                callbacks=self.monitoring_callbacks,
+                callbacks=self.constructor_callbacks,
                 session_id=self.session_id,
                 agent_config=agent_config,
             ).get_agent()

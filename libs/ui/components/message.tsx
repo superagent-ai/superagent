@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { LangfuseWeb } from "langfuse"
 import { AiOutlineExclamationCircle } from "react-icons/ai"
+import { TbBolt } from "react-icons/tb"
 import remarkGfm from "remark-gfm"
 import remarkMath from "remark-math"
 

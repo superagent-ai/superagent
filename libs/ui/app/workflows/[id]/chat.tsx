@@ -5,9 +5,16 @@ import { Workflow, WorkflowStep } from "@/models/models"
 import { fetchEventSource } from "@microsoft/fetch-event-source"
 import dayjs from "dayjs"
 import relativeTime from "dayjs/plugin/relativeTime"
+import { TbBolt } from "react-icons/tb"
 import { v4 as uuidv4 } from "uuid"
 
 import { Profile } from "@/types/profile"
+import { Badge } from "@/components/ui/badge"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToast } from "@/components/ui/use-toast"
 import Message from "@/components/message"
@@ -120,7 +127,6 @@ export default function Chat({
             setFunctionCalls(defaultFunctionCalls)
           },
           async onclose() {
-            console.log("close")
             setFunctionCalls((previousFunctionCalls = []) => [
               ...previousFunctionCalls,
               {
@@ -201,12 +207,24 @@ export default function Chat({
 
   return (
     <div className="relative flex flex-1 text-sm">
-      <div className="mt-8 max-w-[15%] flex-[20%] flex-col items-start justify-start px-6">
-        <FunctionCalls functionCalls={functionCalls} />
+      <div className="absolute right-0 z-50 flex items-center space-x-2 px-6 py-4">
+        {functionCalls && functionCalls.length > 0 && (
+          <Popover>
+            <PopoverTrigger>
+              <Badge variant="secondary" className="space-x-1">
+                <TbBolt className="text-lg text-green-400" />
+                <span className="font-mono">{functionCalls?.length}</span>
+              </Badge>
+            </PopoverTrigger>
+            <PopoverContent side="bottom">
+              <FunctionCalls functionCalls={functionCalls} />
+            </PopoverContent>
+          </Popover>
+        )}
         <p
           className={`${
             timer === 0 ? "text-muted-foreground" : "text-primary"
-          } mt-4 font-mono text-sm`}
+          } font-mono text-sm`}
         >
           {timer.toFixed(1)}s
         </p>
