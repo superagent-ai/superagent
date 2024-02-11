@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import * as yaml from "js-yaml"
 import * as monaco from "monaco-editor"
@@ -66,32 +66,39 @@ export default function SAML({
     }
   }, [])
 
-  useEffect(() => {
-    const saveConfig = async () => {
-      if (isSavingConfig) return
-      setSavingConfig(true)
+  const saveConfig = useCallback(async () => {
+    if (isSavingConfig) return
+    setSavingConfig(true)
 
-      try {
-        await api.generateWorkflow(workflow.id, editorRef?.current?.getValue())
+    try {
+      await api.generateWorkflow(workflow.id, editorRef?.current?.getValue())
 
-        router.refresh()
-        toast({
-          title: "Config saved!",
-        })
-      } catch (error) {
-        toast({
-          title: "Couldn't save config",
-        })
-      }
-
-      setSavingConfig(false)
+      router.refresh()
+      toast({
+        title: "Config saved!",
+      })
+    } catch (error) {
+      toast({
+        title: "Couldn't save config",
+      })
     }
 
+    setSavingConfig(false)
+  }, [isSavingConfig, api, workflow.id, router, toast])
+
+  useEffect(() => {
     editorRef?.current?.addCommand(
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
       saveConfig
     )
-  }, [isSavingConfig])
+  }, [isSavingConfig, saveConfig])
+
+  useEffect(() => {
+    editorRef?.current?.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
+      saveConfig
+    )
+  }, [isSavingConfig, saveConfig])
 
   useEffect(() => {
     editorRef?.current?.setValue(workflowConfigsYaml)
@@ -127,16 +134,18 @@ export default function SAML({
           <Button
             size="sm"
             variant="secondary"
-            onClick={() => console.log("OK")}
+            onClick={() => editorRef?.current?.setValue(exampleConfigs.ragYaml)}
           >
             Documents
           </Button>
           <Button
             size="sm"
             variant="secondary"
-            onClick={() => console.log("OK")}
+            onClick={() =>
+              editorRef?.current?.setValue(exampleConfigs.multiAssistantYaml)
+            }
           >
-            Multiassistants
+            Multi-agent
           </Button>
         </div>
 
