@@ -1,7 +1,7 @@
 from typing import Any, List, Optional
 
 from app.models.request import LLMParams
-from app.utils.streaming import CustomAsyncIteratorCallbackHandler
+from app.utils.callbacks import CustomAsyncIteratorCallbackHandler
 from prisma.enums import AgentType
 from prisma.models import Agent
 

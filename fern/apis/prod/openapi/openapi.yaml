@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The Open Source AI Assistant Framework & API
-  version: 0.2.1
+  version: 0.2.2
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -195,8 +195,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
-      x-fern-sdk-method-name: invoke
       x-fern-sdk-group-name: agent
+      x-fern-sdk-method-name: invoke
   /api/v1/agents/{agent_id}/llms:
     post:
       tags:
@@ -940,7 +940,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/app__models__request__Tool'
+              $ref: '#/components/schemas/ToolUpdate'
         required: true
       responses:
         '200':
@@ -1786,6 +1786,25 @@ components:
         - HTTP
       type: string
       description: An enumeration.
+    ToolUpdate:
+      title: ToolUpdate
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        type:
+          title: Type
+          type: string
+        metadata:
+          title: Metadata
+          type: object
+        returnDirect:
+          title: Returndirect
+          type: boolean
     ValidationError:
       title: ValidationError
       required:
@@ -2021,7 +2040,6 @@ components:
       title: Datasource
       required:
         - name
-        - description
         - type
       type: object
       properties:
