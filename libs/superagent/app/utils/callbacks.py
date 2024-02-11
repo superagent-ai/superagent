@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any, AsyncIterator, Dict, List, Literal, Tuple, Union, cast
+from typing import Any, AsyncIterator, List, Literal, Tuple, Union, cast
 
+from decouple import config
 from langchain.callbacks.base import AsyncCallbackHandler
-from langchain.schema.messages import BaseMessage
 from langchain.schema.output import LLMResult
+from langfuse import Langfuse
 from litellm import cost_per_token, token_counter
 
 
@@ -26,9 +27,8 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
 
     async def on_chat_model_start(
         self,
-        _serialized: Dict[str, Any],
-        _messages: List[List[BaseMessage]],
-        **_kwargs: Any,
+        *args: Any,  # noqa
+        **kwargs: Any,  # noqa
     ) -> None:
         """Run when LLM starts running."""
         pass
@@ -37,11 +37,11 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
         # If two calls are made in a row, this resets the state
         self.done.clear()
 
-    async def on_llm_new_token(self, token: str, **_kwargs: Any) -> None:
+    async def on_llm_new_token(self, token: str, **kwargs: Any) -> None:  # noqa
         if token is not None and token != "":
             self.queue.put_nowait(token)
 
-    async def on_llm_end(self, response: LLMResult, **_kwargs: Any) -> None:
+    async def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:  # noqa
         # TODO:
         # This should be removed when Langchain has merged
         # https://github.com/langchain-ai/langchain/pull/9536
@@ -50,9 +50,7 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
                 if gen.message.content != "":
                     self.done.set()
 
-    async def on_llm_error(
-        self, _error: Union[Exception, KeyboardInterrupt], **_kwargs: Any
-    ) -> None:
+    async def on_llm_error(self, *args: Any, **kwargs: Any) -> None:  # noqa
         self.done.set()
 
     async def aiter(self) -> AsyncIterator[str]:
@@ -96,10 +94,10 @@ class CostCalcAsyncHandler(AsyncCallbackHandler):
         self.prompt_tokens_cost_usd: float = 0.0
         self.completion_tokens_cost_usd: float = 0.0
 
-    def on_llm_start(self, _, prompts: List[str], **kwargs: Any) -> None:
+    def on_llm_start(self, _, prompts: List[str], **kwargs: Any) -> None:  # noqa
         self.prompt = prompts[0]
 
-    def on_llm_end(self, llm_result: LLMResult, **kwargs: Any) -> None:
+    def on_llm_end(self, llm_result: LLMResult, **kwargs: Any) -> None:  # noqa
         self.completion = llm_result.generations[0][0].message.content
         completion_tokens = self._calculate_tokens(self.completion)
         prompt_tokens = self._calculate_tokens(self.prompt)
@@ -125,3 +123,36 @@ class CostCalcAsyncHandler(AsyncCallbackHandler):
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
         )
+
+
+def get_session_tracker_handler(
+    workflow_id,
+    agent_id,
+    req_session_id,
+    user_id,
+):
+    langfuse_secret_key = config("LANGFUSE_SECRET_KEY", "")
+    langfuse_public_key = config("LANGFUSE_PUBLIC_KEY", "")
+    langfuse_host = config("LANGFUSE_HOST", "https://cloud.langfuse.com")
+    langfuse_handler = None
+    if langfuse_public_key and langfuse_secret_key:
+        langfuse = Langfuse(
+            public_key=langfuse_public_key,
+            secret_key=langfuse_secret_key,
+            host=langfuse_host,
+        )
+        trace_id = (
+            f"{workflow_id}-{req_session_id}" if req_session_id else f"{workflow_id}"
+        )
+        trace = langfuse.trace(
+            id=trace_id,
+            name="Workflow",
+            tags=[agent_id],
+            metadata={"agentId": agent_id, "workflowId": workflow_id},
+            user_id=user_id,
+            session_id=workflow_id,
+        )
+        langfuse_handler = trace.get_langchain_handler()
+        return langfuse_handler
+
+    return None
