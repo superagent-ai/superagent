@@ -2,7 +2,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Workflow } from "@/models/models"
-import { TbTrash } from "react-icons/tb"
+import { TbCode, TbTrash } from "react-icons/tb"
 
 import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
@@ -28,7 +28,7 @@ interface HeaderProps {
 const Header = ({ profile, workflow }: HeaderProps) => {
   const router = useRouter()
   const api = new Api(profile.api_key)
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState<boolean>(false)
 
   const updateName = async (name: string) => {
     await api.patchWorkflow(workflow.id, {
@@ -66,37 +66,49 @@ const Header = ({ profile, workflow }: HeaderProps) => {
             </span>
           </span>
         </div>
-        <AlertDialog open={open} onOpenChange={setOpen}>
-          <Button
-            className="space-x-2"
-            size="sm"
-            variant="outline"
-            onClick={() => setOpen(true)}
+        <div className="flex space-x-2">
+          <Link
+            passHref
+            target="_blank"
+            href="https://docs.superagent.sh/api-reference/api-reference/workflow/invoke"
           >
-            <TbTrash size={20} />
-            <span>Delete</span>
-          </Button>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your
-                account and remove your data from our servers.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={async () => {
-                  await api.deleteWorkflow(workflow.id)
-                  router.push("/workflows")
-                }}
-              >
-                Yes, delete!
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+            <Button className="space-x-2" size="sm" variant="outline">
+              <TbCode size={20} />
+              <span>API</span>
+            </Button>
+          </Link>
+          <AlertDialog open={open} onOpenChange={setOpen}>
+            <Button
+              className="space-x-2"
+              size="sm"
+              variant="outline"
+              onClick={() => setOpen(true)}
+            >
+              <TbTrash size={20} />
+              <span>Delete</span>
+            </Button>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete
+                  your account and remove your data from our servers.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={async () => {
+                    await api.deleteWorkflow(workflow.id)
+                    router.push("/workflows")
+                  }}
+                >
+                  Yes, delete!
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
     </>
   )
