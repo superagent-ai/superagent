@@ -38,7 +38,6 @@ export default function SAML({
 }) {
   const { toast } = useToast()
 
-  const api = new Api(profile.api_key)
   const router = useRouter()
   const latestWorkflowConfig = workflow.workflowConfigs.sort(
     (a: any, b: any) =>
@@ -67,6 +66,7 @@ export default function SAML({
   }, [])
 
   const saveConfig = useCallback(async () => {
+    const api = new Api(profile.api_key)
     if (isSavingConfig) return
     setSavingConfig(true)
 
@@ -84,7 +84,7 @@ export default function SAML({
     }
 
     setSavingConfig(false)
-  }, [isSavingConfig, api, workflow.id, router, toast])
+  }, [isSavingConfig, workflow.id, router, toast, profile.api_key])
 
   useEffect(() => {
     editorRef?.current?.addCommand(
