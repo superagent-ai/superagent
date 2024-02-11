@@ -88,46 +88,60 @@ class ApiAgentManager(BaseApiAgentManager):
                 return agent_tool.tool
 
     async def create_assistant(self, data: dict):
-        res = await api_create_agent(
-            body=AgentRequest.parse_obj(data),
-            api_user=self.api_user,
-        )
+        try:
+            res = await api_create_agent(
+                body=AgentRequest.parse_obj(data),
+                api_user=self.api_user,
+            )
 
-        new_agent = res.get("data", {})
+            new_agent = res.get("data", {})
 
-        logger.info(f"Created agent: {new_agent}")
-        return new_agent
+            logger.info(f"Created agent: {new_agent}")
+            return new_agent
+        except Exception:
+            logger.error(f"Error creating agent: {data}")
 
     async def add_assistant(self, data: dict, order: int | None = None):
         new_agent = await self.create_assistant(data)
 
         if order is not None:
-            await api_add_step_workflow(
-                workflow_id=self.workflow_id,
-                body=WorkflowStepRequest(
-                    agentId=new_agent.id,
-                    order=order,
-                ),
-                api_user=self.api_user,
-            )
-            logger.info(f"Added assistant: {new_agent.name}")
+            try:
+                await api_add_step_workflow(
+                    workflow_id=self.workflow_id,
+                    body=WorkflowStepRequest(
+                        agentId=new_agent.id,
+                        order=order,
+                    ),
+                    api_user=self.api_user,
+                )
+                logger.info(f"Added assistant: {new_agent.name}")
+            except Exception:
+                logger.error("Error adding assistant")
+
         return new_agent
 
     async def delete_assistant(self, assistant: dict):
         assistant = await self.get_assistant(assistant)
 
-        await api_delete_agent(
-            agent_id=assistant.id,
-            api_user=self.api_user,
-        )
+        try:
+            await api_delete_agent(
+                agent_id=assistant.id,
+                api_user=self.api_user,
+            )
 
-        logger.info(f"Deleted assistant: {assistant.name}")
+            logger.info(f"Deleted assistant: {assistant.name}")
+        except Exception:
+            logger.error("Error deleting assistant")
 
     async def update_assistant(self, assistant: dict, data: dict):
         agent = await self.get_assistant(assistant)
-        await api_update_agent(
-            agent_id=agent.id,
-            body=AgentUpdateRequest.parse_obj(data),
-            api_user=self.api_user,
-        )
-        logger.info(f"Updated assistant: {agent.name}")
+
+        try:
+            await api_update_agent(
+                agent_id=agent.id,
+                body=AgentUpdateRequest.parse_obj(data),
+                api_user=self.api_user,
+            )
+            logger.info(f"Updated assistant: {agent.name}")
+        except Exception:
+            logger.error("Error updating assistant")

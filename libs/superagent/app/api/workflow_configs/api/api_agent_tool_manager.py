@@ -116,28 +116,34 @@ class ApiAgentToolManager(BaseApiAgentManager):
                 return agent_datasource.datasource
 
     async def create_assistant(self, data: dict):
-        res = await api_create_agent(
-            body=AgentRequest.parse_obj(data),
-            api_user=self.api_user,
-        )
+        try:
+            res = await api_create_agent(
+                body=AgentRequest.parse_obj(data),
+                api_user=self.api_user,
+            )
 
-        new_agent = res.get("data", {})
+            new_agent = res.get("data", {})
 
-        logger.info(f"Created agent: {new_agent}")
-        return new_agent
+            logger.info(f"Created agent: {new_agent}")
+            return new_agent
+        except Exception:
+            logger.error(f"Error creating agent: {data}")
 
     async def create_tool(self, assistant: dict, data: dict):
-        res = await api_create_tool(
-            body=ToolRequest.parse_obj(data),
-            api_user=self.api_user,
-        )
+        try:
+            res = await api_create_tool(
+                body=ToolRequest.parse_obj(data),
+                api_user=self.api_user,
+            )
 
-        new_tool = res.get("data", {})
+            new_tool = res.get("data", {})
 
-        logger.info(f"Created tool: {new_tool.name} - {assistant.get('name')}")
-        return new_tool
+            logger.info(f"Created tool: {new_tool.name} - {assistant.get('name')}")
+            return new_tool
+        except Exception:
+            logger.error(f"Error creating tool: {data}")
 
-    async def add_assistant(self, data: dict, order: int | None = None):
+    async def add_assistant(self, data: dict, _):
         new_agent = await self.create_assistant(data)
 
         new_tool = await self.create_tool(
@@ -147,20 +153,23 @@ class ApiAgentToolManager(BaseApiAgentManager):
                 "description": data.get("description"),
                 "metadata": {
                     "agentId": new_agent.id,
-                    "apiKey": "",
                 },
                 "type": "AGENT",
             },
         )
 
-        await api_add_agent_tool(
-            agent_id=self.parent_agent.id,
-            body=AgentToolRequest(
-                toolId=new_tool.id,
-            ),
-            api_user=self.api_user,
-        )
-        logger.info(f"Added assistant: {new_agent.name} - {self.parent_agent.name}")
+        try:
+            await api_add_agent_tool(
+                agent_id=self.parent_agent.id,
+                body=AgentToolRequest(
+                    toolId=new_tool.id,
+                ),
+                api_user=self.api_user,
+            )
+            logger.info(f"Added assistant: {new_agent.name} - {self.parent_agent.name}")
+        except Exception:
+            logger.error(f"Error adding assistant: {new_agent} - {self.parent_agent}")
+
         return new_agent
 
     async def get_agent_tool(self, assistant: dict):
@@ -181,34 +190,50 @@ class ApiAgentToolManager(BaseApiAgentManager):
     async def delete_assistant(self, assistant: dict):
         agent = await self.get_assistant(assistant)
 
-        await api_delete_agent(
-            agent_id=agent.id,
-            api_user=self.api_user,
-        )
+        try:
+            await api_delete_agent(
+                agent_id=agent.id,
+                api_user=self.api_user,
+            )
+            logger.info(f"Deleted assistant: {assistant.get('name')}")
+        except Exception:
+            logger.error(f"Error deleting assistant: {assistant}")
 
         tool = await self.get_agent_tool(assistant)
-        await api_delete_tool(
-            tool_id=tool.id,
-            api_user=self.api_user,
-        )
-        logger.info(f"Deleted assistant: {assistant.get('name')}")
+
+        try:
+            await api_delete_tool(
+                tool_id=tool.id,
+                api_user=self.api_user,
+            )
+            logger.info(f"Deleted tool: {assistant.get('name')}")
+        except Exception:
+            logger.error(f"Error deleting tool: {assistant}")
 
     async def update_assistant(self, assistant: dict, data: dict):
         agent = await self.get_assistant(assistant)
-        await api_update_agent(
-            agent_id=agent.id,
-            body=AgentUpdateRequest.parse_obj(data),
-            api_user=self.api_user,
-        )
+
+        try:
+            await api_update_agent(
+                agent_id=agent.id,
+                body=AgentUpdateRequest.parse_obj(data),
+                api_user=self.api_user,
+            )
+            logger.info(f"Updated assistant: {assistant.get('name')}")
+        except Exception:
+            logger.error(f"Error updating assistant: {assistant}")
 
         tool = await self.get_agent_tool(assistant)
 
-        await api_update_tool(
-            tool_id=tool.id,
-            body=ToolUpdateRequest(
-                name=data.get("name"),
-                description=data.get("description"),
-            ),
-            api_user=self.api_user,
-        )
-        logger.info(f"Updated assistant: {assistant.get('name')}")
+        try:
+            await api_update_tool(
+                tool_id=tool.id,
+                body=ToolUpdateRequest(
+                    name=data.get("name"),
+                    description=data.get("description"),
+                ),
+                api_user=self.api_user,
+            )
+            logger.info(f"Updated tool: {assistant.get('name')}")
+        except Exception:
+            logger.error(f"Error updating tool: {assistant}")

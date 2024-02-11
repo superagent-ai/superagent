@@ -55,75 +55,99 @@ class ApiManager:
     ):
         tool = await self.agent_manager.get_tool(assistant, tool)
 
-        await api_update_tool(
-            tool_id=tool.id,
-            body=ToolUpdateRequest.parse_obj(data),
-            api_user=self.api_user,
-        )
-        logger.info(f"Updated tool: {tool.name} - {assistant.get('name')}")
+        try:
+            await api_update_tool(
+                tool_id=tool.id,
+                body=ToolUpdateRequest.parse_obj(data),
+                api_user=self.api_user,
+            )
+            logger.info(f"Updated tool: {tool.name} - {assistant.get('name')}")
+        except Exception:
+            logger.error(f"Error updating tool: {tool} - {assistant}")
 
     async def delete_tool(self, assistant: dict, tool: dict):
         tool = await self.agent_manager.get_tool(assistant, tool)
 
-        await api_delete_tool(
-            tool_id=tool.id,
-            api_user=self.api_user,
-        )
-        logger.info(f"Deleted tool: {tool.name} - {assistant.get('name')}")
+        try:
+            await api_delete_tool(
+                tool_id=tool.id,
+                api_user=self.api_user,
+            )
+            logger.info(f"Deleted tool: {tool.name} - {assistant.get('name')}")
+        except Exception:
+            logger.error(f"Error deleting tool: {tool} - {assistant}")
 
     async def delete_datasource(self, assistant: dict, datasource: dict):
         datasource = await self.agent_manager.get_datasource(assistant, datasource)
 
-        await api_delete_datasource(
-            datasource_id=datasource.id,
-            api_user=self.api_user,
-        )
-        logger.info(f"Deleted datasource: {datasource.name} - {assistant.get('name')}")
+        try:
+            await api_delete_datasource(
+                datasource_id=datasource.id,
+                api_user=self.api_user,
+            )
+            logger.info(
+                f"Deleted datasource: {datasource.name} - {assistant.get('name')}"
+            )
+        except Exception:
+            logger.error(f"Error deleting datasource: {datasource} - {assistant}")
 
     async def create_datasource(self, data: dict):
-        res = await api_create_datasource(
-            body=DatasourceRequest.parse_obj(data),
-            api_user=self.api_user,
-        )
+        try:
+            res = await api_create_datasource(
+                body=DatasourceRequest.parse_obj(data),
+                api_user=self.api_user,
+            )
 
-        new_datasource = res.get("data", {})
+            new_datasource = res.get("data", {})
 
-        logger.info(f"Created datasource: {data}")
-        return new_datasource
+            logger.info(f"Created datasource: {data}")
+            return new_datasource
+        except Exception:
+            logger.error(f"Error creating datasource: {data}")
 
     async def create_tool(self, assistant: dict, data: dict):
-        res = await api_create_tool(
-            body=ToolRequest.parse_obj(data),
-            api_user=self.api_user,
-        )
+        try:
+            res = await api_create_tool(
+                body=ToolRequest.parse_obj(data),
+                api_user=self.api_user,
+            )
 
-        new_tool = res.get("data", {})
+            new_tool = res.get("data", {})
 
-        logger.info(f"Created tool: ${new_tool.name} - ${assistant.get('name')}")
-        return new_tool
+            logger.info(f"Created tool: ${new_tool.name} - ${assistant.get('name')}")
+            return new_tool
+        except Exception:
+            logger.error(f"Error creating tool: {data}")
 
     async def add_datasource(self, assistant: dict, data: dict):
         assistant = await self.agent_manager.get_assistant(assistant)
         new_datasource = await self.create_datasource(data)
 
-        await api_add_agent_datasource(
-            agent_id=assistant.id,
-            body=AgentDatasourceRequest(
-                datasourceId=new_datasource.id,
-            ),
-            api_user=self.api_user,
-        )
-        logger.info(f"Added datasource: {new_datasource.name} - {assistant.name}")
+        try:
+            await api_add_agent_datasource(
+                agent_id=assistant.id,
+                body=AgentDatasourceRequest(
+                    datasourceId=new_datasource.id,
+                ),
+                api_user=self.api_user,
+            )
+            logger.info(f"Added datasource: {new_datasource.name} - {assistant.name}")
+        except Exception:
+            logger.error(f"Error adding datasource: {new_datasource} - {assistant}")
 
     async def add_tool(self, assistant: dict, data: dict):
         new_tool = await self.create_tool(assistant, data)
 
         assistant = await self.agent_manager.get_assistant(assistant)
-        await api_add_agent_tool(
-            agent_id=assistant.id,
-            body=AgentToolRequest(
-                toolId=new_tool.id,
-            ),
-            api_user=self.api_user,
-        )
-        logger.info(f"Added tool: {new_tool.name} - {assistant.name}")
+
+        try:
+            await api_add_agent_tool(
+                agent_id=assistant.id,
+                body=AgentToolRequest(
+                    toolId=new_tool.id,
+                ),
+                api_user=self.api_user,
+            )
+            logger.info(f"Added tool: {new_tool.name} - {assistant.name}")
+        except Exception:
+            logger.error(f"Error adding tool: {new_tool} - {assistant}")

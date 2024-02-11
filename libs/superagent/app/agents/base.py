@@ -76,3 +76,15 @@ class AgentBase:
             )
 
         return await agent.get_agent()
+
+    def get_input(self, input: str, agent_type: AgentType):
+        agent_input = {
+            "input": input,
+        }
+
+        if agent_type == AgentType.OPENAI_ASSISTANT:
+            agent_input = {
+                "content": input,
+            }
+
+        return agent_input
