@@ -2,9 +2,9 @@ import logging
 import time
 
 import colorlog
+from decouple import config
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from decouple import config
 
 from app.routers import router
 from app.utils.prisma import prisma

@@ -160,7 +160,7 @@ model Tool {
   description  String
   type         ToolType
   returnDirect Boolean     @default(false)
-  metadata     String      @db.Text
+  metadata     String?     @db.Text
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   apiUserId    String

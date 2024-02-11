@@ -42,6 +42,7 @@ async def create(
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Created Tool")
         body.metadata = json.dumps(body.metadata) if body.metadata else ""
+        print({**body.dict(), "apiUserId": api_user.id})
         data = await prisma.tool.create({**body.dict(), "apiUserId": api_user.id})
 
         # async def run_generate_tool_config(tool: ToolResponse):
@@ -120,11 +121,12 @@ async def update(
     """Endpoint for updating a specific tool"""
     if SEGMENT_WRITE_KEY:
         analytics.track(api_user.id, "Updated Tool")
-    body.metadata = json.dumps(body.metadata) if body.metadata else ""
+    body.metadata = json.dumps(body.metadata) if body.metadata else None
+
     data = await prisma.tool.update(
         where={"id": tool_id},
         data={
-            **body.dict(exclude_unset=True),
+            **body.dict(exclude_unset=True, exclude_none=True),
             "apiUserId": api_user.id,
         },
     )

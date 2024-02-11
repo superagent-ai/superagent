@@ -8,9 +8,9 @@ from app.api import (
     telemetry,
     tools,
     vector_dbs,
-    workflow_configs,
     workflows,
 )
+from app.api.workflow_configs import workflow_configs
 
 router = APIRouter()
 api_prefix = "/api/v1"

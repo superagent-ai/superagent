@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
@@ -42,6 +43,7 @@ export default function OnboardingClientPage() {
   const api = new Api()
   const supabase = createClientComponentClient()
   const { toast } = useToast()
+  const router = useRouter()
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -148,7 +150,7 @@ export default function OnboardingClientPage() {
 
     await client.generateWorkflow(workflow.id, initialSamlValue)
 
-    window.location.href = `/workflows/${workflow.id}`
+    router.replace(`/workflows/${workflow.id}`)
   }
 
   return (
