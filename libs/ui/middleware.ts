@@ -15,7 +15,11 @@ export async function middleware(req: NextRequest) {
       .eq("user_id", user.id)
       .single()
 
-    if (profile && !profile.is_onboarded) {
+    if (
+      profile &&
+      !profile.is_onboarded &&
+      req.nextUrl.pathname !== "/onboarding"
+    ) {
       return NextResponse.redirect(new URL("/onboarding", req.url))
     }
 
@@ -38,5 +42,6 @@ export const config = {
     "/settings/:path*",
     "/integrations/:path*",
     "/workflows/:path*",
+    "/onboarding",
   ],
 }
