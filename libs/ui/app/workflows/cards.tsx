@@ -13,7 +13,7 @@ export default function WorkflowCards({
 }) {
   return (
     <ScrollArea className="flex grow overflow-auto px-6">
-      <div className="w-full">
+      <div className="container">
         {workflows.length === 0 ? (
           <div className="container flex max-w-lg flex-col space-y-4 rounded-lg border p-4 text-sm">
             <TbStack2 fontSize="40px" />
@@ -24,7 +24,7 @@ export default function WorkflowCards({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-6 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             {workflows.map((workflow) => (
               <Link
                 key={workflow.id}
