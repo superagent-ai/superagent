@@ -3,6 +3,7 @@ import {
   TbBrandDiscord,
   TbFileCode,
   TbPlug,
+  TbRobot,
   TbStack2,
   TbTerminal2,
   TbUserCircle,
@@ -22,6 +23,11 @@ export const siteConfig = {
       title: "Workflows",
       href: "/workflows",
       icon: TbStack2,
+    },
+    {
+      title: "Agents",
+      href: "/agents",
+      icon: TbRobot,
     },
     {
       title: "Logs",
