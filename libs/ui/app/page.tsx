@@ -8,6 +8,7 @@ import { RxGithubLogo } from "react-icons/rx"
 import * as z from "zod"
 
 import { Api } from "@/lib/api"
+import { analytics } from "@/lib/segment"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -85,6 +86,7 @@ export default function IndexPage() {
             if (profile.api_key) {
               const api = new Api(profile.api_key)
               await api.indentifyUser({
+                anonymousId: (await analytics.user()).anonymousId(),
                 email: _session?.user.email,
                 firstName: profile.first_name,
                 lastName: profile.last_name,

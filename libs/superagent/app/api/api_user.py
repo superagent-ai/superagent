@@ -77,7 +77,16 @@ async def identify(body: ApiUserRequest, api_user=Depends(get_current_api_user))
     """Endpoint for deleting an api user"""
     try:
         if SEGMENT_WRITE_KEY:
-            analytics.identify(api_user.id, {**body.dict()})
+            analytics.identify(
+                user_id=api_user.id,
+                traits={
+                    "firstName": body.firstName,
+                    "lastName": body.lastName,
+                    "email": body.email,
+                    "company": body.company,
+                },
+                anonymous_id=body.anonymousId,
+            )
             analytics.track(api_user.id, "Signed In")
     except Exception as e:
         handle_exception(e)

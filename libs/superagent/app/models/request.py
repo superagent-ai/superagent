@@ -11,6 +11,7 @@ class ApiUser(BaseModel):
     firstName: Optional[str]
     lastName: Optional[str]
     company: Optional[str]
+    anonymousId: Optional[str]
 
 
 class OpenAiAssistantParameters(BaseModel):
