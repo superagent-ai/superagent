@@ -81,7 +81,6 @@ export const siteConfig = {
       description:
         "Power your assistants with the latest models from OpenAI, powerful for calling external APIs and reasoning.",
       name: "OpenAI",
-      logo: "/openai-logo.png",
       options: [
         {
           value: "GPT_3_5_TURBO_16K_0613",
@@ -119,7 +118,6 @@ export const siteConfig = {
       description:
         "Use Azure OpenAI to power your assistants with the latest OpenAI models.",
       name: "Azure OpenAI",
-      logo: "/azure-logo.png",
       options: [],
     },
     {
@@ -127,7 +125,6 @@ export const siteConfig = {
       id: "HUGGINGFACE",
       description: "Use Open Source models on HuggingFace.",
       name: "HuggingFace",
-      logo: "/hf-logo.png",
       options: [
         {
           value: "MISTRAL_7B_INSTRUCT_V01",
