@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -56,7 +55,7 @@ export default function LLM({
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      options: {},
+      apiKey: "",
     },
   })
 
@@ -64,7 +63,9 @@ export default function LLM({
     const payload = {
       ...values,
       options:
-        Object.keys(values.options).length === 0 ? undefined : values.options,
+        Object.keys(values?.options ?? {}).length === 0
+          ? undefined
+          : values.options,
     }
 
     const isExistingConnection = configuredLLMs.find(
@@ -157,14 +158,12 @@ export default function LLM({
                   <FormField
                     key={metadataField.key}
                     control={form.control}
-                    // @ts-ignore
-                    name={`options.${metadataField.key}`}
+                    name={metadataField.key}
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{metadataField.label}</FormLabel>
                         {metadataField.type === "input" && (
                           <FormControl>
-                            {/* @ts-ignore */}
                             <Input
                               {...field}
                               placeholder={
