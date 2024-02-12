@@ -4,17 +4,23 @@ import Stripe from "stripe"
 
 import { stripe } from "@/lib/stripe"
 
-const supabase: SupabaseClient = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICEROLE_KEY || ""
-)
-
 interface EventData {
   email?: string
   eventName: string
   company?: string
   first_name?: string
   last_name?: string
+}
+
+let supabaseClient: SupabaseClient | null = null;
+const getSupabase = (): SupabaseClient => {
+  if (!supabaseClient) {
+    supabaseClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+      process.env.SUPABASE_SERVICEROLE_KEY || ""
+    );
+  }
+  return supabaseClient;
 }
 
 const sendEvent = async (data: EventData): Promise<void> => {
@@ -28,6 +34,7 @@ const sendEvent = async (data: EventData): Promise<void> => {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const supabase = getSupabase();
   const { data, type } = await request.json()
   const customer = data.object.customer
 

@@ -1,7 +1,6 @@
 # Build stage
 FROM node:18-buster AS build
 
-# Accept the path to the environment file as a build argument
 # Accept NEXT_PUBLIC_* variables as build arguments
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY

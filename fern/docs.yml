@@ -48,8 +48,8 @@ navigation:
             path: ./mdx/sdk/saml.mdx
       - section: Deployments
         contents:
-          - page: Docker
-            path: ./mdx/deploy/docker.mdx     
+          - page: Docker Compose
+            path: ./mdx/deploy/docker-compose.mdx     
           - page: Render
             path: ./mdx/deploy/render.mdx
           - page: Replit
@@ -59,7 +59,7 @@ navigation:
       - section: Logging
         contents:
           - page: Langfuse
-            path: ./mdx/dependencies/langfuse.mdx
+            path: ./mdx/logging/langfuse.mdx
       - section: Vector Stores
         contents:
           - page: Weaviate
@@ -75,7 +75,7 @@ navigation:
       - section: Memory 
         contents: 
           - page: Motorhead
-            path: ./mdx/dependencies/motorhead.mdx
+            path: ./mdx/memory/motorhead.mdx
       - section: Dependencies
         contents:
           - page: Supabase
