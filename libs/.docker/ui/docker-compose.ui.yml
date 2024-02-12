@@ -22,8 +22,6 @@ services:
     command: /bin/sh -c "npm run supabase:docker:push --debug && npm start"
     environment:
       - PORT=3000
-      - SUPABASE_HOST=${SUPABASE_HOST}
-      - SUPABASE_PORT=${SUPABASE_PORT}
       - SUPABASE_DB_URL=${SUPABASE_DB_URL}
       - SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
       - SUPABASE_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}

@@ -1,6 +1,6 @@
 Supabase is used for the Superagent UI, it provides the database, Authentication with well know auth providers and a Bucket for file storage.
 
-**Website** - [supabase.com/](https://supabase.com/)
+**Website** - [supabase.com](https://supabase.com)
 <br/>
 **Github** - [supabase/supabase](https://github.com/supabase/supabase)
 
@@ -57,7 +57,7 @@ For a production setup refer to the [official documentation](https://supabase.co
    ./run.sh
    ```
 
-   - The script will ensure the superagent docker network exists, stops any previously running containers, then runs supabase with docker-compose.
+   - The script will ensure the superagent docker network exists, stops any previously running containers, then runs supabase with docker compose.
 
    ``` bash
     # Check if the network exists
@@ -73,7 +73,7 @@ For a production setup refer to the [official documentation](https://supabase.co
 
 6. You can access the supabase ui in the browser to confirm the service is up.
 
-    [http://localhost:8082](http://localhost:8082) or [http://supabase-kong:8082](http://supabase:8082) if you have added the following to your `hosts` file.
+    [http://localhost:8000](http://localhost:8000) or [http://supabase-kong:8000](http://supabase-kong:8000) if you have added the following to your `hosts` file.
 
     ``` bash
     # hosts file
@@ -84,11 +84,16 @@ For a production setup refer to the [official documentation](https://supabase.co
 
 ### Supabase Storage
 
-File storage is already configured in the provided supabase docker setup. This is created when you deploy using the script from `libs\.docker\ui\supabase\volumes\db\init\data.sql`
+File storage is already configured in the provided supabase docker setup. This is created when you deploy using the script from `libs\.docker\ui\supabase\volumes\db\init\data.sql`. Though there is one manual step needed to enable superagent to access it:
+
+#### Required setup to enable storage access
 
 You can access the storage and manage files at the following url
 
 - [http://localhost:8000/project/default/storage/buckets/superagent](http://localhost:8000/project/default/storage/buckets/superagent)
+- Click the drop-down next to the `superagent` stoage
+- Edit
+- Set the toggle to `public`
 
 ### Supabase container logs
 
