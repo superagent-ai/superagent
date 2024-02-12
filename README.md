@@ -27,6 +27,7 @@
   <a href="#-use-cases">Use cases</a> •
   <a href="#-features">Features</a> •
   <a href="https://docs.superagent.sh" target="_blank">Docs</a> •
+  <a href="https://discord.com/invite/mhmJUTjW4b" target="_blank">Discord</a> •
   <a href="#-tutorials" target="_blank">Tutorials</a> •
   <a href="#-sdks" target="_blank">SDKs</a> •
   <a href="#-contributions" target="_blank">Contributions</a>
