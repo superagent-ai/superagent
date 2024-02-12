@@ -31,45 +31,15 @@ import {
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 
-const pineconeSchema = z.object({
-  PINECONE_API_KEY: z.string(),
-  PINECONE_ENVIRONMENT: z.string(),
-  PINECONE_INDEX: z.string(),
-})
-
-const qdrantSchema = z.object({
-  QDRANT_API_KEY: z.string(),
-  QDRANT_HOST: z.string(),
-  QDRANT_INDEX: z.string(),
-})
-
-const astraDbSchema = z.object({
-  ASTRA_DB_APPLICATION_TOKEN: z.string(),
-  ASTRA_DB_REGION: z.string(),
-  ASTRA_DB_ID: z.string(),
-  ASTRA_DB_COLLECTION_NAME: z.string(),
-  ASTRA_DB_KEYSPACE_NAME: z.string(),
-})
-
-const weaviateSchema = z.object({
-  WEAVIATE_API_KEY: z.string(),
-  WEAVIATE_URL: z.string(),
-  WEAVIATE_INDEX: z.string(),
-})
-
-const supabasePgVectorSchema = z.object({
-  SUPABASE_DB_URL: z.string(),
-  SUPABASE_TABLE_NAME: z.string(),
+const azureSchema = z.object({
+  azure_endpoint: z.string().nonempty("Endpoint cannot be empty"),
+  openai_api_version: z.string().nonempty("API version cannnot be empty"),
+  azure_deployment: z.string().nonempty("Deployment cannnot be empty"),
 })
 
 const formSchema = z.object({
-  options: z.union([
-    pineconeSchema,
-    qdrantSchema,
-    astraDbSchema,
-    weaviateSchema,
-    supabasePgVectorSchema,
-  ]),
+  apiKey: z.string().nonempty("API key is mandatory"),
+  options: azureSchema.optional(),
 })
 
 export default function LLM({
@@ -226,7 +196,7 @@ export default function LLM({
                     {form.control._formState.isSubmitting ? (
                       <Spinner />
                     ) : (
-                      "Save configuration"
+                      "Save"
                     )}
                   </Button>
                 </DialogFooter>
