@@ -3,7 +3,6 @@ import {
   TbBrandDiscord,
   TbFileCode,
   TbPlug,
-  TbRobot,
   TbStack2,
   TbTerminal2,
   TbUserCircle,
@@ -368,7 +367,62 @@ export const siteConfig = {
       ],
     },
   ],
-
+  llmForm: [
+    {
+      disabled: false,
+      formDescription: "Please enter your OpenAI API key.",
+      provider: "OPENAI",
+      name: "OpenAI",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "OpenAI API Key",
+        },
+      ],
+    },
+    {
+      disabled: true,
+      formDescription: "Please enter your HF API key.",
+      provider: "HUGGINGFACE",
+      name: "Hugging Face",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "HF API Key",
+        },
+      ],
+    },
+    {
+      disabled: false,
+      formDescription: "Please enter your Azure OpenAI API key.",
+      provider: "AZURE_OPENAI",
+      name: "Azure OpenAI",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Azure API Key",
+        },
+        {
+          key: "options.azure_endpoint",
+          type: "input",
+          label: "Azure endpoint URL",
+        },
+        {
+          key: "options.openai_api_version",
+          type: "input",
+          label: "Azure API version",
+        },
+        {
+          key: "options.azure_deployment",
+          type: "input",
+          label: "Azure deployment name",
+        },
+      ],
+    },
+  ],
   vectorDbs: [
     {
       provider: VectorDbProvider[VectorDbProvider.PINECONE],

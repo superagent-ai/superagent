@@ -125,9 +125,9 @@ export default function LLM({
         </p>
       </div>
       <div className="flex-col border-b">
-        {siteConfig.llms.map((llm) => {
+        {siteConfig.llmForm.map((llm) => {
           const isConfigured = configuredLLMs.find(
-            (db: any) => db.provider === llm.id
+            (db: any) => db.provider === llm.provider
           )
 
           return (
