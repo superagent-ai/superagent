@@ -133,7 +133,7 @@ export default function LLM({
           return (
             <div
               className="flex items-center justify-between border-t py-4"
-              key={llm.id}
+              key={llm.provider}
             >
               <div className="flex items-center space-x-4">
                 {isConfigured ? (
