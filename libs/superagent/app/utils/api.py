@@ -35,6 +35,22 @@ async def get_current_api_user(
     api_user = await prisma.apiuser.find_unique(
         where={"id": decoded_token.get("api_user_id")}
     )
+    if config("STRIPE_SECRET_KEY", None):
+        import stripe
+
+        stripe.api_key = config("STRIPE_SECRET_KEY")
+
+        customer = stripe.Customer.list(
+            email=api_user.email, expand=["data.subscriptions"]
+        ).data[0]
+        subscription = customer.subscriptions.data[0]["items"]["data"]
+        has_subscription = any(sub["plan"]["active"] for sub in subscription)
+
+        if not has_subscription:
+            raise HTTPException(
+                status_code=402, deatil="You have no active subscription"
+            )
+
     if not api_user:
         raise HTTPException(status_code=401, detail="Invalid token or expired token")
     return api_user
