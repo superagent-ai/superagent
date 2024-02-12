@@ -150,7 +150,7 @@ export default function OnboardingClientPage() {
 
     await client.generateWorkflow(workflow.id, initialSamlValue)
 
-    router.replace(`/workflows/${workflow.id}`)
+    window.location.href = `/workflows/${workflow.id}`
   }
 
   return (
