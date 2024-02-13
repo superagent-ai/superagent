@@ -1,10 +1,12 @@
+from litellm import get_llm_provider
+
 from app.utils.helpers import (
     remove_key_if_present,
     rename_and_remove_keys,
 )
 from app.utils.llm import LLM_REVERSE_MAPPING
 
-from .saml_schema import WorkflowAssistant, WorkflowTool
+from .saml_schema import WorkflowTool
 
 
 class DataTransformer:
@@ -22,15 +24,31 @@ class DataTransformer:
             }
 
     @staticmethod
-    def transform_assistant(assistant: WorkflowAssistant, assistant_type: str):
+    def transform_assistant(assistant: dict, assistant_type: str):
         remove_key_if_present(assistant, "data")
         remove_key_if_present(assistant, "tools")
         rename_and_remove_keys(
             assistant, {"llm": "llmModel", "intro": "initialMessage"}
         )
 
-        if assistant.get("llmModel"):
-            assistant["llmModel"] = LLM_REVERSE_MAPPING[assistant["llmModel"]]
-
         if assistant_type:
             assistant["type"] = assistant_type.upper()
+
+        llm_model = assistant.get("llmModel")
+
+        if assistant.get("type") == "LLM":
+            assistant["metadata"] = {
+                "model": llm_model,
+                **assistant.get("metadata", {}),
+            }
+
+        if llm_model:
+            _, provider, _, _ = get_llm_provider(llm_model)
+
+            if provider:
+                assistant["llmProvider"] = provider.upper()
+
+            assistant["llmModel"] = LLM_REVERSE_MAPPING.get(llm_model)
+
+        if assistant.get("type") == "LLM":
+            remove_key_if_present(assistant, "llmModel")

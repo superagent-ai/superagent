@@ -15,13 +15,13 @@ class AgentProcessor:
 
     async def process_assistant(
         self,
-        old_assistant_obj,
-        new_assistant_obj,
+        old_assistant_obj: dict,
+        new_assistant_obj: dict,
         workflow_step_order: int | None = None,
     ):
         new_agent = None
-        old_type = get_first_key(old_assistant_obj)
-        new_type = get_first_key(new_assistant_obj)
+        old_type: str = get_first_key(old_assistant_obj)
+        new_type: str = get_first_key(new_assistant_obj)
 
         old_assistant = old_assistant_obj.get(old_type, {})
         new_assistant = new_assistant_obj.get(new_type, {})
