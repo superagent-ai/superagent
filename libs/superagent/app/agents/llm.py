@@ -12,8 +12,7 @@ class LLMAgent(AgentBase):
         print(agent_config)
 
         class CustomAgentExecutor:
-            async def ainvoke(self, *args, **kwargs):
-                input = args[0]
+            async def ainvoke(self, input, *_, **kwargs):
                 model = agent_config.metadata.get("model", "gpt-3.5-turbo")
                 prompt = agent_config.prompt
                 api_key = agent_config.llms[0].llm.apiKey
