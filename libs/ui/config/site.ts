@@ -388,6 +388,19 @@ export const siteConfig = {
       ],
     },
     {
+      disabled: false,
+      formDescription: "Please enter your Perplexity API key.",
+      provider: "PERPLEXITY",
+      name: "Perplexity AI",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Perplexity API Key",
+        },
+      ],
+    },
+    {
       disabled: true,
       formDescription: "Please enter your HF API key.",
       provider: "HUGGINGFACE",

@@ -100,6 +100,6 @@ class AgentBase:
             }
 
         if agent_type == AgentType.LLM:
-            agent_input = {"content": input}
+            agent_input = input
 
         return agent_input

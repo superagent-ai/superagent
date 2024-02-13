@@ -31,6 +31,7 @@ class Agent(BaseModel):
     avatar: Optional[str]
     type: Optional[AgentType] = AgentType.SUPERAGENT
     parameters: Optional[OpenAiAssistantParameters]
+    metadata: Optional[dict]
 
 
 class AgentUpdate(BaseModel):
