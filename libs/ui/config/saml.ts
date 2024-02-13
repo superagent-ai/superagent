@@ -1,4 +1,4 @@
-import { JSONSchema7 } from "json-schema"
+import { JSONSchema4 } from "json-schema"
 
 export const initialSamlValue = `# 👋 Welcome! Start creating your workflows using example yaml below.
 # More info in our docs: https://docs.superagent.sh/overview/getting-started/super-agent-markup-language
@@ -72,9 +72,12 @@ export const yamlJsonSchema = {
         type: "object",
         properties: {
           superagent: {
-            $ref: "#/definitions/assistant",
+            $ref: "#/definitions/agent",
           },
           openai_assistant: {
+            $ref: "#/definitions/agent",
+          },
+          llm: {
             $ref: "#/definitions/assistant",
           },
         },
@@ -89,58 +92,69 @@ export const yamlJsonSchema = {
         llm: { type: "string" },
         prompt: { type: "string" },
         intro: { type: "string" },
-        data: {
-          type: "object",
-          properties: {
-            use_for: { type: "string" },
-            urls: {
-              type: "array",
-              items: { type: "string" },
-            },
+      },
+    },
+    tools: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          browser: {
+            $ref: "#/definitions/tool",
+          },
+          code_executor: {
+            $ref: "#/definitions/tool",
+          },
+          hand_off: {
+            $ref: "#/definitions/tool",
+          },
+          http: {
+            $ref: "#/definitions/tool",
+          },
+          bing_search: {
+            $ref: "#/definitions/tool",
+          },
+          replicate: {
+            $ref: "#/definitions/tool",
+          },
+          algolia: {
+            $ref: "#/definitions/tool",
+          },
+          metaphor: {
+            $ref: "#/definitions/tool",
+          },
+          function: {
+            $ref: "#/definitions/tool",
+          },
+          // for openai assistant
+          code_interpreter: {
+            $ref: "#/definitions/tool",
+          },
+          // for openai assistant
+          retrieval: {
+            $ref: "#/definitions/tool",
           },
         },
-        tools: {
+      },
+    },
+    data: {
+      type: "object",
+      properties: {
+        urls: {
           type: "array",
-          items: {
-            type: "object",
-            properties: {
-              browser: {
-                $ref: "#/definitions/tool",
-              },
-              code_executor: {
-                $ref: "#/definitions/tool",
-              },
-              hand_off: {
-                $ref: "#/definitions/tool",
-              },
-              http: {
-                $ref: "#/definitions/tool",
-              },
-              bing_search: {
-                $ref: "#/definitions/tool",
-              },
-              replicate: {
-                $ref: "#/definitions/tool",
-              },
-              algolia: {
-                $ref: "#/definitions/tool",
-              },
-              metaphor: {
-                $ref: "#/definitions/tool",
-              },
-              function: {
-                $ref: "#/definitions/tool",
-              },
-              // for openai assistant
-              code_interpreter: {
-                $ref: "#/definitions/tool",
-              },
-              // for openai assistant
-              retrieval: {
-                $ref: "#/definitions/tool",
-              },
-            },
-          },
+          items: { type: "string" },
+        },
+        use_for: { type: "string" },
+      },
+    },
+    agent: {
+      allOf: [{ $ref: "#/definitions/assistant" }],
+      properties: {
+        tools: {
+          $ref: "#/definitions/tools",
+        },
+        data: {
+          $ref: "#/definitions/data",
         },
       },
     },
@@ -165,4 +179,4 @@ export const yamlJsonSchema = {
     },
   },
   required: ["workflows"],
-} satisfies JSONSchema7
+} satisfies JSONSchema4
