@@ -1,10 +1,8 @@
-from litellm import get_llm_provider
-
 from app.utils.helpers import (
     remove_key_if_present,
     rename_and_remove_keys,
 )
-from app.utils.llm import LLM_REVERSE_MAPPING
+from app.utils.llm import LLM_REVERSE_MAPPING, get_llm_provider
 
 from .saml_schema import WorkflowTool
 
@@ -43,10 +41,10 @@ class DataTransformer:
             }
 
         if llm_model:
-            _, provider, _, _ = get_llm_provider(llm_model)
+            provider = get_llm_provider(llm_model)
 
             if provider:
-                assistant["llmProvider"] = provider.upper()
+                assistant["llmProvider"] = provider
 
             assistant["llmModel"] = LLM_REVERSE_MAPPING.get(llm_model)
 
