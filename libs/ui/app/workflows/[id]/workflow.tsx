@@ -38,13 +38,6 @@ export default function WorkflowDetail({
   const [isLLMModalOpen, setIsLLMModalOpen] = React.useState<boolean>(
     llms.length === 0
   )
-  const { value: logs, loading } = useAsync(async () => {
-    const { data } = await api.getRuns({
-      workflow_id: workflow.id,
-      limit: 1000,
-    })
-    return data
-  }, [workflow])
 
   return (
     <div className="flex max-h-screen flex-1 flex-col space-y-5 pt-6">
@@ -92,27 +85,17 @@ export default function WorkflowDetail({
           </div>
         </TabsContent>
         <TabsContent value="logs" className="h-full text-sm">
-          {loading ? (
-            <div className="flex flex-col space-y-4 p-6">
-              {[...Array(10)].map((_, i) => (
-                <Skeleton key={i} className="h-4 w-full" />
-              ))}
-            </div>
-          ) : (
-            //<LogList profile={profile} data={logs || []} />
-            <div className="flex h-full items-center justify-center ">
-              <div className="container flex max-w-lg flex-col space-y-6 rounded-lg border p-6">
-                <RxActivityLog size={20} />
-                <div className="flex flex-col space-y-2">
-                  <p className="text-sm font-semibold">Coming soon</p>
-                  <p className="text-sm text-muted-foreground">
-                    We will be rolling out detailed logs for your workflows
-                    soon!
-                  </p>
-                </div>
+          <div className="flex h-full items-center justify-center ">
+            <div className="container flex max-w-lg flex-col space-y-6 rounded-lg border p-6">
+              <RxActivityLog size={20} />
+              <div className="flex flex-col space-y-2">
+                <p className="text-sm font-semibold">Coming soon</p>
+                <p className="text-sm text-muted-foreground">
+                  We will be rolling out detailed logs for your workflows soon!
+                </p>
               </div>
             </div>
-          )}
+          </div>
         </TabsContent>
         <TabsContent
           value="saml"

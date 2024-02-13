@@ -41,9 +41,6 @@ import AddTool from "./add-tool"
 import Avatar from "./avatar"
 
 const formSchema = z.object({
-  name: z.string().min(1, {
-    message: "Name is required",
-  }),
   description: z.string().min(1, { message: "Description is required" }),
   initialMessage: z.string(),
   llms: z.string(),
@@ -86,7 +83,6 @@ export default function Settings({
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: agent.name,
       description: agent.description,
       initialMessage: agent.initialMessage || "",
       llms: agent.llms?.[0]?.llm.provider,
@@ -185,19 +181,6 @@ export default function Settings({
             accept=".jpg, .jpeg, .png"
             onSelect={handleUpload}
             imageUrl={avatar || agent.avatar || "/logo.png"}
-          />
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="E.g My agent" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
           />
           <FormField
             control={form.control}

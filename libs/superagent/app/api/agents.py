@@ -194,7 +194,7 @@ async def create(body: AgentRequest, api_user=Depends(get_current_api_user)):
     user_id = api_user.id
     llm_provider = body.llmProvider
     llm_model = body.llmModel
-    metadata = "{}"
+    metadata = json.dumps(body.metadata) or "{}"
 
     if SEGMENT_WRITE_KEY:
         analytics.track(user_id, "Created Agent", {**body.dict()})
@@ -420,6 +420,7 @@ async def invoke(
             "tools": {"include": {"tool": True}},
         },
     )
+    model = LLM_MAPPING.get(agent_config.llmModel) or agent_config.metadata["model"]
 
     def track_agent_invocation(result):
         intermediate_steps_to_obj = [
@@ -454,7 +455,7 @@ async def invoke(
             },
         )
 
-    costCallback = CostCalcAsyncHandler(model=LLM_MAPPING[agent_config.llmModel])
+    costCallback = CostCalcAsyncHandler(model=model)
 
     monitoring_callbacks = [costCallback]
 
@@ -529,8 +530,7 @@ async def invoke(
     input = body.input
     enable_streaming = body.enableStreaming
     output_schema = body.outputSchema
-
-    cost_callback = CostCalcAsyncHandler(model=LLM_MAPPING[agent_config.llmModel])
+    cost_callback = CostCalcAsyncHandler(model=model)
     streaming_callback = CustomAsyncIteratorCallbackHandler()
     agent_base = AgentBase(
         agent_id=agent_id,

@@ -13,12 +13,14 @@ datasource db {
 enum AgentType {
   SUPERAGENT
   OPENAI_ASSISTANT
+  LLM
 }
 
 enum LLMProvider {
   OPENAI
   AZURE_OPENAI
   HUGGINGFACE
+  PERPLEXITY
 }
 
 enum LLMModel {

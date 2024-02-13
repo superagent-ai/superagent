@@ -23,6 +23,10 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/onboarding", req.url))
     }
 
+    if (profile.is_onboarded && req.nextUrl.pathname === "/onboarding") {
+      return NextResponse.redirect(new URL("/workflows", req.url))
+    }
+
     if (user && req.nextUrl.pathname === "/") {
       return NextResponse.redirect(new URL("/workflows", req.url))
     }

@@ -11,6 +11,7 @@ class ApiUser(BaseModel):
     firstName: Optional[str]
     lastName: Optional[str]
     company: Optional[str]
+    anonymousId: Optional[str]
 
 
 class OpenAiAssistantParameters(BaseModel):
@@ -30,6 +31,7 @@ class Agent(BaseModel):
     avatar: Optional[str]
     type: Optional[AgentType] = AgentType.SUPERAGENT
     parameters: Optional[OpenAiAssistantParameters]
+    metadata: Optional[dict]
 
 
 class AgentUpdate(BaseModel):

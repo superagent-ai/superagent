@@ -25,6 +25,11 @@ export const siteConfig = {
       icon: TbStack2,
     },
     {
+      title: "Agents",
+      href: "/agents",
+      icon: TbRobot,
+    },
+    {
       title: "Logs",
       href: "/logs",
       icon: TbTerminal2,
@@ -81,7 +86,6 @@ export const siteConfig = {
       description:
         "Power your assistants with the latest models from OpenAI, powerful for calling external APIs and reasoning.",
       name: "OpenAI",
-      logo: "/openai-logo.png",
       options: [
         {
           value: "GPT_3_5_TURBO_16K_0613",
@@ -119,7 +123,6 @@ export const siteConfig = {
       description:
         "Use Azure OpenAI to power your assistants with the latest OpenAI models.",
       name: "Azure OpenAI",
-      logo: "/azure-logo.png",
       options: [],
     },
     {
@@ -127,7 +130,6 @@ export const siteConfig = {
       id: "HUGGINGFACE",
       description: "Use Open Source models on HuggingFace.",
       name: "HuggingFace",
-      logo: "/hf-logo.png",
       options: [
         {
           value: "MISTRAL_7B_INSTRUCT_V01",
@@ -371,7 +373,75 @@ export const siteConfig = {
       ],
     },
   ],
-
+  llmForm: [
+    {
+      disabled: false,
+      formDescription: "Please enter your OpenAI API key.",
+      provider: "OPENAI",
+      name: "OpenAI",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "OpenAI API Key",
+        },
+      ],
+    },
+    {
+      disabled: false,
+      formDescription: "Please enter your Perplexity API key.",
+      provider: "PERPLEXITY",
+      name: "Perplexity AI",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Perplexity API Key",
+        },
+      ],
+    },
+    {
+      disabled: true,
+      formDescription: "Please enter your HF API key.",
+      provider: "HUGGINGFACE",
+      name: "Hugging Face",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "HF API Key",
+        },
+      ],
+    },
+    {
+      disabled: false,
+      formDescription: "Please enter your Azure OpenAI API key.",
+      provider: "AZURE_OPENAI",
+      name: "Azure OpenAI",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Azure API Key",
+        },
+        {
+          key: "options.azure_endpoint",
+          type: "input",
+          label: "Azure endpoint URL",
+        },
+        {
+          key: "options.openai_api_version",
+          type: "input",
+          label: "Azure API version",
+        },
+        {
+          key: "options.azure_deployment",
+          type: "input",
+          label: "Azure deployment name",
+        },
+      ],
+    },
+  ],
   vectorDbs: [
     {
       provider: VectorDbProvider[VectorDbProvider.PINECONE],
