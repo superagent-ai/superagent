@@ -15,40 +15,48 @@ class LLMAgent(AgentBase):
         class CustomAgentExecutor:
             async def ainvoke(self, *args, **kwargs):
                 input = args[0]
-                model = agent_config.metadata["model"]
+                model = agent_config.metadata.get("model", "gpt-3.5-turbo")
                 prompt = agent_config.prompt
                 api_key = agent_config.llms[0].llm.apiKey
+
                 res = await acompletion(
-                    model=model,
                     api_key=api_key,
+                    model=model,
                     messages=[
                         {"content": prompt, "role": "system"},
-                        {"content": input, "role": "user"},
+                        {"content": "Hello, how are you?", "role": "user"},
                     ],
                     stream=enable_streaming,
                 )
+
+                output = ""
                 if enable_streaming:
                     streaming = kwargs["config"]["callbacks"][0]
                     await streaming.on_llm_start()
 
                     async for chunk in res:
-                        await streaming.on_llm_new_token(
-                            chunk.choices[0].delta.content + " "
+                        token = chunk.choices[0].delta.content
+                        if token:
+                            output += token
+                            await streaming.on_llm_new_token(token)
+
+                    await streaming.on_llm_end(
+                        response=LLMResult(
+                            generations=[
+                                [
+                                    ChatGeneration(
+                                        message=AIMessage(
+                                            content=output,
+                                        )
+                                    )
+                                ]
+                            ],
                         )
-                        if chunk.choices[0].finish_reason == "stop":
-                            await streaming.on_llm_end(
-                                response=LLMResult(
-                                    generations=[
-                                        [ChatGeneration(message=AIMessage(content=res))]
-                                    ],
-                                )
-                            )
+                    )
 
                 return {
                     "input": input,
-                    "output": res.choices[0].message.content,
-                    "completion_tokens": res.usage.completion_tokens,
-                    "prompt_tokens": res.usage.prompt_tokens,
+                    "output": output,
                 }
 
         agent_executor = CustomAgentExecutor()
