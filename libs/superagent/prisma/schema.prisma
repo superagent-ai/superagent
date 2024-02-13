@@ -13,6 +13,7 @@ datasource db {
 enum AgentType {
   SUPERAGENT
   OPENAI_ASSISTANT
+  LLM
 }
 
 enum LLMProvider {
