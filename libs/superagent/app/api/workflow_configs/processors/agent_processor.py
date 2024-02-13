@@ -64,9 +64,13 @@ class AgentProcessor:
             new_data_processor = Processor(
                 self.api_user, self.api_manager
             ).get_data_processor(new_assistant)
-
         if old_type and new_type:
             if old_type != new_type:
+                # order matters here as we need process
+                # old data and tools first before deleting the assistant
+                await old_data_processor.process(old_data, {})
+                await old_tool_processor.process(old_tools, [])
+
                 await self.api_manager.agent_manager.delete_assistant(
                     assistant=old_assistant,
                 )
@@ -75,20 +79,18 @@ class AgentProcessor:
                     workflow_step_order,
                 )
                 # all tools and data should be re-created
-                await old_tool_processor.process(old_tools, [])
                 await new_tool_processor.process([], new_tools)
-                await old_data_processor.process(old_data, {})
                 await new_data_processor.process({}, new_data)
 
             else:
+                await new_tool_processor.process(old_tools, new_tools)
+                await new_data_processor.process(old_data, new_data)
                 changes = compare_dicts(old_assistant, new_assistant)
                 if changes:
                     await self.api_manager.agent_manager.update_assistant(
                         assistant=old_assistant,
                         data=changes,
                     )
-                await new_tool_processor.process(old_tools, new_tools)
-                await new_data_processor.process(old_data, new_data)
 
         elif old_type and not new_type:
             await old_tool_processor.process(old_tools, [])
