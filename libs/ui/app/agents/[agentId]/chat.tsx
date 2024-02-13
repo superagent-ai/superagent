@@ -5,6 +5,7 @@ import { fetchEventSource } from "@microsoft/fetch-event-source"
 import dayjs from "dayjs"
 import relativeTime from "dayjs/plugin/relativeTime"
 import { RxChatBubble, RxCode } from "react-icons/rx"
+import { TbBolt } from "react-icons/tb"
 import { useAsyncFn } from "react-use"
 import { v4 as uuidv4 } from "uuid"
 
@@ -13,14 +14,26 @@ import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 import Message from "@/components/message"
+import FunctionCalls from "@/app/workflows/[id]/function-calls"
 
 import PromptForm from "./prompt-form"
 
 dayjs.extend(relativeTime)
+
+const defaultFunctionCalls = [
+  {
+    type: "start",
+  },
+]
 
 export default function Chat({
   agent,
@@ -30,6 +43,8 @@ export default function Chat({
   profile: Profile
 }) {
   const api = new Api(profile.api_key)
+  const [functionCalls, setFunctionCalls] = React.useState<any[]>()
+
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [selectedView, setSelectedView] = React.useState<"chat" | "trace">(
     "chat"
@@ -58,6 +73,14 @@ export default function Chat({
       if (timerRef.current) {
         clearInterval(timerRef.current)
       }
+    }
+  }
+
+  const resetState = () => {
+    setIsLoading(false)
+    setTimer(0)
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
     }
   }
 
@@ -104,12 +127,18 @@ export default function Chat({
           }),
           openWhenHidden: true,
           signal: abortControllerRef.current.signal,
+
+          async onopen() {
+            setFunctionCalls(defaultFunctionCalls)
+          },
           async onclose() {
-            setIsLoading(false)
-            setTimer(0)
-            if (timerRef.current) {
-              clearInterval(timerRef.current)
-            }
+            setFunctionCalls((previousFunctionCalls = []) => [
+              ...previousFunctionCalls,
+              {
+                type: "end",
+              },
+            ])
+            resetState()
           },
           async onmessage(event) {
             if (event.data !== "[END]" && event.event !== "function_call") {
@@ -188,6 +217,23 @@ export default function Chat({
         >
           {timer.toFixed(1)}s
         </p>
+
+        <div className="absolute right-0 z-50 flex items-center space-x-2 px-6 py-4">
+          {functionCalls && functionCalls.length > 0 && (
+            <Popover>
+              <PopoverTrigger>
+                <Badge variant="secondary" className="space-x-1">
+                  <TbBolt className="text-lg text-green-400" />
+                  <span className="font-mono">{functionCalls?.length}</span>
+                </Badge>
+              </PopoverTrigger>
+              <PopoverContent side="bottom">
+                <FunctionCalls functionCalls={functionCalls} />
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
+
         {/*<div className="self-end">
           <Select
             value={selectedView}
