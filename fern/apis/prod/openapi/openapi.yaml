@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The Open Source AI Assistant Framework & API
-  version: 0.2.3
+  version: 0.2.6
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -2035,6 +2035,9 @@ components:
           type: string
         company:
           title: Company
+          type: string
+        anonymousId:
+          title: Anonymousid
           type: string
     app__models__request__Datasource:
       title: Datasource
