@@ -62,6 +62,18 @@ class AgentBase:
                 agent_config=self.agent_config,
             )
 
+        elif self.agent_config.type == AgentType.LLM:
+            from app.agents.llm import LLMAgent
+
+            agent = LLMAgent(
+                agent_id=self.agent_id,
+                session_id=self.session_id,
+                enable_streaming=self.enable_streaming,
+                callbacks=self.callbacks,
+                llm_params=self.llm_params,
+                agent_config=self.agent_config,
+            )
+
         else:
             from app.agents.langchain import LangchainAgent
 
@@ -86,5 +98,8 @@ class AgentBase:
             agent_input = {
                 "content": input,
             }
+
+        if agent_type == AgentType.LLM:
+            agent_input = {"content": input}
 
         return agent_input
