@@ -1,3 +1,5 @@
+from litellm import get_llm_provider as litellm_get_llm_provider
+
 LLM_MAPPING = {
     "GPT_3_5_TURBO_16K_0613": "gpt-3.5-turbo-16k-0613",
     "GPT_3_5_TURBO_0613": "gpt-3.5-turbo-0613",
@@ -24,3 +26,10 @@ LLM_PROVIDER_MAPPING = {
         "GPT_4_TURBO_PREIVEW",
     ]
 }
+
+
+def get_llm_provider(model: str):
+    _, provider, _, _ = litellm_get_llm_provider(model)
+    provider = provider.upper()
+
+    return provider

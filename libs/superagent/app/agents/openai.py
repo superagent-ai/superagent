@@ -24,8 +24,6 @@ class OpenAiAssistant(AgentBase):
                     streaming = kwargs["config"]["callbacks"][0]
                     await streaming.on_llm_start()
 
-                    # stream the tokens. after finishing, call the on_llm_end. (make sure you call it after all the tokens are streamed)
-                    # make sure to call on_llm_end after all the tokens are streamed
                     tasks = []
 
                     for token in output:
