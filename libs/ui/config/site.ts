@@ -401,6 +401,19 @@ export const siteConfig = {
       ],
     },
     {
+      disabled: false,
+      formDescription: "Please enter your Together API key.",
+      provider: "TOGETHER_AI",
+      name: "Together AI",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Together API Key",
+        },
+      ],
+    },
+    {
       disabled: true,
       formDescription: "Please enter your HF API key.",
       provider: "HUGGINGFACE",

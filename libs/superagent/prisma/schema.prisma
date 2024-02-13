@@ -21,6 +21,7 @@ enum LLMProvider {
   AZURE_OPENAI
   HUGGINGFACE
   PERPLEXITY
+  TOGETHER_AI
 }
 
 enum LLMModel {
