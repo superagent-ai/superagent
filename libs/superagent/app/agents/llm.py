@@ -1,5 +1,3 @@
-import asyncio
-
 from langchain.agents import AgentExecutor
 from langchain.schema.messages import AIMessage
 from langchain.schema.output import ChatGeneration, LLMResult
@@ -16,7 +14,7 @@ class LLMAgent(AgentBase):
 
         class CustomAgentExecutor:
             async def ainvoke(self, *args, **kwargs):
-                input = kwargs.get("input")
+                input = args[0]
                 model = agent_config.metadata["model"]
                 prompt = agent_config.prompt
                 api_key = agent_config.llms[0].llm.apiKey
@@ -27,7 +25,25 @@ class LLMAgent(AgentBase):
                         {"content": prompt, "role": "system"},
                         {"content": input, "role": "user"},
                     ],
+                    stream=enable_streaming,
                 )
+                if enable_streaming:
+                    streaming = kwargs["config"]["callbacks"][0]
+                    await streaming.on_llm_start()
+
+                    async for chunk in res:
+                        await streaming.on_llm_new_token(
+                            chunk.choices[0].delta.content + " "
+                        )
+                        if chunk.choices[0].finish_reason == "stop":
+                            await streaming.on_llm_end(
+                                response=LLMResult(
+                                    generations=[
+                                        [ChatGeneration(message=AIMessage(content=res))]
+                                    ],
+                                )
+                            )
+
                 return {
                     "input": input,
                     "output": res.choices[0].message.content,
