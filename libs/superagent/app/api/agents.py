@@ -310,7 +310,7 @@ async def delete(agent_id: str, api_user=Depends(get_current_api_user)):
         deleted = await prisma.agent.delete(where={"id": agent_id})
 
         metadata = deleted.metadata
-        if metadata.get("id", None):
+        if metadata and metadata.get("id"):
             llm = await prisma.llm.find_first_or_raise(
                 where={"provider": "OPENAI", "apiUserId": api_user.id}
             )
@@ -354,7 +354,28 @@ async def update(
         }
 
         if json.dumps(metadata) != json.dumps(agent.metadata):
-            new_agent_data["metadata"] = json.dumps(metadata)
+            new_agent_data["metadata"] = metadata
+
+        if new_agent_data.get("metadata"):
+            new_agent_data["metadata"] = json.dumps(new_agent_data["metadata"])
+
+        old_llm_model = agent.llmModel or agent.metadata.get("model")
+        new_llm_model = body.llmModel or (
+            body.metadata.get("model") if body.metadata else None
+        )
+        if old_llm_model and new_llm_model and old_llm_model != new_llm_model:
+            from app.utils.llm import get_llm_provider
+
+            new_provider = get_llm_provider(new_llm_model)
+            new_llm = await prisma.llm.find_first_or_raise(
+                where={"provider": new_provider, "apiUserId": api_user.id}
+            )
+            await prisma.agentllm.update_many(
+                where={
+                    "agentId": agent_id,
+                },
+                data={"llmId": new_llm.id},
+            )
 
         data = await prisma.agent.update(
             where={"id": agent_id},
