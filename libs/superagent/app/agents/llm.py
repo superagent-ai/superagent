@@ -1,4 +1,3 @@
-from langchain.agents import AgentExecutor
 from langchain.schema.messages import AIMessage
 from langchain.schema.output import ChatGeneration, LLMResult
 from litellm import acompletion
@@ -24,7 +23,7 @@ class LLMAgent(AgentBase):
                     model=model,
                     messages=[
                         {"content": prompt, "role": "system"},
-                        {"content": "Hello, how are you?", "role": "user"},
+                        {"content": input, "role": "user"},
                     ],
                     stream=enable_streaming,
                 )
