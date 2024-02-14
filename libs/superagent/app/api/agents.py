@@ -366,7 +366,7 @@ async def update(
         if old_llm_model and new_llm_model and old_llm_model != new_llm_model:
             from app.utils.llm import get_llm_provider
 
-            new_provider = get_llm_provider(new_llm_model)
+            new_provider = get_llm_provider(LLM_MAPPING.get(new_llm_model))
             new_llm = await prisma.llm.find_first_or_raise(
                 where={"provider": new_provider, "apiUserId": api_user.id}
             )
