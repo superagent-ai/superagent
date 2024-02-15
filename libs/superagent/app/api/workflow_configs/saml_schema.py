@@ -6,6 +6,8 @@ from pydantic import BaseModel
 class WorkflowDatasource(BaseModel):
     use_for: Optional[str]  # an alias for description
     urls: Optional[List[str]]
+    database_provider: Optional[str]  # for superrag
+    encoder: Optional[str]  # for superrag
 
 
 class WorkflowTool(BaseModel):
@@ -21,7 +23,7 @@ class WorkflowAssistant(BaseModel):
     intro: Optional[str]  # an alias for initialMessage
 
     tools: Optional[List[Dict[str, WorkflowTool]]]
-    data: Optional[WorkflowDatasource]
+    data: Optional[Dict[str, WorkflowDatasource]]
 
 
 class WorkflowAssistantAsTool(WorkflowAssistant):
