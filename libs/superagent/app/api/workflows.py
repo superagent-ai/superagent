@@ -182,7 +182,7 @@ async def invoke(
 
     workflow_data = await prisma.workflow.find_unique(
         where={"id": workflow_id},
-        include={"steps": {"include": {"agent": True}}},
+        include={"steps": {"include": {"agent": True}, "order_by": {"order": "asc"}}},
     )
 
     workflow_steps = []

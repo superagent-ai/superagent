@@ -29,7 +29,6 @@ class WorkflowBase:
         self.callbacks = callbacks
 
     async def arun(self, input: Any):
-        self.workflow.steps.sort(key=lambda x: x.order)
         previous_output = input
         steps_output = []
 
