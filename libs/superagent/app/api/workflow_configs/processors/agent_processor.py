@@ -32,7 +32,7 @@ class AgentProcessor:
         old_tools = old_assistant.get("tools") or []
         new_tools = new_assistant.get("tools") or []
 
-        dt = DataTransformer()
+        dt = DataTransformer(api_user=self.api_user, api_manager=self.api_manager)
         dt.transform_assistant(new_assistant, new_type)
         dt.transform_assistant(old_assistant, old_type)
 
@@ -47,6 +47,9 @@ class AgentProcessor:
             tool = tool.get(tool_type, {})
 
             dt.transform_tool(tool, tool_type)
+
+        await dt.transform_data(old_data)
+        await dt.transform_data(new_data)
 
         if old_assistant:
             old_tool_processor = Processor(
@@ -64,6 +67,7 @@ class AgentProcessor:
             new_data_processor = Processor(
                 self.api_user, self.api_manager
             ).get_data_processor(new_assistant)
+
         if old_type and new_type:
             if old_type != new_type:
                 # order matters here as we need process
