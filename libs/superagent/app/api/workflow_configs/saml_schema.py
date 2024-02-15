@@ -12,6 +12,7 @@ class WorkflowTool(BaseModel):
     name: str
     use_for: str  # an alias for description
     metadata: Optional[Dict[Any, Any]]
+    return_direct: Optional[bool]
 
 
 class WorkflowAssistant(BaseModel):
