@@ -11,6 +11,7 @@ class DataTransformer:
     @staticmethod
     def transform_tool(tool: WorkflowTool, tool_type: str):
         rename_and_remove_keys(tool, {"use_for": "description"})
+        rename_and_remove_keys(tool, {"return_direct": "returnDirect"})
 
         if tool_type:
             tool["type"] = tool_type.upper()
