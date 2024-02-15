@@ -24,7 +24,7 @@ from app.models.request import (
 from app.utils.prisma import prisma
 from app.vectorstores.base import vector_db_mapping
 
-from .base import BaseApiAgentManager, BaseApiDatasourceManager
+from .base import BaseApiAgentManager
 
 logger = logging.getLogger(__name__)
 
@@ -34,11 +34,9 @@ class ApiManager:
         self,
         api_user,
         agent_manager: BaseApiAgentManager,
-        datasource_manager: BaseApiDatasourceManager,
     ):
         self.api_user = api_user
         self.agent_manager = agent_manager
-        self.datasource_manager = datasource_manager
 
     async def update_tool(
         self,

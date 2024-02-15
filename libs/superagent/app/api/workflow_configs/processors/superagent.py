@@ -3,7 +3,9 @@ from itertools import zip_longest
 from app.api.workflow_configs.api.api_agent_tool_manager import (
     ApiAgentToolManager,
 )
+from app.api.workflow_configs.api.api_datasource_manager import ApiDatasourceManager
 from app.api.workflow_configs.api.api_manager import ApiManager
+from app.api.workflow_configs.api.base import BaseApiDatasourceManager
 from app.api.workflow_configs.processors.base import BaseProcessor
 from app.utils.helpers import (
     compare_dicts,
@@ -16,6 +18,31 @@ from .utils import (
 
 
 class SuperagentDataProcessor(BaseProcessor):
+    async def _process_datasource(
+        self, old_item, new_item, datasource_manager: BaseApiDatasourceManager
+    ):
+        old_datasource_name, old_datasource = old_item or (None, None)
+        new_datasource_name, new_datasource = new_item or (None, None)
+
+        if old_datasource_name and new_datasource_name:
+            changes = compare_dicts(old_datasource, new_datasource)
+            if changes:
+                await datasource_manager.update_datasource(
+                    self.assistant,
+                    old_datasource=old_datasource,
+                    new_datasource=new_datasource,
+                )
+        elif old_datasource_name and not new_datasource_name:
+            await datasource_manager.delete_datasource(
+                self.assistant,
+                old_datasource,
+            )
+        elif new_datasource_name and not old_datasource_name:
+            await datasource_manager.add_datasource(
+                self.assistant,
+                new_datasource,
+            )
+
     async def process(self, old_data, new_data):
         old_data = old_data or {}
         new_data = new_data or {}
@@ -23,28 +50,17 @@ class SuperagentDataProcessor(BaseProcessor):
         old_data_items = old_data.items()
         new_data_items = new_data.items()
 
-        for old, new in zip_longest(old_data_items, new_data_items):
-            old_datasource_name, old_datasource = old or (None, None)
-            new_datasource_name, new_datasource = new or (None, None)
+        for old_data_item, new_data_item in zip_longest(old_data_items, new_data_items):
+            datasource_manager = ApiDatasourceManager(
+                self.api_manager.api_user,
+                self.api_manager.agent_manager,
+            )
 
-            if old_datasource_name and new_datasource_name:
-                changes = compare_dicts(old_datasource, new_datasource)
-                if changes:
-                    await self.api_manager.datasource_manager.update_datasource(
-                        self.assistant,
-                        old_datasource=old_datasource,
-                        new_datasource=new_datasource,
-                    )
-            elif old_datasource_name and not new_datasource_name:
-                await self.api_manager.datasource_manager.delete_datasource(
-                    self.assistant,
-                    old_datasource,
-                )
-            elif new_datasource_name and not old_datasource_name:
-                await self.api_manager.datasource_manager.add_datasource(
-                    self.assistant,
-                    new_datasource,
-                )
+            await self._process_datasource(
+                old_item=old_data_item,
+                new_item=new_data_item,
+                datasource_manager=datasource_manager,
+            )
 
 
 class SuperagentToolProcessor(BaseProcessor):

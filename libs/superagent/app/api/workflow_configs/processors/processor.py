@@ -19,10 +19,10 @@ class Processor:
 
     def get_data_processor(self, assistant: dict) -> BaseProcessor:
         if assistant.get("type") == AgentType.OPENAI_ASSISTANT:
-            return OpenaiDataProcessor(assistant, self.api_manager)
-        return SuperagentDataProcessor(assistant, self.api_manager)
+            return OpenaiDataProcessor(assistant, self.api_manager, self.api_user)
+        return SuperagentDataProcessor(assistant, self.api_manager, self.api_user)
 
     def get_tool_processor(self, assistant: dict) -> BaseProcessor:
         if assistant.get("type") == AgentType.OPENAI_ASSISTANT:
-            return OpenaiToolProcessor(assistant, self.api_manager)
-        return SuperagentToolProcessor(assistant, self.api_manager)
+            return OpenaiToolProcessor(assistant, self.api_manager, self.api_user)
+        return SuperagentToolProcessor(assistant, self.api_manager, self.api_user)
