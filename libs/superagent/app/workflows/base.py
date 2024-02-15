@@ -29,7 +29,7 @@ class WorkflowBase:
         self.callbacks = callbacks
 
     async def arun(self, input: Any):
-        previous_output = input
+        current_input = input
         steps_output = []
 
         for stepIndex, step in enumerate(self.workflow.steps):
@@ -53,7 +53,7 @@ class WorkflowBase:
 
             agent = await agent_base.get_agent()
             agent_input = agent_base.get_input(
-                previous_output,
+                current_input,
                 agent_type=agent_config.type,
             )
 
@@ -64,7 +64,29 @@ class WorkflowBase:
                 },
             )
 
-            previous_output = agent_response.get("output")
+            context = ""
+            indermediate_steps = agent_response.get("intermediate_steps", [])
+            print(
+                f"Agent {stepIndex} response intermediate_steps: {indermediate_steps}"
+            )
+
+            for intermediate_step in indermediate_steps:
+                response = intermediate_step[-1]
+                context += response
+
+            output = agent_response.get("output")
+
+            input_template = """
+            {question}
+            Context: {context}
+            """
+
+            current_input = input_template.format(
+                question=output,
+                context=context,
+            )
+
+            print(f"Current input: {current_input}")
             steps_output.append(agent_response)
 
-        return {"steps": steps_output, "output": previous_output}
+        return {"steps": steps_output, "output": current_input}
