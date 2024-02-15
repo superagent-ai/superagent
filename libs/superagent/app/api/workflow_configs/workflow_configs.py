@@ -7,6 +7,7 @@ from decouple import config
 from fastapi import APIRouter, Body, Depends, HTTPException
 
 from app.api.workflow_configs.api.api_agent_manager import ApiAgentManager
+from app.api.workflow_configs.api.api_datasource_manager import ApiDatasourceManager
 from app.api.workflow_configs.api.api_manager import ApiManager
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
@@ -45,7 +46,8 @@ async def add_config(
         old_config = {} if not workflow_config else workflow_config.config
 
         agent_manager = ApiAgentManager(workflow_id, api_user)
-        api_manager = ApiManager(api_user, agent_manager)
+        datasource_manager = ApiDatasourceManager(api_user, agent_manager)
+        api_manager = ApiManager(api_user, agent_manager, datasource_manager)
         processor = AgentProcessor(api_user, api_manager)
         await processor.process_assistants(old_config, new_config)
 

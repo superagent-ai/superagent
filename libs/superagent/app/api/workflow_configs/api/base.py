@@ -34,3 +34,24 @@ class BaseApiAgentManager(ABC):
     @abstractmethod
     async def update_assistant(self, assistant: dict, data: dict):
         pass
+
+
+class BaseApiDatasourceManager(ABC):
+    """
+    Abstract class for managing datasources.
+    It can be Naive RAG or Super RAG
+    """
+
+    @abstractmethod
+    async def add_datasource(self, assistant: dict, data: dict):
+        pass
+
+    @abstractmethod
+    async def delete_datasource(self, assistant: dict, datasource: dict):
+        pass
+
+    @abstractmethod
+    async def update_datasource(
+        self, assistant: dict, old_datasource: dict, new_datasource: dict
+    ):
+        pass

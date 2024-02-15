@@ -6,9 +6,7 @@ from app.api.workflow_configs.api.api_agent_tool_manager import (
 from app.api.workflow_configs.api.api_manager import ApiManager
 from app.api.workflow_configs.processors.base import BaseProcessor
 from app.utils.helpers import (
-    MIME_TYPE_TO_EXTENSION,
     compare_dicts,
-    get_mimetype_from_url,
 )
 
 from .utils import (
@@ -19,37 +17,34 @@ from .utils import (
 
 class SuperagentDataProcessor(BaseProcessor):
     async def process(self, old_data, new_data):
-        old_urls = old_data.get("urls") or []
-        new_urls = new_data.get("urls") or []
-        # Process data URLs changes
-        for url in set(old_urls) | set(new_urls):
-            type = get_mimetype_from_url(url)
+        old_data = old_data or {}
+        new_data = new_data or {}
 
-            use_for = new_data.get("use_for") or old_data.get("use_for") or ""
+        old_data_items = old_data.items()
+        new_data_items = new_data.items()
 
-            datasource_name = f"{MIME_TYPE_TO_EXTENSION[type]} doc {use_for}"
+        for old, new in zip_longest(old_data_items, new_data_items):
+            old_datasource_name, old_datasource = old or (None, None)
+            new_datasource_name, new_datasource = new or (None, None)
 
-            if url in old_urls and url not in new_urls:
-                # TODO: find a better way to deciding which datasource to delete
-                await self.api_manager.delete_datasource(
-                    assistant=self.assistant,
-                    datasource={
-                        "name": datasource_name,
-                    },
-                )
-
-            elif url in new_urls and url not in old_urls:
-                if type in MIME_TYPE_TO_EXTENSION:
-                    await self.api_manager.add_datasource(
+            if old_datasource_name and new_datasource_name:
+                changes = compare_dicts(old_datasource, new_datasource)
+                if changes:
+                    await self.api_manager.datasource_manager.update_datasource(
                         self.assistant,
-                        data={
-                            # TODO: this will be changed once we implement superrag
-                            "name": datasource_name,
-                            "description": new_data.get("use_for"),
-                            "url": url,
-                            "type": MIME_TYPE_TO_EXTENSION[type],
-                        },
+                        old_datasource=old_datasource,
+                        new_datasource=new_datasource,
                     )
+            elif old_datasource_name and not new_datasource_name:
+                await self.api_manager.datasource_manager.delete_datasource(
+                    self.assistant,
+                    old_datasource,
+                )
+            elif new_datasource_name and not old_datasource_name:
+                await self.api_manager.datasource_manager.add_datasource(
+                    self.assistant,
+                    new_datasource,
+                )
 
 
 class SuperagentToolProcessor(BaseProcessor):
