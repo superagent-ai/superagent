@@ -1,6 +1,6 @@
 from typing import Optional
 
-import requests
+import aiohttp
 from decouple import config
 
 
@@ -11,14 +11,16 @@ class SuperRagService:
         if not self.url:
             raise ValueError("SUPERRAG_API_URL is not set")
 
-    def ingest(self, data):
-        res = requests.post(f"{self.url}/ingest", json=data)
-        return res.json()
+    async def _request(self, endpoint, data):
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"{self.url}/{endpoint}", json=data) as response:
+                return await response.json()
 
-    def query(self, data):
-        res = requests.post(f"{self.url}/query", json=data)
-        return res.json()
+    async def ingest(self, data):
+        return await self._request("ingest", data)
 
-    def delete(self, data):
-        res = requests.delete(f"{self.url}/delete", json=data)
-        return res.json()
+    async def query(self, data):
+        return await self._request("query", data)
+
+    async def delete(self, data):
+        return await self._request("delete", data)
