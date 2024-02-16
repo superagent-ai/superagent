@@ -4,6 +4,7 @@ from app.api.workflow_configs.api.api_manager import ApiManager
 from app.utils.helpers import (
     MIME_TYPE_TO_EXTENSION,
     get_mimetype_from_url,
+    get_superrag_compatible_credentials,
     remove_key_if_present,
     rename_and_remove_keys,
 )
@@ -87,7 +88,6 @@ class DataTransformer:
             remove_key_if_present(datasource, "urls")
 
             database_provider = datasource.get("database_provider")
-
             if database_provider:
                 provider = await self.api_manager.get_vector_database_by_provider(
                     database_provider
@@ -95,30 +95,18 @@ class DataTransformer:
 
                 # this is for superrag
                 if provider:
-                    credential_keys_mapping = {
-                        # pinecone
-                        "PINECONE_API_KEY": "api_key",
-                        # qdrant
-                        "QDRANT_API_KEY": "api_key",
-                        "QDRANT_HOST": "host",
-                        # weaviate
-                        "WEAVIATE_API_KEY": "api_key",
-                        "WEAVIATE_URL": "host",
-                    }
-
-                    options = provider.options
-
-                    config = {}
-                    if options:
-                        for key, value in options.items():
-                            new_key = credential_keys_mapping.get(key)
-                            if new_key:
-                                config[new_key] = value
-
+                    credentials = get_superrag_compatible_credentials(provider.options)
                     datasource["vector_database"] = {
                         "type": database_provider,
-                        "config": config,
+                        "config": credentials,
                     }
+                else:
+                    logger.warning(
+                        (
+                            "Could not find vector database for provider:",
+                            f"{database_provider}. Skipping...",
+                        )
+                    )
 
                 remove_key_if_present(datasource, "database_provider")
 

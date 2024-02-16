@@ -68,7 +68,7 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
             logger.error(f"Error adding tool: {new_tool} - {assistant}")
 
     async def _add_superrag_tool(self, assistant: dict, data: dict):
-        data = {
+        new_tool = {
             **data,
             "type": ToolType.SUPERRAG.value,
             "metadata": {
@@ -76,11 +76,12 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
                 "vector_database": {
                     "type": data.get("vector_database", {}).get("type")
                 },
+                "encoder": data.get("encoder"),
             },
             "name": data.get("index_name"),
         }
 
-        await self._add_tool(assistant, data)
+        await self._add_tool(assistant, new_tool)
 
     async def _delete_tool(self, assistant: dict, tool: dict):
         tool = await self.agent_manager.get_tool(assistant, tool)
@@ -103,9 +104,9 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
         await self._delete_tool(assistant, tool)
 
     async def add_datasource(self, assistant: dict, data: dict):
-        await self.superrag_service.ingest(data=data)
+        # await self.superrag_service.aingest(data=data)
         await self._add_superrag_tool(assistant, data)
 
     async def delete_datasource(self, assistant: dict, datasource: dict):
-        await self.superrag_service.delete(datasource)
+        await self.superrag_service.adelete(datasource)
         await self._delete_superrag_tool(assistant, datasource)

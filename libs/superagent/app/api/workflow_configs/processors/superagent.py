@@ -58,23 +58,23 @@ class SuperagentDataProcessor(BaseProcessor):
             )
 
     def _get_datasource_manager(self, flags: dict | None):
-        if flags:
-            if flags.get("superrag") is True:
-                logger.info(
-                    "Processing datasource using Super RAG",
-                )
-                return ApiDatasourceSuperRagManager(
-                    self.api_manager.api_user,
-                    self.api_manager.agent_manager,
-                )
-            else:
-                logger.info(
-                    "Processing datasource using Naive RAG",
-                )
-                return ApiDatasourceManager(
-                    self.api_manager.api_user,
-                    self.api_manager.agent_manager,
-                )
+        flags = flags or {}
+        if flags.get("superrag") is True:
+            logger.info(
+                "Processing datasource using Super RAG",
+            )
+            return ApiDatasourceSuperRagManager(
+                self.api_manager.api_user,
+                self.api_manager.agent_manager,
+            )
+        else:
+            logger.info(
+                "Processing datasource using Naive RAG",
+            )
+            return ApiDatasourceManager(
+                self.api_manager.api_user,
+                self.api_manager.agent_manager,
+            )
 
     async def process(self, old_data, new_data):
         old_data = old_data or {}

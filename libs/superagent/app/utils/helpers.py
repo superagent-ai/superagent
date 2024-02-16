@@ -97,3 +97,24 @@ MIME_TYPE_TO_EXTENSION = {
     "text/html": "WEBPAGE",
     "text/plain": "TXT",
 }
+
+
+def get_superrag_compatible_credentials(credentials: dict):
+    credential_keys_mapping = {
+        # pinecone
+        "PINECONE_API_KEY": "api_key",
+        # qdrant
+        "QDRANT_API_KEY": "api_key",
+        "QDRANT_HOST": "host",
+        # weaviate
+        "WEAVIATE_API_KEY": "api_key",
+        "WEAVIATE_URL": "host",
+    }
+
+    superrag_credentials = {}
+    for key, value in credentials.items():
+        new_key = credential_keys_mapping.get(key)
+        if new_key:
+            superrag_credentials[new_key] = value
+
+    return superrag_credentials

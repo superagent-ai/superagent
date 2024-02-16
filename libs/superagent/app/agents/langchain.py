@@ -97,9 +97,16 @@ class LangchainAgent(AgentBase):
             )
             tools.append(tool)
         for agent_tool in agent_tools:
+            agent_tool_metadata = json.loads(agent_tool.tool.metadata)
+
+            tool_metadata = {
+                "user_id": self.agent_config.apiUserId,
+                **agent_tool_metadata,
+            }
+
             tool_info = TOOL_TYPE_MAPPING.get(agent_tool.tool.type)
             if agent_tool.tool.type == "FUNCTION":
-                metadata = recursive_json_loads(agent_tool.tool.metadata)
+                metadata = recursive_json_loads(tool_metadata)
                 args = metadata.get("args", {})
                 PydanticModel = create_pydantic_model_from_object(args)
                 tool = create_tool(
@@ -108,16 +115,17 @@ class LangchainAgent(AgentBase):
                         slugify(metadata.get("functionName", agent_tool.tool.name))
                     ),
                     description=agent_tool.tool.description,
-                    metadata=agent_tool.tool.metadata,
+                    metadata=metadata,
                     args_schema=PydanticModel,
                     return_direct=agent_tool.tool.returnDirect,
                 )
             else:
+                metadata = tool_metadata
                 tool = create_tool(
                     tool_class=tool_info["class"],
                     name=conform_function_name(slugify(agent_tool.tool.name)),
                     description=agent_tool.tool.description,
-                    metadata=agent_tool.tool.metadata,
+                    metadata=metadata,
                     args_schema=tool_info["schema"],
                     session_id=(
                         f"{self.agent_id}-{self.session_id}"
