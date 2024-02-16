@@ -104,7 +104,7 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
         await self._delete_tool(assistant, tool)
 
     async def add_datasource(self, assistant: dict, data: dict):
-        # await self.superrag_service.aingest(data=data)
+        await self.superrag_service.aingest(data=data)
         await self._add_superrag_tool(assistant, data)
 
     async def delete_datasource(self, assistant: dict, datasource: dict):
