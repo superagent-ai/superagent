@@ -8,6 +8,7 @@ class WorkflowDatasource(BaseModel):
     urls: Optional[List[str]]
     database_provider: Optional[str]  # for superrag
     encoder: Optional[str]  # for superrag
+    flags: Optional[Dict[str, Any]]
 
 
 class WorkflowTool(BaseModel):

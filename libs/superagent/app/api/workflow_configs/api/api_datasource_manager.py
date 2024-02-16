@@ -113,14 +113,3 @@ class ApiDatasourceManager(BaseApiDatasourceManager):
                 logger.info(f"Deleted datasource: {datasource.name} - {assistant.name}")
             except Exception:
                 logger.error(f"Error deleting datasource: {datasource} - {assistant}")
-
-    async def update_datasource(
-        self, assistant: dict, old_datasource: dict, new_datasource: dict
-    ):
-        try:
-            await self.delete_datasource(assistant, old_datasource)
-            await self.add_datasource(assistant, new_datasource)
-        except Exception:
-            logger.error(
-                f"Error updating datasource: {old_datasource} - {new_datasource}"
-            )

@@ -13,6 +13,7 @@ from app.vectorstores.supabase import SupabaseVectorStore
 from app.vectorstores.weaviate import WeaviateVectorStore
 from prisma.enums import VectorDbProvider
 
+# TODO: use the VectorDbProvider enum
 vector_db_mapping = {
     "pinecone": "PINECONE",
     "qdrant": "QDRANT",

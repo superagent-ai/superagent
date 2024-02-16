@@ -49,9 +49,3 @@ class BaseApiDatasourceManager(ABC):
     @abstractmethod
     async def delete_datasource(self, assistant: dict, datasource: dict):
         pass
-
-    @abstractmethod
-    async def update_datasource(
-        self, assistant: dict, old_datasource: dict, new_datasource: dict
-    ):
-        pass

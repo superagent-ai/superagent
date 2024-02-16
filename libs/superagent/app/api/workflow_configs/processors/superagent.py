@@ -1,9 +1,13 @@
+import logging
 from itertools import zip_longest
 
 from app.api.workflow_configs.api.api_agent_tool_manager import (
     ApiAgentToolManager,
 )
 from app.api.workflow_configs.api.api_datasource_manager import ApiDatasourceManager
+from app.api.workflow_configs.api.api_datasource_superrag_manager import (
+    ApiDatasourceSuperRagManager,
+)
 from app.api.workflow_configs.api.api_manager import ApiManager
 from app.api.workflow_configs.api.base import BaseApiDatasourceManager
 from app.api.workflow_configs.processors.base import BaseProcessor
@@ -16,10 +20,16 @@ from .utils import (
     get_first_key,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class SuperagentDataProcessor(BaseProcessor):
     async def _process_datasource(
-        self, old_item, new_item, datasource_manager: BaseApiDatasourceManager
+        self,
+        old_item,
+        new_item,
+        old_datasource_manager: BaseApiDatasourceManager,
+        new_datasource_manager: BaseApiDatasourceManager,
     ):
         old_datasource_name, old_datasource = old_item or (None, None)
         new_datasource_name, new_datasource = new_item or (None, None)
@@ -27,39 +37,68 @@ class SuperagentDataProcessor(BaseProcessor):
         if old_datasource_name and new_datasource_name:
             changes = compare_dicts(old_datasource, new_datasource)
             if changes:
-                await datasource_manager.update_datasource(
+                await old_datasource_manager.delete_datasource(
                     self.assistant,
-                    old_datasource=old_datasource,
-                    new_datasource=new_datasource,
+                    old_datasource,
                 )
+                await new_datasource_manager.add_datasource(
+                    self.assistant,
+                    new_datasource,
+                )
+
         elif old_datasource_name and not new_datasource_name:
-            await datasource_manager.delete_datasource(
+            await old_datasource_manager.delete_datasource(
                 self.assistant,
                 old_datasource,
             )
         elif new_datasource_name and not old_datasource_name:
-            await datasource_manager.add_datasource(
+            await new_datasource_manager.add_datasource(
                 self.assistant,
                 new_datasource,
             )
+
+    def _get_datasource_manager(self, flags: dict | None):
+        if flags:
+            if flags.get("superrag") is True:
+                logger.info(
+                    "Processing datasource using Super RAG",
+                )
+                return ApiDatasourceSuperRagManager(
+                    self.api_manager.api_user,
+                    self.api_manager.agent_manager,
+                )
+            else:
+                logger.info(
+                    "Processing datasource using Naive RAG",
+                )
+                return ApiDatasourceManager(
+                    self.api_manager.api_user,
+                    self.api_manager.agent_manager,
+                )
 
     async def process(self, old_data, new_data):
         old_data = old_data or {}
         new_data = new_data or {}
 
-        old_data_items = old_data.items()
-        new_data_items = new_data.items()
+        old_items = old_data.items()
+        new_items = new_data.items()
 
-        for old_data_item, new_data_item in zip_longest(old_data_items, new_data_items):
-            datasource_manager = ApiDatasourceManager(
-                self.api_manager.api_user,
-                self.api_manager.agent_manager,
+        for old_item, new_item in zip_longest(old_items, new_items):
+            old_datasource_name, old_datasource = old_item or (None, {})
+            new_datasource_name, new_datasource = new_item or (None, {})
+
+            new_datasource_manager = self._get_datasource_manager(
+                new_datasource.get("flags")
+            )
+            old_datasource_manager = self._get_datasource_manager(
+                old_datasource.get("flags")
             )
 
             await self._process_datasource(
-                old_item=old_data_item,
-                new_item=new_data_item,
-                datasource_manager=datasource_manager,
+                old_item=(old_datasource_name, old_datasource),
+                new_item=(new_datasource_name, new_datasource),
+                old_datasource_manager=old_datasource_manager,
+                new_datasource_manager=new_datasource_manager,
             )
 
 
