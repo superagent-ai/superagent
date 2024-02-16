@@ -175,7 +175,7 @@ export default function Settings({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="w-full space-y-4"
+          className="w-full space-y-4 pb-20"
         >
           <Avatar
             accept=".jpg, .jpeg, .png"
