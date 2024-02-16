@@ -1,20 +1,38 @@
+from itertools import zip_longest
+
 from app.api.agents import OpenAIAssistantSdk
 from app.api.workflow_configs.processors.base import BaseProcessor
 from app.api.workflow_configs.processors.utils import get_first_key
 from app.utils.prisma import prisma
+from prisma.enums import LLMProvider
 
 
 class OpenaiDataProcessor(BaseProcessor):
     async def process(self, old_data, new_data):
-        old_urls = old_data.get("urls") or []
-        new_urls = new_data.get("urls") or []
+        old_data = old_data or {}
+        new_data = new_data or {}
+
+        old_items = old_data.items()
+        new_items = new_data.items()
+
+        old_urls = []
+        new_urls = []
+        for old_item, new_item in zip_longest(old_items, new_items):
+            _, old_datasource = old_item or (None, {})
+            _, new_datasource = new_item or (None, {})
+
+            old_files = old_datasource.get("files", [])
+            new_files = new_datasource.get("files", [])
+
+            old_urls.extend([file.get("url") for file in old_files])
+            new_urls.extend([file.get("url") for file in new_files])
 
         if set(old_urls) != set(new_urls):
             agent = await self.api_manager.agent_manager.get_assistant(self.assistant)
 
             llm = await prisma.llm.find_first(
                 where={
-                    "provider": "OPENAI",
+                    "provider": LLMProvider.OPENAI.value,
                     "apiUserId": self.api_manager.api_user.id,
                 }
             )
