@@ -1,4 +1,6 @@
+import json
 import logging
+import re
 
 from app.api.agents import (
     add_tool as api_add_agent_tool,
@@ -78,7 +80,7 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
                 },
                 "encoder": data.get("encoder"),
             },
-            "name": data.get("index_name"),
+            "name": data.get("name"),
         }
 
         await self._add_tool(assistant, new_tool)
@@ -95,18 +97,33 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
         except Exception:
             logger.error(f"Error deleting tool: {tool} - {assistant}")
 
-    async def _delete_superrag_tool(self, assistant: dict, tool: dict):
-        tool = {
-            **tool,
-            "name": tool.get("index_name"),
-        }
+    async def _get_unique_index_name(self, datasource: dict, assistant: dict):
+        datasource_name = datasource.get("name")
+        assistant = await self.agent_manager.get_assistant(assistant)
+        unique_name = f"{datasource_name}-{assistant.id}"
+        unique_name = re.sub(r"[^a-zA-Z0-9-]", "", unique_name)
 
-        await self._delete_tool(assistant, tool)
+        return unique_name[:32]
 
     async def add_datasource(self, assistant: dict, data: dict):
-        await self.superrag_service.aingest(data=data)
+        data["index_name"] = await self._get_unique_index_name(data, assistant)
+
         await self._add_superrag_tool(assistant, data)
+        await self.superrag_service.aingest(data=data)
 
     async def delete_datasource(self, assistant: dict, datasource: dict):
-        await self.superrag_service.adelete(datasource)
-        await self._delete_superrag_tool(assistant, datasource)
+        tool = await self.agent_manager.get_tool(
+            assistant,
+            {
+                "name": datasource.get("name"),
+            },
+        )
+        tool_metadata = json.loads(tool.metadata)
+
+        await self._delete_tool(assistant, tool)
+        await self.superrag_service.adelete(
+            {
+                **datasource,
+                "index_name": tool_metadata.get("index_name"),
+            }
+        )

@@ -110,4 +110,4 @@ class DataTransformer:
 
                 remove_key_if_present(datasource, "database_provider")
 
-            datasource["index_name"] = datasource_name
+            datasource["name"] = datasource_name

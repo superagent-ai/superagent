@@ -26,13 +26,13 @@ logger = logging.getLogger(__name__)
 class SuperagentDataProcessor(BaseProcessor):
     async def _process_datasource(
         self,
-        old_item,
-        new_item,
+        old_datasource,
+        new_datasource,
         old_datasource_manager: BaseApiDatasourceManager,
         new_datasource_manager: BaseApiDatasourceManager,
     ):
-        old_datasource_name, old_datasource = old_item or (None, None)
-        new_datasource_name, new_datasource = new_item or (None, None)
+        old_datasource_name = old_datasource.get("name")
+        new_datasource_name = new_datasource.get("name")
 
         if old_datasource_name and new_datasource_name:
             changes = compare_dicts(old_datasource, new_datasource)
@@ -84,8 +84,8 @@ class SuperagentDataProcessor(BaseProcessor):
         new_items = new_data.items()
 
         for old_item, new_item in zip_longest(old_items, new_items):
-            old_datasource_name, old_datasource = old_item or (None, {})
-            new_datasource_name, new_datasource = new_item or (None, {})
+            _, old_datasource = old_item or (None, {})
+            _, new_datasource = new_item or (None, {})
 
             new_datasource_manager = self._get_datasource_manager(
                 new_datasource.get("flags")
@@ -95,8 +95,8 @@ class SuperagentDataProcessor(BaseProcessor):
             )
 
             await self._process_datasource(
-                old_item=(old_datasource_name, old_datasource),
-                new_item=(new_datasource_name, new_datasource),
+                old_datasource=old_datasource,
+                new_datasource=new_datasource,
                 old_datasource_manager=old_datasource_manager,
                 new_datasource_manager=new_datasource_manager,
             )
