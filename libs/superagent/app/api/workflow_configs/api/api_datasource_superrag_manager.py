@@ -120,7 +120,7 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
         )
         tool_metadata = json.loads(tool.metadata)
 
-        await self._delete_tool(assistant, tool)
+        await self._delete_tool(assistant, datasource)
         await self.superrag_service.adelete(
             {
                 **datasource,

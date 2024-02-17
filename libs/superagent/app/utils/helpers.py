@@ -118,3 +118,7 @@ def get_superrag_compatible_credentials(credentials: dict):
             superrag_credentials[new_key] = value
 
     return superrag_credentials
+
+
+def get_first_key(dictionary) -> str | None:
+    return next(iter(dictionary)) if dictionary else None

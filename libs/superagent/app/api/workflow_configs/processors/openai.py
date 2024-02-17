@@ -1,6 +1,6 @@
 from app.api.agents import OpenAIAssistantSdk
 from app.api.workflow_configs.processors.base import BaseProcessor
-from app.api.workflow_configs.processors.utils import get_first_key
+from app.utils.helpers import get_first_key
 from app.utils.prisma import prisma
 
 

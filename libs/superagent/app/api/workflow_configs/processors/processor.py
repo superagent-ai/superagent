@@ -9,6 +9,7 @@ from .openai import (
 from .superagent import (
     SuperagentDataProcessor,
     SuperagentToolProcessor,
+    SuperragDataProcessor,
 )
 
 
@@ -26,3 +27,6 @@ class Processor:
         if assistant.get("type") == AgentType.OPENAI_ASSISTANT:
             return OpenaiToolProcessor(assistant, self.api_manager, self.api_user)
         return SuperagentToolProcessor(assistant, self.api_manager, self.api_user)
+
+    def get_superrag_processor(self, assistant: dict) -> BaseProcessor:
+        return SuperragDataProcessor(assistant, self.api_manager, self.api_user)

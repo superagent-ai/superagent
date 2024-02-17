@@ -4,102 +4,98 @@ from itertools import zip_longest
 from app.api.workflow_configs.api.api_agent_tool_manager import (
     ApiAgentToolManager,
 )
-from app.api.workflow_configs.api.api_datasource_manager import ApiDatasourceManager
 from app.api.workflow_configs.api.api_datasource_superrag_manager import (
     ApiDatasourceSuperRagManager,
 )
 from app.api.workflow_configs.api.api_manager import ApiManager
-from app.api.workflow_configs.api.base import BaseApiDatasourceManager
 from app.api.workflow_configs.processors.base import BaseProcessor
 from app.utils.helpers import (
+    MIME_TYPE_TO_EXTENSION,
     compare_dicts,
+    get_first_key,
+    get_mimetype_from_url,
 )
 
 from .utils import (
     check_is_agent_tool,
-    get_first_key,
 )
 
 logger = logging.getLogger(__name__)
 
 
-class SuperagentDataProcessor(BaseProcessor):
-    async def _process_datasource(
-        self,
-        old_datasource,
-        new_datasource,
-        old_datasource_manager: BaseApiDatasourceManager,
-        new_datasource_manager: BaseApiDatasourceManager,
-    ):
-        old_datasource_name = old_datasource.get("name")
-        new_datasource_name = new_datasource.get("name")
+class SuperragDataProcessor(BaseProcessor):
+    async def process(self, old_data, new_data):
+        datasource_manager = ApiDatasourceSuperRagManager(
+            self.api_user, self.api_manager.agent_manager
+        )
+        for old_obj, new_obj in zip_longest(old_data, new_data, fillvalue={}):
+            old_node_name = get_first_key(old_obj)
+            new_node_name = get_first_key(new_obj)
 
-        if old_datasource_name and new_datasource_name:
-            changes = compare_dicts(old_datasource, new_datasource)
-            if changes:
-                await old_datasource_manager.delete_datasource(
+            old_datasource = old_obj.get(old_node_name, {})
+            new_datasource = new_obj.get(new_node_name, {})
+
+            old_datasource_name = old_datasource.get("name")
+            new_datasource_name = new_datasource.get("name")
+
+            if old_datasource_name and new_datasource_name:
+                changes = compare_dicts(old_datasource, new_datasource)
+                if changes:
+                    await datasource_manager.delete_datasource(
+                        self.assistant,
+                        old_datasource,
+                    )
+                    await datasource_manager.add_datasource(
+                        self.assistant,
+                        new_datasource,
+                    )
+
+            elif old_datasource_name and not new_datasource_name:
+                await datasource_manager.delete_datasource(
                     self.assistant,
                     old_datasource,
                 )
-                await new_datasource_manager.add_datasource(
+            elif new_datasource_name and not old_datasource_name:
+                await datasource_manager.add_datasource(
                     self.assistant,
                     new_datasource,
                 )
 
-        elif old_datasource_name and not new_datasource_name:
-            await old_datasource_manager.delete_datasource(
-                self.assistant,
-                old_datasource,
-            )
-        elif new_datasource_name and not old_datasource_name:
-            await new_datasource_manager.add_datasource(
-                self.assistant,
-                new_datasource,
-            )
 
-    def _get_datasource_manager(self, flags: dict | None):
-        flags = flags or {}
-        if flags.get("superrag") is True:
-            logger.info(
-                "Processing datasource using Super RAG",
-            )
-            return ApiDatasourceSuperRagManager(
-                self.api_manager.api_user,
-                self.api_manager.agent_manager,
-            )
-        else:
-            logger.info(
-                "Processing datasource using Naive RAG",
-            )
-            return ApiDatasourceManager(
-                self.api_manager.api_user,
-                self.api_manager.agent_manager,
-            )
-
+class SuperagentDataProcessor(BaseProcessor):
     async def process(self, old_data, new_data):
-        old_data = old_data or {}
-        new_data = new_data or {}
+        old_urls = old_data.get("urls") or []
+        new_urls = new_data.get("urls") or []
 
-        old_items = old_data.items()
-        new_items = new_data.items()
+        # Process data URLs changes
+        for url in set(old_urls) | set(new_urls):
+            type = get_mimetype_from_url(url)
 
-        for old_item, new_item in zip_longest(old_items, new_items):
-            _, old_datasource = old_item or (None, {})
-            _, new_datasource = new_item or (None, {})
+            use_for = new_data.get("use_for") or old_data.get("use_for") or ""
 
-            new_datasource_manager = self._get_datasource_manager(
-                new_datasource.get("flags")
-            )
-            old_datasource_manager = self._get_datasource_manager(
-                old_datasource.get("flags")
-            )
+            datasource_name = f"{MIME_TYPE_TO_EXTENSION[type]} doc {use_for}"
 
-            await self._process_datasource(
-                old_datasource=old_datasource,
-                new_datasource=new_datasource,
-                old_datasource_manager=old_datasource_manager,
-                new_datasource_manager=new_datasource_manager,
-            )
+            if url in old_urls and url not in new_urls:
+                # TODO: find a better way to deciding which datasource to delete
+                await self.api_manager.delete_datasource(
+                    assistant=self.assistant,
+                    datasource={
+                        "name": datasource_name,
+                    },
+                )
+
+            elif url in new_urls and url not in old_urls:
+                if type in MIME_TYPE_TO_EXTENSION:
+                    await self.api_manager.add_datasource(
+                        self.assistant,
+                        data={
+                            # TODO: this will be changed once we implement superrag
+                            "name": datasource_name,
+                            "description": new_data.get("use_for"),
+                            "url": url,
+                            "type": MIME_TYPE_TO_EXTENSION[type],
+                        },
+                    )
 
 
 class SuperagentToolProcessor(BaseProcessor):

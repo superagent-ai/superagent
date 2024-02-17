@@ -3,6 +3,7 @@ import logging
 from app.api.workflow_configs.api.api_manager import ApiManager
 from app.utils.helpers import (
     MIME_TYPE_TO_EXTENSION,
+    get_first_key,
     get_mimetype_from_url,
     get_superrag_compatible_credentials,
     remove_key_if_present,
@@ -10,7 +11,7 @@ from app.utils.helpers import (
 )
 from app.utils.llm import LLM_REVERSE_MAPPING, get_llm_provider
 
-from .saml_schema import WorkflowDatasource, WorkflowTool
+from .saml_schema import WorkflowSuperRag, WorkflowTool
 
 logger = logging.getLogger(__name__)
 
@@ -63,8 +64,13 @@ class DataTransformer:
         if assistant.get("type") == "LLM":
             remove_key_if_present(assistant, "llmModel")
 
-    async def transform_data(self, data: dict[str, WorkflowDatasource]):
-        for datasource_name, datasource in data.items():
+    async def transform_superrag_data(
+        self, superrag_data: list[dict[str, WorkflowSuperRag]]
+    ):
+        for superrag_obj in superrag_data:
+            node_name = get_first_key(superrag_obj)
+            datasource = superrag_obj.get(node_name, {})
+
             rename_and_remove_keys(datasource, {"use_for": "description"})
 
             files = []
@@ -109,5 +115,3 @@ class DataTransformer:
                     )
 
                 remove_key_if_present(datasource, "database_provider")
-
-            datasource["name"] = datasource_name
