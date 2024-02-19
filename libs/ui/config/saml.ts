@@ -94,6 +94,39 @@ export const yamlJsonSchema = {
         intro: { type: "string" },
       },
     },
+    agent: {
+      allOf: [{ $ref: "#/definitions/assistant" }],
+      properties: {
+        tools: {
+          $ref: "#/definitions/tools",
+        },
+        data: {
+          $ref: "#/definitions/data",
+        },
+        superrag: {
+          $ref: "#/definitions/superrag",
+        },
+      },
+    },
+    superrag: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          index: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              urls: {
+                type: "array",
+                items: { type: "string" },
+              },
+              use_for: { type: "string" },
+            },
+          },
+        },
+      },
+    },
     tools: {
       type: "array",
       items: {
@@ -147,17 +180,7 @@ export const yamlJsonSchema = {
         use_for: { type: "string" },
       },
     },
-    agent: {
-      allOf: [{ $ref: "#/definitions/assistant" }],
-      properties: {
-        tools: {
-          $ref: "#/definitions/tools",
-        },
-        data: {
-          $ref: "#/definitions/data",
-        },
-      },
-    },
+
     tool: {
       type: "object",
       properties: {
