@@ -1,3 +1,4 @@
+import json
 import logging
 from itertools import zip_longest
 
@@ -39,8 +40,8 @@ class SuperragDataProcessor(BaseProcessor):
             new_datasource_name = new_datasource.get("name")
 
             if old_datasource_name and new_datasource_name:
-                changes = compare_dicts(old_datasource, new_datasource)
-                if changes:
+                is_changed = json.dumps(old_datasource) != json.dumps(new_datasource)
+                if is_changed:
                     await datasource_manager.delete_datasource(
                         self.assistant,
                         old_datasource,

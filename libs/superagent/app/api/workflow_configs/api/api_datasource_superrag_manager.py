@@ -1,6 +1,8 @@
 import json
 import logging
+import random
 import re
+import string
 
 from app.api.agents import (
     add_tool as api_add_agent_tool,
@@ -25,6 +27,11 @@ from prisma.enums import ToolType
 from services.superrag import SuperRagService
 
 logger = logging.getLogger(__name__)
+
+
+def random_id(k: int):
+    alphabet = string.ascii_lowercase + string.digits
+    return "".join(random.choices(alphabet, k=k))
 
 
 class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
@@ -74,13 +81,12 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
             **data,
             "type": ToolType.SUPERRAG.value,
             "metadata": {
-                "index_name": data.get("index_name"),
+                **data.get("metadata", {}),
                 "vector_database": {
-                    "type": data.get("vector_database", {}).get("type")
+                    "index_name": data.get("index_name"),
+                    "type": data.get("vector_database", {}).get("type"),
                 },
-                "encoder": data.get("encoder"),
             },
-            "name": data.get("name"),
         }
 
         await self._add_tool(assistant, new_tool)
@@ -99,11 +105,10 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
 
     async def _get_unique_index_name(self, datasource: dict, assistant: dict):
         datasource_name = datasource.get("name")
-        assistant = await self.agent_manager.get_assistant(assistant)
-        unique_name = f"{datasource_name}-{assistant.id}"
+        unique_name = f"{datasource_name}-{random_id(8)}"
         unique_name = re.sub(r"[^a-zA-Z0-9-]", "", unique_name)
 
-        return unique_name[:32]
+        return unique_name
 
     async def add_datasource(self, assistant: dict, data: dict):
         data["index_name"] = await self._get_unique_index_name(data, assistant)
@@ -118,12 +123,15 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
                 "name": datasource.get("name"),
             },
         )
-        tool_metadata = json.loads(tool.metadata)
+        if tool.metadata:
+            tool_metadata = json.loads(tool.metadata)
 
-        await self._delete_tool(assistant, datasource)
-        await self.superrag_service.adelete(
-            {
-                **datasource,
-                "index_name": tool_metadata.get("index_name"),
-            }
-        )
+            await self._delete_tool(assistant, datasource)
+            await self.superrag_service.adelete(
+                {
+                    **datasource,
+                    "index_name": tool_metadata.get("vector_database", {}).get(
+                        "index_name"
+                    ),
+                }
+            )

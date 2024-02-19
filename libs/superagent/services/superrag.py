@@ -4,14 +4,6 @@ import aiohttp
 import requests
 from decouple import config
 
-ENCODER = {
-    "encoder": {
-        "type": "openai",
-        "name": "text-embedding-3-small",
-        "dimensions": 1536,
-    }
-}
-
 
 class SuperRagService:
     def __init__(self, url: Optional[str] = None):
@@ -31,10 +23,18 @@ class SuperRagService:
         return requests.request(method, f"{self.url}/{endpoint}", json=data).json()
 
     async def aingest(self, data):
-        return await self._arequest("POST", "ingest", {**data, **ENCODER})
+        return await self._arequest(
+            "POST",
+            "ingest",
+            data,
+        )
 
     async def adelete(self, data):
         return await self._arequest("DELETE", "delete", data)
 
     def query(self, data):
-        return self._request("POST", "query", {**data, **ENCODER})
+        return self._request(
+            "POST",
+            "query",
+            data,
+        )

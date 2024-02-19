@@ -161,3 +161,10 @@ class ApiManager:
                 "apiUserId": self.api_user.id,
             }
         )
+
+    def get_vector_database_by_user_id(self):
+        return prisma.vectordb.find_first(
+            where={
+                "apiUserId": self.api_user.id,
+            }
+        )
