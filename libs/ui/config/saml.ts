@@ -6,13 +6,13 @@ export const initialSamlValue = `# 👋 Welcome! Start creating your workflows u
 workflows:
   - superagent:
       llm: gpt-4-1106-preview
+      name: Earnings assistant
+      intro: 👋 Hi there! How can I help you?
+      prompt: Use the earnings report to answer any questions
       data:
         urls:
           - https://s2.q4cdn.com/299287126/files/doc_financials/2023/q3/AMZN-Q3-2023-Earnings-Release.pdf
         use_for: Answering questions about earning report
-      name: Earnings assistant
-      intro: 👋 Hi there! How can I help you?
-      prompt: Use the earnings report to answer any questions
 `
 
 export const exampleConfigs = {

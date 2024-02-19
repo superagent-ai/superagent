@@ -47,5 +47,5 @@ class BaseApiDatasourceManager(ABC):
         pass
 
     @abstractmethod
-    async def delete_datasource(self, assistant: dict, data: dict):
+    async def delete_datasource(self, assistant: dict, datasource: dict):
         pass
