@@ -2,7 +2,6 @@ import logging
 
 from app.api.workflow_configs.api.api_manager import ApiManager
 from app.utils.helpers import (
-    MIME_TYPE_TO_EXTENSION,
     get_first_key,
     get_mimetype_from_url,
     get_superrag_compatible_credentials,
@@ -24,7 +23,21 @@ DEFAULT_ENCODER_OPTIONS = {
 }
 
 
+SUPERRAG_MIME_TYPE_TO_EXTENSION = {
+    "text/plain": "TXT",
+    "text/markdown": "MARKDOWN",
+    "application/pdf": "PDF",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "DOCX",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "XLSX",
+    "text/csv": "CSV",
+}
+
+
 class MissingVectorDatabaseProvider(Exception):
+    pass
+
+
+class UnkownFileType(Exception):
     pass
 
 
@@ -87,20 +100,24 @@ class DataTransformer:
 
             files = []
             for url in datasource.get("urls", []):
-                file_type = MIME_TYPE_TO_EXTENSION.get(get_mimetype_from_url(url))
+                try:
+                    file_type = SUPERRAG_MIME_TYPE_TO_EXTENSION[
+                        get_mimetype_from_url(url)
+                    ]
+                except KeyError:
+                    supported_file_types = ", ".join(
+                        value for value in SUPERRAG_MIME_TYPE_TO_EXTENSION.values()
+                    )
+                    raise UnkownFileType(
+                        f"Unknown file type for URL {url}. Supported file types are: {supported_file_types}"
+                    )
 
-                if file_type:
-                    files.append(
-                        {
-                            "type": file_type,
-                            "url": url,
-                        }
-                    )
-                else:
-                    # TODO: return error
-                    logger.warning(
-                        f"Could not determine file type for {url}. Skipping..."
-                    )
+                files.append(
+                    {
+                        "type": file_type,
+                        "url": url,
+                    }
+                )
 
             datasource["files"] = files
 

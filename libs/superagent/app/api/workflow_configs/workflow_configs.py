@@ -10,7 +10,10 @@ from pydantic import ValidationError
 
 from app.api.workflow_configs.api.api_agent_manager import ApiAgentManager
 from app.api.workflow_configs.api.api_manager import ApiManager
-from app.api.workflow_configs.data_transformer import MissingVectorDatabaseProvider
+from app.api.workflow_configs.data_transformer import (
+    MissingVectorDatabaseProvider,
+    UnkownFileType,
+)
 from app.utils.api import get_current_api_user
 from app.utils.prisma import prisma
 
@@ -45,6 +48,7 @@ async def add_config(
         try:
             new_config = WorkflowConfig(**parsed_yaml).dict()
         except ValidationError as e:
+            logger.exception(e)
             errors = e.errors()
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -66,7 +70,7 @@ async def add_config(
 
         try:
             await processor.process_assistants(old_config, new_config)
-        except MissingVectorDatabaseProvider as e:
+        except (MissingVectorDatabaseProvider, UnkownFileType) as e:
             logger.exception(e)
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
