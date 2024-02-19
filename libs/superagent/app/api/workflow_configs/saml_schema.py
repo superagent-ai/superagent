@@ -1,6 +1,6 @@
 from typing import Any, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 
 class WorkflowDatasource(BaseModel):
@@ -8,10 +8,25 @@ class WorkflowDatasource(BaseModel):
     urls: Optional[list[str]]
 
 
+class WorkflowSuperRagEncoder(BaseModel):
+    type: str
+    name: str
+    dimensions: int
+
+
 class WorkflowSuperRag(WorkflowDatasource):
-    database_provider: Optional[str]  # for superrag
-    encoder: Optional[str]  # for superrag
-    name: Optional[str]  # for superrag
+    database_provider: Optional[str]
+    encoder: Optional[WorkflowSuperRagEncoder]
+    name: Optional[str]
+
+    @validator("name")
+    def name_too_long(v):
+        MAX_LENGTH = 24
+        if len(v) > MAX_LENGTH:
+            raise ValueError(
+                f'SuperRag\'s "name" field should be less than {MAX_LENGTH} characters'
+            )
+        return v
 
 
 class WorkflowTool(BaseModel):
