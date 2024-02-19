@@ -16,6 +16,17 @@ from .saml_schema import WorkflowSuperRag, WorkflowTool
 logger = logging.getLogger(__name__)
 
 
+DEFAULT_ENCODER_OPTIONS = {
+    "type": "openai",
+    "name": "text-embedding-3-small",
+    "dimensions": 1536,
+}
+
+
+class MissingVectorDatabaseProvider(Exception):
+    pass
+
+
 class DataTransformer:
     def __init__(self, api_user, api_manager: ApiManager):
         self.api_user = api_user
@@ -98,20 +109,21 @@ class DataTransformer:
                 provider = await self.api_manager.get_vector_database_by_provider(
                     database_provider
                 )
+            else:
+                provider = await self.api_manager.get_vector_database_by_user_id()
 
-                # this is for superrag
-                if provider:
-                    credentials = get_superrag_compatible_credentials(provider.options)
-                    datasource["vector_database"] = {
-                        "type": database_provider,
-                        "config": credentials,
-                    }
-                else:
-                    logger.warning(
-                        (
-                            "Could not find vector database for provider:",
-                            f"{database_provider}. Skipping...",
-                        )
-                    )
+            # this is for superrag
+            if provider:
+                credentials = get_superrag_compatible_credentials(provider.options)
+                datasource["vector_database"] = {
+                    "type": database_provider,
+                    "config": credentials,
+                }
+            else:
+                raise MissingVectorDatabaseProvider(
+                    "No compatible vector database found. "
+                    "Please ensure that the provider is correctly configured and supported."
+                )
+            remove_key_if_present(datasource, "database_provider")
 
-                remove_key_if_present(datasource, "database_provider")
+            datasource["encoder"] = datasource.get("encoder", DEFAULT_ENCODER_OPTIONS)
