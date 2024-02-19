@@ -4,7 +4,7 @@ from langchain_community.tools import BaseTool
 
 from app.utils.helpers import get_superrag_compatible_credentials
 from app.utils.prisma import prisma
-from app.vectorstores.base import vector_db_mapping
+from app.vectorstores.base import VECTOR_DB_MAPPING
 from services.superrag import SuperRagService
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class SuperRagTool(BaseTool):
 
         provider = await prisma.vectordb.find_first(
             where={
-                "provider": vector_db_mapping.get(database_provider),
+                "provider": VECTOR_DB_MAPPING.get(database_provider),
                 "apiUserId": api_user_id,
             }
         )

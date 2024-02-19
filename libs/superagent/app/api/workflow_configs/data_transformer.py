@@ -10,6 +10,7 @@ from app.utils.helpers import (
     rename_and_remove_keys,
 )
 from app.utils.llm import LLM_REVERSE_MAPPING, get_llm_provider
+from app.vectorstores.base import REVERSE_VECTOR_DB_MAPPING
 
 from .saml_schema import WorkflowSuperRag, WorkflowTool
 
@@ -96,6 +97,7 @@ class DataTransformer:
                         }
                     )
                 else:
+                    # TODO: return error
                     logger.warning(
                         f"Could not determine file type for {url}. Skipping..."
                     )
@@ -106,15 +108,15 @@ class DataTransformer:
 
             database_provider = datasource.get("database_provider")
             if database_provider:
-                provider = await self.api_manager.get_vector_database_by_provider(
+                database = await self.api_manager.get_vector_database_by_provider(
                     database_provider
                 )
             else:
-                provider = await self.api_manager.get_vector_database_by_user_id()
-
+                database = await self.api_manager.get_vector_database_by_user_id()
             # this is for superrag
-            if provider:
-                credentials = get_superrag_compatible_credentials(provider.options)
+            if database:
+                database_provider = REVERSE_VECTOR_DB_MAPPING.get(database.provider)
+                credentials = get_superrag_compatible_credentials(database.options)
                 datasource["vector_database"] = {
                     "type": database_provider,
                     "config": credentials,
@@ -124,6 +126,6 @@ class DataTransformer:
                     "No compatible vector database found. "
                     "Please ensure that the provider is correctly configured and supported."
                 )
-            remove_key_if_present(datasource, "database_provider")
 
-            datasource["encoder"] = datasource.get("encoder", DEFAULT_ENCODER_OPTIONS)
+            remove_key_if_present(datasource, "database_provider")
+            datasource["encoder"] = datasource.get("encoder") or DEFAULT_ENCODER_OPTIONS

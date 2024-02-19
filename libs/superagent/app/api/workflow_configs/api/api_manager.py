@@ -37,7 +37,7 @@ from app.models.request import (
     ToolUpdate as ToolUpdateRequest,
 )
 from app.utils.prisma import prisma
-from app.vectorstores.base import vector_db_mapping
+from app.vectorstores.base import VECTOR_DB_MAPPING
 
 from .base import BaseApiAgentManager
 
@@ -157,7 +157,7 @@ class ApiManager:
     def get_vector_database_by_provider(self, provider: str):
         return prisma.vectordb.find_first(
             where={
-                "provider": vector_db_mapping.get(provider),
+                "provider": VECTOR_DB_MAPPING.get(provider),
                 "apiUserId": self.api_user.id,
             }
         )

@@ -82,10 +82,11 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
             "type": ToolType.SUPERRAG.value,
             "metadata": {
                 **data.get("metadata", {}),
+                "index_name": data.get("index_name"),
                 "vector_database": {
-                    "index_name": data.get("index_name"),
                     "type": data.get("vector_database", {}).get("type"),
                 },
+                "encoder": data.get("encoder"),
             },
         }
 
@@ -114,6 +115,7 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
         data["index_name"] = await self._get_unique_index_name(data, assistant)
 
         await self._add_superrag_tool(assistant, data)
+        print("data", data)
         await self.superrag_service.aingest(data=data)
 
     async def delete_datasource(self, assistant: dict, datasource: dict):
@@ -123,15 +125,13 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
                 "name": datasource.get("name"),
             },
         )
-        if tool.metadata:
+        if tool and tool.metadata:
             tool_metadata = json.loads(tool.metadata)
 
             await self._delete_tool(assistant, datasource)
             await self.superrag_service.adelete(
                 {
                     **datasource,
-                    "index_name": tool_metadata.get("vector_database", {}).get(
-                        "index_name"
-                    ),
+                    "index_name": tool_metadata.get("index_name"),
                 }
             )
