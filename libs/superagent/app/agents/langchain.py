@@ -97,7 +97,7 @@ class LangchainAgent(AgentBase):
             )
             tools.append(tool)
         for agent_tool in agent_tools:
-            agent_tool_metadata = json.loads(agent_tool.tool.metadata)
+            agent_tool_metadata = json.loads(agent_tool.tool.metadata or "{}")
 
             # user id is added to the metadata for superrag tool
             agent_tool_metadata = {
