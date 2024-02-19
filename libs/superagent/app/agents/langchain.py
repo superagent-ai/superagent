@@ -6,7 +6,11 @@ from typing import Any, List
 from decouple import config
 from langchain.agents import AgentType, initialize_agent
 from langchain.chains import LLMChain
-from langchain.memory.motorhead_memory import MotorheadMemory
+from langchain.memory import (
+    ConversationBufferWindowMemory,
+    MotorheadMemory,
+    RedisChatMessageHistory,
+)
 from langchain.prompts import MessagesPlaceholder, PromptTemplate
 from langchain.schema import SystemMessage
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
@@ -181,18 +185,36 @@ class LangchainAgent(AgentBase):
         return SystemMessage(content=content)
 
     async def _get_memory(self) -> List:
-        memory = MotorheadMemory(
-            session_id=(
-                f"{self.agent_id}-{self.session_id}"
-                if self.session_id
-                else f"{self.agent_id}"
-            ),
-            memory_key="chat_history",
-            url=config("MEMORY_API_URL"),
-            return_messages=True,
-            output_key="output",
-        )
-        await memory.init()
+        memory_type = config("MEMORY", "motorhead")
+        if memory_type == "redis":
+            memory = ConversationBufferWindowMemory(
+                chat_memory=RedisChatMessageHistory(
+                    session_id=(
+                        f"{self.agent_id}-{self.session_id}"
+                        if self.session_id
+                        else f"{self.agent_id}"
+                    ),
+                    url=config("REDIS_URL", "redis://localhost:6379/0"),
+                    key_prefix="superagent:",
+                ),
+                memory_key="chat_history",
+                return_messages=True,
+                output_key="output",
+                k=config("REDIS_MEMORY_WINDOW", 10),
+            )
+        else:
+            memory = MotorheadMemory(
+                session_id=(
+                    f"{self.agent_id}-{self.session_id}"
+                    if self.session_id
+                    else f"{self.agent_id}"
+                ),
+                memory_key="chat_history",
+                url=config("MEMORY_API_URL"),
+                return_messages=True,
+                output_key="output",
+            )
+            await memory.init()
         return memory
 
     async def get_agent(self):
