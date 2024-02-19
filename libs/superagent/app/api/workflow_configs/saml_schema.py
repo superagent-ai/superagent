@@ -1,17 +1,38 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 
 class WorkflowDatasource(BaseModel):
     use_for: Optional[str]  # an alias for description
-    urls: Optional[List[str]]
+    urls: Optional[list[str]]
+
+
+class WorkflowSuperRagEncoder(BaseModel):
+    type: str
+    name: str
+    dimensions: int
+
+
+class WorkflowSuperRag(WorkflowDatasource):
+    database_provider: Optional[str]
+    encoder: Optional[WorkflowSuperRagEncoder]
+    name: Optional[str]
+
+    @validator("name")
+    def name_too_long(v):
+        MAX_LENGTH = 24
+        if len(v) > MAX_LENGTH:
+            raise ValueError(
+                f'SuperRag\'s "name" field should be less than {MAX_LENGTH} characters'
+            )
+        return v
 
 
 class WorkflowTool(BaseModel):
     name: str
     use_for: str  # an alias for description
-    metadata: Optional[Dict[Any, Any]]
+    metadata: Optional[dict[Any, Any]]
 
 
 class WorkflowAssistant(BaseModel):
@@ -20,8 +41,9 @@ class WorkflowAssistant(BaseModel):
     prompt: str
     intro: Optional[str]  # an alias for initialMessage
 
-    tools: Optional[List[Dict[str, WorkflowTool]]]
+    tools: Optional[list[dict[str, WorkflowTool]]]
     data: Optional[WorkflowDatasource]
+    superrag: Optional[list[dict[str, WorkflowSuperRag]]]
 
 
 class WorkflowAssistantAsTool(WorkflowAssistant):
@@ -29,8 +51,8 @@ class WorkflowAssistantAsTool(WorkflowAssistant):
 
 
 class NestedWorkflowAssistant(WorkflowAssistant):
-    tools: Optional[List[Dict[str, Union[WorkflowAssistantAsTool, WorkflowTool]]]]
+    tools: Optional[list[dict[str, Union[WorkflowAssistantAsTool, WorkflowTool]]]]
 
 
 class WorkflowConfig(BaseModel):
-    workflows: List[Dict[str, NestedWorkflowAssistant]]
+    workflows: list[dict[str, NestedWorkflowAssistant]]

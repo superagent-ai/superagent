@@ -1,4 +1,3 @@
-import json
 import logging
 from enum import Enum
 from typing import Any, Dict, Optional, Type
@@ -21,6 +20,7 @@ from app.models.tools import (
     OpenapiInput,
     PubMedInput,
     ReplicateInput,
+    SuperRagInput,
     TTS1Input,
     WolframInput,
     ZapierInput,
@@ -41,6 +41,7 @@ from app.tools.metaphor import MetaphorSearch
 from app.tools.openapi import Openapi
 from app.tools.pubmed import PubMed
 from app.tools.replicate import Replicate
+from app.tools.superrag import SuperRagTool
 from app.tools.tts_1 import TTS1
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
@@ -73,6 +74,7 @@ TOOL_TYPE_MAPPING = {
     "HAND_OFF": {"class": HandOff, "schema": HandOffInput},
     "FUNCTION": {"class": Function, "schema": FunctionInput},
     "HTTP": {"class": LCHttpTool, "schema": HTTPInput},
+    "SUPERRAG": {"class": SuperRagTool, "schema": SuperRagInput},
 }
 
 OSS_TOOL_TYPE_MAPPING = {"BROWSER": Browser, "BING_SEARCH": BingSearch}
@@ -113,7 +115,6 @@ def create_tool(
     session_id: str = None,
 ) -> Any:
     if metadata:
-        metadata = json.loads(metadata)
         metadata["sessionId"] = session_id
     return tool_class(
         name=name,

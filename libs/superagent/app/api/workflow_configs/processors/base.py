@@ -8,9 +8,11 @@ class BaseProcessor(ABC):
         self,
         assistant: dict,
         api_manager: ApiManager,
+        api_user,
     ):
         self.assistant = assistant
         self.api_manager = api_manager
+        self.api_user = api_user
 
     @abstractmethod
     async def process(self, old_data, new_data):

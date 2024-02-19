@@ -1,26 +1,73 @@
+import logging
 from itertools import zip_longest
 
 from app.api.workflow_configs.api.api_agent_tool_manager import (
     ApiAgentToolManager,
+)
+from app.api.workflow_configs.api.api_datasource_superrag_manager import (
+    ApiDatasourceSuperRagManager,
 )
 from app.api.workflow_configs.api.api_manager import ApiManager
 from app.api.workflow_configs.processors.base import BaseProcessor
 from app.utils.helpers import (
     MIME_TYPE_TO_EXTENSION,
     compare_dicts,
+    get_first_key,
     get_mimetype_from_url,
 )
 
 from .utils import (
     check_is_agent_tool,
-    get_first_key,
 )
+
+logger = logging.getLogger(__name__)
+
+
+class SuperragDataProcessor(BaseProcessor):
+    async def process(self, old_data, new_data):
+        datasource_manager = ApiDatasourceSuperRagManager(
+            self.api_user, self.api_manager.agent_manager
+        )
+        for old_obj, new_obj in zip_longest(old_data, new_data, fillvalue={}):
+            old_node_name = get_first_key(old_obj)
+            new_node_name = get_first_key(new_obj)
+
+            old_datasource = old_obj.get(old_node_name, {})
+            new_datasource = new_obj.get(new_node_name, {})
+
+            old_datasource_name = old_datasource.get("name")
+            new_datasource_name = new_datasource.get("name")
+
+            if old_datasource_name and new_datasource_name:
+                is_changed = compare_dicts(old_datasource, new_datasource)
+
+                if is_changed:
+                    await datasource_manager.delete_datasource(
+                        self.assistant,
+                        old_datasource,
+                    )
+                    await datasource_manager.add_datasource(
+                        self.assistant,
+                        new_datasource,
+                    )
+
+            elif old_datasource_name and not new_datasource_name:
+                await datasource_manager.delete_datasource(
+                    self.assistant,
+                    old_datasource,
+                )
+            elif new_datasource_name and not old_datasource_name:
+                await datasource_manager.add_datasource(
+                    self.assistant,
+                    new_datasource,
+                )
 
 
 class SuperagentDataProcessor(BaseProcessor):
     async def process(self, old_data, new_data):
         old_urls = old_data.get("urls") or []
         new_urls = new_data.get("urls") or []
+
         # Process data URLs changes
         for url in set(old_urls) | set(new_urls):
             type = get_mimetype_from_url(url)

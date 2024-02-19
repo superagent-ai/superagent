@@ -2,8 +2,7 @@ from itertools import zip_longest
 
 from app.api.workflow_configs.api.api_manager import ApiManager
 from app.api.workflow_configs.processors.processor import Processor
-from app.api.workflow_configs.processors.utils import get_first_key
-from app.utils.helpers import compare_dicts
+from app.utils.helpers import compare_dicts, get_first_key
 
 from ..data_transformer import DataTransformer
 
@@ -29,10 +28,13 @@ class AgentProcessor:
         old_data = old_assistant.get("data") or {}
         new_data = new_assistant.get("data") or {}
 
+        old_superrag_data = old_assistant.get("superrag") or []
+        new_superrag_data = new_assistant.get("superrag") or []
+
         old_tools = old_assistant.get("tools") or []
         new_tools = new_assistant.get("tools") or []
 
-        dt = DataTransformer()
+        dt = DataTransformer(api_user=self.api_user, api_manager=self.api_manager)
         dt.transform_assistant(new_assistant, new_type)
         dt.transform_assistant(old_assistant, old_type)
 
@@ -48,6 +50,9 @@ class AgentProcessor:
 
             dt.transform_tool(tool, tool_type)
 
+        await dt.transform_superrag_data(old_superrag_data)
+        await dt.transform_superrag_data(new_superrag_data)
+
         if old_assistant:
             old_tool_processor = Processor(
                 self.api_user, self.api_manager
@@ -55,6 +60,9 @@ class AgentProcessor:
             old_data_processor = Processor(
                 self.api_user, self.api_manager
             ).get_data_processor(old_assistant)
+            old_superrag_processor = Processor(
+                self.api_user, self.api_manager
+            ).get_superrag_processor(old_assistant)
 
         if new_assistant:
             new_tool_processor = Processor(
@@ -64,12 +72,18 @@ class AgentProcessor:
             new_data_processor = Processor(
                 self.api_user, self.api_manager
             ).get_data_processor(new_assistant)
+
+            new_superrag_processor = Processor(
+                self.api_user, self.api_manager
+            ).get_superrag_processor(old_assistant)
+
         if old_type and new_type:
             if old_type != new_type:
                 # order matters here as we need process
                 # old data and tools first before deleting the assistant
                 await old_data_processor.process(old_data, {})
                 await old_tool_processor.process(old_tools, [])
+                await old_superrag_processor.process(old_superrag_data, [])
 
                 await self.api_manager.agent_manager.delete_assistant(
                     assistant=old_assistant,
@@ -81,6 +95,7 @@ class AgentProcessor:
                 # all tools and data should be re-created
                 await new_tool_processor.process([], new_tools)
                 await new_data_processor.process({}, new_data)
+                await new_superrag_processor.process([], new_superrag_data)
 
             else:
                 changes = compare_dicts(old_assistant, new_assistant)
@@ -91,10 +106,14 @@ class AgentProcessor:
                     )
                 await new_tool_processor.process(old_tools, new_tools)
                 await new_data_processor.process(old_data, new_data)
+                await new_superrag_processor.process(
+                    old_superrag_data, new_superrag_data
+                )
 
         elif old_type and not new_type:
             await old_tool_processor.process(old_tools, [])
             await old_data_processor.process(old_data, {})
+            await old_superrag_processor.process(old_superrag_data, {})
 
             await self.api_manager.agent_manager.delete_assistant(
                 assistant=old_assistant,
@@ -107,6 +126,7 @@ class AgentProcessor:
 
             await new_tool_processor.process([], new_tools)
             await new_data_processor.process({}, new_data)
+            await new_superrag_processor.process([], new_superrag_data)
 
         return new_agent
 

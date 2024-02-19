@@ -56,6 +56,7 @@ enum ToolType {
   HAND_OFF
   FUNCTION
   HTTP
+  SUPERRAG
 }
 
 enum DatasourceType {

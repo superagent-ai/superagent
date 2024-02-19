@@ -13,13 +13,16 @@ from app.vectorstores.supabase import SupabaseVectorStore
 from app.vectorstores.weaviate import WeaviateVectorStore
 from prisma.enums import VectorDbProvider
 
-vector_db_mapping = {
+# TODO: use the VectorDbProvider enum
+VECTOR_DB_MAPPING = {
     "pinecone": "PINECONE",
     "qdrant": "QDRANT",
     "astra": "ASTRA_DB",
     "weaviate": "WEAVIATE",
     "supabase": "SUPABASE",
 }
+
+REVERSE_VECTOR_DB_MAPPING = {v: k for k, v in VECTOR_DB_MAPPING.items()}
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +38,7 @@ class VectorStoreMain(VectorStoreBase):
             vector_db_provider,
             # config VECTORSTORE returns lowercase
             # vectorstore name (e.g. pinecone, astra)
-            vector_db_mapping.get(config("VECTORSTORE", None)),
+            VECTOR_DB_MAPPING.get(config("VECTORSTORE", None)),
             VectorDbProvider.PINECONE.value,
         )
         self.instance = self.get_database()
