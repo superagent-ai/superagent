@@ -36,6 +36,8 @@ from app.models.request import (
 from app.models.request import (
     ToolUpdate as ToolUpdateRequest,
 )
+from app.utils.prisma import prisma
+from app.vectorstores.base import VECTOR_DB_MAPPING
 
 from .base import BaseApiAgentManager
 
@@ -151,3 +153,18 @@ class ApiManager:
             logger.info(f"Added tool: {new_tool.name} - {assistant.name}")
         except Exception:
             logger.error(f"Error adding tool: {new_tool} - {assistant}")
+
+    def get_vector_database_by_provider(self, provider: str):
+        return prisma.vectordb.find_first(
+            where={
+                "provider": VECTOR_DB_MAPPING.get(provider),
+                "apiUserId": self.api_user.id,
+            }
+        )
+
+    def get_vector_database_by_user_id(self):
+        return prisma.vectordb.find_first(
+            where={
+                "apiUserId": self.api_user.id,
+            }
+        )

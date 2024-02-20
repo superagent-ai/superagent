@@ -70,19 +70,25 @@ export default function SAML({
     if (isSavingConfig) return
     setSavingConfig(true)
 
-    try {
-      await api.generateWorkflow(workflow.id, editorRef?.current?.getValue())
+    const res = await api.generateWorkflow(
+      workflow.id,
+      editorRef?.current?.getValue()
+    )
 
+    const data = await res.json()
+
+    if (!res.ok) {
+      const error = data?.error
+      toast({
+        title: "Something went wrong!",
+        description: error?.message,
+      })
+    } else {
       router.refresh()
       toast({
         title: "Config saved!",
       })
-    } catch (error) {
-      toast({
-        title: "Couldn't save config",
-      })
     }
-
     setSavingConfig(false)
   }, [isSavingConfig, workflow.id, router, toast, profile.api_key])
 

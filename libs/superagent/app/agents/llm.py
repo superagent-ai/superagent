@@ -9,7 +9,6 @@ class LLMAgent(AgentBase):
     async def get_agent(self):
         enable_streaming = self.enable_streaming
         agent_config = self.agent_config
-        print(agent_config)
 
         class CustomAgentExecutor:
             async def ainvoke(self, input, *_, **kwargs):

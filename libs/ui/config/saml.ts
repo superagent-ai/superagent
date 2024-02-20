@@ -4,15 +4,15 @@ export const initialSamlValue = `# 👋 Welcome! Start creating your workflows u
 # More info in our docs: https://docs.superagent.sh/overview/getting-started/super-agent-markup-language
 
 workflows:
-  - superagent: 
-      name: Earnings assistant
+  - superagent:
       llm: gpt-4-1106-preview
-      prompt: Use the earnings report to answer any questions
+      name: Earnings assistant
       intro: 👋 Hi there! How can I help you?
-      data: # This is for structured and unstructured data
-        use_for: Answering questions about earning reports
+      prompt: Use the earnings report to answer any questions
+      data:
         urls:
-          - "https://s2.q4cdn.com/299287126/files/doc_financials/2023/q3/AMZN-Q3-2023-Earnings-Release.pdf"
+          - https://s2.q4cdn.com/299287126/files/doc_financials/2023/q3/AMZN-Q3-2023-Earnings-Release.pdf
+        use_for: Answering questions about earning report
 `
 
 export const exampleConfigs = {
@@ -94,6 +94,39 @@ export const yamlJsonSchema = {
         intro: { type: "string" },
       },
     },
+    agent: {
+      allOf: [{ $ref: "#/definitions/assistant" }],
+      properties: {
+        tools: {
+          $ref: "#/definitions/tools",
+        },
+        data: {
+          $ref: "#/definitions/data",
+        },
+        superrag: {
+          $ref: "#/definitions/superrag",
+        },
+      },
+    },
+    superrag: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          index: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              urls: {
+                type: "array",
+                items: { type: "string" },
+              },
+              use_for: { type: "string" },
+            },
+          },
+        },
+      },
+    },
     tools: {
       type: "array",
       items: {
@@ -147,17 +180,7 @@ export const yamlJsonSchema = {
         use_for: { type: "string" },
       },
     },
-    agent: {
-      allOf: [{ $ref: "#/definitions/assistant" }],
-      properties: {
-        tools: {
-          $ref: "#/definitions/tools",
-        },
-        data: {
-          $ref: "#/definitions/data",
-        },
-      },
-    },
+
     tool: {
       type: "object",
       properties: {

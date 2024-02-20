@@ -12,6 +12,10 @@ class DatasourceInput(BaseModel):
     question: str
 
 
+class SuperRagInput(BaseModel):
+    question: str
+
+
 class BingSearchInput(BaseModel):
     search_query: str
 

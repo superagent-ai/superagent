@@ -6,7 +6,11 @@ from typing import Any, List
 from decouple import config
 from langchain.agents import AgentType, initialize_agent
 from langchain.chains import LLMChain
-from langchain.memory.motorhead_memory import MotorheadMemory
+from langchain.memory import (
+    ConversationBufferWindowMemory,
+    MotorheadMemory,
+    RedisChatMessageHistory,
+)
 from langchain.prompts import MessagesPlaceholder, PromptTemplate
 from langchain.schema import SystemMessage
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
@@ -97,9 +101,17 @@ class LangchainAgent(AgentBase):
             )
             tools.append(tool)
         for agent_tool in agent_tools:
+            agent_tool_metadata = json.loads(agent_tool.tool.metadata or "{}")
+
+            # user id is added to the metadata for superrag tool
+            agent_tool_metadata = {
+                "user_id": self.agent_config.apiUserId,
+                **agent_tool_metadata,
+            }
+
             tool_info = TOOL_TYPE_MAPPING.get(agent_tool.tool.type)
             if agent_tool.tool.type == "FUNCTION":
-                metadata = recursive_json_loads(agent_tool.tool.metadata)
+                metadata = recursive_json_loads(agent_tool_metadata)
                 args = metadata.get("args", {})
                 PydanticModel = create_pydantic_model_from_object(args)
                 tool = create_tool(
@@ -108,16 +120,17 @@ class LangchainAgent(AgentBase):
                         slugify(metadata.get("functionName", agent_tool.tool.name))
                     ),
                     description=agent_tool.tool.description,
-                    metadata=agent_tool.tool.metadata,
+                    metadata=metadata,
                     args_schema=PydanticModel,
                     return_direct=agent_tool.tool.returnDirect,
                 )
             else:
+                metadata = agent_tool_metadata
                 tool = create_tool(
                     tool_class=tool_info["class"],
                     name=conform_function_name(slugify(agent_tool.tool.name)),
                     description=agent_tool.tool.description,
-                    metadata=agent_tool.tool.metadata,
+                    metadata=metadata,
                     args_schema=tool_info["schema"],
                     session_id=(
                         f"{self.agent_id}-{self.session_id}"
@@ -181,18 +194,36 @@ class LangchainAgent(AgentBase):
         return SystemMessage(content=content)
 
     async def _get_memory(self) -> List:
-        memory = MotorheadMemory(
-            session_id=(
-                f"{self.agent_id}-{self.session_id}"
-                if self.session_id
-                else f"{self.agent_id}"
-            ),
-            memory_key="chat_history",
-            url=config("MEMORY_API_URL"),
-            return_messages=True,
-            output_key="output",
-        )
-        await memory.init()
+        memory_type = config("MEMORY", "motorhead")
+        if memory_type == "redis":
+            memory = ConversationBufferWindowMemory(
+                chat_memory=RedisChatMessageHistory(
+                    session_id=(
+                        f"{self.agent_id}-{self.session_id}"
+                        if self.session_id
+                        else f"{self.agent_id}"
+                    ),
+                    url=config("REDIS_MEMORY_URL", "redis://localhost:6379/0"),
+                    key_prefix="superagent:",
+                ),
+                memory_key="chat_history",
+                return_messages=True,
+                output_key="output",
+                k=config("REDIS_MEMORY_WINDOW", 10),
+            )
+        else:
+            memory = MotorheadMemory(
+                session_id=(
+                    f"{self.agent_id}-{self.session_id}"
+                    if self.session_id
+                    else f"{self.agent_id}"
+                ),
+                memory_key="chat_history",
+                url=config("MEMORY_API_URL"),
+                return_messages=True,
+                output_key="output",
+            )
+            await memory.init()
         return memory
 
     async def get_agent(self):

@@ -4,11 +4,17 @@ import logging
 import segment.analytics as analytics
 import yaml
 from decouple import config
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, status
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
 from app.api.workflow_configs.api.api_agent_manager import ApiAgentManager
 from app.api.workflow_configs.api.api_manager import ApiManager
-from app.utils.api import get_current_api_user, handle_exception
+from app.api.workflow_configs.data_transformer import (
+    MissingVectorDatabaseProvider,
+    UnkownFileType,
+)
+from app.utils.api import get_current_api_user
 from app.utils.prisma import prisma
 
 from .processors.agent_processor import AgentProcessor
@@ -33,11 +39,25 @@ async def add_config(
         )
         try:
             parsed_yaml = yaml.safe_load(yaml_content)
-            # validating the parsed yaml
-            new_config = WorkflowConfig(**parsed_yaml).dict()
         except yaml.YAMLError as e:
-            logger.error("Invalid YAML: ", e)
-            raise HTTPException(status_code=400, detail=f"Error parsing YAML: {str(e)}")
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"error": {"message": f"Invalid YAML format: {str(e)}"}},
+            )
+
+        try:
+            new_config = WorkflowConfig(**parsed_yaml).dict()
+        except ValidationError as e:
+            logger.exception(e)
+            errors = e.errors()
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={
+                    "error": {
+                        "message": errors[0]["msg"],
+                    },
+                },
+            )
 
         new_config_str = json.dumps(new_config)
 
@@ -47,7 +67,19 @@ async def add_config(
         agent_manager = ApiAgentManager(workflow_id, api_user)
         api_manager = ApiManager(api_user, agent_manager)
         processor = AgentProcessor(api_user, api_manager)
-        await processor.process_assistants(old_config, new_config)
+
+        try:
+            await processor.process_assistants(old_config, new_config)
+        except (MissingVectorDatabaseProvider, UnkownFileType) as e:
+            logger.exception(e)
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={
+                    "error": {
+                        "message": str(e),
+                    },
+                },
+            )
 
         config = await prisma.workflowconfig.create(
             data={
@@ -59,4 +91,12 @@ async def add_config(
 
         return {"success": True, "data": config}
     except Exception as e:
-        handle_exception(e)
+        logger.exception(e)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "error": {
+                    "message": "Something went wrong",
+                },
+            },
+        )

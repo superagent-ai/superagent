@@ -213,13 +213,18 @@ export class Api {
   }
 
   async generateWorkflow(workflowId: string, payload: any) {
-    return this.fetchFromApi(`/workflows/${workflowId}/config`, {
-      method: "POST",
-      body: payload,
-      headers: {
-        "content-type": "application/x-yaml",
-      },
-    })
+    // TODO: update fetchFromApi and use it
+    return fetch(
+      `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/workflows/${workflowId}/config`,
+      {
+        method: "POST",
+        body: payload,
+        headers: {
+          "Content-Type": "application/x-yaml",
+          authorization: `Bearer ${this.apiKey}`,
+        },
+      }
+    )
   }
 
   async getWorkflowSteps(id: string) {
