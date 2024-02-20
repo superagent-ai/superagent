@@ -1,8 +1,9 @@
 import logging
 
 from app.api.workflow_configs.api.api_manager import ApiManager
+from app.api.workflow_configs.saml_schema import Superrag
 from app.utils.helpers import (
-    get_first_key,
+    get_first_non_null_key,
     get_mimetype_from_url,
     get_superrag_compatible_credentials,
     remove_key_if_present,
@@ -10,8 +11,6 @@ from app.utils.helpers import (
 )
 from app.utils.llm import LLM_REVERSE_MAPPING, get_llm_provider
 from app.vectorstores.base import REVERSE_VECTOR_DB_MAPPING
-
-from .saml_schema import WorkflowSuperRag, WorkflowTool
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +46,7 @@ class DataTransformer:
         self.api_manager = api_manager
 
     @staticmethod
-    def transform_tool(tool: WorkflowTool, tool_type: str):
+    def transform_tool(tool: dict, tool_type: str):
         rename_and_remove_keys(tool, {"use_for": "description"})
 
         if tool_type:
@@ -89,11 +88,9 @@ class DataTransformer:
         if assistant.get("type") == "LLM":
             remove_key_if_present(assistant, "llmModel")
 
-    async def transform_superrag_data(
-        self, superrag_data: list[dict[str, WorkflowSuperRag]]
-    ):
+    async def transform_superrag_data(self, superrag_data: Superrag):
         for superrag_obj in superrag_data:
-            node_name = get_first_key(superrag_obj)
+            node_name = get_first_non_null_key(superrag_obj)
             datasource = superrag_obj.get(node_name, {})
 
             rename_and_remove_keys(datasource, {"use_for": "description"})
@@ -109,7 +106,8 @@ class DataTransformer:
                         value for value in SUPERRAG_MIME_TYPE_TO_EXTENSION.values()
                     )
                     raise UnkownFileType(
-                        f"Unknown file type for URL {url}. Supported file types are: {supported_file_types}"
+                        f"Unknown file type for URL {url}"
+                        f"Supported file types are: {supported_file_types}"
                     )
 
                 files.append(
@@ -141,7 +139,7 @@ class DataTransformer:
             else:
                 raise MissingVectorDatabaseProvider(
                     "No compatible vector database found. "
-                    "Please ensure that the provider is correctly configured and supported."
+                    "Please ensure that the provider is supported."
                 )
 
             remove_key_if_present(datasource, "database_provider")

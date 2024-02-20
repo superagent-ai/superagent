@@ -12,7 +12,7 @@ from app.api.workflow_configs.processors.base import BaseProcessor
 from app.utils.helpers import (
     MIME_TYPE_TO_EXTENSION,
     compare_dicts,
-    get_first_key,
+    get_first_non_null_key,
     get_mimetype_from_url,
 )
 
@@ -29,8 +29,8 @@ class SuperragDataProcessor(BaseProcessor):
             self.api_user, self.api_manager.agent_manager
         )
         for old_obj, new_obj in zip_longest(old_data, new_data, fillvalue={}):
-            old_node_name = get_first_key(old_obj)
-            new_node_name = get_first_key(new_obj)
+            old_node_name = get_first_non_null_key(old_obj)
+            new_node_name = get_first_non_null_key(new_obj)
 
             old_datasource = old_obj.get(old_node_name, {})
             new_datasource = new_obj.get(new_node_name, {})
@@ -104,8 +104,8 @@ class SuperagentToolProcessor(BaseProcessor):
         for old_tool_obj, new_tool_obj in zip_longest(
             old_tools, new_tools, fillvalue={}
         ):
-            old_tool = old_tool_obj.get(get_first_key(old_tool_obj), {})
-            new_tool = new_tool_obj.get(get_first_key(new_tool_obj), {})
+            old_tool = old_tool_obj.get(get_first_non_null_key(old_tool_obj), {})
+            new_tool = new_tool_obj.get(get_first_non_null_key(new_tool_obj), {})
 
             old_tool_type = old_tool.get("type")
             new_tool_type = new_tool.get("type")
