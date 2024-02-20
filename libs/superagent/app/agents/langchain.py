@@ -194,7 +194,7 @@ class LangchainAgent(AgentBase):
                         if self.session_id
                         else f"{self.agent_id}"
                     ),
-                    url=config("REDIS_URL", "redis://localhost:6379/0"),
+                    url=config("REDIS_MEMORY_URL", "redis://localhost:6379/0"),
                     key_prefix="superagent:",
                 ),
                 memory_key="chat_history",
