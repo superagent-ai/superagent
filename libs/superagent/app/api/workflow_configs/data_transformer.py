@@ -1,5 +1,7 @@
 import logging
 
+from litellm.exceptions import NotFoundError as LiteLLMNotFoundError
+
 from app.api.workflow_configs.api.api_manager import ApiManager
 from app.api.workflow_configs.saml_schema import Superrag
 from app.utils.helpers import (
@@ -37,6 +39,10 @@ class MissingVectorDatabaseProvider(Exception):
 
 
 class UnkownFileType(Exception):
+    pass
+
+
+class UnknownLLMProvider(Exception):
     pass
 
 
@@ -78,7 +84,13 @@ class DataTransformer:
             }
 
         if llm_model:
-            provider = get_llm_provider(llm_model)
+            try:
+                provider = get_llm_provider(llm_model)
+            except LiteLLMNotFoundError:
+                raise UnknownLLMProvider(
+                    f"Could not find provider for LLM model {llm_model}. "
+                    "Please ensure that the model is supported."
+                )
 
             if provider:
                 assistant["llmProvider"] = provider
