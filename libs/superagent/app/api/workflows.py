@@ -182,7 +182,8 @@ async def invoke(
 
     workflow_data = await prisma.workflow.find_unique(
         where={"id": workflow_id},
-        include={"steps": {"include": {"agent": True}, "order_by": {"order": "asc"}}},
+        include={"steps": {"include": {"agent": True},
+                           "order_by": {"order": "asc"}}},
     )
 
     workflow_steps = []
@@ -250,7 +251,7 @@ async def invoke(
             )
 
     if enable_streaming:
-        logging.info("Streaming enabled. Preparing streaming response...")
+        logger.info("Streaming enabled. Preparing streaming response...")
 
         async def send_message() -> AsyncIterable[str]:
             try:
@@ -300,7 +301,7 @@ async def invoke(
                             }
                         )
 
-                logging.error(f"Error in send_message: {error}")
+                logger.error(f"Error in send_message: {error}")
             finally:
                 for workflow_step in workflow_steps:
                     workflow_step["callbacks"]["streaming"].done.set()
@@ -308,7 +309,7 @@ async def invoke(
         generator = send_message()
         return StreamingResponse(generator, media_type="text/event-stream")
 
-    logging.info("Streaming not enabled. Invoking workflow synchronously...")
+    logger.info("Streaming not enabled. Invoking workflow synchronously...")
     output = await workflow.arun(
         input,
     )
