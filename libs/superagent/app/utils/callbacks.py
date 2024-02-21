@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Any, AsyncIterator, List, Literal, Tuple, Union, cast
 
 from decouple import config
@@ -9,6 +10,8 @@ from langchain.schema.output import LLMResult
 from langfuse import Langfuse
 from litellm import cost_per_token, token_counter
 
+logger = logging.getLogger(__name__)
+
 
 class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
     """Callback handler that returns an async iterator."""
@@ -16,6 +19,8 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
     queue: asyncio.Queue[str]
 
     done: asyncio.Event
+
+    TIMEOUT_SECONDS = 30
 
     @property
     def always_verbose(self) -> bool:
@@ -65,7 +70,13 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
                     asyncio.ensure_future(self.done.wait()),
                 ],
                 return_when=asyncio.FIRST_COMPLETED,
+                timeout=self.TIMEOUT_SECONDS,
             )
+            # if we the timeout has been reached
+            if not done or not other:
+                logger.warning(f"{self.TIMEOUT_SECONDS} seconds of timeout reached")
+                self.done.set()
+                break
 
             # Cancel the other task
             if other:
