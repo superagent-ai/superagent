@@ -1,8 +1,6 @@
 import * as monaco from "monaco-editor"
 import { configureMonacoYaml } from "monaco-yaml"
 
-import { yamlJsonSchema } from "@/config/saml"
-
 window.MonacoEnvironment = {
   getWorker(_, label) {
     switch (label) {
@@ -19,12 +17,11 @@ window.MonacoEnvironment = {
 }
 
 configureMonacoYaml(monaco, {
-  enableSchemaRequest: false,
+  enableSchemaRequest: true,
   schemas: [
     {
       fileMatch: ["*"],
-      uri: "http://example.com/schema-name.json",
-      schema: yamlJsonSchema,
+      uri: `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/workflows/config/schema`,
     },
   ],
 })

@@ -2,7 +2,7 @@ from itertools import zip_longest
 
 from app.api.workflow_configs.api.api_manager import ApiManager
 from app.api.workflow_configs.processors.processor import Processor
-from app.utils.helpers import compare_dicts, get_first_key
+from app.utils.helpers import compare_dicts, get_first_non_null_key
 
 from ..data_transformer import DataTransformer
 
@@ -19,11 +19,11 @@ class AgentProcessor:
         workflow_step_order: int | None = None,
     ):
         new_agent = None
-        old_type: str = get_first_key(old_assistant_obj)
-        new_type: str = get_first_key(new_assistant_obj)
+        old_type: str = get_first_non_null_key(old_assistant_obj)
+        new_type: str = get_first_non_null_key(new_assistant_obj)
 
-        old_assistant = old_assistant_obj.get(old_type, {})
-        new_assistant = new_assistant_obj.get(new_type, {})
+        old_assistant = old_assistant_obj.get(old_type) or {}
+        new_assistant = new_assistant_obj.get(new_type) or {}
 
         old_data = old_assistant.get("data") or {}
         new_data = new_assistant.get("data") or {}
@@ -35,17 +35,17 @@ class AgentProcessor:
         new_tools = new_assistant.get("tools") or []
 
         dt = DataTransformer(api_user=self.api_user, api_manager=self.api_manager)
-        dt.transform_assistant(new_assistant, new_type)
         dt.transform_assistant(old_assistant, old_type)
+        dt.transform_assistant(new_assistant, new_type)
 
         for tool in old_tools:
-            tool_type = get_first_key(tool)
+            tool_type = get_first_non_null_key(tool)
             tool = tool.get(tool_type, {})
 
             dt.transform_tool(tool, tool_type)
 
         for tool in new_tools:
-            tool_type = get_first_key(tool)
+            tool_type = get_first_non_null_key(tool)
             tool = tool.get(tool_type, {})
 
             dt.transform_tool(tool, tool_type)
@@ -77,6 +77,8 @@ class AgentProcessor:
                 self.api_user, self.api_manager
             ).get_superrag_processor(old_assistant)
 
+        print("old_type", old_type)
+        print("new_type", new_type)
         if old_type and new_type:
             if old_type != new_type:
                 # order matters here as we need process

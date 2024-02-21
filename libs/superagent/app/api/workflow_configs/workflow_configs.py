@@ -12,19 +12,25 @@ from app.api.workflow_configs.api.api_agent_manager import ApiAgentManager
 from app.api.workflow_configs.api.api_manager import ApiManager
 from app.api.workflow_configs.data_transformer import (
     MissingVectorDatabaseProvider,
+    UnknownLLMProvider,
     UnkownFileType,
 )
+from app.api.workflow_configs.saml_schema import WorkflowConfigModel
 from app.utils.api import get_current_api_user
 from app.utils.prisma import prisma
 
 from .processors.agent_processor import AgentProcessor
-from .saml_schema import WorkflowConfig
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 analytics.write_key = SEGMENT_WRITE_KEY
+
+
+@router.get("/workflows/config/schema")
+async def get_schema():
+    return WorkflowConfigModel.schema()
 
 
 @router.post("/workflows/{workflow_id}/config")
@@ -46,7 +52,7 @@ async def add_config(
             )
 
         try:
-            new_config = WorkflowConfig(**parsed_yaml).dict()
+            new_config = WorkflowConfigModel(**parsed_yaml).dict()
         except ValidationError as e:
             logger.exception(e)
             errors = e.errors()
@@ -70,7 +76,11 @@ async def add_config(
 
         try:
             await processor.process_assistants(old_config, new_config)
-        except (MissingVectorDatabaseProvider, UnkownFileType) as e:
+        except (
+            MissingVectorDatabaseProvider,
+            UnkownFileType,
+            UnknownLLMProvider,
+        ) as e:
             logger.exception(e)
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
