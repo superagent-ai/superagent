@@ -46,7 +46,12 @@ export default function Chat({
   )
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [messages, setMessages] = React.useState<
-    { type: string; message: string; steps?: Record<string, string> }[]
+    {
+      type: string
+      message: string
+      steps?: Record<string, string>
+      isSuccess?: boolean
+    }[]
   >(
     workflowSteps[0]?.agent?.initialMessage
       ? [{ type: "ai", message: workflowSteps[0].agent.initialMessage }]
@@ -147,13 +152,21 @@ export default function Chat({
                   type: "function_call",
                 },
               ])
-            }
+            } else if (event.event === "error") {
+              setMessages((previousMessages) => {
+                let updatedMessages = [...previousMessages]
 
-            if (
-              event.data !== "[END]" &&
-              event.event !== "function_call" &&
-              currentEventId
-            ) {
+                for (let i = updatedMessages.length - 1; i >= 0; i--) {
+                  if (updatedMessages[i].type === "ai") {
+                    updatedMessages[i].message = event.data
+                    updatedMessages[i].isSuccess = false
+                    break
+                  }
+                }
+
+                return updatedMessages
+              })
+            } else if (event.data !== "[END]" && currentEventId) {
               if (!messageByEventIds[currentEventId])
                 messageByEventIds[currentEventId] = ""
 
@@ -232,13 +245,14 @@ export default function Chat({
       <div className="relative flex flex-1 flex-col border-l bg-background text-sm">
         <ScrollArea className="flex-1 overflow-y-auto">
           <div className="flex flex-1 flex-col space-y-0 px-4 pb-10 pt-8">
-            {messages.map(({ type, message, steps }, index) => (
+            {messages.map(({ type, message, steps, isSuccess }, index) => (
               <Message
                 key={index}
                 type={type}
                 message={message}
                 steps={steps}
                 profile={profile}
+                isSuccess={isSuccess}
               />
             ))}
             <div ref={endOfMessagesRef} className="pt-20" />
