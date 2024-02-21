@@ -46,6 +46,8 @@ from app.tools.tts_1 import TTS1
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
 
+logger = logging.getLogger(__name__)
+
 TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
     "ALGOLIA": {"class": Algolia, "schema": AlgoliaInput},
@@ -91,7 +93,7 @@ def create_pydantic_model_from_object(obj: Dict[str, Any]) -> Any:
         if isinstance(value, dict):
             type = value.get("type")
             if not type:
-                logging.warning(f"Type not found for {key}, defaulting to string")
+                logger.warning(f"Type not found for {key}, defaulting to string")
             if "enum" in value:
                 enum_values = value["enum"]
                 enum_name = f"{key.capitalize()}Enum"

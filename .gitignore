@@ -16,6 +16,7 @@ node_modules
 .pnp.js
 
 # testing
+.scratch
 /coverage
 
 # next.js
@@ -54,3 +55,4 @@ v2.code-workspace
 libs/.docker/ui/supabase/supabase-setup
 
 google_cloud_service_key.json
+

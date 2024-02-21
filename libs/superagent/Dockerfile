@@ -33,6 +33,10 @@ COPY --from=builder /app/.venv /app/.venv
 
 COPY . ./
 
+# Improve grpc error messages
+RUN pip install grpcio-status
+
+# Enable prisma migrations
 RUN prisma generate
 
 CMD exec gunicorn --bind :$PORT --workers 2 --timeout 0 --worker-class uvicorn.workers.UvicornWorker --threads 8 app.main:app
