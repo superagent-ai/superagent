@@ -141,6 +141,7 @@ class LLMAgent(AgentBase):
                     )
 
                 return {
+                    **function_calling_res,
                     "input": input,
                     "output": output,
                 }
