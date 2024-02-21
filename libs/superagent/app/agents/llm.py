@@ -66,28 +66,24 @@ class LLMAgent(AgentBase):
         agent_config = self.agent_config
         session_id = self.session_id
 
-        function_calling = await FunctionCalling(
-            enable_streaming=False,
-            session_id=session_id,
-            agent_config=agent_config.copy(
-                deep=True,
-            ),
-            agent_id=agent_config.id,
-        ).init()
-
-        function_calling_agent = await function_calling.get_agent()
-
         class CustomAgentExecutor:
             async def ainvoke(self, input, *_, **kwargs):
                 function_calling_res = {"output": ""}
 
-                if len(function_calling_agent.tools) > 0:
-                    try:
-                        function_calling_res = await function_calling_agent.ainvoke(
-                            input=input
-                        )
-                    except Exception as e:
-                        logger.error(f"Error in function calling: {e}")
+                if len(agent_config.tools) > 0:
+                    function_calling = await FunctionCalling(
+                        enable_streaming=False,
+                        session_id=session_id,
+                        agent_config=agent_config.copy(
+                            deep=True,
+                        ),
+                        agent_id=agent_config.id,
+                    ).init()
+                    function_calling_agent = await function_calling.get_agent()
+
+                    function_calling_res = await function_calling_agent.ainvoke(
+                        input=input
+                    )
 
                 model = agent_config.metadata.get("model", "gpt-3.5-turbo")
                 prompt = agent_config.prompt
