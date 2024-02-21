@@ -263,8 +263,11 @@ async def invoke(
                         yield f"id: {workflow_step['agent_name']}\ndata: {token}\n\n"
 
                 await task
-                workflow_result = task.result()
+                exception = task.exception()
+                if exception:
+                    raise exception
 
+                workflow_result = task.result()
                 for index, workflow_step in enumerate(workflow_steps):
                     workflow_step_result = workflow_result.get("steps")[index]
 
@@ -285,11 +288,7 @@ async def invoke(
                                 )
 
             except Exception as error:
-                yield (
-                    f"id: {workflow_step['agent_name']}\n"
-                    f"event: error\n"
-                    f"data: {error}\n\n"
-                )
+                yield (f"event: error\n" f"data: {error}\n\n")
 
                 if SEGMENT_WRITE_KEY:
                     for workflow_step in workflow_data.steps:
