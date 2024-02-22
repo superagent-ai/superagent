@@ -25,10 +25,10 @@ class SuperragIndex(BaseModel):
     urls: list[str]
     use_for: str
     encoder: Optional[SuperragEncoder] = Field(
-        ..., description="The encoder to use for the index"
+        description="The encoder to use for the index"
     )
     database_provider: Optional[SuperragDatabaseProvider] = Field(
-        ..., description="The vector database provider to use for the index"
+        description="The vector database provider to use for the index"
     )
 
     @validator("name")
