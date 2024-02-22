@@ -19,12 +19,14 @@ class CodeInterpreter(BaseTool):
         return url, headers, data
 
     def _run(self, python_code: str) -> str:
-        url, headers, data = self._setup_request(python_code)
-        return requests.post(url=url, headers=headers, json=data).text
+        return "This feature is under maintanance mode: Team Superagent"
+        # url, headers, data = self._setup_request(python_code)
+        # return requests.post(url=url, headers=headers, json=data).text
 
     async def _arun(self, python_code: str) -> str:
-        url, headers, data = self._setup_request(python_code)
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url=url, headers=headers, json=data) as response:
-                output = await response.text()
-        return output
+        return "This feature is under maintanance mode: Team Superagent"
+        # url, headers, data = self._setup_request(python_code)
+        # async with aiohttp.ClientSession() as session:
+        #    async with session.post(url=url, headers=headers, json=data) as response:
+        #        output = await response.text()
+        # return output
