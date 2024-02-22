@@ -442,8 +442,10 @@ async def invoke(
             "tools": {"include": {"tool": True}},
         },
     )
-    model = LLM_MAPPING.get(
-        agent_config.llmModel) or agent_config.metadata["model"]
+    model = LLM_MAPPING.get(agent_config.llmModel)
+    metadata = agent_config.metadata or {}
+    if not model and metadata.get("model"):
+        model = metadata.get("model")
 
     def track_agent_invocation(result):
         intermediate_steps_to_obj = [
@@ -541,8 +543,7 @@ async def invoke(
             logger.error(f"Error in send_message: {error}")
             if SEGMENT_WRITE_KEY:
                 try:
-                    track_agent_invocation(
-                        {"error": str(error), "status_code": 500})
+                    track_agent_invocation({"error": str(error), "status_code": 500})
                 except Exception as e:
                     logger.error(f"Error tracking agent invocation: {e}")
             yield ("event: error\n" f"data: {error}\n\n")
