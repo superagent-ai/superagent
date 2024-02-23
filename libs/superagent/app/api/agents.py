@@ -452,6 +452,10 @@ async def invoke(
     if not model and metadata.get("model"):
         model = metadata.get("model")
 
+    memory_config = await prisma.memorydb.find_first(
+        where={"provider": agent_config.memory, "apiUserId": api_user.id},
+    )
+
     def track_agent_invocation(result):
         intermediate_steps_to_obj = [
             {
@@ -571,6 +575,7 @@ async def invoke(
         callbacks=monitoring_callbacks,
         llm_params=body.llm_params,
         agent_config=agent_config,
+        memory_config=memory_config,
     )
     agent = await agent_base.get_agent()
 

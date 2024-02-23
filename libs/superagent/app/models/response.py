@@ -21,6 +21,9 @@ from prisma.models import (
     Datasource as DatasourceModel,
 )
 from prisma.models import (
+    MemoryDb as MemoryDbModel,
+)
+from prisma.models import (
     Tool as ToolModel,
 )
 from prisma.models import (
@@ -141,3 +144,13 @@ class VectorDb(BaseModel):
 class VectorDbList(BaseModel):
     success: bool
     data: Optional[List[VectorDbModel]]
+
+
+class MemoryDb(BaseModel):
+    success: bool
+    data: Optional[MemoryDbModel]
+
+
+class MemoryDbList(BaseModel):
+    success: bool
+    data: Optional[List[MemoryDbModel]]

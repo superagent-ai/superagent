@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 from openai.types.beta.assistant_create_params import Tool as OpenAiAssistantTool
 from pydantic import BaseModel
 
-from prisma.enums import AgentType, LLMProvider, VectorDbProvider
+from prisma.enums import AgentType, LLMProvider, MemoryDbProvider, VectorDbProvider
 
 
 class ApiUser(BaseModel):
@@ -40,6 +40,7 @@ class AgentUpdate(BaseModel):
     initialMessage: Optional[str]
     prompt: Optional[str]
     llmModel: Optional[str]
+    memory: Optional[str]
     description: Optional[str]
     avatar: Optional[str]
     type: Optional[str]
@@ -131,4 +132,9 @@ class WorkflowInvoke(BaseModel):
 
 class VectorDb(BaseModel):
     provider: VectorDbProvider
+    options: Dict
+
+
+class MemoryDb(BaseModel):
+    provider: MemoryDbProvider
     options: Dict

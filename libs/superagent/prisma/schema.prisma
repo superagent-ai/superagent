@@ -93,6 +93,11 @@ enum VectorDbProvider {
   SUPABASE
 }
 
+enum MemoryDbProvider {
+  MOTORHEAD
+  REDIS
+}
+
 model ApiUser {
   id              String           @id @default(uuid())
   token           String?
@@ -106,6 +111,7 @@ model ApiUser {
   workflows       Workflow[]
   vectorDb        VectorDb[]
   workflowConfigs WorkflowConfig[]
+  MemoryDb        MemoryDb[]
 }
 
 model Agent {
@@ -120,6 +126,7 @@ model Agent {
   updatedAt      DateTime          @updatedAt
   llms           AgentLLM[]
   llmModel       LLMModel?         @default(GPT_3_5_TURBO_16K_0613)
+  memory         MemoryDbProvider? @default(MOTORHEAD)
   prompt         String?
   apiUserId      String
   apiUser        ApiUser           @relation(fields: [apiUserId], references: [id])
@@ -252,4 +259,14 @@ model VectorDb {
   updatedAt   DateTime         @updatedAt
   apiUserId   String
   apiUser     ApiUser          @relation(fields: [apiUserId], references: [id])
+}
+
+model MemoryDb {
+  id        String           @id @default(uuid())
+  provider  MemoryDbProvider @default(MOTORHEAD)
+  options   Json
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  apiUserId String
+  apiUser   ApiUser          @relation(fields: [apiUserId], references: [id])
 }

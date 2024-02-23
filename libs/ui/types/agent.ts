@@ -6,6 +6,7 @@ export interface Agent {
   isActive: boolean
   llms: Array<{ [key: string]: any }>
   llmModel: string
+  memory: string
   tools: Array<{ [key: string]: any }>
   datasources: Array<{ [key: string]: any }>
   prompt: string

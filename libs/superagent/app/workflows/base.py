@@ -1,3 +1,4 @@
+import logging
 from typing import Any, List
 
 from agentops.langchain_callback_handler import (
@@ -9,6 +10,8 @@ from app.agents.base import AgentBase
 from app.utils.callbacks import CustomAsyncIteratorCallbackHandler
 from app.utils.prisma import prisma
 from prisma.models import Workflow
+
+logger = logging.getLogger(__name__)
 
 
 class WorkflowBase:
@@ -43,12 +46,19 @@ class WorkflowBase:
                     "tools": {"include": {"tool": True}},
                 },
             )
+            memory_config = await prisma.memorydb.find_first(
+                where={
+                    "provider": agent_config.memory,
+                    "apiUserId": agent_config.apiUserId,
+                },
+            )
             agent_base = AgentBase(
                 agent_id=step.agentId,
                 enable_streaming=self.enable_streaming,
                 callbacks=self.constructor_callbacks,
                 session_id=self.session_id,
                 agent_config=agent_config,
+                memory_config=memory_config,
             )
 
             agent = await agent_base.get_agent()
@@ -56,15 +66,15 @@ class WorkflowBase:
                 previous_output,
                 agent_type=agent_config.type,
             )
-
+            logger.debug(f"Workflow step {stepIndex} start, input: {agent_input}")
             agent_response = await agent.ainvoke(
                 input=agent_input,
                 config={
                     "callbacks": self.callbacks[stepIndex],
                 },
             )
-
             previous_output = agent_response.get("output")
+            logger.debug(f"Workflow step {stepIndex} stop, output: {previous_output}")
             steps_output.append(agent_response)
 
         return {"steps": steps_output, "output": previous_output}

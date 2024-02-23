@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import re
 from typing import Any, List
 
@@ -23,8 +24,11 @@ from app.datasource.types import (
 from app.models.tools import DatasourceInput
 from app.tools import TOOL_TYPE_MAPPING, create_pydantic_model_from_object, create_tool
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
+from app.utils.helpers import get_first_non_null
 from app.utils.llm import LLM_MAPPING
-from prisma.models import LLM, Agent, AgentDatasource, AgentTool
+from prisma.models import LLM, Agent, AgentDatasource, AgentTool, MemoryDb
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_PROMPT = (
     "You are a helpful AI Assistant, answer the users questions to "
@@ -193,9 +197,15 @@ class LangchainAgent(AgentBase):
             content = f"{content}" f"\n\n{datetime.datetime.now().strftime('%Y-%m-%d')}"
         return SystemMessage(content=content)
 
-    async def _get_memory(self) -> List:
-        memory_type = config("MEMORY", "motorhead")
-        if memory_type == "redis":
+    async def _get_memory(self, memory_db: MemoryDb) -> List:
+        logger.debug(f"Use memory config: {memory_db}")
+        if memory_db is None:
+            memory_provider = config("MEMORY")
+            options = {}
+        else:
+            memory_provider = memory_db.provider
+            options = memory_db.options
+        if memory_provider == "REDIS" or memory_provider == "redis":
             memory = ConversationBufferWindowMemory(
                 chat_memory=RedisChatMessageHistory(
                     session_id=(
@@ -203,15 +213,21 @@ class LangchainAgent(AgentBase):
                         if self.session_id
                         else f"{self.agent_id}"
                     ),
-                    url=config("REDIS_MEMORY_URL", "redis://localhost:6379/0"),
+                    url=get_first_non_null(
+                        options.get("REDIS_MEMORY_URL"),
+                        config("REDIS_MEMORY_URL", "redis://localhost:6379/0"),
+                    ),
                     key_prefix="superagent:",
                 ),
                 memory_key="chat_history",
                 return_messages=True,
                 output_key="output",
-                k=config("REDIS_MEMORY_WINDOW", 10),
+                k=get_first_non_null(
+                    options.get("REDIS_MEMORY_WINDOW"),
+                    config("REDIS_MEMORY_WINDOW", 10),
+                ),
             )
-        else:
+        elif memory_provider == "MOTORHEAD" or memory_provider == "motorhead":
             memory = MotorheadMemory(
                 session_id=(
                     f"{self.agent_id}-{self.session_id}"
@@ -219,7 +235,10 @@ class LangchainAgent(AgentBase):
                     else f"{self.agent_id}"
                 ),
                 memory_key="chat_history",
-                url=config("MEMORY_API_URL"),
+                url=get_first_non_null(
+                    options.get("MEMORY_API_URL"),
+                    config("MEMORY_API_URL"),
+                ),
                 return_messages=True,
                 output_key="output",
             )
@@ -235,7 +254,7 @@ class LangchainAgent(AgentBase):
             agent_tools=self.agent_config.tools,
         )
         prompt = await self._get_prompt(agent=self.agent_config)
-        memory = await self._get_memory()
+        memory = await self._get_memory(memory_db=self.memory_config)
 
         if len(tools) > 0:
             agent = initialize_agent(

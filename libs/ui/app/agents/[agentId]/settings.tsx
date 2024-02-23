@@ -46,6 +46,7 @@ const formSchema = z.object({
   llms: z.string(),
   isActive: z.boolean().default(true),
   llmModel: z.string().nullable(),
+  memory: z.string().nullable(),
   prompt: z.string(),
   tools: z.array(z.string()),
   datasources: z.array(z.string()),
@@ -92,6 +93,7 @@ export default function Settings({
       tools: [],
       datasources: [],
       avatar: agent.avatar,
+      memory: agent.memory,
     },
   })
   const avatar = form.watch("avatar")
@@ -300,6 +302,47 @@ export default function Settings({
                 <p className="text-sm text-muted-foreground">
                   You need to add an LLM to this agent for it work. This can be
                   done through the SDK or API.
+                </p>
+              </div>
+            )}
+          </div>
+          <div>
+            <FormLabel>Memory</FormLabel>
+            {agent.memory.length > 0 ? (
+              <div className="flex justify-between space-x-2">
+                <FormField
+                  control={form.control}
+                  name="memory"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value || ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a memory" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {siteConfig.memories.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col space-y-4 rounded-lg border border-red-500 p-4">
+                <p className="text-sm">Heads up!</p>
+                <p className="text-sm text-muted-foreground">
+                  You need to add an Memory to this agent for it work. This can
+                  be done through the SDK or API.
                 </p>
               </div>
             )}

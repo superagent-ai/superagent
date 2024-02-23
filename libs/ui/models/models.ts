@@ -68,6 +68,11 @@ export enum VectorDbProvider {
   SUPABASE,
 }
 
+export enum MemoryDbProvider {
+  MOTORHEAD,
+  REDIS,
+}
+
 export class ApiUser {
   id: string
   token?: string

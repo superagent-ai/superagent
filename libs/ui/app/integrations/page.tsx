@@ -17,9 +17,15 @@ export default async function Integration() {
     .single()
   const api = new Api(profile.api_key)
 
-  const [{ data: configuredDBs }, { data: configuredLLMs }] = await Promise.all(
-    [await api.getVectorDbs(), await api.getLLMs()]
-  )
+  const [
+    { data: configuredDBs },
+    { data: configuredLLMs },
+    { data: configuredMemories },
+  ] = await Promise.all([
+    await api.getVectorDbs(),
+    await api.getLLMs(),
+    await api.getMemoryDbs(),
+  ])
 
   return (
     <div className="flex h-screen flex-col justify-between space-y-0 overflow-hidden">
@@ -29,6 +35,7 @@ export default async function Integration() {
           profile={profile}
           configuredDBs={configuredDBs}
           configuredLLMs={configuredLLMs}
+          configuredMemories={configuredMemories}
         />
       </div>
     </div>

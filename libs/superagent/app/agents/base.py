@@ -3,7 +3,7 @@ from typing import Any, List, Optional
 from app.models.request import LLMParams
 from app.utils.callbacks import CustomAsyncIteratorCallbackHandler
 from prisma.enums import AgentType
-from prisma.models import Agent
+from prisma.models import Agent, MemoryDb
 
 DEFAULT_PROMPT = (
     "You are a helpful AI Assistant, answer the users questions to "
@@ -21,6 +21,7 @@ class AgentBase:
         callbacks: List[CustomAsyncIteratorCallbackHandler] = [],
         llm_params: Optional[LLMParams] = {},
         agent_config: Agent = None,
+        memory_config: MemoryDb = None,
     ):
         self.agent_id = agent_id
         self.session_id = session_id
@@ -29,6 +30,7 @@ class AgentBase:
         self.callbacks = callbacks
         self.llm_params = llm_params
         self.agent_config = agent_config
+        self.memory_config = memory_config
 
     async def _get_tools(
         self,
@@ -60,6 +62,7 @@ class AgentBase:
                 callbacks=self.callbacks,
                 llm_params=self.llm_params,
                 agent_config=self.agent_config,
+                memory_config=self.memory_config,
             )
 
         elif self.agent_config.type == AgentType.LLM:
@@ -72,6 +75,7 @@ class AgentBase:
                 callbacks=self.callbacks,
                 llm_params=self.llm_params,
                 agent_config=self.agent_config,
+                memory_config=self.memory_config,
             )
 
         else:
@@ -85,6 +89,7 @@ class AgentBase:
                 callbacks=self.callbacks,
                 llm_params=self.llm_params,
                 agent_config=self.agent_config,
+                memory_config=self.memory_config,
             )
 
         return await agent.get_agent()

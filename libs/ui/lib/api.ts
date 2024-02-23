@@ -281,4 +281,22 @@ export class Api {
       body: JSON.stringify(payload),
     })
   }
+
+  async getMemoryDbs() {
+    return this.fetchFromApi(`/memory-dbs`)
+  }
+
+  async createMemoryDb(payload: any) {
+    return this.fetchFromApi("/memory-db", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async patchMemoryDb(id: string, payload: any) {
+    return this.fetchFromApi(`/memory-dbs/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    })
+  }
 }

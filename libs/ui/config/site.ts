@@ -1,4 +1,4 @@
-import { VectorDbProvider } from "@/models/models"
+import { MemoryDbProvider, VectorDbProvider } from "@/models/models"
 import {
   TbBrandDiscord,
   TbFileCode,
@@ -591,6 +591,54 @@ export const siteConfig = {
             "The database table name which your vector embeddings will be stored in.",
         },
       ],
+    },
+  ],
+  memoryDbs: [
+    {
+      provider: MemoryDbProvider[MemoryDbProvider.MOTORHEAD],
+      name: "Motorhead",
+      logo: "/motorhead.png",
+      description:
+        "Cloud-based database for storing and searching vectors, enabling fast similarity comparisons. Scales well for large datasets.",
+      formDescription: "Please enter your Motorhead api URL.",
+      metadata: [
+        {
+          key: "MEMORY_API_URL",
+          type: "input",
+          label: "Memory api URL",
+        },
+      ],
+    },
+    {
+      provider: MemoryDbProvider[MemoryDbProvider.REDIS],
+      name: "Redis",
+      logo: "/redis.png",
+      description:
+        "Open-source database optimized for efficient vector search and filtering. Handles large datasets effectively while requiring minimal resources.",
+      formDescription: "Please enter your Redis options.",
+      metadata: [
+        {
+          key: "REDIS_MEMORY_URL",
+          type: "input",
+          label: "Redis memory URL",
+        },
+        {
+          key: "REDIS_MEMORY_WINDOW",
+          type: "input",
+          label: "Redis memory window size",
+        },
+      ],
+    },
+  ],
+  defaultMemory: "MOTORHEAD",
+  memories: [
+    {
+      value: "MOTORHEAD",
+      title: "motorhead",
+    },
+    {
+      value: "REDIS",
+      title: "redis",
     },
   ],
 }

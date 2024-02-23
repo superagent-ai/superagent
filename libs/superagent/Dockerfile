@@ -31,10 +31,10 @@ ENV PORT="8080"
 
 COPY --from=builder /app/.venv /app/.venv
 
-COPY . ./
-
 # Improve grpc error messages
 RUN pip install grpcio-status
+
+COPY . ./
 
 # Enable prisma migrations
 RUN prisma generate

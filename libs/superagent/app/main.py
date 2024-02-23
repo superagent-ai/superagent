@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 
 import colorlog
@@ -26,7 +27,7 @@ console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=os.environ.get("LOG_LEVEL", "INFO"),
     format="%(levelname)s: %(message)s",
     handlers=[console_handler],
     force=True,
