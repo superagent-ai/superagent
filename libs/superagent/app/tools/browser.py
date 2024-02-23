@@ -1,7 +1,8 @@
+import logging
+
 import aiohttp
 import requests
-import logging
-from bs4 import BeautifulSoup, NavigableString, Tag, Comment
+from bs4 import BeautifulSoup, Comment, NavigableString, Tag
 from langchain_community.tools import BaseTool as LCBaseTool
 from pydantic import BaseModel, Field
 
@@ -28,7 +29,7 @@ class LCBrowser(LCBaseTool):
             async with session.get(url) as response:
                 html_content = await response.text()
 
-        soup = BeautifulSoup(html_content, 'html.parser')
+        soup = BeautifulSoup(html_content, "html.parser")
 
         def extract_text_with_links(element):
             texts = []
@@ -37,25 +38,26 @@ class LCBrowser(LCBaseTool):
                     continue
                 elif isinstance(child, NavigableString):
                     stripped_text = str(child).strip()
-                    if stripped_text.startswith('xml') and stripped_text.endswith('"?'):
+                    if stripped_text.startswith("xml") and stripped_text.endswith('"?'):
                         continue
                     if stripped_text:
                         texts.append(stripped_text)
                 elif isinstance(child, Tag):
-                    if child.name == 'a':
+                    if child.name == "a":
                         link_text = child.get_text(strip=True)
-                        href = child.get('href', '').strip()
-                        if href and href != '/':
+                        href = child.get("href", "").strip()
+                        if href and href != "/":
                             texts.append(
-                                f"{link_text} {href}" if link_text else f"{href}")
-                    elif child.name == 'iframe':
-                        src = child.get('src', '').strip()
+                                f"{link_text} {href}" if link_text else f"{href}"
+                            )
+                    elif child.name == "iframe":
+                        src = child.get("src", "").strip()
                         if src:
                             texts.append(src)
-                    elif child.name not in ['script', 'style', 'noscript', 'xml']:
+                    elif child.name not in ["script", "style", "noscript", "xml"]:
                         texts.append(extract_text_with_links(child))
 
-            return '\n'.join(filter(None, texts))
+            return "\n".join(filter(None, texts))
 
         cleaned_text = extract_text_with_links(soup)
         logger.debug(f"BROWSER TOOL result: {cleaned_text}")
@@ -63,8 +65,7 @@ class LCBrowser(LCBaseTool):
 
 
 class BrowserArgs(BaseModel):
-    url: str = Field(...,
-                     description="A valid url including protocol to analyze")
+    url: str = Field(..., description="A valid url including protocol to analyze")
 
 
 class Browser(BaseTool):
