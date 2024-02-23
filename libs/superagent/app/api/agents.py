@@ -535,14 +535,15 @@ async def invoke(
 
             if "intermediate_steps" in result:
                 for step in result["intermediate_steps"]:
-                    agent_action_message_log = step[0]
+                    (agent_action_message_log, tool_response) = step
                     function = agent_action_message_log.tool
                     args = agent_action_message_log.tool_input
                     if function and args:
                         yield (
                             "event: function_call\n"
                             f'data: {{"function": "{function}", '
-                            f'"args": {json.dumps(args)}}}\n\n'
+                            f'"args": {json.dumps(args)}, '
+                            f'"response": {json.dumps(tool_response)}}}\n\n'
                         )
         except Exception as error:
             logger.error(f"Error in send_message: {error}")
