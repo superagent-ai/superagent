@@ -1,23 +1,35 @@
-from typing import Any, Optional, Union
+from enum import Enum
+from typing import Any, Optional
 
-from pydantic import BaseModel, validator
-
-
-class WorkflowDatasource(BaseModel):
-    use_for: Optional[str]  # an alias for description
-    urls: Optional[list[str]]
+from pydantic import BaseModel, Field, validator
 
 
-class WorkflowSuperRagEncoder(BaseModel):
-    type: str
+class SuperragEncoderType(str, Enum):
+    openai = "openai"
+
+
+class SuperragEncoder(BaseModel):
+    type: SuperragEncoderType
     name: str
     dimensions: int
 
 
-class WorkflowSuperRag(WorkflowDatasource):
-    database_provider: Optional[str]
-    encoder: Optional[WorkflowSuperRagEncoder]
-    name: Optional[str]
+class SuperragDatabaseProvider(str, Enum):
+    pinecone = "pinecone"
+    weaviate = "weaviate"
+    qdrant = "qdrant"
+
+
+class SuperragIndex(BaseModel):
+    name: str
+    urls: list[str]
+    use_for: str
+    encoder: Optional[SuperragEncoder] = Field(
+        description="The encoder to use for the index"
+    )
+    database_provider: Optional[SuperragDatabaseProvider] = Field(
+        description="The vector database provider to use for the index"
+    )
 
     @validator("name")
     def name_too_long(v):
@@ -29,30 +41,92 @@ class WorkflowSuperRag(WorkflowDatasource):
         return v
 
 
-class WorkflowTool(BaseModel):
-    name: str
-    use_for: str  # an alias for description
-    metadata: Optional[dict[Any, Any]]
+class SuperragItem(BaseModel):
+    index: Optional[SuperragIndex]
 
 
-class WorkflowAssistant(BaseModel):
+class Superrag(BaseModel):
+    __root__: list[SuperragItem]
+
+
+class Data(BaseModel):
+    urls: list[str]
+    use_for: str
+
+
+class Tool(BaseModel):
     name: str
-    llm: str  # an alias for llmModel
+    use_for: str
+    metadata: Optional[dict[str, Any]]
+
+
+class ToolModel(BaseModel):
+    # ~~~~~~Superagent tools~~~~~~
+    browser: Optional[Tool]
+    code_executor: Optional[Tool]
+    hand_off: Optional[Tool]
+    http: Optional[Tool]
+    bing_search: Optional[Tool]
+    replicate: Optional[Tool]
+    algolia: Optional[Tool]
+    metaphor: Optional[Tool]
+    function: Optional[Tool]
+    # ~~~~~~Assistants as tools~~~~~~
+    superagent: Optional["AgentTool"]
+    openai_assistant: Optional["AgentTool"]
+    llm: Optional["AssistantTool"]
+
+    # OpenAI Assistant tools
+    code_interpreter: Optional[Tool]
+    retrieval: Optional[Tool]
+
+
+class Tools(BaseModel):
+    __root__: list[ToolModel]
+
+
+class Assistant(BaseModel):
+    name: str
+    llm: str
     prompt: str
-    intro: Optional[str]  # an alias for initialMessage
-
-    tools: Optional[list[dict[str, WorkflowTool]]]
-    data: Optional[WorkflowDatasource]
-    superrag: Optional[list[dict[str, WorkflowSuperRag]]]
+    intro: Optional[str]
 
 
-class WorkflowAssistantAsTool(WorkflowAssistant):
-    use_for: str  # an alias for description
+class Agent(Assistant):
+    tools: Optional[Tools]
+    data: Optional[Data]
+    superrag: Optional[Superrag]
 
 
-class NestedWorkflowAssistant(WorkflowAssistant):
-    tools: Optional[list[dict[str, Union[WorkflowAssistantAsTool, WorkflowTool]]]]
+class BaseAssistantToolModel(BaseModel):
+    use_for: str
 
 
-class WorkflowConfig(BaseModel):
-    workflows: list[dict[str, NestedWorkflowAssistant]]
+class AgentTool(BaseAssistantToolModel, Agent):
+    pass
+
+
+class AssistantTool(BaseAssistantToolModel, Assistant):
+    pass
+
+
+# This is for the circular reference between Agent, Assistant and ToolModel
+# for assistant as tools
+ToolModel.update_forward_refs()
+
+
+class Workflow(BaseModel):
+    superagent: Optional[Agent]
+    openai_assistant: Optional[Assistant]
+    llm: Optional[Assistant]
+
+
+class WorkflowConfigModel(BaseModel):
+    workflows: list[Workflow] = Field(..., min_items=1)
+
+    class Config:
+        @staticmethod
+        def schema_extra(schema: dict[str, Any]) -> None:
+            schema.pop("title", None)
+            for prop in schema.get("properties", {}).values():
+                prop.pop("title", None)

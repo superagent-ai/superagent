@@ -1,18 +1,17 @@
-import { JSONSchema4 } from "json-schema"
-
 export const initialSamlValue = `# 👋 Welcome! Start creating your workflows using example yaml below.
 # More info in our docs: https://docs.superagent.sh/overview/getting-started/super-agent-markup-language
 
 workflows:
   - superagent:
-      llm: gpt-4-1106-preview
-      name: Earnings assistant
-      intro: 👋 Hi there! How can I help you?
-      prompt: Use the earnings report to answer any questions
-      data:
-        urls:
-          - https://s2.q4cdn.com/299287126/files/doc_financials/2023/q3/AMZN-Q3-2023-Earnings-Release.pdf
-        use_for: Answering questions about earning report
+      llm: gpt-4-turbo-preview
+      name: Browser assistant 
+      intro: |- 
+        👋 Hi there! How can I help search for answers on the internet.
+      prompt: Use the browser to answer any questions
+      tools:
+        - browser:
+            name: browser
+            use_for: searching the internet
 `
 
 export const exampleConfigs = {
@@ -60,146 +59,3 @@ workflows:
         You are an code reviewer. Review the code and write a 
         Github comment.`,
 }
-// TODO: get this from the backend after migrating to pydantic version 2
-export const yamlJsonSchema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-
-  type: "object",
-  properties: {
-    workflows: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          superagent: {
-            $ref: "#/definitions/agent",
-          },
-          openai_assistant: {
-            $ref: "#/definitions/agent",
-          },
-          llm: {
-            $ref: "#/definitions/assistant",
-          },
-        },
-      },
-    },
-  },
-  definitions: {
-    assistant: {
-      type: "object",
-      properties: {
-        name: { type: "string" },
-        llm: { type: "string" },
-        prompt: { type: "string" },
-        intro: { type: "string" },
-      },
-    },
-    agent: {
-      allOf: [{ $ref: "#/definitions/assistant" }],
-      properties: {
-        tools: {
-          $ref: "#/definitions/tools",
-        },
-        data: {
-          $ref: "#/definitions/data",
-        },
-        superrag: {
-          $ref: "#/definitions/superrag",
-        },
-      },
-    },
-    superrag: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          index: {
-            type: "object",
-            properties: {
-              name: { type: "string" },
-              urls: {
-                type: "array",
-                items: { type: "string" },
-              },
-              use_for: { type: "string" },
-            },
-          },
-        },
-      },
-    },
-    tools: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          browser: {
-            $ref: "#/definitions/tool",
-          },
-          code_executor: {
-            $ref: "#/definitions/tool",
-          },
-          hand_off: {
-            $ref: "#/definitions/tool",
-          },
-          http: {
-            $ref: "#/definitions/tool",
-          },
-          bing_search: {
-            $ref: "#/definitions/tool",
-          },
-          replicate: {
-            $ref: "#/definitions/tool",
-          },
-          algolia: {
-            $ref: "#/definitions/tool",
-          },
-          metaphor: {
-            $ref: "#/definitions/tool",
-          },
-          function: {
-            $ref: "#/definitions/tool",
-          },
-          // for openai assistant
-          code_interpreter: {
-            $ref: "#/definitions/tool",
-          },
-          // for openai assistant
-          retrieval: {
-            $ref: "#/definitions/tool",
-          },
-        },
-      },
-    },
-    data: {
-      type: "object",
-      properties: {
-        urls: {
-          type: "array",
-          items: { type: "string" },
-        },
-        use_for: { type: "string" },
-      },
-    },
-
-    tool: {
-      type: "object",
-      properties: {
-        name: { type: "string" },
-        use_for: { type: "string" },
-        metadata: {
-          type: "object",
-          properties: {
-            headers: {
-              type: "object",
-              additionalProperties: { type: "string" },
-            },
-            url: { type: "string" },
-            method: { type: "string" },
-            body: { type: "object" },
-          },
-        },
-      },
-    },
-  },
-  required: ["workflows"],
-} satisfies JSONSchema4

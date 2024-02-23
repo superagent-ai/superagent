@@ -62,6 +62,7 @@ analytics.write_key = SEGMENT_WRITE_KEY
 
 router = APIRouter()
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class LLMPayload:
@@ -446,7 +447,10 @@ async def invoke(
             "tools": {"include": {"tool": True}},
         },
     )
-    model = LLM_MAPPING.get(agent_config.llmModel) or agent_config.metadata["model"]
+    model = LLM_MAPPING.get(agent_config.llmModel)
+    metadata = agent_config.metadata or {}
+    if not model and metadata.get("model"):
+        model = metadata.get("model")
 
     def track_agent_invocation(result):
         intermediate_steps_to_obj = [
@@ -527,7 +531,7 @@ async def invoke(
                         }
                     )
                 except Exception as e:
-                    logging.error(f"Error tracking agent invocation: {e}")
+                    logger.error(f"Error tracking agent invocation: {e}")
 
             if "intermediate_steps" in result:
                 for step in result["intermediate_steps"]:
@@ -541,17 +545,17 @@ async def invoke(
                             f'"args": {json.dumps(args)}}}\n\n'
                         )
         except Exception as error:
-            logging.error(f"Error in send_message: {error}")
+            logger.error(f"Error in send_message: {error}")
             if SEGMENT_WRITE_KEY:
                 try:
                     track_agent_invocation({"error": str(error), "status_code": 500})
                 except Exception as e:
-                    logging.error(f"Error tracking agent invocation: {e}")
+                    logger.error(f"Error tracking agent invocation: {e}")
             yield ("event: error\n" f"data: {error}\n\n")
         finally:
             streaming_callback.done.set()
 
-    logging.info("Invoking agent...")
+    logger.info("Invoking agent...")
     session_id = body.sessionId
     input = body.input
     enable_streaming = body.enableStreaming
@@ -575,7 +579,7 @@ async def invoke(
     )
 
     if enable_streaming:
-        logging.info("Streaming enabled. Preparing streaming response...")
+        logger.info("Streaming enabled. Preparing streaming response...")
 
         generator = send_message(
             agent,
@@ -585,7 +589,7 @@ async def invoke(
         )
         return StreamingResponse(generator, media_type="text/event-stream")
 
-    logging.info("Streaming not enabled. Invoking agent synchronously...")
+    logger.info("Streaming not enabled. Invoking agent synchronously...")
 
     output = await agent.ainvoke(
         input=agent_input,
@@ -599,7 +603,7 @@ async def invoke(
         try:
             output = json.loads(output.get("output"))
         except Exception as e:
-            logging.error(f"Error parsing output: {e}")
+            logger.error(f"Error parsing output: {e}")
 
     if not enable_streaming and SEGMENT_WRITE_KEY:
         try:
@@ -613,7 +617,7 @@ async def invoke(
                 }
             )
         except Exception as e:
-            logging.error(f"Error tracking agent invocation: {e}")
+            logger.error(f"Error tracking agent invocation: {e}")
 
     return {"success": True, "data": output}
 
