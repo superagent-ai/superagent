@@ -360,14 +360,19 @@ async def update(
         if new_agent_data.get("metadata"):
             new_agent_data["metadata"] = json.dumps(new_agent_data["metadata"])
 
-        old_llm_model = agent.llmModel or agent.metadata.get("model")
-        new_llm_model = body.llmModel or (
-            body.metadata.get("model") if body.metadata else None
-        )
+        old_llm_model = agent.llmModel
+        new_llm_model = LLM_MAPPING.get(body.llmModel)
+
+        if not old_llm_model:
+            old_llm_model = agent.metadata.get("model")
+
+        if not new_llm_model:
+            new_llm_model = body.metadata.get("model")
+
         if old_llm_model and new_llm_model and old_llm_model != new_llm_model:
             from app.utils.llm import get_llm_provider
 
-            new_provider = get_llm_provider(LLM_MAPPING.get(new_llm_model))
+            new_provider = get_llm_provider(new_llm_model)
             new_llm = await prisma.llm.find_first_or_raise(
                 where={"provider": new_provider, "apiUserId": api_user.id}
             )

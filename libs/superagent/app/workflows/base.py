@@ -45,7 +45,7 @@ class WorkflowBase:
             )
             agent_base = AgentBase(
                 agent_id=step.agentId,
-                enable_streaming=True,
+                enable_streaming=self.enable_streaming,
                 callbacks=self.constructor_callbacks,
                 session_id=self.session_id,
                 agent_config=agent_config,

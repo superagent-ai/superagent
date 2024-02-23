@@ -24,7 +24,7 @@ from app.models.tools import DatasourceInput
 from app.tools import TOOL_TYPE_MAPPING, create_pydantic_model_from_object, create_tool
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
 from app.utils.llm import LLM_MAPPING
-from prisma.models import Agent, AgentDatasource, AgentLLM, AgentTool
+from prisma.models import LLM, Agent, AgentDatasource, AgentTool
 
 DEFAULT_PROMPT = (
     "You are a helpful AI Assistant, answer the users questions to "
@@ -142,27 +142,27 @@ class LangchainAgent(AgentBase):
             tools.append(tool)
         return tools
 
-    async def _get_llm(self, agent_llm: AgentLLM, model: str) -> Any:
+    async def _get_llm(self, llm: LLM, model: str) -> Any:
         llm_params = {
             "temperature": 0,
             **(self.llm_params.dict() if self.llm_params else {}),
         }
 
-        if agent_llm.llm.provider == "OPENAI":
+        if llm.provider == "OPENAI":
             return ChatOpenAI(
                 model=LLM_MAPPING[model],
-                openai_api_key=agent_llm.llm.apiKey,
+                openai_api_key=llm.apiKey,
                 streaming=self.enable_streaming,
                 callbacks=self.callbacks,
-                **(agent_llm.llm.options if agent_llm.llm.options else {}),
+                **(llm.options if llm.options else {}),
                 **(llm_params),
             )
-        elif agent_llm.llm.provider == "AZURE_OPENAI":
+        elif llm.provider == "AZURE_OPENAI":
             return AzureChatOpenAI(
-                api_key=agent_llm.llm.apiKey,
+                api_key=llm.apiKey,
                 streaming=self.enable_streaming,
                 callbacks=self.callbacks,
-                **(agent_llm.llm.options if agent_llm.llm.options else {}),
+                **(llm.options if llm.options else {}),
                 **(llm_params),
             )
 
@@ -228,7 +228,7 @@ class LangchainAgent(AgentBase):
 
     async def get_agent(self):
         llm = await self._get_llm(
-            agent_llm=self.agent_config.llms[0], model=self.agent_config.llmModel
+            llm=self.agent_config.llms[0].llm, model=self.agent_config.llmModel
         )
         tools = await self._get_tools(
             agent_datasources=self.agent_config.datasources,
