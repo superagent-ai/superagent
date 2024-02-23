@@ -7,6 +7,77 @@ from app.utils.helpers import compare_dicts, get_first_non_null_key
 from ..data_transformer import DataTransformer
 
 
+class RepeatedNameError(Exception):
+    pass
+
+
+class Validator:
+    def __init__(self, config):
+        self.config = config
+
+    def validate(self):
+        self.validate_assistant_names()
+        self.validate_tool_names()
+        self.validate_superrag_names()
+
+    def validate_assistant_names(self):
+        assistants = self.config.get("workflows", [])
+        assistant_names = []
+
+        for new_assistant in assistants:
+            assistant_type = get_first_non_null_key(new_assistant)
+            assistant_name = new_assistant.get(assistant_type).get("name")
+
+            if assistant_name in assistant_names:
+                raise RepeatedNameError(
+                    f"Assistant name '{assistant_name}' is repeated in the SAML,"
+                    f"please use unique names for each assistant."
+                )
+            assistant_names.append(assistant_name)
+
+    def validate_tool_names(self):
+        assistants = self.config.get("workflows", [])
+
+        for new_assistant in assistants:
+            assistant_type = get_first_non_null_key(new_assistant)
+            assistant = new_assistant.get(assistant_type)
+
+            tools = assistant.get("tools", [])
+            tool_names = []
+
+            for tool in tools:
+                tool_type = get_first_non_null_key(tool)
+                tool_name = tool.get(tool_type).get("name")
+
+                if tool_name in tool_names:
+                    raise RepeatedNameError(
+                        f"Tool name '{tool_name}' is repeated in the SAML,"
+                        f"please use unique names for each tool."
+                    )
+                tool_names.append(tool_name)
+
+    def validate_superrag_names(self):
+        assistants = self.config.get("workflows", [])
+
+        for new_assistant in assistants:
+            assistant_type = get_first_non_null_key(new_assistant)
+            assistant = new_assistant.get(assistant_type)
+
+            superrag = assistant.get("superrag") or []
+            superrag_names = []
+
+            for superrag_data in superrag:
+                node_type = get_first_non_null_key(superrag_data)
+                superrag_name = superrag_data.get(node_type).get("name")
+
+                if superrag_name in superrag_names:
+                    raise RepeatedNameError(
+                        f"Superrag name '{superrag_name}' is repeated in the SAML,"
+                        f"please use unique names for each superrag."
+                    )
+                superrag_names.append(superrag_name)
+
+
 class AgentProcessor:
     def __init__(self, api_user, api_manager: ApiManager):
         self.api_user = api_user
@@ -77,8 +148,6 @@ class AgentProcessor:
                 self.api_user, self.api_manager
             ).get_superrag_processor(old_assistant)
 
-        print("old_type", old_type)
-        print("new_type", new_type)
         if old_type and new_type:
             if old_type != new_type:
                 # order matters here as we need process
@@ -133,9 +202,11 @@ class AgentProcessor:
         return new_agent
 
     async def process_assistants(self, old_config, new_config):
+        validator = Validator(new_config)
+        validator.validate()
+
         old_assistants = old_config.get("workflows", [])
         new_assistants = new_config.get("workflows", [])
-
         workflow_step_order = 0
         for old_assistant_obj, new_assistant_obj in zip_longest(
             old_assistants, new_assistants, fillvalue={}

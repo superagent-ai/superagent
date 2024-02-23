@@ -19,7 +19,7 @@ from app.api.workflow_configs.saml_schema import WorkflowConfigModel
 from app.utils.api import get_current_api_user
 from app.utils.prisma import prisma
 
-from .processors.agent_processor import AgentProcessor
+from .processors.agent_processor import AgentProcessor, RepeatedNameError
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
@@ -80,6 +80,7 @@ async def add_config(
             MissingVectorDatabaseProvider,
             UnkownFileType,
             UnknownLLMProvider,
+            RepeatedNameError,
         ) as e:
             logger.exception(e)
             return JSONResponse(
