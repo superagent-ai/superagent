@@ -15,11 +15,11 @@ from app.api.workflow_configs.data_transformer import (
     UnknownLLMProvider,
     UnkownFileType,
 )
+from app.api.workflow_configs.processors.agent_processor import AgentProcessor
 from app.api.workflow_configs.saml_schema import WorkflowConfigModel
+from app.api.workflow_configs.validator import RepeatedNameError
 from app.utils.api import get_current_api_user
 from app.utils.prisma import prisma
-
-from .processors.agent_processor import AgentProcessor, RepeatedNameError
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
