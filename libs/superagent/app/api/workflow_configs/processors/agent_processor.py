@@ -1,10 +1,10 @@
 from itertools import zip_longest
 
 from app.api.workflow_configs.api.api_manager import ApiManager
+from app.api.workflow_configs.data_transformer import DataTransformer
 from app.api.workflow_configs.processors.processor import Processor
+from app.api.workflow_configs.validator import SAMLValidator
 from app.utils.helpers import compare_dicts, get_first_non_null_key
-
-from ..data_transformer import DataTransformer
 
 
 class AgentProcessor:
@@ -77,8 +77,6 @@ class AgentProcessor:
                 self.api_user, self.api_manager
             ).get_superrag_processor(old_assistant)
 
-        print("old_type", old_type)
-        print("new_type", new_type)
         if old_type and new_type:
             if old_type != new_type:
                 # order matters here as we need process
@@ -133,9 +131,11 @@ class AgentProcessor:
         return new_agent
 
     async def process_assistants(self, old_config, new_config):
+        validator = SAMLValidator(new_config)
+        validator.validate()
+
         old_assistants = old_config.get("workflows", [])
         new_assistants = new_config.get("workflows", [])
-
         workflow_step_order = 0
         for old_assistant_obj, new_assistant_obj in zip_longest(
             old_assistants, new_assistants, fillvalue={}
