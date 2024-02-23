@@ -1,6 +1,6 @@
 from app.api.agents import OpenAIAssistantSdk
 from app.api.workflow_configs.processors.base import BaseProcessor
-from app.utils.helpers import get_first_key
+from app.utils.helpers import get_first_non_null_key
 from app.utils.prisma import prisma
 
 
@@ -51,7 +51,7 @@ class OpenaiToolProcessor(BaseProcessor):
 
             tool_types = [
                 {
-                    "type": get_first_key(tool),
+                    "type": get_first_non_null_key(tool),
                 }
                 for tool in new_tools
             ]

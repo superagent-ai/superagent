@@ -187,9 +187,12 @@ async def invoke(
 
     workflow_steps = []
     for workflow_step in workflow_data.steps:
-        llm_model = LLM_MAPPING.get(workflow_step.agent.llmModel) or LLM_MAPPING.get(
-            workflow_step.agent.metadata.get("model")
-        )
+        llm_model = LLM_MAPPING.get(workflow_step.agent.llmModel)
+        metadata = workflow_step.agent.metadata or {}
+
+        if not llm_model and metadata.get("model"):
+            llm_model = workflow_step.agent.metadata.get("model")
+
         item = {
             "callbacks": {
                 "streaming": CustomAsyncIteratorCallbackHandler(),
@@ -250,7 +253,7 @@ async def invoke(
             )
 
     if enable_streaming:
-        logging.info("Streaming enabled. Preparing streaming response...")
+        logger.info("Streaming enabled. Preparing streaming response...")
 
         async def send_message() -> AsyncIterable[str]:
             try:
@@ -298,7 +301,8 @@ async def invoke(
                                 "status_code": 500,
                             }
                         )
-                logging.error(f"Error in send_message: {error}")
+
+                logger.error(f"Error in send_message: {error}")
             finally:
                 for workflow_step in workflow_steps:
                     workflow_step["callbacks"]["streaming"].done.set()
@@ -306,7 +310,7 @@ async def invoke(
         generator = send_message()
         return StreamingResponse(generator, media_type="text/event-stream")
 
-    logging.info("Streaming not enabled. Invoking workflow synchronously...")
+    logger.info("Streaming not enabled. Invoking workflow synchronously...")
     output = await workflow.arun(
         input,
     )

@@ -120,5 +120,7 @@ def get_superrag_compatible_credentials(credentials: dict):
     return superrag_credentials
 
 
-def get_first_key(dictionary) -> str | None:
-    return next(iter(dictionary)) if dictionary else None
+def get_first_non_null_key(dictionary):
+    for key in dictionary:
+        if dictionary[key] is not None:
+            return key
