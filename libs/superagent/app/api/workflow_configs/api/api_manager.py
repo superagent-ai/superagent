@@ -64,8 +64,8 @@ class ApiManager:
                 api_user=self.api_user,
             )
             logger.info(f"Updated tool: {tool.name} - {assistant.get('name')}")
-        except Exception:
-            logger.error(f"Error updating tool: {tool} - {assistant}")
+        except Exception as err:
+            logger.error(f"Error updating tool: {tool} - {assistant} - Error: {err}")
 
     async def delete_tool(self, assistant: dict, tool: dict):
         tool = await self.agent_manager.get_tool(assistant, tool)
@@ -76,8 +76,8 @@ class ApiManager:
                 api_user=self.api_user,
             )
             logger.info(f"Deleted tool: {tool.name} - {assistant.get('name')}")
-        except Exception:
-            logger.error(f"Error deleting tool: {tool} - {assistant}")
+        except Exception as err:
+            logger.error(f"Error deleting tool: {tool} - {assistant} - Error: {err}")
 
     async def delete_datasource(self, assistant: dict, datasource: dict):
         datasource = await self.agent_manager.get_datasource(assistant, datasource)
@@ -90,8 +90,10 @@ class ApiManager:
             logger.info(
                 f"Deleted datasource: {datasource.name} - {assistant.get('name')}"
             )
-        except Exception:
-            logger.error(f"Error deleting datasource: {datasource} - {assistant}")
+        except Exception as err:
+            logger.error(
+                f"Error deleting datasource: {datasource} - {assistant} - Error: {err}"
+            )
 
     async def create_datasource(self, data: dict):
         try:
@@ -104,8 +106,8 @@ class ApiManager:
 
             logger.info(f"Created datasource: {data}")
             return new_datasource
-        except Exception:
-            logger.error(f"Error creating datasource: {data}")
+        except Exception as err:
+            logger.error(f"Error creating datasource: {data} - Error: {err}")
 
     async def create_tool(self, assistant: dict, data: dict):
         try:
@@ -118,8 +120,8 @@ class ApiManager:
 
             logger.info(f"Created tool: ${new_tool.name} - ${assistant.get('name')}")
             return new_tool
-        except Exception:
-            logger.error(f"Error creating tool: {data}")
+        except Exception as err:
+            logger.error(f"Error creating tool: {data} - Error: {err}")
 
     async def add_datasource(self, assistant: dict, data: dict):
         assistant = await self.agent_manager.get_assistant(assistant)
@@ -134,8 +136,10 @@ class ApiManager:
                 api_user=self.api_user,
             )
             logger.info(f"Added datasource: {new_datasource.name} - {assistant.name}")
-        except Exception:
-            logger.error(f"Error adding datasource: {new_datasource} - {assistant}")
+        except Exception as err:
+            logger.error(
+                f"Error adding datasource: {new_datasource} - {assistant} - Error: {err}"
+            )
 
     async def add_tool(self, assistant: dict, data: dict):
         new_tool = await self.create_tool(assistant, data)
@@ -151,8 +155,8 @@ class ApiManager:
                 api_user=self.api_user,
             )
             logger.info(f"Added tool: {new_tool.name} - {assistant.name}")
-        except Exception:
-            logger.error(f"Error adding tool: {new_tool} - {assistant}")
+        except Exception as err:
+            logger.error(f"Error adding tool: {new_tool} - {assistant} - Error: {err}")
 
     def get_vector_database_by_provider(self, provider: str):
         return prisma.vectordb.find_first(

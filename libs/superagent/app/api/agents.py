@@ -366,7 +366,7 @@ async def update(
         if not old_llm_model:
             old_llm_model = agent.metadata.get("model")
 
-        if not new_llm_model:
+        if not new_llm_model and body.metadata:
             new_llm_model = body.metadata.get("model")
 
         if old_llm_model and new_llm_model and old_llm_model != new_llm_model:

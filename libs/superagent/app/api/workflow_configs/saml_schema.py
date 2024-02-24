@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field, validator
 
@@ -72,9 +72,9 @@ class ToolModel(BaseModel):
     metaphor: Optional[Tool]
     function: Optional[Tool]
     # ~~~~~~Assistants as tools~~~~~~
-    superagent: Optional["BaseAssistantToolModel[SuperagentAgent]"]
-    openai_assistant: Optional["BaseAssistantToolModel[OpenAIAgent]"]
-    llm: Optional["BaseAssistantToolModel[LLMAgent]"]
+    superagent: Optional["SuperagentAgentTool"]
+    openai_assistant: Optional["OpenAIAgentTool"]
+    llm: Optional["LLMAgentTool"]
 
     # OpenAI Assistant tools
     code_interpreter: Optional[Tool]
@@ -108,11 +108,20 @@ class OpenAIAgent(Assistant):
     pass
 
 
-AgentT = TypeVar("AgentT")
-
-
-class BaseAssistantToolModel(BaseModel, Generic[AgentT]):
+class BaseAgentToolModel(BaseModel):
     use_for: str
+
+
+class SuperagentAgentTool(BaseAgentToolModel, SuperagentAgent):
+    pass
+
+
+class OpenAIAgentTool(BaseAgentToolModel, OpenAIAgent):
+    pass
+
+
+class LLMAgentTool(BaseAgentToolModel, LLMAgent):
+    pass
 
 
 # This is for the circular reference between Agent, Assistant and ToolModel

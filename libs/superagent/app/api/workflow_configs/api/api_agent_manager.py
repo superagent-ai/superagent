@@ -98,8 +98,8 @@ class ApiAgentManager(BaseApiAgentManager):
 
             logger.info(f"Created agent: {new_agent}")
             return new_agent
-        except Exception:
-            logger.error(f"Error creating agent: {data}")
+        except Exception as e:
+            logger.error(f"Error creating agent: {data} - Error: {e}")
 
     async def add_assistant(self, data: dict, order: int | None = None):
         new_agent = await self.create_assistant(data)
@@ -115,8 +115,8 @@ class ApiAgentManager(BaseApiAgentManager):
                     api_user=self.api_user,
                 )
                 logger.info(f"Added assistant: {new_agent.name}")
-            except Exception:
-                logger.error("Error adding assistant")
+            except Exception as e:
+                logger.error(f"Error adding assistant - Error: {e}")
 
         return new_agent
 
@@ -130,8 +130,8 @@ class ApiAgentManager(BaseApiAgentManager):
             )
 
             logger.info(f"Deleted assistant: {assistant.name}")
-        except Exception:
-            logger.error("Error deleting assistant")
+        except Exception as e:
+            logger.error(f"Error deleting assistant - Error: {e}")
 
     async def update_assistant(self, assistant: dict, data: dict):
         agent = await self.get_assistant(assistant)
@@ -143,5 +143,5 @@ class ApiAgentManager(BaseApiAgentManager):
                 api_user=self.api_user,
             )
             logger.info(f"Updated assistant: {agent.name}")
-        except Exception:
-            logger.error("Error updating assistant")
+        except Exception as e:
+            logger.error(f"Error updating assistant - Error: {e}")
