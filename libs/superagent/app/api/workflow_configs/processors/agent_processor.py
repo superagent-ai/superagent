@@ -131,8 +131,8 @@ class AgentProcessor:
         return new_agent
 
     async def process_assistants(self, old_config, new_config):
-        validator = SAMLValidator(new_config)
-        validator.validate()
+        validator = SAMLValidator(new_config, self.api_user)
+        await validator.validate()
 
         old_assistants = old_config.get("workflows", [])
         new_assistants = new_config.get("workflows", [])

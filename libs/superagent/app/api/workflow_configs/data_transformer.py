@@ -1,6 +1,5 @@
 import logging
 
-from litellm.exceptions import NotFoundError as LiteLLMNotFoundError
 
 from app.api.workflow_configs.api.api_manager import ApiManager
 from app.api.workflow_configs.saml_schema import Superrag
@@ -42,10 +41,6 @@ class UnkownFileType(Exception):
     pass
 
 
-class UnknownLLMProvider(Exception):
-    pass
-
-
 class DataTransformer:
     def __init__(self, api_user, api_manager: ApiManager):
         self.api_user = api_user
@@ -83,15 +78,7 @@ class DataTransformer:
                 **assistant.get("metadata", {}),
             }
 
-        if llm_model:
-            try:
-                provider = get_llm_provider(llm_model)
-            except LiteLLMNotFoundError:
-                raise UnknownLLMProvider(
-                    f"Could not find provider for LLM model {llm_model}. "
-                    "Please ensure that the model is supported."
-                )
-
+            provider = get_llm_provider(llm_model)
             if provider:
                 assistant["llmProvider"] = provider
 
