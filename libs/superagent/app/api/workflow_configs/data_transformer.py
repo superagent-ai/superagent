@@ -1,6 +1,7 @@
 import logging
 
 from app.api.workflow_configs.api.api_manager import ApiManager
+from app.api.workflow_configs.saml_schema import SAML_OSS_LLM_PROVIDERS
 from app.utils.helpers import (
     get_first_non_null_key,
     get_mimetype_from_url,
@@ -89,6 +90,9 @@ class DataTransformer:
         )
 
         if self.assistant_type:
+            if self.assistant_type.upper() in SAML_OSS_LLM_PROVIDERS:
+                self.assistant_type = AgentType.LLM.value
+
             self.assistant["type"] = self.assistant_type.upper()
 
         llm_model = self.assistant.get("llmModel")

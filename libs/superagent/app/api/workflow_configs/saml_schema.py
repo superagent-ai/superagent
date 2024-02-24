@@ -3,6 +3,8 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field, validator
 
+from prisma.enums import LLMProvider
+
 
 class SuperragEncoderType(str, Enum):
     openai = "openai"
@@ -95,7 +97,7 @@ class Assistant(BaseModel):
 # ~~~Agents~~~
 class SuperagentAgent(Assistant):
     tools: Optional[Tools]
-    data: Optional[Data]  # deprecated, use superrag instead
+    data: Optional[Data] = Field(description="Deprecated! Use `superrag` instead.")
     superrag: Optional[Superrag]
 
 
@@ -128,11 +130,21 @@ class LLMAgentTool(BaseAgentToolModel, LLMAgent):
 # for assistant as tools
 ToolModel.update_forward_refs()
 
+SAML_OSS_LLM_PROVIDERS = [
+    LLMProvider.PERPLEXITY.value,
+    LLMProvider.TOGETHER_AI.value,
+]
+
 
 class Workflow(BaseModel):
     superagent: Optional[SuperagentAgent]
     openai_assistant: Optional[OpenAIAgent]
-    llm: Optional[LLMAgent]
+    # ~~OSS LLM providers~~
+    perplexity: Optional[LLMAgent]
+    together_ai: Optional[LLMAgent]
+    llm: Optional[LLMAgent] = Field(
+        description="Deprecated! Use LLM providers instead. e.g. `perplexity` or `together_ai`"
+    )
 
 
 class WorkflowConfigModel(BaseModel):
