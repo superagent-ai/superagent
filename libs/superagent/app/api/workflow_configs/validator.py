@@ -15,7 +15,7 @@ class SAMLValidator:
         self.validate_superrag_names()
 
     def validate_assistant_names(self):
-        assistants = self.config.get("workflows", [])
+        assistants = self.config.get("workflows") or []
         assistant_names = []
 
         for new_assistant in assistants:
@@ -30,13 +30,13 @@ class SAMLValidator:
             assistant_names.append(assistant_name)
 
     def validate_tool_names(self):
-        assistants = self.config.get("workflows", [])
+        assistants = self.config.get("workflows") or []
 
         for new_assistant in assistants:
             assistant_type = get_first_non_null_key(new_assistant)
             assistant = new_assistant.get(assistant_type)
 
-            tools = assistant.get("tools", [])
+            tools = assistant.get("tools") or []
             tool_names = []
 
             for tool in tools:
@@ -51,7 +51,7 @@ class SAMLValidator:
                 tool_names.append(tool_name)
 
     def validate_superrag_names(self):
-        assistants = self.config.get("workflows", [])
+        assistants = self.config.get("workflows") or []
 
         for new_assistant in assistants:
             assistant_type = get_first_non_null_key(new_assistant)

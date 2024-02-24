@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Generic, Optional, TypeVar
 
 from pydantic import BaseModel, Field, validator
 
@@ -72,9 +72,9 @@ class ToolModel(BaseModel):
     metaphor: Optional[Tool]
     function: Optional[Tool]
     # ~~~~~~Assistants as tools~~~~~~
-    superagent: Optional["AgentTool"]
-    openai_assistant: Optional["AgentTool"]
-    llm: Optional["AssistantTool"]
+    superagent: Optional["BaseAssistantToolModel[SuperagentAgent]"]
+    openai_assistant: Optional["BaseAssistantToolModel[OpenAIAgent]"]
+    llm: Optional["BaseAssistantToolModel[LLMAgent]"]
 
     # OpenAI Assistant tools
     code_interpreter: Optional[Tool]
@@ -92,22 +92,27 @@ class Assistant(BaseModel):
     intro: Optional[str]
 
 
-class Agent(Assistant):
+# ~~~Agents~~~
+class SuperagentAgent(Assistant):
     tools: Optional[Tools]
-    data: Optional[Data]
+    data: Optional[Data]  # deprecated, use superrag instead
     superrag: Optional[Superrag]
 
 
-class BaseAssistantToolModel(BaseModel):
+class LLMAgent(Assistant):
+    tools: Optional[Tools]
+    superrag: Optional[Superrag]
+
+
+class OpenAIAgent(Assistant):
+    pass
+
+
+AgentT = TypeVar("AgentT")
+
+
+class BaseAssistantToolModel(BaseModel, Generic[AgentT]):
     use_for: str
-
-
-class AgentTool(BaseAssistantToolModel, Agent):
-    pass
-
-
-class AssistantTool(BaseAssistantToolModel, Assistant):
-    pass
 
 
 # This is for the circular reference between Agent, Assistant and ToolModel
@@ -116,9 +121,9 @@ ToolModel.update_forward_refs()
 
 
 class Workflow(BaseModel):
-    superagent: Optional[Agent]
-    openai_assistant: Optional[Assistant]
-    llm: Optional[Assistant]
+    superagent: Optional[SuperagentAgent]
+    openai_assistant: Optional[OpenAIAgent]
+    llm: Optional[LLMAgent]
 
 
 class WorkflowConfigModel(BaseModel):
