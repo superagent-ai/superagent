@@ -56,8 +56,8 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
 
             logger.info(f"Created tool: ${new_tool.name} - ${assistant.get('name')}")
             return new_tool
-        except Exception:
-            logger.error(f"Error creating tool: {data}")
+        except Exception as err:
+            logger.error(f"Error creating tool: {data} - Error: {err}")
 
     async def _add_tool(self, assistant: dict, data: dict):
         new_tool = await self._create_tool(assistant, data)
@@ -73,8 +73,8 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
                 api_user=self.api_user,
             )
             logger.info(f"Added tool: {new_tool.name} - {assistant.name}")
-        except Exception:
-            logger.error(f"Error adding tool: {new_tool} - {assistant}")
+        except Exception as err:
+            logger.error(f"Error adding tool: {new_tool} - {assistant} - Error: {err}")
 
     async def _add_superrag_tool(self, assistant: dict, data: dict):
         new_tool = {
@@ -101,8 +101,8 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
                 api_user=self.api_user,
             )
             logger.info(f"Deleted tool: {tool.name} - {assistant.get('name')}")
-        except Exception:
-            logger.error(f"Error deleting tool: {tool} - {assistant}")
+        except Exception as err:
+            logger.error(f"Error deleting tool: {tool} - {assistant} - Error: {err}")
 
     async def _get_unique_index_name(self, datasource: dict, assistant: dict):
         datasource_name = datasource.get("name")

@@ -126,8 +126,8 @@ class ApiAgentToolManager(BaseApiAgentManager):
 
             logger.info(f"Created agent: {new_agent}")
             return new_agent
-        except Exception:
-            logger.error(f"Error creating agent: {data}")
+        except Exception as err:
+            logger.error(f"Error creating agent: {data} - Error: {err}")
 
     async def create_tool(self, assistant: dict, data: dict):
         try:
@@ -140,8 +140,8 @@ class ApiAgentToolManager(BaseApiAgentManager):
 
             logger.info(f"Created tool: {new_tool.name} - {assistant.get('name')}")
             return new_tool
-        except Exception:
-            logger.error(f"Error creating tool: {data}")
+        except Exception as err:
+            logger.error(f"Error creating tool: {data} - Error: {err}")
 
     async def add_assistant(self, data: dict, _):
         new_agent = await self.create_assistant(data)
@@ -167,8 +167,10 @@ class ApiAgentToolManager(BaseApiAgentManager):
                 api_user=self.api_user,
             )
             logger.info(f"Added assistant: {new_agent.name} - {self.parent_agent.name}")
-        except Exception:
-            logger.error(f"Error adding assistant: {new_agent} - {self.parent_agent}")
+        except Exception as err:
+            logger.error(
+                f"Error adding assistant: {new_agent} - {self.parent_agent} - Error: {err}"
+            )
 
         return new_agent
 
@@ -196,8 +198,8 @@ class ApiAgentToolManager(BaseApiAgentManager):
                 api_user=self.api_user,
             )
             logger.info(f"Deleted assistant: {assistant.get('name')}")
-        except Exception:
-            logger.error(f"Error deleting assistant: {assistant}")
+        except Exception as err:
+            logger.error(f"Error deleting assistant: {assistant} - Error: {err}")
 
         tool = await self.get_agent_tool(assistant)
 
@@ -207,8 +209,8 @@ class ApiAgentToolManager(BaseApiAgentManager):
                 api_user=self.api_user,
             )
             logger.info(f"Deleted tool: {assistant.get('name')}")
-        except Exception:
-            logger.error(f"Error deleting tool: {assistant}")
+        except Exception as err:
+            logger.error(f"Error deleting tool: {assistant} - Error: {err}")
 
     async def update_assistant(self, assistant: dict, data: dict):
         agent = await self.get_assistant(assistant)
@@ -220,8 +222,8 @@ class ApiAgentToolManager(BaseApiAgentManager):
                 api_user=self.api_user,
             )
             logger.info(f"Updated assistant: {assistant.get('name')}")
-        except Exception:
-            logger.error(f"Error updating assistant: {assistant}")
+        except Exception as err:
+            logger.error(f"Error updating assistant: {assistant} - Error: {err}")
 
         tool = await self.get_agent_tool(assistant)
 
@@ -235,5 +237,5 @@ class ApiAgentToolManager(BaseApiAgentManager):
                 api_user=self.api_user,
             )
             logger.info(f"Updated tool: {assistant.get('name')}")
-        except Exception:
-            logger.error(f"Error updating tool: {assistant}")
+        except Exception as err:
+            logger.error(f"Error updating tool: {assistant} - Error: {err}")
