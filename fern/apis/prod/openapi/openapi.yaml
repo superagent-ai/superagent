@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The Open Source AI Assistant Framework & API
-  version: 0.2.8
+  version: 0.2.10
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -195,8 +195,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
-      x-fern-sdk-method-name: invoke
       x-fern-sdk-group-name: agent
+      x-fern-sdk-method-name: invoke
   /api/v1/agents/{agent_id}/llms:
     post:
       tags:
@@ -1282,6 +1282,18 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
+  /api/v1/workflows/config/schema:
+    get:
+      tags:
+        - Workflow Config
+      summary: Get Schema
+      operationId: get_schema_api_v1_workflows_config_schema_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
   /api/v1/workflows/{workflow_id}/config:
     post:
       tags:
