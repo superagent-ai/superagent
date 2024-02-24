@@ -1,4 +1,8 @@
+import logging
+
 import requests
+
+logger = logging.getLogger(__name__)
 
 
 def get_first_non_null(*args):
@@ -79,12 +83,13 @@ def parse_mimetype(mimetype):
 
 def get_mimetype_from_url(url):
     try:
+        logger.info(f"Fetching URL {url} to get mimetype")
         response = requests.head(url)
         mimetype = response.headers.get("Content-Type")
         parsed_mimetype = parse_mimetype(mimetype)
         return parsed_mimetype["content_type"] if parsed_mimetype else None
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching URL {url}: {e}")
+        logger.error(f"Error fetching URL {url}. Error: {e}")
         return None
 
 
@@ -120,7 +125,7 @@ def get_superrag_compatible_credentials(credentials: dict):
     return superrag_credentials
 
 
-def get_first_non_null_key(dictionary):
+def get_first_non_null_key(dictionary) -> str:
     for key in dictionary:
         if dictionary[key] is not None:
             return key
