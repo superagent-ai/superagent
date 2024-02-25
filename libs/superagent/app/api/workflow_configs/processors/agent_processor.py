@@ -54,6 +54,10 @@ class AgentProcessor:
         await old_saml_transformer.transform()
         await new_saml_transformer.transform()
 
+        # this is needed because type can be changed in data transformer
+        old_assistant_type = old_assistant.get("type")
+        new_assistant_type = new_assistant.get("type")
+
         if old_assistant:
             old_tool_processor = Processor(
                 self.api_user,
