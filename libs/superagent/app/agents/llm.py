@@ -51,7 +51,7 @@ class FunctionCalling(AgentBase):
 
     async def init(self):
         self.agent_config.type = AgentType.SUPERAGENT
-        self.agent_config.llmModel = LLM_REVERSE_MAPPING.get("gpt-4-0613")
+        self.agent_config.llmModel = LLM_REVERSE_MAPPING.get("gpt-3.5-turbo-0125")
         self.agent_id = self.agent_config.id
 
         await self._set_llm()
@@ -85,7 +85,7 @@ class LLMAgent(AgentBase):
                         input=input
                     )
 
-                model = agent_config.metadata.get("model", "gpt-3.5-turbo")
+                model = agent_config.metadata.get("model", "gpt-3.5-turbo-0125")
                 prompt = agent_config.prompt
                 api_key = agent_config.llms[0].llm.apiKey
 
