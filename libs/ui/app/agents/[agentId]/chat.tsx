@@ -23,8 +23,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 import Message from "@/components/message"
-import FunctionCalls from "@/app/workflows/[id]/function-calls"
 
+import FunctionCalls from "./function-calls"
 import PromptForm from "./prompt-form"
 
 dayjs.extend(relativeTime)
