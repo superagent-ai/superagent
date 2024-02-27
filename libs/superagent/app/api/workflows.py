@@ -280,6 +280,7 @@ async def invoke(
                                 yield (
                                     "event: function_call\n"
                                     f'data: {{"function": "{function}", '
+                                    f'"step_name": "{workflow_step["agent_name"]}", '
                                     f'"args": {json.dumps(args)}, '
                                     f'"response": {json.dumps(tool_response)}}}\n\n'
                                 )
