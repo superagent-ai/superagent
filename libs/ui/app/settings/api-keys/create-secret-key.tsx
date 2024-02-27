@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ApiKey } from "@/models/models"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { set, useForm } from "react-hook-form"
 import * as z from "zod"
 
 import { Api } from "@/lib/api"
@@ -45,6 +45,7 @@ export function CreateSecretKey({ profile }: { profile: any }) {
     },
   })
   const [generatedKey, setGeneratedKey] = useState<string | null>(null)
+  const [createApiKeyDialogOpen, setCreateApiKeyDialogOpen] = useState(false)
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const res = await api.createApiKey(values)
@@ -61,83 +62,94 @@ export function CreateSecretKey({ profile }: { profile: any }) {
 
     router.refresh()
     if (apiKey?.apiKey) setGeneratedKey(apiKey.apiKey)
+
+    setCreateApiKeyDialogOpen(false)
   }
 
   return (
     <>
-      <Dialog>
-        {generatedKey ? (
-          <>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>API key created</DialogTitle>
-                <DialogDescription>
-                  You can view the API key once. But you can always create a new
-                  one.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex items-center space-x-4">
-                <Input
-                  value={generatedKey}
-                  readOnly
-                  className="w-full"
-                  placeholder="Generated API key"
-                />
-                <Button
-                  onClick={() => {
-                    navigator.clipboard.writeText(generatedKey)
-                    toast({
-                      title: "API key copied to clipboard",
-                    })
-                  }}
-                  variant="outline"
-                >
-                  Copy
+      {generatedKey && (
+        <Dialog
+          defaultOpen={true}
+          onOpenChange={() => {
+            setGeneratedKey(null)
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>API key created</DialogTitle>
+              <DialogDescription>
+                You can view the API key once. But you can always create a new
+                one.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex items-center space-x-4">
+              <Input
+                value={generatedKey}
+                readOnly
+                className="w-full"
+                placeholder="Generated API key"
+              />
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(generatedKey)
+                  toast({
+                    title: "API key copied to clipboard",
+                  })
+                }}
+                variant="outline"
+              >
+                Copy
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+      <Dialog
+        open={createApiKeyDialogOpen}
+        onOpenChange={(open) => {
+          setCreateApiKeyDialogOpen(open)
+          form.clearErrors()
+          form.reset()
+        }}
+      >
+        <DialogTrigger asChild>
+          <Button variant="default">Create a new API key</Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create a new API key</DialogTitle>
+            <DialogDescription>
+              This API key will be used to authenticate requests to the API.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="w-full space-y-4"
+            >
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input placeholder="Enter API key name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button type="submit" variant="default">
+                  Create API key
                 </Button>
-              </div>
-            </DialogContent>
-          </>
-        ) : (
-          <>
-            <DialogTrigger asChild>
-              <Button variant="default">Create a new API key</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Create a new API key</DialogTitle>
-                <DialogDescription>
-                  This API key will be used to authenticate requests to the API.
-                </DialogDescription>
-              </DialogHeader>
-
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="w-full space-y-4"
-                >
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input placeholder="Enter API key name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <DialogFooter>
-                    <Button type="submit" variant="default">
-                      Create API key
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </>
-        )}
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
       </Dialog>
 
       <Toaster />

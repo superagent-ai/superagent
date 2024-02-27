@@ -114,7 +114,14 @@ const EditButton = ({ profile, api_key }: ActionButtonProps) => {
   }
 
   return (
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+    <Dialog
+      open={dialogOpen}
+      onOpenChange={(open) => {
+        form.reset()
+        form.clearErrors()
+        setDialogOpen(open)
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="outline">
           <RxPencil1 size={16} />
