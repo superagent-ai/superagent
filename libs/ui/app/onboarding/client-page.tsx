@@ -75,7 +75,7 @@ export default function OnboardingClientPage() {
     if (!profile.api_key) {
       const {
         data: { token: api_key },
-      } = await api.createApiKey({
+      } = await api.createApiUser({
         email: user.email,
         firstName: first_name,
         lastName: last_name,
