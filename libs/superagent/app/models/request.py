@@ -14,6 +14,10 @@ class ApiUser(BaseModel):
     anonymousId: Optional[str]
 
 
+class ApiKey(BaseModel):
+    name: str
+
+
 class OpenAiAssistantParameters(BaseModel):
     metadata: Optional[Dict[str, Any]]
     fileIds: Optional[List[str]]
