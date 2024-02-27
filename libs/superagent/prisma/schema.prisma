@@ -106,6 +106,19 @@ model ApiUser {
   workflows       Workflow[]
   vectorDb        VectorDb[]
   workflowConfigs WorkflowConfig[]
+  apiKeys         ApiKey[]
+}
+
+model ApiKey {
+  id            String   @id @default(uuid())
+  name          String
+  displayApiKey String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  apiUserId     String
+  apiUser       ApiUser  @relation(fields: [apiUserId], references: [id])
+
+  @@index([apiUserId], name: "api_user_id")
 }
 
 model Agent {
