@@ -26,8 +26,10 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
+import { CodeBlock } from "@/components/codeblock"
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required."),
@@ -79,11 +81,11 @@ export function CreateSecretKey({ profile }: { profile: any }) {
             <DialogHeader>
               <DialogTitle>API key created</DialogTitle>
               <DialogDescription>
-                You can view the API key once. But you can always create a new
+                You can view the API key ionce. But you can always create a new
                 one.
               </DialogDescription>
             </DialogHeader>
-            <div className="flex items-center space-x-4">
+            <div className="overflow-x-hidden">
               <Input
                 value={generatedKey}
                 readOnly
@@ -101,6 +103,28 @@ export function CreateSecretKey({ profile }: { profile: any }) {
               >
                 Copy
               </Button>
+
+              <Tabs defaultValue="python">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="python">Python</TabsTrigger>
+                  <TabsTrigger value="javascript">
+                    Javascript/Typescript
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="python">
+                  <CodeBlock
+                    value={`from superagent.client import Superagent\n\n client = Superagent(\n   token="${generatedKey}",\n   base_url="https://api.beta.superagent.sh" # or your local environment\n)`}
+                    language="python"
+                  />
+                </TabsContent>
+                <TabsContent value="javascript">
+                  <CodeBlock
+                    value={`import {SuperAgentClient} from "superagentai-js";\n\n const client = new SuperAgentClient({\n   token: "${generatedKey}", \n   environment: "https://api.beta.superagent.sh" // or your local environment \n });`}
+                    language="javascript"
+                  />
+                </TabsContent>
+              </Tabs>
             </div>
           </DialogContent>
         </Dialog>
@@ -114,9 +138,11 @@ export function CreateSecretKey({ profile }: { profile: any }) {
         }}
       >
         <DialogTrigger asChild>
-          <Button variant="default">Create a new API key</Button>
+          <Button variant="default">
+            <span className="mr-1 text-lg">+ </span> Create a new API key
+          </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Create a new API key</DialogTitle>
             <DialogDescription>

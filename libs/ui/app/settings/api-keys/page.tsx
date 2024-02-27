@@ -2,7 +2,7 @@ import { cookies } from "next/headers"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import ApiKeysTable from "./api-keys"
-import { CreateSecretKey } from "./create-secret-key"
+import { CreateSecretKey } from "./create-api-key"
 
 export default async function Settings() {
   const supabase = createRouteHandlerClient({ cookies })
@@ -19,7 +19,7 @@ export default async function Settings() {
   return (
     <div className="max-w-3xl">
       <ApiKeysTable profile={profile} />
-      <div className="mt-12 flex justify-end">
+      <div className="mt-12">
         <CreateSecretKey profile={profile} />
       </div>
     </div>
