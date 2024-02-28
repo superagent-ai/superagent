@@ -233,7 +233,7 @@ function MessageAlert({ error }: MessageAlertProps) {
       <AiOutlineExclamationCircle className="h-4 w-4" />
       <AlertTitle>Error</AlertTitle>
       <AlertDescription>
-        <b>{error}.</b>
+        <b>{error}</b>
       </AlertDescription>
     </Alert>
   )
