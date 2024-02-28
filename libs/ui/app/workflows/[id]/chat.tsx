@@ -19,11 +19,17 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToast } from "@/components/ui/use-toast"
 import Message from "@/components/message"
 
+import FunctionCalls from "./function-calls"
 import LLMDialog from "./llm-dialog"
 import PromptForm from "./prompt-form"
-import StepsView, { StepsViewProps, StepType } from "./steps"
 
 dayjs.extend(relativeTime)
+
+const defaultFunctionCalls = [
+  {
+    type: "start",
+  },
+]
 
 export default function Chat({
   workflow,
@@ -47,24 +53,15 @@ export default function Chat({
       : []
   )
 
+  const [functionCalls, setFunctionCalls] = React.useState<any[]>()
   const endOfMessagesRef = React.useRef<HTMLDivElement | null>(null)
   const [timer, setTimer] = React.useState<number>(0)
   const [session, setSession] = React.useState<string | null>(uuidv4())
   const [open, setOpen] = React.useState<boolean>(false)
-  const [steps, setSteps] = React.useState<StepsViewProps["steps"]>({})
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
   const { toast } = useToast()
 
   const abortControllerRef = React.useRef<AbortController | null>(null)
-
-  const stepsCount = useMemo(
-    () =>
-      Object.values(steps || {}).reduce(
-        (acc, functionCalls) => acc + functionCalls.length,
-        0
-      ),
-    [steps]
-  )
 
   const resetState = () => {
     setIsLoading(false)
@@ -127,46 +124,29 @@ export default function Chat({
           openWhenHidden: true,
           signal: abortControllerRef.current.signal,
           async onopen() {
-            setSteps({
-              [currentEventId]: [
-                {
-                  type: StepType.START,
-                },
-              ],
-            })
-            resetState()
+            setFunctionCalls(defaultFunctionCalls)
           },
           async onclose() {
-            setSteps((previousSteps: any) => {
-              return {
-                ...previousSteps,
-                [currentEventId]: [
-                  ...(previousSteps?.[currentEventId] || []),
-                  {
-                    type: StepType.END,
-                  },
-                ],
-              }
-            })
+            setFunctionCalls((previousFunctionCalls = []) => [
+              ...previousFunctionCalls,
+              {
+                type: "end",
+              },
+            ])
+            resetState()
           },
           async onmessage(event) {
-            console.log(event)
             if (event.id) currentEventId = event.id
 
             if (event.event === "function_call") {
               const data = JSON.parse(event.data)
-              setSteps((previousSteps: any) => {
-                return {
-                  ...previousSteps,
-                  [data?.step_name]: [
-                    ...(previousSteps?.[data?.step_name] || []),
-                    {
-                      ...data,
-                      type: StepType.FUNCTION_CALL,
-                    },
-                  ],
-                }
-              })
+              setFunctionCalls((previousFunctionCalls = []) => [
+                ...previousFunctionCalls,
+                {
+                  ...data,
+                  type: "function_call",
+                },
+              ])
             }
 
             if (
@@ -228,17 +208,19 @@ export default function Chat({
   return (
     <div className="relative flex flex-1 text-sm">
       <div className="absolute right-0 z-50 flex items-center space-x-2 px-6 py-4">
-        <Popover>
-          <PopoverTrigger>
-            <Badge variant="secondary" className="space-x-1">
-              <TbBolt className="text-lg text-green-400" />
-              <span className="font-mono">{stepsCount}</span>
-            </Badge>
-          </PopoverTrigger>
-          <PopoverContent side="bottom">
-            <StepsView steps={steps} />
-          </PopoverContent>
-        </Popover>
+        {functionCalls && functionCalls.length > 0 && (
+          <Popover>
+            <PopoverTrigger>
+              <Badge variant="secondary" className="space-x-1">
+                <TbBolt className="text-lg text-green-400" />
+                <span className="font-mono">{functionCalls?.length}</span>
+              </Badge>
+            </PopoverTrigger>
+            <PopoverContent side="bottom">
+              <FunctionCalls functionCalls={functionCalls} />
+            </PopoverContent>
+          </Popover>
+        )}
         <p
           className={`${
             timer === 0 ? "text-muted-foreground" : "text-primary"
