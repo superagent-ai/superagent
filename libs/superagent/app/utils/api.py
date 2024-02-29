@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 import jwt
 from decouple import config
@@ -19,6 +20,9 @@ def handle_exception(e):
 
 
 def generate_jwt(data: dict):
+    # for randomness
+    data.update({"jti": str(uuid.uuid4())})
+
     token = jwt.encode({**data}, config("JWT_SECRET"), algorithm="HS256")
     return token
 

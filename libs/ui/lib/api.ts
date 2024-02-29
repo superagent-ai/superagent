@@ -62,11 +62,33 @@ export class Api {
     })
   }
 
-  async createApiKey(payload: any) {
+  async createApiUser(payload: any) {
     return this.fetchFromApi("/api-users", {
       method: "POST",
       body: JSON.stringify(payload),
     })
+  }
+
+  async createApiKey(payload: any) {
+    return this.fetchFromApi("/api-keys", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async getApiKeys() {
+    return this.fetchFromApi("/api-keys")
+  }
+
+  async updateApiKey(id: string, payload: any) {
+    return this.fetchFromApi(`/api-keys/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async deleteApiKey(id: string) {
+    return this.fetchFromApi(`/api-keys/${id}`, { method: "DELETE" })
   }
 
   async createDatasource(payload: any) {
