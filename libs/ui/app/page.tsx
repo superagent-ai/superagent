@@ -148,7 +148,7 @@ export default function IndexPage() {
         onClick={handleGithubLogin}
       >
         <RxGithubLogo size={20} />
-        <p>Sign in with Github</p>
+        <p>Sign in with GitHub</p>
       </Button>
       <Toaster />
     </section>

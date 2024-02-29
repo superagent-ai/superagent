@@ -57,5 +57,5 @@ workflows:
       llm: gpt-4-1106-preview
       prompt: |- 
         You are an code reviewer. Review the code and write a 
-        Github comment.`,
+        GitHub comment.`,
 }
