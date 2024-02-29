@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The Open Source AI Assistant Framework & API
-  version: 0.2.10
+  version: 0.2.12
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -641,6 +641,112 @@ paths:
           content:
             application/json:
               schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/api-keys:
+    get:
+      tags:
+        - API key
+      summary: List
+      description: List API keys
+      operationId: list_api_v1_api_keys_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyList'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - API key
+      summary: Create
+      description: Create a new API key
+      operationId: create_api_v1_api_keys_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__ApiKey'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyCreate'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/api-keys/{id}:
+    delete:
+      tags:
+        - API key
+      summary: Delete
+      description: Delete an API key
+      operationId: delete_api_v1_api_keys__id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Id
+            type: string
+          name: id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__ApiKey'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    patch:
+      tags:
+        - API key
+      summary: Update
+      description: Update an API key
+      operationId: update_api_v1_api_keys__id__patch
+      parameters:
+        - required: true
+          schema:
+            title: Id
+            type: string
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__ApiKey'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__ApiKey'
         '422':
           description: Validation Error
           content:
@@ -1522,6 +1628,31 @@ components:
         metadata:
           title: Metadata
           type: object
+    ApiKeyCreate:
+      title: ApiKeyCreate
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/_ApiKeyCreateModel'
+    ApiKeyList:
+      title: ApiKeyList
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__ApiKey'
     DatasourceList:
       title: DatasourceList
       required:
@@ -1882,6 +2013,44 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__WorkflowStep'
+    _ApiKeyCreateModel:
+      title: _ApiKeyCreateModel
+      required:
+        - id
+        - name
+        - displayApiKey
+        - createdAt
+        - updatedAt
+        - apiUserId
+        - apiKey
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        displayApiKey:
+          title: Displayapikey
+          type: string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+        apiKey:
+          title: Apikey
+          type: string
+      description: Represents a ApiKey record
     app__models__request__Agent:
       title: Agent
       required:
@@ -1969,6 +2138,15 @@ components:
       properties:
         toolId:
           title: Toolid
+          type: string
+    app__models__request__ApiKey:
+      title: ApiKey
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          title: Name
           type: string
     app__models__request__ApiUser:
       title: ApiUser
@@ -2119,6 +2297,17 @@ components:
           type: boolean
         data:
           title: Data
+    app__models__response__ApiKey:
+      title: ApiKey
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/prisma__models__ApiKey'
     app__models__response__ApiUser:
       title: ApiUser
       required:
@@ -2356,6 +2545,40 @@ components:
           type: string
           format: date-time
       description: Represents a AgentTool record
+    prisma__models__ApiKey:
+      title: ApiKey
+      required:
+        - id
+        - name
+        - displayApiKey
+        - createdAt
+        - updatedAt
+        - apiUserId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        displayApiKey:
+          title: Displayapikey
+          type: string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+      description: Represents a ApiKey record
     prisma__models__ApiUser:
       title: ApiUser
       required:
@@ -2416,6 +2639,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/WorkflowConfig'
+        apiKeys:
+          title: Apikeys
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__ApiKey'
       description: Represents a ApiUser record
     prisma__models__Datasource:
       title: Datasource
