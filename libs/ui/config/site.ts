@@ -65,7 +65,7 @@ export const siteConfig = {
     },
     {
       id: "apiKeys",
-      title: "Api keys",
+      title: "API keys",
       href: "/settings/api-keys",
     },
     {
