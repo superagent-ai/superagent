@@ -6,6 +6,7 @@ import { ApiKey } from "@/models/models"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { RxPencil1, RxTrash } from "react-icons/rx"
+import { TbPencil } from "react-icons/tb"
 import * as z from "zod"
 
 import { Api } from "@/lib/api"
@@ -124,7 +125,7 @@ const EditButton = ({ profile, api_key }: ActionButtonProps) => {
     >
       <DialogTrigger asChild>
         <Button variant="outline">
-          <RxPencil1 size={16} />
+          <TbPencil size={16} />
         </Button>
       </DialogTrigger>
       <DialogContent>

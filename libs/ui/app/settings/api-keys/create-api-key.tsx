@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { ApiKey } from "@/models/models"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { set, useForm } from "react-hook-form"
+import { TbCopy } from "react-icons/tb"
 import * as z from "zod"
 
 import { Api } from "@/lib/api"
@@ -86,23 +87,25 @@ export function CreateSecretKey({ profile }: { profile: any }) {
               </DialogDescription>
             </DialogHeader>
             <div className="overflow-x-hidden">
-              <Input
-                value={generatedKey}
-                readOnly
-                className="w-full"
-                placeholder="Generated API key"
-              />
-              <Button
-                onClick={() => {
-                  navigator.clipboard.writeText(generatedKey)
-                  toast({
-                    title: "API key copied to clipboard",
-                  })
-                }}
-                variant="outline"
-              >
-                Copy
-              </Button>
+              <div className="flex space-x-2">
+                <Input
+                  value={generatedKey}
+                  readOnly
+                  className="w-full"
+                  placeholder="Generated API key"
+                />
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(generatedKey)
+                    toast({
+                      title: "API key copied to clipboard",
+                    })
+                  }}
+                  variant="outline"
+                >
+                  <TbCopy />
+                </Button>
+              </div>
 
               <Tabs defaultValue="python">
                 <TabsList className="grid w-full grid-cols-2">

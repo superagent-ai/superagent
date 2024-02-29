@@ -1,10 +1,8 @@
 import { ApiKey } from "@/models/models"
 
-import { Api } from "@/lib/api"
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHeader,
   TableRow,
@@ -12,20 +10,17 @@ import {
 
 import TableActions from "./api-key-actions"
 
-const ApiKeysTable = async ({ profile }: { profile: any }) => {
-  const api = new Api(profile?.api_key)
-
-  let {
-    data = [],
-  }: {
-    data: any[]
-  } = await api.getApiKeys()
-
-  const apiKeys = data.map((obj) => new ApiKey(obj))
+export default function ApiKeysTable({
+  profile,
+  data,
+}: {
+  profile: any
+  data: any
+}) {
+  const apiKeys = data.map((obj: any) => new ApiKey(obj))
 
   return (
     <Table>
-      <TableCaption>A list of your API keys.</TableCaption>
       <TableHeader>
         <TableRow>
           <TableCell>Name</TableCell>
@@ -34,7 +29,7 @@ const ApiKeysTable = async ({ profile }: { profile: any }) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {apiKeys?.map((apiKey) => {
+        {apiKeys?.map((apiKey: any) => {
           const { ...apiKeyObj } = apiKey
           return (
             <TableRow key={apiKey.id}>
@@ -44,7 +39,7 @@ const ApiKeysTable = async ({ profile }: { profile: any }) => {
                 {new Date(apiKey.createdAt).toLocaleDateString()}{" "}
               </TableCell>
 
-              <TableCell>
+              <TableCell className="text-right">
                 <TableActions api_key={apiKeyObj} profile={profile} />
               </TableCell>
             </TableRow>
@@ -54,5 +49,3 @@ const ApiKeysTable = async ({ profile }: { profile: any }) => {
     </Table>
   )
 }
-
-export default ApiKeysTable
