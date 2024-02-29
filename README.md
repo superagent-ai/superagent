@@ -12,7 +12,7 @@
 <img alt="" src="https://img.shields.io/github/repo-size/homanp/Superagent" />
 <img alt="GitHub Issues" src="https://img.shields.io/github/issues/homanp/Superagent" />
 <img alt="GitHub Pull Requests" src="https://img.shields.io/github/issues-pr/homanp/Superagent" />
-<img alt="Github License" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+<img alt="GitHub License" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
 <img alt="Discord" src="https://img.shields.io/discord/1110910277110743103?label=Discord&logo=discord&logoColor=white&style=plastic&color=d7b023)](https://discord.gg/e8j7mgjDUK" />
 </p>
 
