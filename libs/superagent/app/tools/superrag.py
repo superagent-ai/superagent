@@ -51,5 +51,7 @@ class SuperRagTool(BaseTool):
                 "index_name": index_name,
                 "encoder": encoder,
                 "input": question,
+                "exclude_fields": ["metadata"],
+                "interpreter_mode": False,
             }
         )

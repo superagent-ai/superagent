@@ -86,7 +86,7 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
                 "vector_database": {
                     "type": data.get("vector_database", {}).get("type"),
                 },
-                "encoder": data.get("encoder"),
+                "encoder": data.get("document_processor", {}).get("encoder"),
             },
         }
 
