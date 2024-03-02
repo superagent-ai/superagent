@@ -138,7 +138,22 @@ class DataTransformer:
             await self._set_superrag_files(datasource)
             await self._set_database_provider(datasource)
 
-            datasource["encoder"] = datasource.get("encoder") or DEFAULT_ENCODER_OPTIONS
+            datasource["document_processor"] = {
+                "encoder": datasource.get("encoder") or DEFAULT_ENCODER_OPTIONS,
+                "unstructured": {
+                    "hi_res_model_name": "detectron2_onnx",
+                    "partition_strategy": "auto",
+                    "process_tables": False,
+                },
+                "splitter": {
+                    "max_tokens": 400,
+                    "min_tokens": 30,
+                    "name": "semantic",
+                    "prefix_summary": True,
+                    "prefix_title": True,
+                    "rolling_window_size": 1,
+                },
+            }
 
     async def _set_database_provider(self, datasource: dict):
         database_provider = datasource.get("database_provider")
@@ -162,7 +177,7 @@ class DataTransformer:
             }
         else:
             raise MissingVectorDatabaseProvider(
-                f"Vector database provider not found for {database_provider}"
+                f"Vector database provider not found ({database_provider})."
                 f"Please configure it by going to the integrations page"
             )
         remove_key_if_present(datasource, "database_provider")
