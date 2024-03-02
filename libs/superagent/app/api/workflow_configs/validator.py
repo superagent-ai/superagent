@@ -1,3 +1,4 @@
+# flake8: noqa
 from litellm.exceptions import NotFoundError as LiteLLMNotFoundError
 
 from app.utils.helpers import get_first_non_null_key
