@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "superagent"
-version = "0.2.13"
-description = ""
+version = "0.2.14"
+description = "🥷 Run AI-agents with an API"
 authors = ["Ismail Pelaseyed"]
 readme = "../../README.md"
 packages = [{ include = "app" }]
