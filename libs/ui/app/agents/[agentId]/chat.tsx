@@ -20,6 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Switch } from "@/components/ui/switch"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 import Message from "@/components/message"
@@ -44,6 +45,7 @@ export default function Chat({
 }) {
   const api = new Api(profile.api_key)
   const [functionCalls, setFunctionCalls] = React.useState<any[]>()
+  const [useStreaming, setUseStreaming] = React.useState<boolean>(false)
 
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [selectedView, setSelectedView] = React.useState<"chat" | "trace">(
@@ -111,78 +113,135 @@ export default function Chat({
       { type: "ai", message },
     ])
 
-    try {
-      await fetchEventSource(
+    if (!useStreaming) {
+      setFunctionCalls(defaultFunctionCalls)
+      const response = await fetch(
         `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agent.id}/invoke`,
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "content-type": "application/json",
             authorization: `Bearer ${profile.api_key}`,
           },
           body: JSON.stringify({
             input: value,
-            enableStreaming: true,
+            enableStreaming: false,
             sessionId: session,
           }),
-          openWhenHidden: true,
-          signal: abortControllerRef.current.signal,
-
-          async onopen() {
-            setFunctionCalls(defaultFunctionCalls)
-          },
-          async onclose() {
-            setFunctionCalls((previousFunctionCalls = []) => [
-              ...previousFunctionCalls,
-              {
-                type: "end",
-              },
-            ])
-            resetState()
-          },
-          async onmessage(event) {
-            if (event.data !== "[END]" && event.event !== "function_call") {
-              message += event.data === "" ? `${event.data} \n` : event.data
-              const isSuccess = event.event != "error"
-              setMessages((previousMessages) => {
-                let updatedMessages = [...previousMessages]
-
-                for (let i = updatedMessages.length - 1; i >= 0; i--) {
-                  if (updatedMessages[i].type === "ai") {
-                    updatedMessages[i].message = message
-                    updatedMessages[i].isSuccess = isSuccess
-                    break
-                  }
-                }
-
-                return updatedMessages
-              })
-            }
-          },
-          onerror(error) {
-            throw error
-          },
         }
       )
-    } catch {
-      setIsLoading(false)
-      setTimer(0)
-      if (timerRef.current) {
-        clearInterval(timerRef.current)
+      const {
+        data: { output, intermediate_steps },
+      } = await response.json()
+
+      if (intermediate_steps.length > 0) {
+        setFunctionCalls(defaultFunctionCalls)
       }
+
       setMessages((previousMessages) => {
         let updatedMessages = [...previousMessages]
 
         for (let i = updatedMessages.length - 1; i >= 0; i--) {
           if (updatedMessages[i].type === "ai") {
-            updatedMessages[i].message =
-              "An error occured with your agent, please contact support."
+            updatedMessages[i].message = output
+            updatedMessages[i].isSuccess = true
             break
           }
         }
 
         return updatedMessages
       })
+
+      setFunctionCalls((previousFunctionCalls = []) => [
+        ...previousFunctionCalls,
+        {
+          type: "function_call",
+          function: intermediate_steps?.[0]?.[0].tool,
+        },
+        {
+          type: "end",
+        },
+      ])
+
+      setIsLoading(false)
+      setTimer(0)
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+      }
+    } else {
+      try {
+        await fetchEventSource(
+          `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agent.id}/invoke`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              authorization: `Bearer ${profile.api_key}`,
+            },
+            body: JSON.stringify({
+              input: value,
+              enableStreaming: true,
+              sessionId: session,
+            }),
+            openWhenHidden: true,
+            signal: abortControllerRef.current.signal,
+
+            async onopen() {
+              setFunctionCalls(defaultFunctionCalls)
+            },
+            async onclose() {
+              setFunctionCalls((previousFunctionCalls = []) => [
+                ...previousFunctionCalls,
+                {
+                  type: "end",
+                },
+              ])
+              resetState()
+            },
+            async onmessage(event) {
+              if (event.data !== "[END]" && event.event !== "function_call") {
+                message += event.data === "" ? `${event.data} \n` : event.data
+                const isSuccess = event.event != "error"
+                setMessages((previousMessages) => {
+                  let updatedMessages = [...previousMessages]
+
+                  for (let i = updatedMessages.length - 1; i >= 0; i--) {
+                    if (updatedMessages[i].type === "ai") {
+                      updatedMessages[i].message = message
+                      updatedMessages[i].isSuccess = isSuccess
+                      break
+                    }
+                  }
+
+                  return updatedMessages
+                })
+              }
+            },
+            onerror(error) {
+              throw error
+            },
+          }
+        )
+      } catch {
+        setIsLoading(false)
+        setTimer(0)
+        if (timerRef.current) {
+          clearInterval(timerRef.current)
+        }
+        setMessages((previousMessages) => {
+          let updatedMessages = [...previousMessages]
+
+          for (let i = updatedMessages.length - 1; i >= 0; i--) {
+            if (updatedMessages[i].type === "ai") {
+              updatedMessages[i].message =
+                "An error occured with your agent, please contact support."
+              break
+            }
+          }
+
+          return updatedMessages
+        })
+      }
     }
   }
 
@@ -219,6 +278,12 @@ export default function Chat({
         </p>
 
         <div className="absolute right-0 z-50 flex items-center space-x-2 px-6 py-4">
+          <div className="flex items-center space-x-2">
+            <span className="font-mono text-sm  text-muted-foreground">
+              Streaming
+            </span>
+            <Switch checked={useStreaming} onCheckedChange={setUseStreaming} />
+          </div>
           {functionCalls && functionCalls.length > 0 && (
             <Popover>
               <PopoverTrigger>
