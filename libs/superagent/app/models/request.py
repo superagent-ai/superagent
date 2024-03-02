@@ -59,8 +59,8 @@ class AgentDatasource(BaseModel):
 
 
 class LLMParams(BaseModel):
-    max_tokens: int
-    temperature: float
+    max_tokens: Optional[int]
+    temperature: Optional[float] = 0.5
 
 
 class AgentInvoke(BaseModel):

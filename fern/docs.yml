@@ -115,7 +115,7 @@ navbar-links:
     text: Discord
     url: https://discord.com/invite/mhmJUTjW4b
   - type: secondary
-    text: Github
+    text: GitHub
     url: https://github.com/homanp/superagent
   - type: primary
     text: Login

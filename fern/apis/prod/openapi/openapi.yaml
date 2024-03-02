@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: The Open Source AI Assistant Framework & API
-  version: 0.2.12
+  version: 0.2.13
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -195,8 +195,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
-      x-fern-sdk-group-name: agent
       x-fern-sdk-method-name: invoke
+      x-fern-sdk-group-name: agent
   /api/v1/agents/{agent_id}/llms:
     post:
       tags:
@@ -1754,9 +1754,6 @@ components:
       description: An enumeration.
     LLMParams:
       title: LLMParams
-      required:
-        - max_tokens
-        - temperature
       type: object
       properties:
         max_tokens:
@@ -1765,6 +1762,7 @@ components:
         temperature:
           title: Temperature
           type: number
+          default: 0.5
     LLMProvider:
       title: LLMProvider
       enum:
