@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_ENCODER_OPTIONS = {
     "type": "openai",
     "name": "text-embedding-3-small",
-    "dimensions": 384,
+    "dimensions": 1536,
 }
 
 

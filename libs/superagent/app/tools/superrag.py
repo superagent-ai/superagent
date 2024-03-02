@@ -10,6 +10,13 @@ from services.superrag import SuperRagService
 logger = logging.getLogger(__name__)
 
 
+DEFAULT_ENCODER_OPTIONS = {
+    "type": "openai",
+    "name": "text-embedding-3-small",
+    "dimensions": 1536,
+}
+
+
 class SuperRagTool(BaseTool):
     name = "superrag"
     description = "useful for when you need to answer questions"
@@ -29,7 +36,7 @@ class SuperRagTool(BaseTool):
     ) -> str:
         """Use the tool asynchronously."""
         index_name = self.metadata.get("index_name")
-        encoder = self.metadata.get("encoder")
+        encoder = self.metadata.get("encoder") or DEFAULT_ENCODER_OPTIONS
         vector_database = self.metadata.get("vector_database")
         api_user_id = self.metadata.get("user_id")
 
