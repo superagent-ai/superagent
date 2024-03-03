@@ -46,7 +46,7 @@ navigation:
             path: ./mdx/sdk/configure_vector_database.mdx
           - page: SuperAgent Markup Language
             path: ./mdx/sdk/saml.mdx
-      - section: Deployments
+      - section: Installation 
         contents:
           - page: Docker Compose
             path: ./mdx/deploy/docker-compose.mdx     
@@ -56,6 +56,10 @@ navigation:
             path: ./mdx/deploy/replit.mdx
           - page: Runnning locally
             path: ./mdx/deploy/local.mdx
+      - section: RAG & Retrieval
+        contents:
+          - page: Super-Rag
+            path: ./mdx/rag/super-rag.mdx  
       - section: Logging
         contents:
           - page: Langfuse
