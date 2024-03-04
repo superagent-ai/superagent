@@ -41,7 +41,7 @@ class SuperRagTool(BaseTool):
         api_user_id = self.metadata.get("user_id")
 
         # with lower case e.g. pinecone, qdrant
-        database_provider = vector_database.get("type")
+        database_provider = vector_database.get("type").lower()
 
         provider = await prisma.vectordb.find_first(
             where={

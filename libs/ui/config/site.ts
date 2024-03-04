@@ -372,6 +372,27 @@ export const siteConfig = {
         },
       ],
     },
+    {
+      value: "SUPERRAG",
+      title: "SuperRag",
+      metadata: [
+        {
+          key: "vector_database.type",
+          type: "select",
+          options: [
+            { value: "pinecone", title: "Pinecone" },
+            { value: "qdrant", title: "Qdrant" },
+            { value: "weaviate", title: "Weaviate" },
+          ],
+          label: "Vector Database Provider",
+        },
+        {
+          key: "index_name",
+          type: "input",
+          label: "SuperRag Index Name",
+        },
+      ],
+    },
   ],
   llmForm: [
     {

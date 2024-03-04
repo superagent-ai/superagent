@@ -243,6 +243,30 @@ function AddTool({
                               />
                             </div>
                           )}
+                          {metadataField.type === "select" &&
+                            "options" in metadataField && (
+                              <FormControl>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select tool type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {metadataField?.options?.map((option) => (
+                                      <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                      >
+                                        {option.title}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                            )}
+
                           {"helpText" in metadataField && (
                             <FormDescription>
                               {metadataField.helpText}
