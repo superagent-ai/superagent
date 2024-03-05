@@ -1,0 +1,100 @@
+Langfuse can be used with Superagent to enable detailed production traces and a granular view on quality, cost and latency.
+
+**Website** - [langfuse.com](https://langfuse.com/)
+<br/>
+**GitHub** - [langfuse/langfuse](https://github.com/langfuse/langfuse)
+
+## Setting up Langfuse with Docker
+
+<Callout intent="warn">
+For quickly trying out langfuse with Superagent, a basic docker compose example is provided in the folder `libs/.docker/external/observabillity/langfuse/`
+For a production setup refer to the [official documentation](https://langfuse.com/docs/deployment/self-host) on self hosting Langfuse.
+</Callout>
+<br/>
+
+### Run langfuse with docker compose
+
+The following setup is provided based on the [docker compose](https://langfuse.com/docs/deployment/local) documentation from langfuse.
+
+1. `cd` into the langfuse example folder
+
+    ``` bash
+    cd libs/.docker/external/observabillity/langfuse/
+    ```
+
+2. Copy the `.env.example` file into a `.env` file
+
+    ``` bash
+    cp .env.example .env
+    ```
+
+3. For quickly trying out Langfuse you can keep the default environment variables, though it is advised to review them and change the `NEXTAUTH_SECRET` and `SALT` to a more secure secret and a salt.
+
+4. Start Langfuse with docker compose using the provided `run.sh` script in the same folder.
+
+   ``` bash
+   ./run.sh
+   ```
+
+5. Access langfuse in the browser once the service is up.
+
+    [http://localhost:3100](http://localhost:3100) or [http://langfuse-server:3100](http://langfuse-server:3100) if you have added the following to your `hosts` file.
+
+    ``` bash
+    # hosts file
+    127.0.0.1   langfuse-server
+    ```
+
+6. Sign up for an account using any credentials.
+7. Create a project named `superagent`
+8. Under `settings` and `API Keys` - create a new API Key, copy the Public Key and Secret Key.
+9. Enter the values in the superagent docker `.env` file located at `libs/.docker/.env`
+
+    ``` bash
+    # libs/.docker/.env
+    LANGFUSE_PUBLIC_KEY=<Public key e.g pk-lf-...>
+    LANGFUSE_SECRET_KEY=<Secret Key e.g sk-lf-...>
+    LANGFUSE_HOST=http://langfuse-server:3100
+    
+    ```
+
+### Langfuse container logs
+
+``` bash
+docker logs langfuse-server -f
+```
+
+### Stop Langfuse
+
+Use the provided `stop.sh` script to stop running services for lanfguse
+
+``` bash
+# libs/.docker/external/observabillity/langfuse
+./stop.sh
+```
+
+### Uninstall Langfuse
+
+Use the provided `uninstall.sh` script to remove running services for lanfguse
+
+``` bash
+# libs/.docker/external/observabillity/langfuse
+./uninstall.sh
+```
+
+## Setting up Langfuse Cloud
+
+Alternatively you can use the [cloud hosted](https://langfuse.com/docs/deployment/cloud) version of Langfuse.
+
+1. Sign up for an account here [https://cloud.langfuse.com/](https://cloud.langfuse.com/)
+2. Setup a project named `superagent`
+3. Under `settings` and `API Keys` - create a new API Key, copy the Public Key and Secret Key.
+4. Enter the values in the superagent docker `.env` file
+
+    ``` bash
+    # libs/.docker/.env
+    LANGFUSE_PUBLIC_KEY=pk-lf-...
+    LANGFUSE_SECRET_KEY=sk-lf-...
+    LANGFUSE_HOST=https://cloud.langfuse.com
+    
+    ```

@@ -1,19 +1,26 @@
-If you don't want to use the Superagent Cloud you can optionally run Superagent localy. In order to make Superagent more modular we have decoupled the Superagent API from the Superagent UI. You can run the API without any by just leveraging the SDKs. Follow the guides below to get started.
+If you don't want to use the Superagent Cloud you can optionally run Superagent localy. In order to make Superagent more modular we have decoupled the Superagent API from the Superagent UI. You can run the API directly by just leveraging the SDKs. Follow the guides below to get started.
 
-# Setup Superagent API
+## Setup Superagent API
 
 ### Getting started
 
-1. Clone the [Superagent repository](https://github.com/homanp/superagent).
-```bash 
-git clone git@github.com:homanp/superagent.git
-```
+1. Clone the [Superagent repository](https://github.com/homanp/superagent) and open the superagent folder.
 
-2. Navigate to `/libs/superagent` and rename the `.env.example` to `.env`. 
+    ```bash
+    git clone git@github.com:homanp/superagent.git
+    cd superagent
+    ```
+
+2. Navigate to `libs/superagent` and copy the `.env.example` to a new file named `.env`.
+
+    ```bash
+    cd libs/superagent
+    cp .env.example .env
+    ```
 
 ### Set `.env` variables
 
-In order to get Superagent running we need to set some mandatory environment variables. Here is an example: 
+In order to get Superagent running we need to set some mandatory environment variables. Here is an example:
 
 ```bash
 # MANDATORY VARIABLES
@@ -63,35 +70,61 @@ E2B_API_KEY=<E2B_API_KEY>
 # Run Replicate models as tools
 REPLICATE_API_TOKEN=<REPLICATE_API_TOKEN>
 ```
+
 ### Create a virtual env
+
+In the console, create a virtual environment to install and run the python api.
+
+```bash
+# cd libs/superagent
 virtualenv venv
+```
+
+Then activate the new virtual environment to work in it.
+
+```bash
+# Linux/Mac
 source venv/bin/activate
 ```
 
-### Install dependencies
 ```bash
+# Windows (bash)
+source venv/Scripts/activate
+```
+
+### Install dependencies
+
+Use poetry to install the project dependencies in the virtual environment
+
+```bash
+# cd libs/superagent
 poetry install 
 ```
 
 ### Start Supabase
+
 ```bash
 supabase start
 ```
 
 ### Get Supabase Info
+
 Get the hostname and port of your Supabase instance and replace them in the `DATABASE_URL` and `DATABASE_MIGRATION_URL` variable in your `.env` file.
+
 ```bash
 supabase status
 ```
 
 ### Run database migrations
-```bash 
-prisma migrate dev
+
+```bash
 prisma generate
+prisma migrate dev
 ```
 
 ### Start the server
-```bash 
+
+```bash
 uvicorn app.main:app --reload
 
 # Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
@@ -103,7 +136,7 @@ uvicorn app.main:app --reload
 <CodeBlocks>
     <CodeBlock title="Python">
         ```python
-        import os 
+        import os
         from superagent.client import Superagent
 
         client = Superagent(
@@ -124,7 +157,7 @@ uvicorn app.main:app --reload
     </CodeBlock>
 </CodeBlocks>
 
-And that's it! You now have an instance of the Superagent API running on your local machine. Make sure to checkout the REST API reference for more details on each API endpoint or visit http://127.0.0.1:8000 to view the Swagger docs.
+And that's it! You now have an instance of the Superagent API running on your local machine. Make sure to checkout the REST API reference for more details on each API endpoint or visit [http://127.0.0.1:8000](http://127.0.0.1:8000) to view the Swagger docs.
 
 # Setup Superagent UI
 
@@ -133,20 +166,23 @@ And that's it! You now have an instance of the Superagent API running on your lo
 The Superagent UI is setup using Supabase. It leverages the Supabase's `Auth` and `Storage` modules. Configure your Supabase setup as per the instructions below:
 
 1. Clone the Superagent repository
-```bash 
+
+```bash
 git clone git@github.com:homanp/superagent.git
 ```
 
 2. Navigate to `/libs/ui`
 
-3. Install Supabase CLI and create project: https://supabase.com/docs/guides/cli/getting-started
+3. Install Supabase CLI and create project: [https://supabase.com/docs/guides/cli/getting-started](https://supabase.com/docs/guides/cli/getting-started)
 
 4. Start the local Supabase project
+
 ```bash
 supabase start
 ```
 
 5. Run the database migrations
+
 ```bash
 # Local supabase project
 supabase migration up
@@ -159,13 +195,15 @@ supabase db push
 <img width="2672" alt="Screenshot 2023-09-14 at 23 27 35" src="https://github.com/homanp/superagent/assets/2464556/8d6bde18-528e-4e0a-9840-aabe39ce5e68" />
 
 ### Setup authentication
-Superagent supports password-less authentication and Github OAuth. You may add which ever Authentication provider supported by Supabase. 
 
-1. Create a new Github OAuth app in your [Github account](https://github.com/settings/developers)
+Superagent supports password-less authentication and GitHub OAuth. You may add which ever Authentication provider supported by Supabase.
+
+1. Create a new GitHub OAuth app in your [GitHub account](https://github.com/settings/developers)
 
 2. Copy the `CLIENT_ID` and `CLIENT_SECRET` and paste them into the `/libs/ui/.env` variables in your local Superagent project.
 
 3. Set the following callback URL
+
 ```sh
 <YOUR_SUPABASE_URL>/auth/v1/callback
 ```
@@ -181,7 +219,8 @@ Superagent supports password-less authentication and Github OAuth. You may add w
 1. Change the name of `.env.example` to `.env` in `/libs/ui`.
 
 2. Set the required environment variables.
-```bash 
+
+```bash
 # MANDATORY
 
 # Supabase variables found inside of the Supabase dashboard (local or remote)
@@ -189,7 +228,10 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 NEXT_PUBLIC_SUPABASE_STORAGE_NAME="superagent"
 
-# Github OAuth
+# Tracing 
+NEXT_PUBLIC_SEGMENT_WRITE_KEY=
+
+# GitHub OAuth
 GITHUB_CLIENT_ID=
 GITHUB_CLIENT_SECRET=
 
@@ -214,13 +256,15 @@ NEXT_PUBLIC_LANGFUSE_BASE_URL=
 ### Run app
 
 1. From inside `/libs/ui` run:
-```bash 
+
+```bash
 npm i 
 ```
 
 2. Start the app
+
 ```
 npm run dev 
 ```
 
-You should now be able to visit http://localhost:3000 and see the Superagent login page
+You should now be able to visit [http://localhost:3000](http://localhost:3000) and see the Superagent login page

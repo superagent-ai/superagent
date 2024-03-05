@@ -5,6 +5,7 @@ import { fetchEventSource } from "@microsoft/fetch-event-source"
 import dayjs from "dayjs"
 import relativeTime from "dayjs/plugin/relativeTime"
 import { RxChatBubble, RxCode } from "react-icons/rx"
+import { TbBolt } from "react-icons/tb"
 import { useAsyncFn } from "react-use"
 import { v4 as uuidv4 } from "uuid"
 
@@ -13,14 +14,27 @@ import { Profile } from "@/types/profile"
 import { Api } from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Switch } from "@/components/ui/switch"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 import Message from "@/components/message"
+import FunctionCalls from "@/app/workflows/[id]/function-calls"
 
 import PromptForm from "./prompt-form"
 
 dayjs.extend(relativeTime)
+
+const defaultFunctionCalls = [
+  {
+    type: "start",
+  },
+]
 
 export default function Chat({
   agent,
@@ -30,6 +44,9 @@ export default function Chat({
   profile: Profile
 }) {
   const api = new Api(profile.api_key)
+  const [functionCalls, setFunctionCalls] = React.useState<any[]>()
+  const [useStreaming, setUseStreaming] = React.useState<boolean>(false)
+
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [selectedView, setSelectedView] = React.useState<"chat" | "trace">(
     "chat"
@@ -61,6 +78,14 @@ export default function Chat({
     }
   }
 
+  const resetState = () => {
+    setIsLoading(false)
+    setTimer(0)
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+    }
+  }
+
   async function onSubmit(value: string) {
     let message = ""
 
@@ -88,72 +113,135 @@ export default function Chat({
       { type: "ai", message },
     ])
 
-    try {
-      await fetchEventSource(
+    if (!useStreaming) {
+      setFunctionCalls(defaultFunctionCalls)
+      const response = await fetch(
         `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agent.id}/invoke`,
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "content-type": "application/json",
             authorization: `Bearer ${profile.api_key}`,
           },
           body: JSON.stringify({
             input: value,
-            enableStreaming: true,
+            enableStreaming: false,
             sessionId: session,
           }),
-          openWhenHidden: true,
-          signal: abortControllerRef.current.signal,
-          async onclose() {
-            setIsLoading(false)
-            setTimer(0)
-            if (timerRef.current) {
-              clearInterval(timerRef.current)
-            }
-          },
-          async onmessage(event) {
-            if (event.data !== "[END]" && event.event !== "function_call") {
-              message += event.data === "" ? `${event.data} \n` : event.data
-              const isSuccess = event.event != "error"
-              setMessages((previousMessages) => {
-                let updatedMessages = [...previousMessages]
-
-                for (let i = updatedMessages.length - 1; i >= 0; i--) {
-                  if (updatedMessages[i].type === "ai") {
-                    updatedMessages[i].message = message
-                    updatedMessages[i].isSuccess = isSuccess
-                    break
-                  }
-                }
-
-                return updatedMessages
-              })
-            }
-          },
-          onerror(error) {
-            throw error
-          },
         }
       )
-    } catch {
-      setIsLoading(false)
-      setTimer(0)
-      if (timerRef.current) {
-        clearInterval(timerRef.current)
+      const {
+        data: { output, intermediate_steps },
+      } = await response.json()
+
+      if (intermediate_steps.length > 0) {
+        setFunctionCalls(defaultFunctionCalls)
       }
+
       setMessages((previousMessages) => {
         let updatedMessages = [...previousMessages]
 
         for (let i = updatedMessages.length - 1; i >= 0; i--) {
           if (updatedMessages[i].type === "ai") {
-            updatedMessages[i].message =
-              "An error occured with your agent, please contact support."
+            updatedMessages[i].message = output
+            updatedMessages[i].isSuccess = true
             break
           }
         }
 
         return updatedMessages
       })
+
+      setFunctionCalls((previousFunctionCalls = []) => [
+        ...previousFunctionCalls,
+        {
+          type: "function_call",
+          function: intermediate_steps?.[0]?.[0].tool,
+        },
+        {
+          type: "end",
+        },
+      ])
+
+      setIsLoading(false)
+      setTimer(0)
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+      }
+    } else {
+      try {
+        await fetchEventSource(
+          `${process.env.NEXT_PUBLIC_SUPERAGENT_API_URL}/agents/${agent.id}/invoke`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              authorization: `Bearer ${profile.api_key}`,
+            },
+            body: JSON.stringify({
+              input: value,
+              enableStreaming: true,
+              sessionId: session,
+            }),
+            openWhenHidden: true,
+            signal: abortControllerRef.current.signal,
+
+            async onopen() {
+              setFunctionCalls(defaultFunctionCalls)
+            },
+            async onclose() {
+              setFunctionCalls((previousFunctionCalls = []) => [
+                ...previousFunctionCalls,
+                {
+                  type: "end",
+                },
+              ])
+              resetState()
+            },
+            async onmessage(event) {
+              if (event.data !== "[END]" && event.event !== "function_call") {
+                message += event.data === "" ? `${event.data} \n` : event.data
+                const isSuccess = event.event != "error"
+                setMessages((previousMessages) => {
+                  let updatedMessages = [...previousMessages]
+
+                  for (let i = updatedMessages.length - 1; i >= 0; i--) {
+                    if (updatedMessages[i].type === "ai") {
+                      updatedMessages[i].message = message
+                      updatedMessages[i].isSuccess = isSuccess
+                      break
+                    }
+                  }
+
+                  return updatedMessages
+                })
+              }
+            },
+            onerror(error) {
+              throw error
+            },
+          }
+        )
+      } catch {
+        setIsLoading(false)
+        setTimer(0)
+        if (timerRef.current) {
+          clearInterval(timerRef.current)
+        }
+        setMessages((previousMessages) => {
+          let updatedMessages = [...previousMessages]
+
+          for (let i = updatedMessages.length - 1; i >= 0; i--) {
+            if (updatedMessages[i].type === "ai") {
+              updatedMessages[i].message =
+                "An error occured with your agent, please contact support."
+              break
+            }
+          }
+
+          return updatedMessages
+        })
+      }
     }
   }
 
@@ -171,7 +259,7 @@ export default function Chat({
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
 
   const scrollToMessagesBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
   }
 
   React.useEffect(() => {
@@ -180,7 +268,7 @@ export default function Chat({
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden border-r">
-      <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between p-4">
+      <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-4">
         <p
           className={`${
             timer === 0 ? "text-muted-foreground" : "text-primary"
@@ -188,6 +276,29 @@ export default function Chat({
         >
           {timer.toFixed(1)}s
         </p>
+
+        <div className="absolute right-0 z-50 flex items-center space-x-2 px-6 py-4">
+          <div className="flex items-center space-x-2">
+            <span className="font-mono text-sm  text-muted-foreground">
+              Streaming
+            </span>
+            <Switch checked={useStreaming} onCheckedChange={setUseStreaming} />
+          </div>
+          {functionCalls && functionCalls.length > 0 && (
+            <Popover>
+              <PopoverTrigger>
+                <Badge variant="secondary" className="space-x-1">
+                  <TbBolt className="text-lg text-green-400" />
+                  <span className="font-mono">{functionCalls?.length}</span>
+                </Badge>
+              </PopoverTrigger>
+              <PopoverContent side="bottom">
+                <FunctionCalls functionCalls={functionCalls} />
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
+
         {/*<div className="self-end">
           <Select
             value={selectedView}
@@ -208,15 +319,10 @@ export default function Chat({
       <ScrollArea className="relative flex grow flex-col px-4">
         <div className="absolute inset-x-0 top-0 z-20 h-20 bg-gradient-to-b from-background from-0% to-transparent to-50%" />
         {selectedView === "chat" ? (
-          <div className="mb-20 mt-10 flex flex-col space-y-5 py-5">
+          <div className="mb-20 mt-2 flex flex-col space-y-5 py-5">
             <div className="container mx-auto flex max-w-4xl flex-col">
               {messages.map((message, index) => (
-                <Message
-                  key={index}
-                  traceId={session ? `${agent.id}-${session}` : agent.id}
-                  profile={profile}
-                  {...message}
-                />
+                <Message key={index} profile={profile} {...message} />
               ))}
               <div ref={messagesEndRef} />
             </div>
@@ -243,7 +349,6 @@ export default function Chat({
                   <CardContent>
                     <ScrollArea className="relative flex max-h-40 grow flex-col rounded-lg border p-3">
                       <Message
-                        traceId={session ? `${agent.id}-${session}` : agent.id}
                         type="ai"
                         message={run.outputs?.output}
                         profile={profile}

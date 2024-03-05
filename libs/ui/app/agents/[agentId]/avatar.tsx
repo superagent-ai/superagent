@@ -58,7 +58,7 @@ export default function Avatar({ accept, onSelect, imageUrl }: AvatarProps) {
         accept={accept}
       />
       <div
-        className="relative flex h-20 w-20 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border hover:animate-pulse"
+        className="relative flex h-[65px] w-[65px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border hover:animate-pulse"
         onClick={triggerFileInput}
       >
         {isLoading ? (

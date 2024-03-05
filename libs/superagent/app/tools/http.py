@@ -2,7 +2,9 @@ import json
 
 import aiohttp
 import requests
-from langchain.tools import BaseTool as LCBaseTool
+from langchain_community.tools import BaseTool as LCBaseTool
+
+supported_methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
 
 class LCHttpTool(LCBaseTool):
@@ -10,7 +12,7 @@ class LCHttpTool(LCBaseTool):
     description = "useful for making GET/POST API requests"
     return_direct = False
 
-    def _run(self, url: str, method: str = "GET", body: dict = None) -> None:
+    def _run(self, url: str = None, method: str = "GET", body: dict = None) -> None:
         headers = self.metadata.get("headers")
         if isinstance(headers, str):
             headers = json.loads(headers)
@@ -18,6 +20,15 @@ class LCHttpTool(LCBaseTool):
             headers = {}
         headers["content-type"] = "application/json"
         try:
+            if method not in supported_methods:
+                method = self.metadata.get("defaultMethod", "GET")
+
+            if not url:
+                url = self.metadata.get("defaultURL", None)
+
+            if body is None:
+                body = self.metadata.get("defaultBody", {})
+
             request_kwargs = {"method": method, "url": url, "headers": headers}
             if body is not None:
                 request_kwargs["json"] = body
@@ -30,7 +41,9 @@ class LCHttpTool(LCBaseTool):
         except requests.exceptions.RequestException as e:
             return str(e)
 
-    async def _arun(self, url: str, method: str = "GET", body: dict = None) -> str:
+    async def _arun(
+        self, url: str = None, method: str = "GET", body: dict = None
+    ) -> str:
         headers = self.metadata.get("headers")
         if isinstance(headers, str):
             headers = json.loads(headers)
@@ -38,6 +51,15 @@ class LCHttpTool(LCBaseTool):
             headers = {}
         headers["content-type"] = "application/json"
         try:
+            if method not in supported_methods:
+                method = self.metadata.get("defaultMethod", "GET")
+
+            if not url:
+                url = self.metadata.get("defaultURL", None)
+
+            if body is None:
+                body = self.metadata.get("defaultBody", {})
+
             async with aiohttp.ClientSession() as session:
                 request_kwargs = {"method": method, "url": url, "headers": headers}
                 if body is not None:

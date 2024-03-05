@@ -5,7 +5,7 @@ from typing import Optional
 from decouple import config
 from e2b import DataAnalysis
 from langchain.callbacks.manager import CallbackManager
-from langchain.tools import BaseTool
+from langchain_community.tools import BaseTool
 
 
 class E2BCodeExecutor(BaseTool):

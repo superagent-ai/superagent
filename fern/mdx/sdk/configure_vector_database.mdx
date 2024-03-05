@@ -1,0 +1,201 @@
+Superagent supports two primary methods for integrating vector databases: using environment variables and leveraging the Superagent SDK.
+This guide will walk you through both methods.
+
+## Environment variables
+This is the easiest way to get started.
+
+You can see [supported vector databases](https://docs.superagent.sh/overview/overview/concepts#vector-databases) in Superagent, and their corresponding environment variables.
+
+<CodeBlocks>
+    <CodeBlock title="Supabase">
+        ```bash
+        export VECTORSTORE=supabase
+        export SUPABASE_DB_URL=postgresql://user:password@host:port/dbname
+        export SUPABASE_TABLE_NAME=your-table-name
+        ```
+    </CodeBlock>
+
+    <CodeBlock title="Pinecone">
+        ```bash
+        export VECTORSTORE=pinecone
+        export PINECONE_ENVIRONMENT=your-environment
+        export PINECONE_API_KEY=your-api-key
+        export PINECONE_INDEX=your-index-name
+        ```
+    </CodeBlock>
+
+    <CodeBlock title="Qdrant">
+        ```bash
+        export VECTORSTORE=qdrant
+        export QDRANT_API_KEY=your-api-key
+        export QDRANT_HOST=your-host
+        export QDRANT_INDEX=your-index-name
+        ```
+    </CodeBlock>
+
+    <CodeBlock title="Weaviate">
+        ```bash
+        export VECTORSTORE=weaviate
+        export WEAVIATE_API_KEY=your-api-key
+        export WEAVIATE_URL=your-url
+        export WEAVIATE_INDEX=your-index-name
+        ```
+    </CodeBlock>
+
+    <CodeBlock title="Astra">
+        ```bash
+        export VECTORSTORE=astra
+        export ASTRA_DB_ID=your-db-id
+        export ASTRA_DB_REGION=your-db-region
+        export ASTRA_DB_APPLICATION_TOKEN=your-db-application-token
+        export ASTRA_DB_COLLECTION_NAME=your-db-collection-name
+        export ASTRA_DB_KEYSPACE_NAME=your-db-keyspace-name
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+### Step-by-step guide
+After setting the environment variables for one of the supported vector databases, you can create a datasource with the vector database:
+
+<CodeBlocks>
+    <CodeBlock title="Python">           
+        ```python
+        from superagent.client import Superagent
+
+        client = Superagent(
+            token=os.environ["SUPERAGENT_API_KEY"], # replace with your Superagent API Key
+            base_url="https://api.beta.superagent.sh" # or your local environment
+        )
+
+        datasource = client.datasource.create(request={
+            "name": "Tesla Q3 2023",
+            "description": "Useful for answering questions about Teslas Q3 2023 earnings report",
+            "type": "PDF",
+            "url": "https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q3-2023-Update-3.pdf"
+        })
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript/Typescript">
+        ```javascript
+        import {SuperAgentClient} from "superagentai-js"
+
+        const client = new SuperAgentClient({
+            token: process.env.SUPERAGENT_API_KEY, // replace with your Superagent API key
+            environment: "https://api.beta.superagent.sh" // or your local environment
+        })
+
+        const { data: datasource } = await client.datasource.create({
+            name: "Tesla Q3 2023",
+            description: "Useful for answering questions about Teslas Q3 2023 earnings report",
+            type: "PDF",
+            url: "https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q3-2023-Update-3.pdf"
+        });
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+## Using the SDK
+
+This is more flexible and allows you to use multiple databases in the same project.
+
+### Step-by-step guide
+
+<Callout intent="warn">
+    Note that we will be using Pinecone as an example, but the same steps apply to all supported vector databases.
+</Callout>
+<br/>
+
+
+1. Initialize the Superagent client with your API key:
+
+<CodeBlocks>
+    <CodeBlock title="Python">
+        ```python
+        from superagent.client import Superagent
+
+        client = Superagent(
+            token=os.environ["SUPERAGENT_API_KEY"], # replace with your Superagent API Key
+            base_url="https://api.beta.superagent.sh" # or your local environment
+        )
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript/Typescript">
+        ```javascript
+        import {SuperAgentClient} from "superagentai-js"
+
+        const client = new SuperAgentClient({
+            token: process.env.SUPERAGENT_API_KEY, // replace with your Superagent API key
+            environment: "https://api.beta.superagent.sh" // or your local environment
+        })
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+
+
+2. Create a vector database:
+
+<CodeBlocks>
+    <CodeBlock title="Python">           
+        ```python
+        vector_database = client.vector_database.create(
+            request={
+                "provider": "PINECONE",
+                "options": {
+                    "PINECONE_ENVIRONMENT": "your-environment",
+                    "PINECONE_API_KEY": "your-api-key",
+                    "PINECONE_INDEX": "your-index-name"
+                }
+            }   
+        )
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript/Typescript">
+        ```javascript
+        const { data: vectorDatabase } = await client.vectorDatabase.create({
+            provider: "PINECONE",
+            options: {
+                PINECONE_ENVIRONMENT: "your-environment",
+                PINECONE_API_KEY: "your-api-key",
+                PINECONE_INDEX: "your-index-name"
+            }
+        });
+        ```
+    </CodeBlock>
+</CodeBlocks>
+
+3. Create a datasource with the vector database:
+<CodeBlocks>
+    <CodeBlock title="Python">           
+       ```python
+        datasource = client.datasource.create(request={
+            "name": "Tesla Q3 2023",
+            "description": "Useful for answering questions about Teslas Q3 2023 earnings report",
+            "type": "PDF",
+            "url": "https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q3-2023-Update-3.pdf",
+            "vectorDbId": vector_database.data.id
+        })
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript/Typescript">
+      ```javascript
+        const { data: datasource } = await client.datasource.create({
+            name: "Tesla Q3 2023",
+            description: "Useful for answering questions about Teslas Q3 2023 earnings report",
+            type: "PDF",
+            url: "https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q3-2023-Update-3.pdf",
+            vectorDbId: vectorDatabase.id
+        });
+    ```
+    </CodeBlock>
+</CodeBlocks>
+
+For more information on interacting with datasources, refer to the [example](https://docs.superagent.sh/overview/getting-started/chat-with-datasources).
+
+Additional Resources:
+- [Pinecone Documentation](https://docs.pinecone.io/docs/quickstart)
+- [Qdrant Documentation](https://qdrant.tech/documentation/quick-start/)
+- [Weaviate Documentation](https://weaviate.io/developers/wcs/quickstart)
+- [Astra Documentation](https://docs.datastax.com/en/astra-serverless/docs/manage/org/manage-tokens.html)
+- [Supabase Documentation](https://supabase.com/docs/guides/database/extensions/pgvector)
+

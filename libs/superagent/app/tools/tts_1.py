@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from langchain.tools import BaseTool
+from langchain_community.tools import BaseTool
 from openai import AsyncOpenAI, OpenAI
 
 

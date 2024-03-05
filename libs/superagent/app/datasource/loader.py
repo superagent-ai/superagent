@@ -7,7 +7,8 @@ from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup as Soup
 from langchain.docstore.document import Document
-from langchain.document_loaders import (
+from langchain_community.document_loaders import (
+    AirbyteStripeLoader,
     GitLoader,
     PyPDFLoader,
     RecursiveUrlLoader,
@@ -17,7 +18,6 @@ from langchain.document_loaders import (
     WebBaseLoader,
     YoutubeLoader,
 )
-from langchain.document_loaders.airbyte import AirbyteStripeLoader
 from pyairtable import Api
 
 from prisma.models import Datasource

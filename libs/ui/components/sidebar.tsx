@@ -12,18 +12,30 @@ import { Button } from "./ui/button"
 
 export default function Sidebar() {
   const supabase = createClientComponentClient()
-  const { value: session } = useAsync(async () => {
+  const { value: showSidebar } = useAsync(async () => {
     const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    return session
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      return false
+    }
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user?.id)
+      .single()
+    if (!profile.is_onboarded) {
+      return false
+    }
+
+    return true
   }, [])
   const pathname = usePathname()
 
   return (
     <div
-      className={`flex h-full w-16 flex-col items-center justify-between space-y-6 border-r py-4 align-top ${
-        !session && "hidden"
+      className={`flex h-full w-16 flex-col items-center justify-between space-y-6 border-r bg-muted py-4 align-top ${
+        !showSidebar && "hidden"
       }`}
     >
       <div className="flex flex-col items-center justify-center space-y-4 px-10">

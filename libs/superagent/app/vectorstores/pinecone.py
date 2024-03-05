@@ -64,6 +64,8 @@ class PineconeVectorStore(VectorStoreBase):
             ),
         }
 
+        logger.info(f"USING VECTORSTORE: {variables}")
+
         for var, value in variables.items():
             if not value:
                 raise ValueError(
@@ -81,7 +83,7 @@ class PineconeVectorStore(VectorStoreBase):
         logger.info(f"Index name: {self.index_name}")
         self.index = pinecone.Index(self.index_name)
         self.embeddings = OpenAIEmbeddings(
-            model="text-embedding-ada-002", openai_api_key=config("OPENAI_API_KEY")
+            model="text-embedding-3-small", openai_api_key=config("OPENAI_API_KEY")
         )  # type: ignore
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=3)

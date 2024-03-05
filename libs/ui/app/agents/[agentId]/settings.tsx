@@ -30,26 +30,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 
+import AddDatasource from "./add-datasource"
+import AddTool from "./add-tool"
 import Avatar from "./avatar"
 
 const formSchema = z.object({
-  name: z.string().nonempty({
-    message: "Name is required",
-  }),
-  description: z.string().nonempty({
-    message: "Description is required",
-  }),
+  description: z.string().min(1, { message: "Description is required" }),
   initialMessage: z.string(),
   llms: z.string(),
   isActive: z.boolean().default(true),
-  llmModel: z.string().nonempty({
-    message: "Model is required",
-  }),
+  llmModel: z.string().nullable(),
   prompt: z.string(),
   tools: z.array(z.string()),
   datasources: z.array(z.string()),
@@ -87,7 +83,6 @@ export default function Settings({
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: agent.name,
       description: agent.description,
       initialMessage: agent.initialMessage || "",
       llms: agent.llms?.[0]?.llm.provider,
@@ -176,11 +171,11 @@ export default function Settings({
   )
 
   return (
-    <ScrollArea className="relative flex max-w-lg flex-1 grow p-4">
+    <ScrollArea className="relative flex max-w-lg flex-1 grow px-4 py-2">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="w-full space-y-4"
+          className="w-full space-y-4 pb-20"
         >
           <Avatar
             accept=".jpg, .jpeg, .png"
@@ -189,25 +184,12 @@ export default function Settings({
           />
           <FormField
             control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="E.g My agent" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
             name="description"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea
+                  <Input
                     placeholder="E.g this agent is an expert at..."
                     {...field}
                   />
@@ -224,7 +206,7 @@ export default function Settings({
                 <FormLabel>Prompt</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="h-[200px]"
+                    className="h-[100px]"
                     placeholder="E.g you are an ai assistant that..."
                     {...field}
                   />
@@ -287,7 +269,7 @@ export default function Settings({
                     <FormItem className="flex-1">
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        defaultValue={field.value || ""}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -322,15 +304,32 @@ export default function Settings({
               </div>
             )}
           </div>
+
+          <Separator className="!my-8 flex items-center justify-center">
+            <span className="text-sm text-muted-foreground">
+              Tools & Datasources
+            </span>
+          </Separator>
+
           <FormField
             control={form.control}
             name="tools"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>APIs</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Tools</FormLabel>
+                  <AddTool
+                    profile={profile}
+                    agent={agent}
+                    onSuccess={() => {
+                      window.location.reload()
+                    }}
+                  />
+                </div>
+
                 <FormControl>
                   <MultiSelect
-                    placeholder="Select api..."
+                    placeholder="Select tool..."
                     data={tools.map((tool: any) => ({
                       value: tool.id,
                       label: tool.name,
@@ -353,7 +352,16 @@ export default function Settings({
             name="datasources"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Datasources</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Datasources</FormLabel>
+                  <AddDatasource
+                    profile={profile}
+                    agent={agent}
+                    onSuccess={() => {
+                      window.location.reload()
+                    }}
+                  />
+                </div>
                 <FormControl>
                   <MultiSelect
                     placeholder="Select datasource..."
@@ -376,7 +384,7 @@ export default function Settings({
               </FormItem>
             )}
           />
-          <div className="inset-x-0 bottom-0 flex py-4">
+          <div className="absolute inset-x-0 bottom-2 left-5 right-5 flex py-4">
             <Button
               type="submit"
               size="sm"

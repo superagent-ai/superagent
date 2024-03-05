@@ -1,0 +1,37 @@
+---
+services:
+  weaviate:
+    container_name: weaviate
+    networks:
+      - superagent_network
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8082"
+      - --scheme
+      - http
+    image: semitechnologies/weaviate:1.23.3
+    ports:
+      - 8082:8082
+      - 50051:50051
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    restart: unless-stopped
+    environment:
+      QUERY_DEFAULTS_LIMIT: ${QUERY_DEFAULTS_LIMIT}
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: ${AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED}
+      PERSISTENCE_DATA_PATH: ${PERSISTENCE_DATA_PATH}
+      DEFAULT_VECTORIZER_MODULE: ${DEFAULT_VECTORIZER_MODULE}
+      ENABLE_MODULES: ${ENABLE_MODULES}
+      CLUSTER_HOSTNAME: ${CLUSTER_HOSTNAME}
+      #
+      AUTHENTICATION_APIKEY_ENABLED: ${AUTHENTICATION_APIKEY_ENABLED}
+      AUTHENTICATION_APIKEY_ALLOWED_KEYS: ${AUTHENTICATION_APIKEY_ALLOWED_KEYS}
+      AUTHENTICATION_APIKEY_USERS: ${AUTHENTICATION_APIKEY_USERS}
+volumes:
+  weaviate_data:
+
+networks:
+  superagent_network:
+    external: true

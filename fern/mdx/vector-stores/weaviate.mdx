@@ -1,0 +1,98 @@
+Use weaviate as the vector store for RAG applications, with by self hosting with Docker or by using the weaviate cloud version.
+
+**Website** - [weaviate.io](https://weaviate.io/)
+<br/>
+**GitHub** - [weaviate/weaviate](https://github.com/weaviate/weaviate)
+
+## Setting up weaviate with Docker
+
+<Callout intent="warn">
+For quickly trying out weaviate with Superagent, a basic docker compose example is provided in the folder `libs/.docker/external/vector-store/weaviate/`
+For a production setup refer to the [official documentation](https://weaviate.io/developers/weaviate/installation/docker-compose) on self hosting weaviate.
+</Callout>
+<br/>
+
+### Run weaviate with docker compose
+
+1. `cd` into the weaviate example folder
+
+    ``` bash
+    cd libs/.docker/external/vector-store/weaviate/
+    ```
+
+2. Copy the `.env.example` file into a `.env` file
+
+    ``` bash
+    cp .env.example .env
+    ```
+
+3. For quickly trying out weaviate you can keep the default environment variables, though it is advised to review them and change the `AUTHENTICATION_APIKEY_ALLOWED_KEYS` to a more secure secret passkey, and possibly disable `AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED` to disable access to the API in the browser.
+
+4. Start weaviate with docker compose using the provided `run.sh` script in the same folder.
+
+   ``` bash
+   ./run.sh
+   ```
+
+5. You can access the weaviate API in the browser to confirm the service is up.
+
+    [http://localhost:8082](http://localhost:8082) or [http://weaviate:8082](http://weaviate:8082) if you have added the following to your `hosts` file.
+
+    ``` bash
+    # hosts file
+    127.0.0.1   weaviate
+    ```
+
+6. Enter the values in the superagent docker `.env` file
+
+    ``` bash
+    # libs/.docker/.env
+    VECTORSTORE=weaviate
+    WEAVIATE_API_KEY=<KEY SET IN WEAVIATE .env AUTHENTICATION_APIKEY_ALLOWED_KEYS>
+    WEAVIATE_INDEX=superagent
+    WEAVIATE_URL=http://weaviate:8082
+    
+    ```
+
+### Weaviate container logs
+
+``` bash
+docker logs weaviate -f
+```
+
+### Stop weaviate
+
+Use the provided `stop.sh` script to stop running services for weaviate
+
+``` bash
+# libs/.docker/external/vector-store/weaviate
+./stop.sh
+```
+
+### Uninstall weaviate
+
+Use the provided `uninstall.sh` script to remove the running services for weaviate
+
+``` bash
+# libs/.docker/external/observabillity/weaviate
+./uninstall.sh
+```
+
+## Setting up weaviate Cloud
+
+Alternatively you can use the cloud hosted version of weaviate.
+
+1. Sign up for an account here [https://console.weaviate.cloud/](https://console.weaviate.cloud/)
+2. Create a new cluster named `superagent`
+3. Once the cluster has deployed, expand the cluster `Details` and under `Authentication` click `API Keys` - copy your key.
+4. Enter the values in the superagent docker `.env` file, paste the key in the variable `WEAVIATE_API_KEY`.
+5. Grab the `Cluster Url`, e.g `https://superagent-1234567.weaviate.network` - enter the Cluster Url in the `WEAVIATE_URL` var.
+
+    ``` bash
+    # libs/.docker/.env
+    VECTORSTORE=weaviate
+    WEAVIATE_API_KEY=<API KEY FROM WEAVIATE>
+    WEAVIATE_INDEX=superagent
+    WEAVIATE_URL=<CLUSTER URL FROM WEAVIATE>
+
+    ```

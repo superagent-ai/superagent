@@ -45,7 +45,12 @@ export const UploadButton: FC<UploadButtonProps> = ({
         onChange={handleFileChange}
         accept={accept}
       />
-      <Button onClick={triggerFileInput} size="sm" variant="secondary">
+      <Button
+        type="button"
+        onClick={triggerFileInput}
+        size="sm"
+        variant="secondary"
+      >
         {isLoading ? <Spinner /> : label}
       </Button>
     </>

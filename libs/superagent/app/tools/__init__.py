@@ -1,4 +1,5 @@
-import json
+import logging
+from enum import Enum
 from typing import Any, Dict, Optional, Type
 
 from pydantic import create_model
@@ -9,7 +10,8 @@ from app.models.tools import (
     BingSearchInput,
     BrowserInput,
     ChatGPTInput,
-    E2BCodeExecutorInput,
+    CodeInterpreterInput,
+    # E2BCodeExecutorInput,
     FunctionInput,
     GPTVisionInput,
     HandOffInput,
@@ -18,6 +20,7 @@ from app.models.tools import (
     OpenapiInput,
     PubMedInput,
     ReplicateInput,
+    SuperRagInput,
     TTS1Input,
     WolframInput,
     ZapierInput,
@@ -27,7 +30,9 @@ from app.tools.algolia import Algolia
 from app.tools.bing_search import BingSearch, LCBingSearch
 from app.tools.browser import Browser, LCBrowser
 from app.tools.chatgpt import get_chatpgt_tool
-from app.tools.e2b import E2BCodeExecutor
+from app.tools.code_interpreter import CodeInterpreter
+
+# from app.tools.e2b import E2BCodeExecutor
 from app.tools.function import Function
 from app.tools.gpt_vision import GPTVision
 from app.tools.hand_off import HandOff
@@ -36,9 +41,12 @@ from app.tools.metaphor import MetaphorSearch
 from app.tools.openapi import Openapi
 from app.tools.pubmed import PubMed
 from app.tools.replicate import Replicate
+from app.tools.superrag import SuperRagTool
 from app.tools.tts_1 import TTS1
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
+
+logger = logging.getLogger(__name__)
 
 TOOL_TYPE_MAPPING = {
     "AGENT": {"class": Agent, "schema": AgentInput},
@@ -60,13 +68,15 @@ TOOL_TYPE_MAPPING = {
     "CHATGPT_PLUGIN": {"class": get_chatpgt_tool, "schema": ChatGPTInput},
     "REPLICATE": {"class": Replicate, "schema": ReplicateInput},
     "WOLFRAM_ALPHA": {"class": WolframAlpha, "schema": WolframInput},
-    "CODE_EXECUTOR": {"class": E2BCodeExecutor, "schema": E2BCodeExecutorInput},
+    # "CODE_EXECUTOR": {"class": E2BCodeExecutor, "schema": E2BCodeExecutorInput},
+    "CODE_EXECUTOR": {"class": CodeInterpreter, "schema": CodeInterpreterInput},
     "BROWSER": {"class": LCBrowser, "schema": BrowserInput},
     "GPT_VISION": {"class": GPTVision, "schema": GPTVisionInput},
     "TTS_1": {"class": TTS1, "schema": TTS1Input},
     "HAND_OFF": {"class": HandOff, "schema": HandOffInput},
     "FUNCTION": {"class": Function, "schema": FunctionInput},
     "HTTP": {"class": LCHttpTool, "schema": HTTPInput},
+    "SUPERRAG": {"class": SuperRagTool, "schema": SuperRagInput},
 }
 
 OSS_TOOL_TYPE_MAPPING = {"BROWSER": Browser, "BING_SEARCH": BingSearch}
@@ -77,9 +87,22 @@ def create_pydantic_model_from_object(obj: Dict[str, Any]) -> Any:
     type_mapping = {
         "string": str,
         "integer": int,
+        "boolean": bool,
     }
     for key, value in obj.items():
-        field_type = type_mapping.get(value["type"], str)
+        if isinstance(value, dict):
+            type = value.get("type")
+            if not type:
+                logger.warning(f"Type not found for {key}, defaulting to string")
+            if "enum" in value:
+                enum_values = value["enum"]
+                enum_name = f"{key.capitalize()}Enum"
+                field_type = Enum(enum_name, enum_values)
+            else:
+                field_type = type_mapping.get(type, str)
+        else:
+            field_type = type_mapping.get(value, str)
+
         fields[key] = (field_type, ...)
     return create_model("DynamicModel", **fields)
 
@@ -94,7 +117,6 @@ def create_tool(
     session_id: str = None,
 ) -> Any:
     if metadata:
-        metadata = json.loads(metadata)
         metadata["sessionId"] = session_id
     return tool_class(
         name=name,

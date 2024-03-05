@@ -1,6 +1,10 @@
-import aiohttp
-import requests
-from langchain.tools import BaseTool
+from decouple import config
+from langchain_community.tools import BaseTool
+
+from app.agents.base import AgentBase
+from app.utils.prisma import prisma
+
+API_BASE_URL = config("SUPERAGENT_API_URL")
 
 
 class Agent(BaseTool):
@@ -8,29 +12,65 @@ class Agent(BaseTool):
     description = "useful for answering questions."
 
     def _run(self, input: str) -> str:
-        agent_id = self.metadata["agentId"]
-        api_key = self.metadata["apiKey"]
-        url = f"https://api.beta.superagent.sh/api/v1/agents/{agent_id}/invoke"
-        headers = {
-            "content-type": "application/json",
-            "authorization": f"Bearer {api_key}",
-        }
-        data = {"enableStreaming": False, "input": input}
-        response = requests.post(url=url, headers=headers, json=data)
-        output = response.json()
-        return output.get("data")
+        agent_id = self.metadata.get("agentId")
+
+        agent_config = prisma.agent.find_unique_or_raise(
+            where={"id": agent_id},
+            include={
+                "llms": {"include": {"llm": True}},
+                "datasources": {
+                    "include": {"datasource": {"include": {"vectorDb": True}}}
+                },
+                "tools": {"include": {"tool": True}},
+            },
+        )
+
+        agent_base = AgentBase(
+            agent_id,
+            enable_streaming=False,
+            agent_config=agent_config,
+        )
+
+        agent = agent_base.get_agent()
+
+        invoke_input = agent_base.get_input(
+            input,
+            agent_type=agent_config.type,
+        )
+
+        result = agent.invoke(
+            input=invoke_input,
+        )
+        return result.get("output")
 
     async def _arun(self, input: str) -> str:
-        session_id = self.metadata["sessionId"]
-        agent_id = self.metadata["agentId"]
-        api_key = self.metadata["apiKey"]
-        url = f"https://api.beta.superagent.sh/api/v1/agents/{agent_id}/invoke"
-        headers = {
-            "content-type": "application/json",
-            "authorization": f"Bearer {api_key}",
-        }
-        data = {"enableStreaming": False, "input": input, "sessionId": session_id}
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url=url, headers=headers, json=data) as response:
-                output = await response.json()
-        return output["data"].get("output")
+        agent_id = self.metadata.get("agentId")
+
+        agent_config = await prisma.agent.find_unique_or_raise(
+            where={"id": agent_id},
+            include={
+                "llms": {"include": {"llm": True}},
+                "datasources": {
+                    "include": {"datasource": {"include": {"vectorDb": True}}}
+                },
+                "tools": {"include": {"tool": True}},
+            },
+        )
+
+        agent_base = AgentBase(
+            agent_id,
+            enable_streaming=False,
+            agent_config=agent_config,
+        )
+
+        agent = await agent_base.get_agent()
+
+        invoke_input = agent_base.get_input(
+            input,
+            agent_type=agent_config.type,
+        )
+
+        result = await agent.ainvoke(
+            input=invoke_input,
+        )
+        return result.get("output")

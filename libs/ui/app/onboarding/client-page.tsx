@@ -1,11 +1,14 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
 import Stripe from "stripe"
 import * as z from "zod"
 
+import { initialSamlValue } from "@/config/saml"
+import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
 import { stripe } from "@/lib/stripe"
 import { Button } from "@/components/ui/button"
@@ -33,13 +36,14 @@ import { useToast } from "@/components/ui/use-toast"
 const formSchema = z.object({
   first_name: z.string().nonempty("Invalid first name."),
   last_name: z.string().nonempty("Invalid last name."),
-  company: z.string(),
+  company: z.string().nonempty("Enter a company name"),
 })
 
 export default function OnboardingClientPage() {
   const api = new Api()
   const supabase = createClientComponentClient()
   const { toast } = useToast()
+  const router = useRouter()
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -50,6 +54,7 @@ export default function OnboardingClientPage() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    let client = null
     const { first_name, last_name, company } = values
     const {
       data: { user },
@@ -61,24 +66,70 @@ export default function OnboardingClientPage() {
       })
       return
     }
-    const {
-      data: { token: api_key },
-    } = await api.createApiKey(user.email)
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user?.id)
+      .single()
+
+    if (!profile.api_key) {
+      const {
+        data: { token: api_key },
+      } = await api.createApiUser({
+        email: user.email,
+        firstName: first_name,
+        lastName: last_name,
+        company,
+      })
+      await supabase
+        .from("profiles")
+        .update({
+          api_key,
+        })
+        .eq("user_id", user?.id)
+      client = new Api(api_key)
+    } else {
+      client = new Api(profile.api_key)
+    }
+
     const params: Stripe.CustomerCreateParams = {
       name: company,
+      email: user.email,
+      metadata: {
+        first_name,
+        last_name,
+      },
     }
     let customer: Stripe.Customer | null = null
+    let subscription: Stripe.Subscription | null = null
     if (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
       customer = await stripe.customers.create(params)
+      subscription = await stripe.subscriptions.create({
+        customer: customer?.id,
+        items: [
+          {
+            price: siteConfig.paymentPlans.hobby,
+          },
+        ],
+        trial_period_days: 7,
+        payment_settings: {
+          save_default_payment_method: "on_subscription",
+        },
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: "cancel",
+          },
+        },
+      })
     }
     const { error } = await supabase
       .from("profiles")
       .update({
-        api_key,
         first_name,
         last_name,
         company,
         stripe_customer_id: customer?.id,
+        stripe_plan_id: subscription?.id,
         is_onboarded: true,
       })
       .eq("user_id", user?.id)
@@ -92,11 +143,14 @@ export default function OnboardingClientPage() {
       return
     }
 
-    toast({
-      description: "Settings updated!",
+    const { data: workflow } = await client.createWorkflow({
+      name: "My Workflow",
+      description: "My new workflow",
     })
 
-    window.location.href = "/llms"
+    await client.generateWorkflow(workflow.id, initialSamlValue)
+
+    window.location.href = `/workflows/${workflow.id}`
   }
 
   return (

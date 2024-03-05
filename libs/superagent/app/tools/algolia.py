@@ -1,7 +1,7 @@
 import asyncio
 
 from algoliasearch.search_client import SearchClient
-from langchain.tools import BaseTool
+from langchain_community.tools import BaseTool
 
 
 class Algolia(BaseTool):

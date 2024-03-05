@@ -1,11 +1,14 @@
 import "@/styles/globals.css"
+
 import { Metadata } from "next"
 import { cookies } from "next/headers"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { siteConfig } from "@/config/site"
 import { fontSans } from "@/lib/fonts"
+import PostHogClient from "@/lib/posthog"
 import { cn } from "@/lib/utils"
+import Analytics from "@/components/analytics"
 import { ThemeProvider } from "@/components/theme-provider"
 
 import Container from "./container"
@@ -39,10 +42,19 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     data: { session },
   } = await supabase.auth.getSession()
 
+  if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+    PostHogClient()
+  }
+
   return (
     <>
       <html lang="en" suppressHydrationWarning>
-        <head />
+        <head>
+          <script
+            async
+            src="https://js.stripe.com/v3/pricing-table.js"
+          ></script>
+        </head>
         <body
           className={cn(
             "min-h-screen bg-background font-sans antialiased",
@@ -58,6 +70,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           </ThemeProvider>
         </body>
       </html>
+      <Analytics />
     </>
   )
 }

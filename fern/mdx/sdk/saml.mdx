@@ -1,0 +1,108 @@
+## Building AI-Based Assistants with SuperAgent Markup Language (SAML)
+
+SuperAgent Markup Language (SAML) is a powerful way for teams to quickly design, iterate, and deploy AI-based assistants. By defining assistants' capabilities, data sources, and tools in a structured format, SAML enables rapid development and deployment of AI agents.
+
+## Step 1: Creating a Basic Assistant
+
+Begin by defining a straightforward SuperAgent assistant without external tools or data sources using SAML.
+
+### Basic Assistant Configuration
+
+```yaml
+workflows:
+  - superagent: 
+      name: Basic Assistant
+      llm: gpt-4-1106-preview
+      prompt: You are a simple AI assistant.
+      intro: 👋 Hi! How can I assist you today?
+```
+
+- `name`: Sets the assistant's name.
+- `llm`: Specifies the language model used, such as `gpt-4-1106-preview`.
+- `prompt`: Establishes the assistant's behavior context.
+- `intro`: Provides an introductory message for user interactions.
+
+## Step 2: Adding Data Sources
+
+Enhance the assistant's capabilities by adding data sources to provide it with specific information it can utilize.
+
+### Data Integration
+
+```yaml
+      data:
+         use_for: Accessing Acme Inc. data
+         urls:
+            - https://acme.inc/test.pdf  # Unstructured data
+            - https://acme.inc/transactions.csv  # Structured data
+```
+
+- `data`: Defines the data your assistant can access.
+- `urls`: Lists the data sources, enabling the assistant to pull information from these files.
+
+## Step 3: Defining Multiple Specialized Assistants in a Single Workflow
+
+Use SAML to set up multiple assistants within the same workflow, each with its own specialized tasks.
+
+### Combined Workflow Configuration
+
+```yaml
+workflows:
+  - superagent: 
+      name: Web Scraping Assistant
+      llm: gpt-4-1106-preview
+      prompt: You are an AI assistant specialized in web scraping.
+      tools:
+         - browser:
+            name: Browser
+            use_for: Scraping web pages
+
+  - openai_assistant:
+      name: Summarizing Assistant
+      prompt: You are an AI assistant that excels in summarizing content.
+      llm: gpt-4-1106-preview
+```
+
+- The first assistant, "Web Scraping Assistant," uses the Browser tool to scrape web pages.
+- The second assistant, "Summarizing Assistant," focuses on summarizing content, leveraging its prompt configuration to guide its functionality without the need for additional tools.
+
+The Browser tool enables the assistant to search the internet for information. When integrated into an assistant, the Browser tool can be configured to scrape data from specific web pages or perform searches based on user queries. This capability is particularly useful for assistants that need to provide up-to-date information or conduct research on behalf of the user.
+
+By leveraging SAML to define and integrate these tools, teams can create versatile AI assistants capable of performing a wide range of tasks, from data retrieval and content summarization to custom functions and internet searches.
+
+### Tools and Their Parameters
+
+Here's an overview of the tools and their parameters provided in the example:
+
+1. **Browser**
+   - `name`: Identifier for the tool.
+   - `use_for`: Describes the tool's purpose, such as scraping web pages.
+
+2. **Code Executor**
+   - `name`: Identifier for the tool.
+   - `use_for`: Describes the tool's purpose, such as executing code snippets.
+
+3. **HTTP**
+   - `name`: Identifier for the tool.
+   - `use_for`: Describes the tool's purpose, such as making HTTP requests.
+   - `metadata`: Contains configuration details like headers, URL, method, and body.
+
+4. **Replicate**
+   - `name`: Identifier for the tool.
+   - `use_for`: Describes the tool's purpose, such as generating content with a model on Replicate.
+   - `metadata`: Includes details like the model and API key.
+
+5. **Algolia**
+   - `name`: Identifier for the tool.
+   - `use_for`: Describes the tool's purpose, such as querying an index.
+   - `metadata`: Includes details like API ID, API key, and index name.
+
+6. **Metaphor Search**
+   - `name`: Identifier for the tool.
+   - `use_for`: Describes the tool's purpose, such as searching the internet.
+   - `metadata`: Includes the API key for Metaphor.
+
+7. **Function**
+   - `name`: Identifier for the tool.
+   - `use_for`: Describes the tool's purpose, such as calling a custom function.
+   - `metadata`: Includes arguments like `name` and `title`.
+    

@@ -1,0 +1,37 @@
+# Node modules
+node_modules
+
+# Next.js specific
+.next
+out
+
+# Build logs
+*.log
+
+# Environment files
+.env
+.env*
+!.env.docker
+
+# Docker files
+docker-compose.yml
+Dockerfile
+
+# Version control
+.git
+.gitignore
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.idea
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+.vscode
+
+# npm debug logs
+npm-debug.log*

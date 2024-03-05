@@ -90,7 +90,7 @@ async def update(llm_id: str, body: LLMRequest, api_user=Depends(get_current_api
         data = await prisma.llm.update(
             where={"id": llm_id},
             data={
-                **body.dict(),
+                **body.dict(exclude_unset=True),
                 "apiUserId": api_user.id,
                 "options": Json(body.options),
             },

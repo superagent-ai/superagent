@@ -16,6 +16,7 @@ node_modules
 .pnp.js
 
 # testing
+.scratch
 /coverage
 
 # next.js
@@ -50,3 +51,8 @@ next-env.d.ts
 
 # supabase
 v2.code-workspace
+# supabase setup upgrade temp folder
+libs/.docker/ui/supabase/supabase-setup
+
+google_cloud_service_key.json
+

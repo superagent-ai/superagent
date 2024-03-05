@@ -1,8 +1,8 @@
 from langchain.agents import AgentType, initialize_agent
-from langchain.agents.agent_toolkits import ZapierToolkit
-from langchain.chat_models.openai import ChatOpenAI
-from langchain.tools import BaseTool
-from langchain.utilities.zapier import ZapierNLAWrapper
+from langchain_community.agent_toolkits import ZapierToolkit
+from langchain_community.tools import BaseTool
+from langchain_community.utilities.zapier import ZapierNLAWrapper
+from langchain_openai import ChatOpenAI
 
 
 class ZapierNLA(BaseTool):

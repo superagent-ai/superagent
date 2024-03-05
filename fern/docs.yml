@@ -40,16 +40,54 @@ navigation:
             path: ./mdx/sdk/human_handoff.mdx
           - page: Custom tools
             path: ./mdx/sdk/local_tools.mdx
-          - page: Assitant workflows
+          - page: Assistant workflows
             path: ./mdx/sdk/workflows.mdx
-      - section: Deployments
+          - page: Configuring Vector Database
+            path: ./mdx/sdk/configure_vector_database.mdx
+          - page: SuperAgent Markup Language
+            path: ./mdx/sdk/saml.mdx
+      - section: Installation 
         contents:
+          - page: Docker Compose
+            path: ./mdx/deploy/docker-compose.mdx     
           - page: Render
             path: ./mdx/deploy/render.mdx
           - page: Replit
             path: ./mdx/deploy/replit.mdx
           - page: Runnning locally
             path: ./mdx/deploy/local.mdx
+      - section: RAG & Retrieval
+        contents:
+          - page: Super-Rag with SAML
+            path: ./mdx/rag/super-rag-saml.mdx  
+          - page: Super-Rag with SDK
+            path: ./mdx/rag/super-rag-sdk.mdx  
+      - section: Logging
+        contents:
+          - page: Langfuse
+            path: ./mdx/logging/langfuse.mdx
+      - section: Vector Stores
+        contents:
+          - page: Weaviate
+            path: ./mdx/vector-stores/weaviate.mdx
+          - page: Supabase
+            path: ./mdx/vector-stores/supabase.mdx
+          - page: Qdrant
+            path: ./mdx/vector-stores/qdrant.mdx
+          - page: Pinecone
+            path: ./mdx/vector-stores/pinecone.mdx
+          - page: Datastax Astra
+            path: ./mdx/vector-stores/astra.mdx
+      - section: Memory 
+        contents: 
+          - page: Motorhead
+            path: ./mdx/memory/motorhead.mdx
+      - section: Dependencies
+        contents:
+          - page: Supabase
+            path: ./mdx/dependencies/supabase.mdx
+          
+      
   - tab: templates
     layout:
       - section: Assistants
@@ -68,6 +106,7 @@ navigation:
         api-name: prod 
         snippets: 
           python: superagent-py
+          typescript: superagentai-js
 colors:
   accentPrimary: "#FDC537"
   background: "#0F1117"
@@ -82,7 +121,7 @@ navbar-links:
     text: Discord
     url: https://discord.com/invite/mhmJUTjW4b
   - type: secondary
-    text: Github
+    text: GitHub
     url: https://github.com/homanp/superagent
   - type: primary
     text: Login

@@ -1,0 +1,166 @@
+# Run Superagent with Docker Compose
+
+You can run some or all of Superagent with Docker Compose, either locally or as part of your production deployment. Examples are provided to enable you to quickly get started running Superagent and its dependencies, these can be used to quickly spin up and try out Superagent, or be used as the basis for a production deployment.
+
+While we provide examples on how to run the various dependencies and integrations with Docker, you can also choose to run any of them with cloud or hosted versions where available, pick and choose the services you wish to run with docker or swap out the enviroment configuration to point at cloud hosted versions if you prefer.
+
+## Deployment options
+
+1. **Supabase** - Database required for the Superagent UI, RAG file storage and UI Authentication.
+2. **Superagent API** - The API for Superagent along with its own postgres db for storage.
+3. **Superagent UI** - A user interface for interacting with Superagent.
+4. **Motorhead** - A redis based memory store for LLM interactions
+5. **Langfuse** - Open source Observabillity & Analytics for LLM Apps
+6. **A vector store** - Choose from a selection of supported vector stores for performing Retrieval Augmented Generation.
+
+## Getting Started
+
+This guide will take you through the steps to run Superagent and all the neccesary dependencies to achive a fully functional, self hosted setup on your local machine using Docker Compose.
+
+### Environment Variable Configuration
+
+Example configuration for the core services of Superagent is located in the `./libs/.docker/.env.example` file.
+
+The example file is pre-configured with most of the values required to setup everything in docker on a local machine. Where changes need to be made to the env vars they will be mentioned in the relevent guide steps.
+
+Copy the file into a new file named `.env`
+
+``` bash
+cd libs/.docker
+cp .env.example .env
+```
+
+Dependencies outside of the core services also have their own `.env` files colocated with their docker-compose files, either because they are optional/swappable (e.g vector stores) or have a lot of configuration (e.g Supabase).
+
+### Docker networking and hosts file
+
+For services that require their URL set in environment variables, and need to be accessible both internally in the docker network and locally from your machine, it is neccessary to set the various docker service names in your operating systems `hosts` file. This ensures services can be accessed in the browser with the same url as is used internally inside docker between the services.
+
+Here is an example hosts file with most of the services listed. Add or remove services from the list as needed in your setup.
+
+``` bash
+ 127.0.0.1  superagent-api
+ 127.0.0.1  superagent-ui
+ 127.0.0.1  pgdb
+ 127.0.0.1  pgadmin
+ 127.0.0.1  supabase-kong
+ 127.0.0.1  langfuse-server
+ 127.0.0.1  redis
+ 127.0.0.1  weaviate
+ 127.0.0.1  qdrant
+```
+
+## Deploy dependent services
+
+### 1. Deploy Supabase
+
+First setup supabase. Refer to our guide [Supabase setup](https://docs.superagent.sh/overview/dependencies/supabase). The guide explains how to setup and run Supabase with docker compose using our provided example.
+
+### 2. Deploy Langfuse
+
+Refer to our guide [Langfuse setup](https://docs.superagent.sh/overview/logging/langfuse). The guide explains how to run a local version of Langfuse with docker compose using our provided example, or how to setup Langfuse cloud if preferred.
+
+### 3. Deploy a vector store
+
+Refer to our guides on setting up one of the supported vector stores in docker or how to use the cloud versions where available.
+
+- **Weaviate** - [Weaviate Setup Guide](https://docs.superagent.sh/overview/vector-stores/weaviate)
+- More guides coming soon
+
+## Deploy Superagent and core services
+
+The main docker compose file is located in `libs\.docker\docker-compose.yml` and contains only the Superagent API. Other core services are provided as additional compose files and can be appended to the `docker compose up` command to deploy them all at once.
+
+In order to deploy all the core services an example script is provided in `libs\.docker\run.sh`.  You can modify this script to ommit any services you wish to deploy elsewhere see [Swapping out core dependencies](#swapping-out-core-dependencies).
+
+To run all of these services in docker, cd into the `libs/.docker` folder, run the script `run.sh`:
+
+``` bash
+cd libs/.docker
+./run.sh
+
+```
+
+This will start up the following services in docker
+
+- `superagent-api` - Superagent API
+- `superagent-ui`  - Superagent user interface
+- `motorhead`- Motorhead redis based memory for llm interaction
+- `redis` - redis backend for Motorhead
+- `pgdb` - Postgres DB for the Superagent API
+- `pgadmin` - User interface for the Postgres DB
+
+### Ready to go
+
+You are now set up and ready to go. If you need to restart superagent for any reason, such as after changing any of the `.env` vars, just re-run the `./run.sh` script from the `libs/.docker` folder. This will stop and restart the core services
+
+#### Urls
+
+Superagent UI: [http://localhost:3000](http://localhost:3000)
+Superagent API: [http://localhost:8080/api/v1](http://localhost:8080/api/v1)
+Supabase Studio: [http://localhost:8000](http://localhost:8000)
+Langfuse: [http://localhost:3100](http://localhost:3100)
+
+## Swapping out core dependencies
+
+The `libs/.docker/run.sh` script runs all the core dependencies. You can omit any part that you may wish to deploy elsewhere. For example, if you wanted to use a cloud hosted database for the superagent api, then you can delete the lines for `-f superagent/db/docker-compose.pgdb.yml \` and `-f superagent/db/docker-compose.pgadmin.yml \` then modify the `libs/.docker/.env` file with the configuration for your own POSTGRES db.
+
+``` bash
+# Remove any running services
+./stop.sh
+
+# Check if the network exists
+if ! docker network ls | grep -q superagent_network; then
+  # Create the network if it does not exist
+  docker network create superagent_network
+fi
+
+# Run the core services
+docker-compose -f docker-compose.yml \
+        ### Delete any services you have deployed elsewhere.
+        -f superagent/db/docker-compose.pgdb.yml \
+        -f superagent/db/docker-compose.pgadmin.yml \
+        -f superagent/motorhead/docker-compose.motorhead.yml \
+        -f ui/docker-compose.ui.yml \
+        up \
+        --build \
+        -d
+
+docker logs superagent-ui
+
+```
+
+## logs
+
+View the logs for any of the services using the `container-name` provided in each `docker-compose.yml` file. Add `-f` to the command to follow the logs, and `ctrl+c` to exit the logs.
+
+Examples
+
+- Superagent API - `docker logs superagent-api -f`
+- Superagent UI - `docker logs superagent-ui -f`
+- Motorhead - `docker logs motorhead -f`
+- Supabase API - `docker logs supabase-kong -f`
+- Langfuse - `docker logs langfuse-server -f`
+- Weaviate - `docker logs weaviate -f`
+
+## stop
+
+Each of the provided docker compose files provided has an example `stop`` command in the same folder to stop all the associated services.
+
+Running the stop command will preserve any data linked to services that have a volume mounted while recovering the resources on your computer.
+
+Run the command to stop the associated services while in the relevant folder.
+
+``` bash
+./stop.sh
+```
+
+## uninstall
+
+You can also `uninstall` any of the services using the provided scripts next to each docker-compose file.
+
+This will permanently remove the services as well as any volumes associated with the services - **this will delete any data stored in volumes for the services**.
+
+``` bash
+./uninstall.sh
+```

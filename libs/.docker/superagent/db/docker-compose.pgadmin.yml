@@ -1,0 +1,26 @@
+services:
+  pgadmin:
+    container_name: pgadmin
+    networks:
+      - superagent_network
+    image: dpage/pgadmin4
+    pull_policy: missing
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_LISTEN_ADDRESS: 0.0.0.0
+      PGADMIN_LISTEN_PORT: 5050
+    ports:
+      - 5050:5050
+    volumes:
+      - type: volume
+        source: pgadmin-data
+        target: /root/.pgadmin
+    restart: unless-stopped
+
+volumes:
+  pgadmin-data:
+
+networks:
+  superagent_network:
+    external: true

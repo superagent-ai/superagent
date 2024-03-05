@@ -1,0 +1,29 @@
+## Features
+
+Super-Rag is performant Retrieval Augmented Generation pipeline specifcially created to be used by AI Agents. Super-Rag allows developers to ingest large amount of data and perform Q&A, Summarization and Computationl Q&A on that dataset. 
+
+### Getting started
+
+1. Connect your a embedding database in the [Superagent UI](https://beta.superagent.sh/integrations)
+2. Create a workflow using SAML.
+
+```yaml
+workflows: 
+  - superagent:
+      name: Rag Agent
+      llm: gpt-4-turbo-preview
+      prompt: Use the earning reports to answer any questions
+      superrag:
+        - index: 
+            name: earnings
+            use_for: useful for answering questions about earning reports.
+            urls:
+              - https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q4-2023-Update.pdf
+              - https://s2.q4cdn.com/299287126/files/doc_financials/2023/q4/AMZN-Q4-2023-Earnings-Release.pdf
+```
+
+3. Query the workflow using the API or SDKs
+
+### Running Super-Rag as a stand-alone service
+
+Super-Rag comes as a stand-alone REST API. You can read more on how to setup [here](https://github.com/superagent-ai/super-rag). Alternatively you can run the free Cloud API to ingest/retrieve data. 

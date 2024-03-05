@@ -121,12 +121,11 @@ const CodeBlock: FC<Props> = memo(({ language, value }) => {
         language={language}
         style={coldarkDark}
         PreTag="div"
-        wrapLongLines={true}
+        // wrapLongLines={true}
         showLineNumbers
         customStyle={{
           margin: 0,
           width: "100%",
-          background: "transparent",
           padding: "1.5rem 1rem",
         }}
         codeTagProps={{

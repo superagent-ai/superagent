@@ -1,8 +1,8 @@
 openapi: 3.0.2
 info:
   title: Superagent
-  description: The open source alternative to OpenAI Assistants API
-  version: 0.1.65
+  description: The Open Source AI Assistant Framework & API
+  version: 0.2.13
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -143,7 +143,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/app__models__request__Agent'
+              $ref: '#/components/schemas/AgentUpdate'
         required: true
       responses:
         '200':
@@ -167,12 +167,6 @@ paths:
       summary: Invoke
       description: Invoke an agent
       operationId: invoke_api_v1_agents__agent_id__invoke_post
-      x-fern-streaming:
-        stream-condition: $request.enableStreaming
-        response:
-          $ref: '#/components/schemas/app__models__response__AgentInvoke'
-        response-stream:
-          $ref: '#/components/schemas/app__models__response__AgentInvokeStream'
       parameters:
         - required: true
           schema:
@@ -201,8 +195,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
-      x-fern-sdk-group-name: agent
       x-fern-sdk-method-name: invoke
+      x-fern-sdk-group-name: agent
   /api/v1/agents/{agent_id}/llms:
     post:
       tags:
@@ -628,6 +622,139 @@ paths:
               schema: {}
       security:
         - HTTPBearer: []
+  /api/v1/api-users/identify:
+    post:
+      tags:
+        - Api user
+      summary: Indentify
+      description: Indentify an api user
+      operationId: indentify_api_v1_api_users_identify_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__ApiUser'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/api-keys:
+    get:
+      tags:
+        - API key
+      summary: List
+      description: List API keys
+      operationId: list_api_v1_api_keys_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyList'
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - API key
+      summary: Create
+      description: Create a new API key
+      operationId: create_api_v1_api_keys_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__ApiKey'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyCreate'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/v1/api-keys/{id}:
+    delete:
+      tags:
+        - API key
+      summary: Delete
+      description: Delete an API key
+      operationId: delete_api_v1_api_keys__id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Id
+            type: string
+          name: id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__ApiKey'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    patch:
+      tags:
+        - API key
+      summary: Update
+      description: Update an API key
+      operationId: update_api_v1_api_keys__id__patch
+      parameters:
+        - required: true
+          schema:
+            title: Id
+            type: string
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__models__request__ApiKey'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__models__response__ApiKey'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
   /api/v1/datasources:
     get:
       tags:
@@ -919,7 +1046,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/app__models__request__Tool'
+              $ref: '#/components/schemas/ToolUpdate'
         required: true
       responses:
         '200':
@@ -1261,6 +1388,52 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
+  /api/v1/workflows/config/schema:
+    get:
+      tags:
+        - Workflow Config
+      summary: Get Schema
+      operationId: get_schema_api_v1_workflows_config_schema_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/workflows/{workflow_id}/config:
+    post:
+      tags:
+        - Workflow Config
+      summary: Add Config
+      operationId: add_config_api_v1_workflows__workflow_id__config_post
+      parameters:
+        - required: true
+          schema:
+            title: Workflow Id
+            type: string
+          name: workflow_id
+          in: path
+      requestBody:
+        content:
+          application/x-yaml:
+            schema:
+              title: Yaml Content
+              type: string
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
   /api/v1/vector-db:
     post:
       tags:
@@ -1368,36 +1541,6 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
-  /api/v1/runs:
-    get:
-      x-fern-ignore: true
-      tags:
-        - Telemetry
-      summary: List Runs
-      description: List runs
-      operationId: list_runs_api_v1_runs_get
-      parameters:
-        - required: false
-          schema:
-            title: Agent Id
-            type: string
-          name: agent_id
-          in: query
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentRunList'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-        - HTTPBearer: []
 components:
   schemas:
     AgentDatasosurceList:
@@ -1432,20 +1575,6 @@ components:
         total_pages:
           title: Total Pages
           type: integer
-    AgentRunList:
-      title: AgentRunList
-      required:
-        - success
-      type: object
-      properties:
-        success:
-          title: Success
-          type: boolean
-        data:
-          title: Data
-          type: array
-          items:
-            type: object
     AgentToolList:
       title: AgentToolList
       required:
@@ -1460,6 +1589,70 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__AgentTool'
+    AgentType:
+      title: AgentType
+      enum:
+        - SUPERAGENT
+        - OPENAI_ASSISTANT
+        - LLM
+      type: string
+      description: An enumeration.
+    AgentUpdate:
+      title: AgentUpdate
+      type: object
+      properties:
+        isActive:
+          title: Isactive
+          type: boolean
+        name:
+          title: Name
+          type: string
+        initialMessage:
+          title: Initialmessage
+          type: string
+        prompt:
+          title: Prompt
+          type: string
+        llmModel:
+          title: Llmmodel
+          type: string
+        description:
+          title: Description
+          type: string
+        avatar:
+          title: Avatar
+          type: string
+        type:
+          title: Type
+          type: string
+        metadata:
+          title: Metadata
+          type: object
+    ApiKeyCreate:
+      title: ApiKeyCreate
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          $ref: '#/components/schemas/_ApiKeyCreateModel'
+    ApiKeyList:
+      title: ApiKeyList
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          title: Success
+          type: boolean
+        data:
+          title: Data
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__ApiKey'
     DatasourceList:
       title: DatasourceList
       required:
@@ -1508,6 +1701,19 @@ components:
         - FUNCTION
       type: string
       description: An enumeration.
+    FunctionDefinition:
+      title: FunctionDefinition
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        parameters:
+          title: Parameters
+          type: object
     HTTPValidationError:
       title: HTTPValidationError
       type: object
@@ -1537,18 +1743,17 @@ components:
         - GPT_3_5_TURBO_16K_0613
         - GPT_3_5_TURBO_0613
         - GPT_3_5_TURBO_1106
+        - GPT_3_5_TURBO_0125
         - GPT_4_0613
         - GPT_4_32K_0613
         - GPT_4_1106_PREVIEW
+        - GPT_4_TURBO_PREVIEW
         - MISTRAL_7B_INSTRUCT_V01
         - MIXTRAL_8X7B_INSTRUCT_V01
       type: string
       description: An enumeration.
     LLMParams:
       title: LLMParams
-      required:
-        - max_tokens
-        - temperature
       type: object
       properties:
         max_tokens:
@@ -1557,14 +1762,66 @@ components:
         temperature:
           title: Temperature
           type: number
+          default: 0.5
     LLMProvider:
       title: LLMProvider
       enum:
         - OPENAI
         - AZURE_OPENAI
         - HUGGINGFACE
+        - PERPLEXITY
+        - TOGETHER_AI
       type: string
       description: An enumeration.
+    OpenAiAssistantParameters:
+      title: OpenAiAssistantParameters
+      type: object
+      properties:
+        metadata:
+          title: Metadata
+          type: object
+        fileIds:
+          title: Fileids
+          type: array
+          items:
+            type: string
+        tools:
+          title: Tools
+          type: array
+          items:
+            anyOf:
+              - $ref: '#/components/schemas/ToolAssistantToolsCode'
+              - $ref: '#/components/schemas/ToolAssistantToolsRetrieval'
+              - $ref: '#/components/schemas/ToolAssistantToolsFunction'
+    ToolAssistantToolsCode:
+      title: ToolAssistantToolsCode
+      type: object
+      properties:
+        type:
+          title: Type
+          enum:
+            - code_interpreter
+          type: string
+    ToolAssistantToolsFunction:
+      title: ToolAssistantToolsFunction
+      type: object
+      properties:
+        function:
+          $ref: '#/components/schemas/FunctionDefinition'
+        type:
+          title: Type
+          enum:
+            - function
+          type: string
+    ToolAssistantToolsRetrieval:
+      title: ToolAssistantToolsRetrieval
+      type: object
+      properties:
+        type:
+          title: Type
+          enum:
+            - retrieval
+          type: string
     ToolList:
       title: ToolList
       required:
@@ -1604,8 +1861,28 @@ components:
         - HAND_OFF
         - FUNCTION
         - HTTP
+        - SUPERRAG
       type: string
       description: An enumeration.
+    ToolUpdate:
+      title: ToolUpdate
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        type:
+          title: Type
+          type: string
+        metadata:
+          title: Metadata
+          type: object
+        returnDirect:
+          title: Returndirect
+          type: boolean
     ValidationError:
       title: ValidationError
       required:
@@ -1651,6 +1928,41 @@ components:
         - SUPABASE
       type: string
       description: An enumeration.
+    WorkflowConfig:
+      title: WorkflowConfig
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - workflowId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        config:
+          title: Config
+          type: string
+          format: json-string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        workflowId:
+          title: Workflowid
+          type: string
+        workflow:
+          $ref: '#/components/schemas/prisma__models__Workflow'
+        ApiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+        apiUserId:
+          title: Apiuserid
+          type: string
+      description: Represents a WorkflowConfig record
     WorkflowInvoke:
       title: WorkflowInvoke
       required:
@@ -1699,12 +2011,48 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__WorkflowStep'
+    _ApiKeyCreateModel:
+      title: _ApiKeyCreateModel
+      required:
+        - id
+        - name
+        - displayApiKey
+        - createdAt
+        - updatedAt
+        - apiUserId
+        - apiKey
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        displayApiKey:
+          title: Displayapikey
+          type: string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+        apiKey:
+          title: Apikey
+          type: string
+      description: Represents a ApiKey record
     app__models__request__Agent:
       title: Agent
       required:
         - name
-        - llmModel
-        - description
       type: object
       properties:
         isActive:
@@ -1723,12 +2071,24 @@ components:
         llmModel:
           title: Llmmodel
           type: string
+        llmProvider:
+          $ref: '#/components/schemas/LLMProvider'
         description:
           title: Description
           type: string
+          default: An helpful agent.
         avatar:
           title: Avatar
           type: string
+        type:
+          allOf:
+            - $ref: '#/components/schemas/AgentType'
+          default: SUPERAGENT
+        parameters:
+          $ref: '#/components/schemas/OpenAiAssistantParameters'
+        metadata:
+          title: Metadata
+          type: object
     app__models__request__AgentDatasource:
       title: AgentDatasource
       required:
@@ -1777,6 +2137,15 @@ components:
         toolId:
           title: Toolid
           type: string
+    app__models__request__ApiKey:
+      title: ApiKey
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
     app__models__request__ApiUser:
       title: ApiUser
       required:
@@ -1786,11 +2155,22 @@ components:
         email:
           title: Email
           type: string
+        firstName:
+          title: Firstname
+          type: string
+        lastName:
+          title: Lastname
+          type: string
+        company:
+          title: Company
+          type: string
+        anonymousId:
+          title: Anonymousid
+          type: string
     app__models__request__Datasource:
       title: Datasource
       required:
         - name
-        - description
         - type
       type: object
       properties:
@@ -1835,9 +2215,7 @@ components:
       title: Tool
       required:
         - name
-        - description
         - type
-        - returnDirect
       type: object
       properties:
         name:
@@ -1846,6 +2224,7 @@ components:
         description:
           title: Description
           type: string
+          default: An helpful tool.
         type:
           title: Type
           type: string
@@ -1855,6 +2234,7 @@ components:
         returnDirect:
           title: Returndirect
           type: boolean
+          default: false
     app__models__request__VectorDb:
       title: VectorDb
       required:
@@ -1915,16 +2295,17 @@ components:
           type: boolean
         data:
           title: Data
-    app__models__response__AgentInvokeStream:
-      title: AgentInvokeStream
+    app__models__response__ApiKey:
+      title: ApiKey
+      required:
+        - success
       type: object
       properties:
-        event:
-          type: string
-          description: The type of the event.
+        success:
+          title: Success
+          type: boolean
         data:
-          type: string
-          description: The data associated with the event.
+          $ref: '#/components/schemas/prisma__models__ApiKey'
     app__models__response__ApiUser:
       title: ApiUser
       required:
@@ -2006,18 +2387,20 @@ components:
       title: Agent
       required:
         - id
+        - type
         - name
         - description
         - isActive
         - createdAt
         - updatedAt
-        - llmModel
         - apiUserId
       type: object
       properties:
         id:
           title: Id
           type: string
+        type:
+          $ref: '#/components/schemas/AgentType'
         name:
           title: Name
           type: string
@@ -2071,6 +2454,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__WorkflowStep'
+        metadata:
+          title: Metadata
+          type: string
+          format: json-string
       description: Represents a Agent record
     prisma__models__AgentDatasource:
       title: AgentDatasource
@@ -2156,6 +2543,40 @@ components:
           type: string
           format: date-time
       description: Represents a AgentTool record
+    prisma__models__ApiKey:
+      title: ApiKey
+      required:
+        - id
+        - name
+        - displayApiKey
+        - createdAt
+        - updatedAt
+        - apiUserId
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        displayApiKey:
+          title: Displayapikey
+          type: string
+        createdAt:
+          title: Createdat
+          type: string
+          format: date-time
+        updatedAt:
+          title: Updatedat
+          type: string
+          format: date-time
+        apiUserId:
+          title: Apiuserid
+          type: string
+        apiUser:
+          $ref: '#/components/schemas/prisma__models__ApiUser'
+      description: Represents a ApiKey record
     prisma__models__ApiUser:
       title: ApiUser
       required:
@@ -2211,6 +2632,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/prisma__models__VectorDb'
+        workflowConfigs:
+          title: Workflowconfigs
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowConfig'
+        apiKeys:
+          title: Apikeys
+          type: array
+          items:
+            $ref: '#/components/schemas/prisma__models__ApiKey'
       description: Represents a ApiUser record
     prisma__models__Datasource:
       title: Datasource
@@ -2320,7 +2751,6 @@ components:
         - description
         - type
         - returnDirect
-        - metadata
         - createdAt
         - updatedAt
         - apiUserId
@@ -2441,6 +2871,11 @@ components:
           type: string
         apiUser:
           $ref: '#/components/schemas/prisma__models__ApiUser'
+        workflowConfigs:
+          title: Workflowconfigs
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowConfig'
       description: Represents a Workflow record
     prisma__models__WorkflowStep:
       title: WorkflowStep

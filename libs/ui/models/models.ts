@@ -94,6 +94,28 @@ export class ApiUser {
   }
 }
 
+export class ApiKey {
+  id: string
+  name: string
+  displayApiKey: string
+  apiKey?: string
+  createdAt: Date
+  updatedAt: Date
+  apiUserId: string
+  apiUser: ApiUser
+
+  constructor(obj: any) {
+    this.id = obj.id || ""
+    this.name = obj.name || ""
+    this.displayApiKey = obj.displayApiKey || ""
+    this.apiKey = obj.apiKey || ""
+    this.createdAt = obj.createdAt || new Date()
+    this.updatedAt = obj.updatedAt || new Date()
+    this.apiUserId = obj.apiUserId || ""
+    this.apiUser = obj.apiUser || null
+  }
+}
+
 export class Agent {
   id: string
   name: string

@@ -5,6 +5,7 @@ import { Api } from "@/lib/api"
 
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
+import Header from "./header"
 
 export const dynamic = "force-dynamic"
 
@@ -36,8 +37,8 @@ export default async function Agents({
   })
 
   return (
-    <div className="flex flex-col space-y-4 px-4 py-6">
-      <p className="text-lg">Agents</p>
+    <div className="flex flex-col space-y-8">
+      <Header profile={profile} />
       <DataTable
         columns={columns}
         data={agents}

@@ -1,0 +1,165 @@
+Supabase is used for the Superagent UI, it provides the database, Authentication with well know auth providers and a Bucket for file storage.
+
+**Website** - [supabase.com](https://supabase.com)
+<br/>
+**GitHub** - [supabase/supabase](https://github.com/supabase/supabase)
+
+## Setting up supabase with Docker
+
+<Callout intent="warn">
+For quickly trying out supabase with Superagent, a docker compose example is provided in the folder `libs/.docker/ui/supabase/`
+For a production setup refer to the [official documentation](https://supabase.com/docs/guides/self-hosting/docker) on self hosting supabase.
+</Callout>
+<br/>
+
+### Run supabase with docker compose
+
+1. `cd` into the supabase example folder
+
+    ``` bash
+    cd libs/.docker/ui/supabase/
+    ```
+
+2. Copy the `.env.example` file into a `.env` file
+
+    ``` bash
+    cp .env.example .env
+    ```
+
+3. In the example `.env` file many of the variables are pre-configured to work with Superagent locally with docker compose, out of the box. It is advised to review and change all of the keys and passwords in the `.env` file.
+   - Supabase has a guide and a tool for generating new values for `JWT_SECRET`, `ANON_KEY` and `SERVICE_ROLE_KEY` in their [official docs](https://supabase.com/docs/guides/self-hosting/docker#generate-api-keys). Review your `POSTGRES_PASSWORD` and `DASHBOARD_PASSWORD` too.
+   - Copy any changed values over to the docker .env file for Superagent.
+
+    ``` bash
+    # libs/.docker/.env
+    JWT_SECRET=<JWT_SECRET from supabase .env>
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=<ANON_KEY from supabase .env>
+    SUPABASE_DB_URL=postgresql://postgres:<POSTGRES_PASSWORD from supabase .env>@supabase-db:5433/postgres
+    ```
+
+4. Setup Authentication provider for use with Superagent UI.
+   - The following external auth providers are supported by Supabase and in turn by Superagent - `apple`, `azure`, `bitbucket`, `discord`, `facebook`, `figma`, `github`, `gitlab`, `google`, `keycloak`, `linkedin`, `notion`, `spotify`, `slack`, `twitch`, `twitter` and `workos`
+   - An example set of variables is provided below for `GITHUB` auth, for others simply change the name of the provider in each variable name. e.g `GOTRUE_EXTERNAL_AZURE_ENABLED`. Refer to each providers own documentation for information on setting up auth.
+   - See the section [GitHub Authentication Setup](#github-authentication-setup) below for steps to setup GitHub Authentication via your github account.
+  
+    ``` bash
+    # libs/.docker/ui/supabase/.env
+    GOTRUE_EXTERNAL_GITHUB_ENABLED=true
+    GOTRUE_EXTERNAL_GITHUB_CLIENT_ID=<GITHUB - CLIENT_ID>
+    GOTRUE_EXTERNAL_GITHUB_SECRET=<GITHUB - CLIENT_SECRET>
+    GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI=http://localhost:8000/auth/v1/callback
+
+    ```
+
+5. Start supabase with docker compose using the provided `run.sh` script in the same folder.
+
+   ``` bash
+   ./run.sh
+   ```
+
+   - The script will ensure the superagent docker network exists, stops any previously running containers, then runs supabase with docker compose.
+
+   ``` bash
+    # Check if the network exists
+    if ! docker network ls | grep -q superagent_network; then
+    # Create the network if it does not exist
+    docker network create superagent_network
+    fi
+
+    ./stop.sh && docker compose up -d
+
+    docker logs supabase-db
+    ```
+
+6. You can access the supabase ui in the browser to confirm the service is up.
+
+    [http://localhost:8000](http://localhost:8000) or [http://supabase-kong:8000](http://supabase-kong:8000) if you have added the following to your `hosts` file.
+
+    ``` bash
+    # hosts file
+    127.0.0.1   supabase-kong
+    ```
+
+7. Login with the values `DASHBOARD_USERNAME` and `DASHBOARD_PASSWORD` from `libs/.docker/ui/supabase/.env`
+
+### Supabase Storage
+
+File storage is already configured in the provided supabase docker setup. This is created when you deploy using the script from `libs\.docker\ui\supabase\volumes\db\init\data.sql`. Though there is one manual step needed to enable superagent to access it:
+
+#### Required setup to enable storage access
+
+You can access the storage and manage files at the following url
+
+- [http://localhost:8000/project/default/storage/buckets/superagent](http://localhost:8000/project/default/storage/buckets/superagent)
+- Click the drop-down next to the `superagent` stoage
+- Edit
+- Set the toggle to `public`
+
+### Supabase container logs
+
+``` bash
+# Supabase API
+docker logs supabase-kong -f
+# Supabase Database
+docker logs supabase-db -f
+```
+
+### Stop supabase
+
+Use the provided `stop.sh` script to stop running services for supabase
+
+``` bash
+# libs/.docker/ui/supabase
+./stop.sh
+```
+
+### Uninstall supabase
+
+Use the provided `uninstall.sh` script to remove the running services for supabase
+, this will delete all data stored in the volumes.
+
+``` bash
+# libs/.docker/ui/supabase
+./uninstall.sh
+```
+
+# Authentication Examples
+
+## GitHub Authentication Setup
+
+1. Create a new GitHub OAuth app in your [GitHub account](https://github.com/settings/developers)
+
+2. Copy the `CLIENT_ID` and `CLIENT_SECRET`
+
+3. Set the following callback URL, for use with docker compose use `http://localhost:8000/auth/v1/callback`
+
+    ```sh
+    <YOUR_SUPABASE_URL>/auth/v1/callback
+
+    ```
+
+4. Update the environment variables:
+   - If using supabase via docker compose - Update the values in the Supabase .env file `libs/.docker/ui/supabase/.env`
+
+    ``` bash
+    # libs/.docker/ui/supabase/.env
+    GOTRUE_EXTERNAL_GITHUB_ENABLED=true
+    GOTRUE_EXTERNAL_GITHUB_CLIENT_ID=<GITHUB - CLIENT_ID>
+    GOTRUE_EXTERNAL_GITHUB_SECRET=<GITHUB - CLIENT_SECRET>
+    GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI=http://localhost:8000/auth/v1/callback
+
+    ```
+
+    - If using supabase in the cloud:
+    Navigate to your Supabase project you have created for Superagent UI and paste the `CLIENT_ID` and `CLIENT_SECRET`
+
+    <img width="2672" alt="Screenshot 2023-09-15 at 09 08 52" src="https://github.com/homanp/superagent/assets/2464556/abd1e2fb-df90-413a-b674-766343683f6c" />
+
+5. Finally update the variables in the `libs/.docker/.env` file
+
+    ``` bash
+    # libs/.docker/.env
+    GITHUB_CLIENT_ID=<GITHUB - CLIENT_ID>
+    GITHUB_CLIENT_SECRET=<GITHUB - CLIENT_SECRET>
+
+    ```
