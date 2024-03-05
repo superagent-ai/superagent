@@ -41,6 +41,7 @@ export default function LLMDialog({
   title,
   description,
   onOpenChange,
+  onSave,
   workflow,
 }: {
   profile: Profile
@@ -48,6 +49,7 @@ export default function LLMDialog({
   title: string
   description: string
   workflow?: any
+  onSave?: () => void
   onOpenChange: (change: any) => void
 }) {
   const api = new Api(profile.api_key)
@@ -66,6 +68,7 @@ export default function LLMDialog({
     for (const _workflow of workflow?.steps) {
       await api.createAgentLLM(_workflow.agentId, llm.id)
     }
+    if (onSave) onSave()
     onOpenChange(false)
     router.refresh()
   }
