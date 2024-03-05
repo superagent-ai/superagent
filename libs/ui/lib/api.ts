@@ -27,10 +27,6 @@ export class Api {
       },
     })
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
     return await response.json()
   }
 
