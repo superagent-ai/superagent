@@ -2,7 +2,8 @@ import json
 
 import segment.analytics as analytics
 from decouple import config
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
+from fastapi.responses import JSONResponse
 
 from app.models.request import (
     Tool as ToolRequest,
@@ -20,6 +21,8 @@ from app.models.response import (
 # from app.tools.flow import generate_tool_config
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.prisma import prisma
+from app.vectorstores.base import VECTOR_DB_MAPPING
+from prisma.enums import ToolType
 
 SEGMENT_WRITE_KEY = config("SEGMENT_WRITE_KEY", None)
 
@@ -41,6 +44,30 @@ async def create(
     try:
         if SEGMENT_WRITE_KEY:
             analytics.track(api_user.id, "Created Tool")
+        if (
+            body.type == ToolType.SUPERRAG.value
+            and body.metadata
+            and body.metadata.get("vector_database")
+        ):
+            vector_database = body.metadata["vector_database"]
+            database_provider: str = vector_database["type"].lower()
+            provider = await prisma.vectordb.find_first(
+                where={
+                    "provider": VECTOR_DB_MAPPING.get(database_provider),
+                    "apiUserId": api_user.id,
+                }
+            )
+
+            if not provider:
+                return JSONResponse(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    content={
+                        "error": {
+                            "message": f"Vector database {database_provider.capitalize()} not found. Please configure it in the integrations page."
+                        },
+                    },
+                )
+
         body.metadata = json.dumps(body.metadata) if body.metadata else ""
         data = await prisma.tool.create({**body.dict(), "apiUserId": api_user.id})
 
