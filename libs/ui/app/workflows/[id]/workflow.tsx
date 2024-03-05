@@ -4,22 +4,19 @@ import * as React from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { RxActivityLog, RxPieChart, RxPlay } from "react-icons/rx"
-import { useAsync } from "react-use"
 
+import { initialSamlValue } from "@/config/saml"
 import { Api } from "@/lib/api"
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-import LogList from "../../../components/log-list"
 import Chat from "./chat"
 import Header from "./header"
 import LLMDialog from "./llm-dialog"
-import Overview from "./overview"
 
 const Saml = dynamic(() => import("./saml"), {
   ssr: false,
@@ -34,10 +31,16 @@ export default function WorkflowDetail({
   workflow: any
   llms: any
 }) {
-  const api = new Api(profile.api_key)
+  const router = useRouter()
   const [isLLMModalOpen, setIsLLMModalOpen] = React.useState<boolean>(
     llms.length === 0
   )
+
+  const handleLLMSave = React.useCallback(async () => {
+    const api = new Api(profile.api_key)
+    await api.generateWorkflow(workflow.id, initialSamlValue)
+    router.refresh()
+  }, [workflow, profile, router])
 
   return (
     <div className="flex max-h-screen flex-1 flex-col space-y-5 pt-6">
@@ -46,6 +49,7 @@ export default function WorkflowDetail({
         onOpenChange={(change: any) => setIsLLMModalOpen(change)}
         profile={profile}
         workflow={workflow}
+        onSave={handleLLMSave}
         title="Configure a Language Model"
         description="Before you can start creating your first worflow you need to configure a Language Model from one of the options below."
       />
