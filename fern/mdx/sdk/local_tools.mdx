@@ -74,7 +74,7 @@ Note that you usually only need to create the `llm` object once and re-use it f
 <CodeBlocks>
     <CodeBlock title="Python">
         ```python 
-        tool = client.tool.create({
+        tool = client.tool.create(request={
             "name": "Stock API",
             "description": "Useful for answering questions about a specific stock",
             "type": "FUNCTION",
@@ -239,7 +239,7 @@ Note that you usually only need to create the `llm` object once and re-use it f
         })
 
         # Create your custom tool
-        tool = client.tool.create({
+        tool = client.tool.create(request={
             "name": "Stock API",
             "description": "Useful for answering questions about a specific stock",
             "type": "FUNCTION",
