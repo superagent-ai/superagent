@@ -86,9 +86,15 @@ function AddTool({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const { data: tool } = await api.createTool({
+      const { data: tool, error } = await api.createTool({
         ...values,
       })
+      if (error) {
+        toast({
+          description: error?.message,
+        })
+        return
+      }
       await api.createAgentTool(agent.id, tool.id)
       toast({
         description: "Tool created successfully",
