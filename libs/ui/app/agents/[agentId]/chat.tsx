@@ -134,7 +134,7 @@ export default function Chat({
         data: { output, intermediate_steps },
       } = await response.json()
 
-      if (intermediate_steps.length > 0) {
+      if (intermediate_steps?.length > 0) {
         setFunctionCalls(defaultFunctionCalls)
       }
 
