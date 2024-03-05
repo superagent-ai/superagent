@@ -1,0 +1,69 @@
+Superagent also supports using [SuperRag](https://github.com/superagent-ai/super-rag) via SDK. Let's see how to use it.
+
+## Ingesting data to Vector Database
+You can do this by sending a POST request to the `/ingest` endpoint. Here's an [example](https://github.com/superagent-ai/super-rag?tab=readme-ov-file#ingest-documents).
+
+## Plugging SuperRag into Superagent
+To use SuperRag, you need to add it to Superagent as a tool.
+
+
+
+<CodeBlocks>
+    <CodeBlock title="Python"> 
+        ```python
+        tool = client.tool.create(request={
+            "name": "Financial Reports data", 
+            "description": "Useful for answering questions about financial reports", 
+            "type": "SUPERRAG",
+            "metadata": {
+                "vector_database": {
+                  "type": "pinecone", # make sure this is the same as the type of vector database you have used in SuperRag
+                },
+                "index_name": "financial_reports", # make sure this is the same as the index name you have used in SuperRag
+            }
+        })
+
+        agent = client.agent.create(request={
+            "name": "Financial Reports Agent",
+            "description": "An assistant that can answer questions about financial reports",
+            "isActive": True,
+            "avatar": "" # Optional avatar url jpg/png
+            "prompt": "Answer questions based on the financial reports",
+            "llmModel": "GPT_4_0613"
+        })
+
+        # Connect the tool to the agent
+        client.agent.add_tool(agent_id=agent.data.id, tool_id=tool.data.id)
+        ```
+    </CodeBlock>
+    <CodeBlock title="Javascript"> 
+        ```javascript
+        
+        const {data: tool} = await client.tool.create({
+            name: "Financial Reports data", 
+            description: "Useful for answering questions about financial reports",
+            type: "SUPERRAG",
+            metadata: {
+                vector_database: {
+                  type: "pinecone", // make sure this is the same as the type of vector database you have used in SuperRag
+                },
+                index: "financial_reports", // make sure this is the same as the index name you have used in SuperRag
+            } 
+        })
+
+        const {data: agent} = await client.agent.create({
+            name: "Financial Reports Agent",
+            description: "An assistant that can answer questions about financial reports",
+            isActive: true,
+            avatar: "", // Optional avatar url jpg/png
+            prompt: "Answer questions based on the financial reports",
+            llmModel: "GPT_4_0613",
+        })
+
+        await client.agent.addTool(agent.id, {
+            toolId: tool.id
+        })
+        ```
+    </CodeBlock>
+</CodeBlocks>
+

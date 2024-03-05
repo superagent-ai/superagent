@@ -58,8 +58,10 @@ navigation:
             path: ./mdx/deploy/local.mdx
       - section: RAG & Retrieval
         contents:
-          - page: Super-Rag
-            path: ./mdx/rag/super-rag.mdx  
+          - page: Super-Rag with SAML
+            path: ./mdx/rag/super-rag-saml.mdx  
+          - page: Super-Rag with SDK
+            path: ./mdx/rag/super-rag-sdk.mdx  
       - section: Logging
         contents:
           - page: Langfuse
