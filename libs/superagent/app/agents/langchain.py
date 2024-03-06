@@ -95,8 +95,7 @@ class LangchainAgent(AgentBase):
             tool = tool_type(
                 metadata=metadata,
                 args_schema=DatasourceInput,
-                name=conform_function_name(
-                    slugify(agent_datasource.datasource.name)),
+                name=conform_function_name(slugify(agent_datasource.datasource.name)),
                 description=agent_datasource.datasource.description,
                 return_direct=False,
             )
@@ -118,8 +117,7 @@ class LangchainAgent(AgentBase):
                 tool = create_tool(
                     tool_class=tool_info["class"],
                     name=conform_function_name(
-                        slugify(metadata.get(
-                            "functionName", agent_tool.tool.name))
+                        slugify(metadata.get("functionName", agent_tool.tool.name))
                     ),
                     description=agent_tool.tool.description,
                     metadata=metadata,
