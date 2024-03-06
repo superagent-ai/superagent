@@ -16,8 +16,6 @@ from langchain.chains import LLMChain
 from langfuse import Langfuse
 from openai import AsyncOpenAI
 
-from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
-
 from app.agents.base import AgentBase
 from app.models.request import (
     Agent as AgentRequest,
@@ -551,8 +549,7 @@ async def invoke(
             logger.error(f"Error in send_message: {error}")
             if SEGMENT_WRITE_KEY:
                 try:
-                    track_agent_invocation(
-                        {"error": str(error), "status_code": 500})
+                    track_agent_invocation({"error": str(error), "status_code": 500})
                 except Exception as e:
                     logger.error(f"Error tracking agent invocation: {e}")
             yield ("event: error\n" f"data: {error}\n\n")
