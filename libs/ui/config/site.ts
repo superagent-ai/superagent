@@ -435,6 +435,19 @@ export const siteConfig = {
       ],
     },
     {
+      disabled: false,
+      formDescription: "Please enter your Anthropic API key.",
+      provider: "ANTHROPIC",
+      name: "Anthropic",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Anthropic API Key",
+        },
+      ],
+    },
+    {
       disabled: true,
       formDescription: "Please enter your HF API key.",
       provider: "HUGGINGFACE",
