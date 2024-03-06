@@ -27,7 +27,7 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
         return True
 
     def __init__(self) -> None:
-        self.queue = asyncio.Queue()
+        self.queue = asyncio.Queue(maxsize=5)
         self.done = asyncio.Event()
 
     async def on_chat_model_start(
@@ -44,16 +44,16 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
 
     async def on_llm_new_token(self, token: str, **kwargs: Any) -> None:  # noqa
         if token is not None and token != "":
-            self.queue.put_nowait(token)
+            has_put = False
+            while not has_put:
+                try:
+                    await self.queue.put(token)
+                    has_put = True
+                except asyncio.QueueFull:
+                    continue
 
     async def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:  # noqa
-        # TODO:
-        # This should be removed when Langchain has merged
-        # https://github.com/langchain-ai/langchain/pull/9536
-        for gen_list in response.generations:
-            for gen in gen_list:
-                if gen.message.content != "":
-                    self.done.set()
+        self.done.set()
 
     async def on_llm_error(self, *args: Any, **kwargs: Any) -> None:  # noqa
         self.done.set()
@@ -78,8 +78,8 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
 
             token_or_done = cast(Union[str, Literal[True]], done.pop().result())
 
-            if token_or_done is True and self.queue.empty():
-                break
+            if token_or_done is True:
+                continue
 
             yield token_or_done
 

@@ -1,9 +1,6 @@
 import logging
-import litellm
 from typing import Optional
 
-from langchain.schema.messages import AIMessage
-from langchain.schema.output import ChatGeneration, LLMResult
 from litellm import acompletion
 
 from app.agents.base import AgentBase
@@ -123,20 +120,7 @@ class LLMAgent(AgentBase):
                             output += token
                             await streaming.on_llm_new_token(token)
 
-                    await streaming.on_llm_end(
-                        response=LLMResult(
-                            generations=[
-                                [
-                                    ChatGeneration(
-                                        message=AIMessage(
-                                            content=output,
-                                        )
-                                    )
-                                ]
-                            ],
-                        )
-                    )
-
+                    await streaming.on_llm_end()
                 return {
                     **function_calling_res,
                     "input": input,
