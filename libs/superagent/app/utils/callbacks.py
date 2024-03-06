@@ -52,7 +52,7 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
                 except asyncio.QueueFull:
                     continue
 
-    async def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:  # noqa
+    async def on_llm_end(self, *args: Any, **kwargs: Any) -> None:  # noqa
         self.done.set()
 
     async def on_llm_error(self, *args: Any, **kwargs: Any) -> None:  # noqa
