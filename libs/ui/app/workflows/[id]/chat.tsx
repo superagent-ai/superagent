@@ -141,6 +141,7 @@ export default function Chat({
             resetState()
           },
           async onmessage(event) {
+            console.log(event)
             if (event.id) currentEventId = event.id
 
             if (event.event === "function_call") {
