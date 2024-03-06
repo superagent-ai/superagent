@@ -1,8 +1,8 @@
 openapi: 3.0.2
 info:
   title: Superagent
-  description: The Open Source AI Assistant Framework & API
-  version: 0.2.13
+  description: 🥷 Run AI-agents with an API
+  version: 0.2.16
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -195,8 +195,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
-      x-fern-sdk-method-name: invoke
       x-fern-sdk-group-name: agent
+      x-fern-sdk-method-name: invoke
   /api/v1/agents/{agent_id}/llms:
     post:
       tags:
@@ -1771,6 +1771,7 @@ components:
         - HUGGINGFACE
         - PERPLEXITY
         - TOGETHER_AI
+        - ANTHROPIC
       type: string
       description: An enumeration.
     OpenAiAssistantParameters:
