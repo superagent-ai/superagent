@@ -434,7 +434,7 @@ async def invoke(
     agentops_org_key = config("AGENTOPS_ORG_KEY", default=None)
 
     agentops_handler = None
-    if agentops_api_key and agentops_org_key:
+    if agentops_api_key or agentops_org_key:
         agentops_handler = AsyncLangchainCallbackHandler(
             api_key=agentops_api_key,
             org_key=agentops_org_key,
