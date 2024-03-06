@@ -9,8 +9,6 @@ from app.agents.base import AgentBase
 from app.utils.callbacks import CustomAsyncIteratorCallbackHandler
 from app.utils.prisma import prisma
 from prisma.models import Workflow
-from decouple import config
-from agentops.langchain_callback_handler import LangchainCallbackHandler, AsyncCallbackHandler
 
 
 class WorkflowBase:
