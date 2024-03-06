@@ -4,6 +4,7 @@ from typing import Optional
 from litellm import acompletion
 
 from app.agents.base import AgentBase
+from app.utils.callbacks import CustomAsyncIteratorCallbackHandler
 from app.utils.llm import LLM_REVERSE_MAPPING
 from app.utils.prisma import prisma
 from prisma.enums import AgentType, LLMProvider
@@ -66,8 +67,9 @@ class LLMAgent(AgentBase):
 
         class CustomAgentExecutor:
             async def ainvoke(self, input, *_, **kwargs):
-                function_calling_res = {"output": ""}
+                function_calling_res = {}
 
+                print("agent_config.tools", agent_config, input)
                 if len(agent_config.tools) > 0:
                     function_calling = await FunctionCalling(
                         enable_streaming=False,
@@ -111,16 +113,25 @@ class LLMAgent(AgentBase):
 
                 output = ""
                 if enable_streaming:
-                    streaming = kwargs["config"]["callbacks"][0]
-                    await streaming.on_llm_start()
+                    streaming_callback = None
+                    for callback in kwargs["config"]["callbacks"]:
+                        if isinstance(callback, CustomAsyncIteratorCallbackHandler):
+                            streaming_callback = callback
+
+                    if not streaming_callback:
+                        raise Exception("Streaming Callback not found")
+                    await streaming_callback.on_llm_start()
 
                     async for chunk in res:
                         token = chunk.choices[0].delta.content
                         if token:
                             output += token
-                            await streaming.on_llm_new_token(token)
+                            await streaming_callback.on_llm_new_token(token)
 
-                    await streaming.on_llm_end()
+                    streaming_callback.done.set()
+                else:
+                    output = res.choices[0].message.content
+
                 return {
                     **function_calling_res,
                     "input": input,

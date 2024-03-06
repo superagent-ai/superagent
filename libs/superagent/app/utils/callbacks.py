@@ -52,8 +52,14 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
                 except asyncio.QueueFull:
                     continue
 
-    async def on_llm_end(self, *args: Any, **kwargs: Any) -> None:  # noqa
-        self.done.set()
+    async def on_llm_end(self, response, **kwargs: Any) -> None:  # noqa
+        # TODO:
+        # This should be removed when Langchain has merged
+        # https://github.com/langchain-ai/langchain/pull/9536
+        for gen_list in response.generations:
+            for gen in gen_list:
+                if gen.message.content != "":
+                    self.done.set()
 
     async def on_llm_error(self, *args: Any, **kwargs: Any) -> None:  # noqa
         self.done.set()
