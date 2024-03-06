@@ -51,7 +51,7 @@ export default function WorkflowDetail({
         workflow={workflow}
         onSave={handleLLMSave}
         title="Configure a Language Model"
-        description="Before you can start creating your first worflow you need to configure a Language Model from one of the options below."
+        description="Before you can start creating your first workflow you need to configure a Language Model from one of the options below."
       />
 
       <Header workflow={workflow} profile={profile} />
