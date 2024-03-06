@@ -1,4 +1,5 @@
 import logging
+import litellm
 from typing import Optional
 
 from langchain.schema.messages import AIMessage
