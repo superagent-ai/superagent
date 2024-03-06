@@ -60,36 +60,27 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
 
     async def aiter(self) -> AsyncIterator[str]:
         while not self.queue.empty() or not self.done.is_set():
-            # Wait for the next token in the queue,
-            # but stop waiting if the done event is set
-            done, other = await asyncio.wait(
+            done, pending = await asyncio.wait(
                 [
-                    # NOTE: If you add other tasks here, update the code below,
-                    # which assumes each set has exactly one task each
                     asyncio.ensure_future(self.queue.get()),
                     asyncio.ensure_future(self.done.wait()),
                 ],
                 return_when=asyncio.FIRST_COMPLETED,
                 timeout=self.TIMEOUT_SECONDS,
             )
-            # if we the timeout has been reached
-            if not done or not other:
+            if not done:
                 logger.warning(f"{self.TIMEOUT_SECONDS} seconds of timeout reached")
                 self.done.set()
                 break
 
-            # Cancel the other task
-            if other:
-                other.pop().cancel()
+            for future in pending:
+                future.cancel()
 
-            # Extract the value of the first completed task
             token_or_done = cast(Union[str, Literal[True]], done.pop().result())
 
-            # If the extracted value is the boolean True, the done event was set
-            if token_or_done is True:
+            if token_or_done is True and self.queue.empty():
                 break
 
-            # Otherwise, the extracted value is a token, which we yield
             yield token_or_done
 
 
