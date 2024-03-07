@@ -417,6 +417,7 @@ async def invoke(
             public_key=langfuse_public_key,
             secret_key=langfuse_secret_key,
             host=langfuse_host,
+            sdk_integration="Superagent",
         )
         session_id = f"{agent_id}-{body.sessionId}" if body.sessionId else f"{agent_id}"
         trace = langfuse.trace(

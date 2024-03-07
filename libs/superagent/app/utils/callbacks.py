@@ -148,6 +148,7 @@ def get_session_tracker_handler(
             public_key=langfuse_public_key,
             secret_key=langfuse_secret_key,
             host=langfuse_host,
+            sdk_integration="Superagent",
         )
         trace_id = (
             f"{workflow_id}-{req_session_id}" if req_session_id else f"{workflow_id}"
