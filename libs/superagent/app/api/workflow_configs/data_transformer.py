@@ -137,9 +137,12 @@ class DataTransformer:
 
             await self._set_superrag_files(datasource)
             await self._set_database_provider(datasource)
+            encoder = datasource.get("encoder") or DEFAULT_ENCODER_OPTIONS
+            rename_and_remove_keys(encoder, {"type": "provider"})
+            rename_and_remove_keys(encoder, {"name": "model_name"})
 
             datasource["document_processor"] = {
-                "encoder": datasource.get("encoder") or DEFAULT_ENCODER_OPTIONS,
+                "encoder": encoder,
                 "unstructured": {
                     "hi_res_model_name": "detectron2_onnx",
                     "partition_strategy": "auto",
@@ -148,7 +151,7 @@ class DataTransformer:
                 "splitter": {
                     "max_tokens": 400,
                     "min_tokens": 30,
-                    "name": "semantic",
+                    "name": "by_title",
                     "prefix_summary": True,
                     "prefix_title": True,
                     "rolling_window_size": 1,
@@ -177,8 +180,8 @@ class DataTransformer:
             }
         else:
             raise MissingVectorDatabaseProvider(
-                f"Vector database provider not found ({database_provider})."
-                f"Please configure it by going to the integrations page"
+                "Vector database provider not found."
+                "Please configure it by going to the integrations page"
             )
         remove_key_if_present(datasource, "database_provider")
 

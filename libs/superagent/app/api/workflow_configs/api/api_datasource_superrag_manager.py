@@ -13,6 +13,9 @@ from app.api.tools import (
 from app.api.tools import (
     delete as api_delete_tool,
 )
+from app.api.tools import (
+    update as api_update_tool,
+)
 from app.api.workflow_configs.api.base import (
     BaseApiAgentManager,
     BaseApiDatasourceManager,
@@ -22,6 +25,9 @@ from app.models.request import (
 )
 from app.models.request import (
     Tool as ToolRequest,
+)
+from app.models.request import (
+    ToolUpdate as ToolUpdateRequest,
 )
 from prisma.enums import ToolType
 from services.superrag import SuperRagService
@@ -61,7 +67,6 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
 
     async def _add_tool(self, assistant: dict, data: dict):
         new_tool = await self._create_tool(assistant, data)
-
         assistant = await self.agent_manager.get_assistant(assistant)
 
         try:
@@ -75,6 +80,21 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
             logger.info(f"Added tool: {new_tool.name} - {assistant.name}")
         except Exception as err:
             logger.error(f"Error adding tool: {new_tool} - {assistant} - Error: {err}")
+
+    async def _update_tool(self, assistant: dict, data: dict):
+        tool = await self.agent_manager.get_tool(assistant, data)
+
+        try:
+            await api_update_tool(
+                tool_id=tool.id,
+                body=ToolUpdateRequest.parse_obj(data),
+                api_user=self.api_user,
+            )
+            logger.info(f"Updated tool: {tool.name} - {assistant.get('name')}")
+        except Exception as err:
+            logger.error(
+                f"Error updating tool: {tool} - {data} - {assistant} - Error: {err}"
+            )
 
     async def _add_superrag_tool(self, assistant: dict, data: dict):
         new_tool = {
@@ -110,6 +130,13 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
         unique_name = re.sub(r"[^a-zA-Z0-9-]", "", unique_name)
 
         return unique_name
+
+    async def update_datasource(self, assistant: dict, data: dict):
+        """
+        This method only updates the superrag tool, not the datasource in SuperRag.
+        To achive that, first delete the datasource and then add it again.
+        """
+        await self._update_tool(assistant, data)
 
     async def add_datasource(self, assistant: dict, data: dict):
         data["index_name"] = await self._get_unique_index_name(data, assistant)
