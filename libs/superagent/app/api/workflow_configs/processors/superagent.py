@@ -40,8 +40,15 @@ class SuperragDataProcessor(BaseProcessor):
 
             if old_datasource_name and new_datasource_name:
                 is_changed = compare_dicts(old_datasource, new_datasource)
-
-                if is_changed:
+                if (
+                    is_changed.get("description") is not None
+                    and len(is_changed.items()) == 1
+                ):
+                    await datasource_manager.update_datasource(
+                        self.assistant,
+                        new_datasource,
+                    )
+                else:
                     await datasource_manager.delete_datasource(
                         self.assistant,
                         old_datasource,
