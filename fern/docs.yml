@@ -64,7 +64,6 @@ navigation:
             path: ./mdx/rag/super-rag-sdk.mdx  
       - section: Logging
         contents:
-          contents:
           - page: AgentOps
             path: ./mdx/logging/agentops.mdx
           - page: Langfuse
