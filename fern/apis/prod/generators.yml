@@ -2,7 +2,7 @@ groups:
   publish:
     generators:
       - name: fernapi/fern-python-sdk
-        version: 0.8.1
+        version: 0.11.9
         disable-examples: true
         output:
           location: pypi
@@ -13,7 +13,7 @@ groups:
         config:
           client_class_name: Superagent
       - name: fernapi/fern-typescript-node-sdk
-        version: 0.9.5
+        version: 0.12.5
         output:
           location: npm
           package-name: superagentai-js
