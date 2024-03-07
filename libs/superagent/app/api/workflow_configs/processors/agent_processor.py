@@ -81,7 +81,7 @@ class AgentProcessor:
 
             new_superrag_processor = Processor(
                 self.api_user, self.api_manager
-            ).get_superrag_processor(old_assistant)
+            ).get_superrag_processor(new_assistant)
 
         if old_assistant_type and new_assistant_type:
             if old_assistant_type != new_assistant_type:
