@@ -12,8 +12,12 @@ class SuperragEncoderType(str, Enum):
 
 
 class SuperragEncoder(BaseModel):
-    type: SuperragEncoderType
-    name: str
+    type: SuperragEncoderType = Field(
+        description="The provider of encoder to use for the index. e.g. `openai`"
+    )
+    name: str = Field(
+        description="The model name to use for the encoder. e.g. `text-embedding-3-small` for OpenAI's model"
+    )
     dimensions: int
 
 
