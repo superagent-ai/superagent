@@ -67,7 +67,6 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
 
     async def _add_tool(self, assistant: dict, data: dict):
         new_tool = await self._create_tool(assistant, data)
-
         assistant = await self.agent_manager.get_assistant(assistant)
 
         try:
