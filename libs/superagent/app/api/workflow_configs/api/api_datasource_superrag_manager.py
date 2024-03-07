@@ -106,7 +106,7 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
 
     async def _get_unique_index_name(self, datasource: dict, assistant: dict):
         datasource_name = datasource.get("name")
-        unique_name = f"{datasource_name}-{random_id(8)}"
+        unique_name = f"{datasource_name}{random_id(8)}"
         unique_name = re.sub(r"[^a-zA-Z0-9-]", "", unique_name)
 
         return unique_name
