@@ -112,7 +112,7 @@ export default function SAML({
 
   return (
     <div className="relative h-full">
-      <div className="flex space-x-2 border-b px-3 py-2">
+      <div className="flex items-center justify-between border-b px-3 py-2">
         <p className="text-xs text-muted-foreground">
           Last update:{" "}
           {new Date(latestWorkflowConfig?.createdAt).toLocaleString("en-US", {
@@ -124,6 +124,9 @@ export default function SAML({
             second: "2-digit",
           })}
         </p>
+        <Button size="sm" onClick={() => saveConfig()}>
+          {isSavingConfig ? <Spinner /> : <span>Save</span>}
+        </Button>
       </div>
       <div className="h-full w-full" ref={codeEditorRef} />
       <div className="absolute bottom-4 flex w-full flex-col items-center justify-center space-y-4">
