@@ -38,6 +38,8 @@ class SuperRagTool(BaseTool):
         index_name = self.metadata.get("index_name")
         encoder = self.metadata.get("encoder") or DEFAULT_ENCODER_OPTIONS
         vector_database = self.metadata.get("vector_database")
+        interpreter_mode = self.metadata.get("interpreter_mode")
+
         api_user_id = self.metadata.get("user_id")
 
         # with lower case e.g. pinecone, qdrant
@@ -59,6 +61,6 @@ class SuperRagTool(BaseTool):
                 "encoder": encoder,
                 "input": question,
                 "exclude_fields": ["metadata"],
-                "interpreter_mode": False,
+                "interpreter_mode": interpreter_mode,
             }
         )

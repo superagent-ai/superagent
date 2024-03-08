@@ -37,6 +37,7 @@ class SuperragIndex(BaseModel):
     database_provider: Optional[SuperragDatabaseProvider] = Field(
         description="The vector database provider to use for the index"
     )
+    interpreter_mode: Optional[bool] = False
 
     @validator("name")
     def name_too_long(v):

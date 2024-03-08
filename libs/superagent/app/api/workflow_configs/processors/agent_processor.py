@@ -111,8 +111,6 @@ class AgentProcessor:
                         data=changes,
                     )
 
-                print("old_tools", old_tools)
-                print("new_tools", new_tools)
                 await new_tool_processor.process(old_tools, new_tools)
                 await new_data_processor.process(old_data, new_data)
                 await new_superrag_processor.process(old_superrags, new_superrags)
