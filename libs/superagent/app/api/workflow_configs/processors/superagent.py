@@ -39,24 +39,28 @@ class SuperragDataProcessor(BaseProcessor):
             new_datasource_name = new_datasource.get("name")
 
             if old_datasource_name and new_datasource_name:
-                is_changed = compare_dicts(old_datasource, new_datasource)
-                if (
-                    is_changed.get("description") is not None
-                    and len(is_changed.items()) == 1
-                ):
-                    await datasource_manager.update_datasource(
-                        self.assistant,
-                        new_datasource,
-                    )
-                else:
-                    await datasource_manager.delete_datasource(
-                        self.assistant,
-                        old_datasource,
-                    )
-                    await datasource_manager.add_datasource(
-                        self.assistant,
-                        new_datasource,
-                    )
+                changed_fields = compare_dicts(old_datasource, new_datasource)
+                metadata_fields = [
+                    "description",
+                    "interpreter_mode",
+                ]
+
+                # if only metadata fields are changed, update the datasource
+                if len(changed_fields.keys()) > 0:
+                    if all(field in metadata_fields for field in changed_fields.keys()):
+                        await datasource_manager.update_datasource(
+                            self.assistant,
+                            new_datasource,
+                        )
+                    else:
+                        await datasource_manager.delete_datasource(
+                            self.assistant,
+                            old_datasource,
+                        )
+                        await datasource_manager.add_datasource(
+                            self.assistant,
+                            new_datasource,
+                        )
 
             elif old_datasource_name and not new_datasource_name:
                 await datasource_manager.delete_datasource(

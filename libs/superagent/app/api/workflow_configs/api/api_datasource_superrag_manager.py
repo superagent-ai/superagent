@@ -103,6 +103,7 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
             "metadata": {
                 **data.get("metadata", {}),
                 "index_name": data.get("index_name"),
+                "interpreter_mode": data.get("interpreter_mode"),
                 "vector_database": {
                     "type": data.get("vector_database", {}).get("type"),
                 },
