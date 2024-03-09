@@ -270,8 +270,6 @@ async def invoke(
 
                 workflow_result = task.result()
 
-                print("Workflow result: ", workflow_result)
-
                 for index, workflow_step in enumerate(workflow_steps):
                     workflow_step_result = workflow_result.get("steps")[index]
 

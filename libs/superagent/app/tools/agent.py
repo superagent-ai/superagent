@@ -49,7 +49,7 @@ class Agent(BaseTool):
     async def _arun(self, input: str) -> str:
         agent_id = self.metadata["agentId"]
         params = self.metadata["params"]
-        session_id = params.get("sessionId")
+        session_id = params.get("session_id")
 
         agent_config = await prisma.agent.find_unique_or_raise(
             where={"id": agent_id},
