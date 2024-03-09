@@ -12,7 +12,9 @@ class Agent(BaseTool):
     description = "useful for answering questions."
 
     def _run(self, input: str) -> str:
-        agent_id = self.metadata.get("agentId")
+        agent_id = self.metadata["agentId"]
+        params = self.metadata["params"]
+        session_id = params.get("session_id")
 
         agent_config = prisma.agent.find_unique_or_raise(
             where={"id": agent_id},
@@ -29,6 +31,7 @@ class Agent(BaseTool):
             agent_id,
             enable_streaming=False,
             agent_config=agent_config,
+            session_id=session_id,
         )
 
         agent = agent_base.get_agent()
@@ -44,7 +47,9 @@ class Agent(BaseTool):
         return result.get("output")
 
     async def _arun(self, input: str) -> str:
-        agent_id = self.metadata.get("agentId")
+        agent_id = self.metadata["agentId"]
+        params = self.metadata["params"]
+        session_id = params.get("sessionId")
 
         agent_config = await prisma.agent.find_unique_or_raise(
             where={"id": agent_id},
@@ -61,6 +66,7 @@ class Agent(BaseTool):
             agent_id,
             enable_streaming=False,
             agent_config=agent_config,
+            session_id=session_id,
         )
 
         agent = await agent_base.get_agent()

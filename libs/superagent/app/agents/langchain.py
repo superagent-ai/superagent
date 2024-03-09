@@ -1,7 +1,6 @@
 import datetime
 import json
 import re
-from typing import Any, List
 
 from decouple import config
 from langchain.agents import AgentType, initialize_agent
@@ -63,9 +62,9 @@ def recursive_json_loads(data):
 class LangchainAgent(AgentBase):
     async def _get_tools(
         self,
-        agent_datasources: List[AgentDatasource],
-        agent_tools: List[AgentTool],
-    ) -> List:
+        agent_datasources: list[AgentDatasource],
+        agent_tools: list[AgentTool],
+    ) -> list:
         tools = []
         for agent_datasource in agent_datasources:
             tool_type = (
@@ -103,10 +102,15 @@ class LangchainAgent(AgentBase):
         for agent_tool in agent_tools:
             agent_tool_metadata = json.loads(agent_tool.tool.metadata or "{}")
 
-            # user id is added to the metadata for superrag tool
             agent_tool_metadata = {
-                "user_id": self.agent_config.apiUserId,
                 **agent_tool_metadata,
+                "params": {
+                    **(agent_tool_metadata.get("params", {}) or {}),
+                    # user id is added to the metadata for superrag tool
+                    "user_id": self.agent_config.apiUserId,
+                    # session id is added to the metadata for agent as tool
+                    "session_id": self.session_id,
+                },
             }
 
             tool_info = TOOL_TYPE_MAPPING.get(agent_tool.tool.type)
@@ -132,17 +136,12 @@ class LangchainAgent(AgentBase):
                     description=agent_tool.tool.description,
                     metadata=metadata,
                     args_schema=tool_info["schema"],
-                    session_id=(
-                        f"{self.agent_id}-{self.session_id}"
-                        if self.session_id
-                        else f"{self.agent_id}"
-                    ),
                     return_direct=agent_tool.tool.returnDirect,
                 )
             tools.append(tool)
         return tools
 
-    async def _get_llm(self, llm: LLM, model: str) -> Any:
+    async def _get_llm(self, llm: LLM, model: str):
         llm_params = {
             "temperature": 0,
             **(self.llm_params.dict() if self.llm_params else {}),
@@ -193,16 +192,18 @@ class LangchainAgent(AgentBase):
             content = f"{content}" f"\n\n{datetime.datetime.now().strftime('%Y-%m-%d')}"
         return SystemMessage(content=content)
 
-    async def _get_memory(self) -> List:
+    async def _get_memory(
+        self,
+    ) -> None | MotorheadMemory | ConversationBufferWindowMemory:
+        # if memory is already set, in the main agent base class, return it
+        if not self.session_id:
+            raise ValueError("Session ID is required to initialize memory")
+
         memory_type = config("MEMORY", "motorhead")
         if memory_type == "redis":
             memory = ConversationBufferWindowMemory(
                 chat_memory=RedisChatMessageHistory(
-                    session_id=(
-                        f"{self.agent_id}-{self.session_id}"
-                        if self.session_id
-                        else f"{self.agent_id}"
-                    ),
+                    session_id=self.session_id,
                     url=config("REDIS_MEMORY_URL", "redis://localhost:6379/0"),
                     key_prefix="superagent:",
                 ),
@@ -213,11 +214,7 @@ class LangchainAgent(AgentBase):
             )
         else:
             memory = MotorheadMemory(
-                session_id=(
-                    f"{self.agent_id}-{self.session_id}"
-                    if self.session_id
-                    else f"{self.agent_id}"
-                ),
+                session_id=self.session_id,
                 memory_key="chat_history",
                 url=config("MEMORY_API_URL"),
                 return_messages=True,

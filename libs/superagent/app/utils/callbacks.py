@@ -136,7 +136,7 @@ class CostCalcAsyncHandler(AsyncCallbackHandler):
 def get_session_tracker_handler(
     workflow_id,
     agent_id,
-    req_session_id,
+    session_id,
     user_id,
 ):
     langfuse_secret_key = config("LANGFUSE_SECRET_KEY", "")
@@ -150,11 +150,8 @@ def get_session_tracker_handler(
             host=langfuse_host,
             sdk_integration="Superagent",
         )
-        trace_id = (
-            f"{workflow_id}-{req_session_id}" if req_session_id else f"{workflow_id}"
-        )
         trace = langfuse.trace(
-            id=trace_id,
+            id=session_id,
             name="Workflow",
             tags=[agent_id],
             metadata={"agentId": agent_id, "workflowId": workflow_id},
