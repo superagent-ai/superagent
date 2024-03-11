@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: 🥷 Run AI-agents with an API
-  version: 0.2.16
+  version: 0.2.19
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -1863,6 +1863,7 @@ components:
         - FUNCTION
         - HTTP
         - SUPERRAG
+        - RESEARCH
       type: string
       description: An enumeration.
     ToolUpdate:
