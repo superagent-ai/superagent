@@ -35,7 +35,7 @@ class SAMLValidator:
 
             if assistant_name in assistant_names:
                 raise RepeatedNameError(
-                    f"Assistant name '{assistant_name}' is repeated in the SAML,"
+                    f"Assistant name '{assistant_name}' is repeated in the SAML, "
                     f"please use unique names for each assistant."
                 )
             assistant_names.append(assistant_name)
@@ -56,7 +56,7 @@ class SAMLValidator:
 
                 if tool_name in tool_names:
                     raise RepeatedNameError(
-                        f"Tool name '{tool_name}' is repeated in the SAML,"
+                        f"Tool name '{tool_name}' is repeated in the SAML, "
                         f"please use unique names for each tool."
                     )
                 tool_names.append(tool_name)
@@ -77,7 +77,7 @@ class SAMLValidator:
 
                 if superrag_name in superrag_names:
                     raise RepeatedNameError(
-                        f"Superrag name '{superrag_name}' is repeated in the SAML,"
+                        f"Superrag name '{superrag_name}' is repeated in the SAML, "
                         f"please use unique names for each superrag."
                     )
                 superrag_names.append(superrag_name)
