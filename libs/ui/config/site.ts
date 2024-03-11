@@ -373,6 +373,11 @@ export const siteConfig = {
       ],
     },
     {
+      value: "RESEARCH",
+      title: "Research",
+      metadata: [{ key: "apiKey", type: "input", label: "Tavily API key" }],
+    },
+    {
       value: "SUPERRAG",
       title: "SuperRag",
       metadata: [

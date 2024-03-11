@@ -4800,6 +4800,21 @@ files = [
 widechars = ["wcwidth"]
 
 [[package]]
+name = "tavily-python"
+version = "0.3.1"
+description = "Python wrapper for the Tavily API"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "tavily-python-0.3.1.tar.gz", hash = "sha256:0c1bbc89560f145d7aa1355555ed850f909be2745f7556ea47759bef5ccf8b7c"},
+    {file = "tavily_python-0.3.1-py3-none-any.whl", hash = "sha256:34616e6b3a86a3a043b6387d059e3652a7b9a8ac82ade865c047343391dee658"},
+]
+
+[package.dependencies]
+requests = "*"
+tiktoken = "0.5.2"
+
+[[package]]
 name = "tenacity"
 version = "8.2.3"
 description = "Retry code until it succeeds"
@@ -5927,4 +5942,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1, <3.12"
-content-hash = "e82f732de8734cd7b820d427a7e56a793eabf9377b33faee7e8d2b613b946b89"
+content-hash = "400b846f204b1b6d1bc430b96064a962fce4daea83795ee5eed57b44c77347df"

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "superagent"
-version = "0.2.16"
+version = "0.2.19"
 description = "🥷 Run AI-agents with an API"
 authors = ["Ismail Pelaseyed"]
 readme = "../../README.md"
@@ -64,6 +64,7 @@ stripe = "^8.2.0"
 redis = "^5.0.1"
 langsmith = "^0.1.9"
 langfuse = "^2.16.2"
+tavily-python = "^0.3.1"
 
 
 
