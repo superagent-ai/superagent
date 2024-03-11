@@ -373,6 +373,10 @@ export const siteConfig = {
       ],
     },
     {
+      value: "RESEARCH",
+      title: "Research",
+    },
+    {
       value: "SUPERRAG",
       title: "SuperRag",
       metadata: [

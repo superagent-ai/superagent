@@ -64,6 +64,7 @@ stripe = "^8.2.0"
 redis = "^5.0.1"
 langsmith = "^0.1.9"
 langfuse = "^2.16.2"
+tavily-python = "^0.3.1"
 
 
 

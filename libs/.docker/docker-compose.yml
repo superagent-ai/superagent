@@ -53,6 +53,7 @@ services:
       - SEGMENT_WRITE_KEY=${SEGMENT_WRITE_KEY}
       - AGENTOPS_API_KEY=${AGENTOPS_API_KEY}
       - AGENTOPS_ORG_KEY=${AGENTOPS_ORG_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
     ports:
       - 8080:8080
     restart: unless-stopped
