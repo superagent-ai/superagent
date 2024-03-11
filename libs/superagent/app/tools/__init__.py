@@ -114,10 +114,7 @@ def create_tool(
     args_schema: Any,
     metadata: Optional[Dict[str, Any]],
     return_direct: Optional[bool],
-    session_id: str = None,
 ) -> Any:
-    if metadata:
-        metadata["sessionId"] = session_id
     return tool_class(
         name=name,
         description=description,

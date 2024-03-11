@@ -412,6 +412,10 @@ async def invoke(
     langfuse_public_key = config("LANGFUSE_PUBLIC_KEY", "")
     langfuse_host = config("LANGFUSE_HOST", "https://cloud.langfuse.com")
     langfuse_handler = None
+
+    session_id = body.sessionId or ""
+    session_id = f"agt_{agent_id}_{session_id}"
+
     if langfuse_public_key and langfuse_secret_key:
         langfuse = Langfuse(
             public_key=langfuse_public_key,
@@ -419,7 +423,6 @@ async def invoke(
             host=langfuse_host,
             sdk_integration="Superagent",
         )
-        session_id = f"{agent_id}-{body.sessionId}" if body.sessionId else f"{agent_id}"
         trace = langfuse.trace(
             id=session_id,
             name="Assistant",
@@ -437,7 +440,7 @@ async def invoke(
         agentops_handler = AsyncLangchainCallbackHandler(
             api_key=agentops_api_key,
             org_key=agentops_org_key,
-            tags=[agent_id, str(body.sessionId)],
+            tags=[agent_id, session_id],
         )
 
     agent_config = await prisma.agent.find_unique_or_raise(
@@ -526,7 +529,7 @@ async def invoke(
                         {
                             "user_id": api_user.id,
                             "agent": agent_config,
-                            "session_id": body.sessionId,
+                            "session_id": session_id,
                             **result,
                             **vars(cost_callback),
                         }
@@ -558,12 +561,12 @@ async def invoke(
             streaming_callback.done.set()
 
     logger.info("Invoking agent...")
-    session_id = body.sessionId
     input = body.input
     enable_streaming = body.enableStreaming
     output_schema = body.outputSchema
     cost_callback = CostCalcAsyncHandler(model=model)
     streaming_callback = CustomAsyncIteratorCallbackHandler()
+
     agent_base = AgentBase(
         agent_id=agent_id,
         session_id=session_id,
@@ -613,7 +616,7 @@ async def invoke(
                 {
                     "user_id": api_user.id,
                     "agent": agent_config,
-                    "session_id": body.sessionId,
+                    "session_id": session_id,
                     **output,
                     **vars(cost_callback),
                 }

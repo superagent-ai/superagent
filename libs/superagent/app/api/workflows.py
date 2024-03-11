@@ -184,6 +184,8 @@ async def invoke(
         where={"id": workflow_id},
         include={"steps": {"include": {"agent": True}, "order_by": {"order": "asc"}}},
     )
+    session_id = body.sessionId or ""
+    session_id = f"wf_{workflow_id}_{session_id}"
 
     workflow_steps = []
     for workflow_step in workflow_data.steps:
@@ -201,7 +203,7 @@ async def invoke(
             "agent_name": workflow_step.agent.name,
         }
         session_tracker_handler = get_session_tracker_handler(
-            workflow_data.id, workflow_step.agent.id, body.sessionId, api_user.id
+            workflow_data.id, workflow_step.agent.id, session_id, api_user.id
         )
 
         if session_tracker_handler:
@@ -216,7 +218,6 @@ async def invoke(
             callbacks.append(v)
         workflow_callbacks.append(callbacks)
 
-    session_id = body.sessionId
     input = body.input
     enable_streaming = body.enableStreaming
 
@@ -268,6 +269,7 @@ async def invoke(
                     raise exception
 
                 workflow_result = task.result()
+
                 for index, workflow_step in enumerate(workflow_steps):
                     workflow_step_result = workflow_result.get("steps")[index]
 
