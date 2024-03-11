@@ -2,17 +2,18 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
+import { IngestTaskStatus } from "@/models/models"
 import * as yaml from "js-yaml"
 import * as monaco from "monaco-editor"
 import { useTheme } from "next-themes"
 import { TbCommand } from "react-icons/tb"
+import { toast } from "sonner"
 
 import { exampleConfigs } from "@/config/saml"
 import { Api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
+import { Toaster } from "@/components/ui/sonner"
 import { Spinner } from "@/components/ui/spinner"
-import { Toaster } from "@/components/ui/toaster"
-import { useToast } from "@/components/ui/use-toast"
 
 import { initCodeEditor } from "./editor"
 
@@ -29,6 +30,8 @@ function removeNullValues(obj: any) {
   return newObj
 }
 
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
+
 export default function SAML({
   workflow,
   profile,
@@ -36,8 +39,6 @@ export default function SAML({
   workflow: any
   profile: any
 }) {
-  const { toast } = useToast()
-
   const router = useRouter()
   const latestWorkflowConfig = workflow.workflowConfigs.sort(
     (a: any, b: any) =>
@@ -77,17 +78,71 @@ export default function SAML({
 
     const data = await res.json()
 
+    const superRagTasks = data?.data?.superrag_tasks as any[]
+
+    if (superRagTasks) {
+      superRagTasks?.forEach(async (task) => {
+        const currentToast = toast(
+          <div className="flex items-center space-x-1 py-1">
+            <Spinner />
+            <span>Ingestion: {task.id} is pending</span>
+          </div>,
+          {
+            closeButton: false,
+            //   duration: Number.POSITIVE_INFINITY,
+          }
+        )
+
+        let retries = 0
+        const MAX_RETRIES = 3
+
+        async function fetchTask() {
+          // TODO: Don't directly talk to the SuperRag microservice.
+          const res = await fetch(
+            `${process.env.SUPERRAG_API_URL}/ingest/tasks/${task.id}?long_polling=true`
+          )
+          retries++
+
+          const data = await res.json()
+
+          // if request times out, retry
+          if (res.status === 408) {
+            if (retries >= MAX_RETRIES) {
+              toast.error(`Couldn't ingest documents`, {
+                id: currentToast,
+                description: `Ingestion: ${task.id} is taking too long to complete, please contact support`,
+              })
+              return
+            }
+
+            await delay(3000)
+            await fetchTask()
+          }
+
+          if (data?.task?.status === IngestTaskStatus.DONE) {
+            toast.success(`Ingestion: ${task.id} is done`, {
+              id: currentToast,
+              duration: 3000,
+            })
+          } else if (data?.task?.status === IngestTaskStatus.FAILED) {
+            toast.error(`Ingestion: ${task.id} failed`, {
+              id: currentToast,
+              description: data?.task?.error?.message,
+            })
+          }
+        }
+
+        await fetchTask()
+      })
+    }
     if (!res.ok) {
       const error = data?.error
-      toast({
-        title: "Something went wrong!",
+      toast.error("Something went wrong.", {
         description: error?.message,
       })
     } else {
       router.refresh()
-      toast({
-        title: "Config saved!",
-      })
+      toast.success("SAML Saved", { duration: 3000 })
     }
     setSavingConfig(false)
   }, [isSavingConfig, workflow.id, router, toast, profile.api_key])
@@ -176,7 +231,7 @@ export default function SAML({
           </div>
         )}
       </div>
-      <Toaster />
+      <Toaster closeButton />
     </div>
   )
 }

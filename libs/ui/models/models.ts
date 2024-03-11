@@ -40,6 +40,12 @@ export enum DatasourceStatus {
   FAILED,
 }
 
+export enum IngestTaskStatus {
+  DONE = "DONE",
+  PENDING = "PENDING",
+  FAILED = "FAILED",
+}
+
 export enum ToolType {
   ALGOLIA,
   BROWSER,
