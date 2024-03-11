@@ -77,7 +77,7 @@ async def add_config(
         processor = AgentProcessor(api_user, api_manager)
 
         try:
-            await processor.process_assistants(old_config, new_config)
+            results = await processor.process_assistants(old_config, new_config)
         except (
             MissingVectorDatabaseProvider,
             UnkownFileType,
@@ -102,7 +102,13 @@ async def add_config(
             }
         )
 
-        return {"success": True, "data": config}
+        return {
+            "success": True,
+            "data": {
+                "config": config,
+                "superrag_tasks": results.get("superrag_tasks", []),
+            },
+        }
     except Exception as e:
         logger.exception(e)
         return JSONResponse(

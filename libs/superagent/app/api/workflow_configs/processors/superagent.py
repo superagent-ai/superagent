@@ -28,6 +28,7 @@ class SuperragDataProcessor(BaseProcessor):
         datasource_manager = ApiDatasourceSuperRagManager(
             self.api_user, self.api_manager.agent_manager
         )
+        superrag_tasks = []
         for old_obj, new_obj in zip_longest(old_data, new_data, fillvalue={}):
             old_node_name = get_first_non_null_key(old_obj)
             new_node_name = get_first_non_null_key(new_obj)
@@ -57,10 +58,11 @@ class SuperragDataProcessor(BaseProcessor):
                             self.assistant,
                             old_datasource,
                         )
-                        await datasource_manager.add_datasource(
+                        add_datasource_res = await datasource_manager.add_datasource(
                             self.assistant,
                             new_datasource,
                         )
+                        superrag_tasks.append(add_datasource_res.get("superrag_task"))
 
             elif old_datasource_name and not new_datasource_name:
                 await datasource_manager.delete_datasource(
@@ -68,10 +70,13 @@ class SuperragDataProcessor(BaseProcessor):
                     old_datasource,
                 )
             elif new_datasource_name and not old_datasource_name:
-                await datasource_manager.add_datasource(
+                add_datasource_res = await datasource_manager.add_datasource(
                     self.assistant,
                     new_datasource,
                 )
+                superrag_tasks.append(add_datasource_res.get("superrag_task"))
+
+        return superrag_tasks
 
 
 class SuperagentDataProcessor(BaseProcessor):

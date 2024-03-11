@@ -18,8 +18,6 @@ class AgentProcessor:
         new_assistant_obj: dict,
         workflow_step_order: int | None = None,
     ):
-        new_agent = None
-
         old_assistant_type: str = get_first_non_null_key(old_assistant_obj)
         new_assistant_type: str = get_first_non_null_key(new_assistant_obj)
 
@@ -83,6 +81,9 @@ class AgentProcessor:
                 self.api_user, self.api_manager
             ).get_superrag_processor(new_assistant)
 
+        result = {
+            "superrag_tasks": [],
+        }
         if old_assistant_type and new_assistant_type:
             if old_assistant_type != new_assistant_type:
                 # order matters here as we need process
@@ -101,7 +102,10 @@ class AgentProcessor:
                 # all tools and data should be re-created
                 await new_tool_processor.process([], new_tools)
                 await new_data_processor.process({}, new_data)
-                await new_superrag_processor.process([], new_superrags)
+                superrag_result = await new_superrag_processor.process(
+                    [], new_superrags
+                )
+                result["superrag_tasks"].extend(superrag_result)
 
             else:
                 changes = compare_dicts(old_assistant, new_assistant)
@@ -113,7 +117,10 @@ class AgentProcessor:
 
                 await new_tool_processor.process(old_tools, new_tools)
                 await new_data_processor.process(old_data, new_data)
-                await new_superrag_processor.process(old_superrags, new_superrags)
+                superrag_result = await new_superrag_processor.process(
+                    old_superrags, new_superrags
+                )
+                result["superrag_tasks"].extend(superrag_result)
 
         elif old_assistant_type and not new_assistant_type:
             await old_tool_processor.process(old_tools, [])
@@ -124,16 +131,17 @@ class AgentProcessor:
                 assistant=old_assistant,
             )
         elif new_assistant_type and not old_assistant_type:
-            new_agent = await self.api_manager.agent_manager.add_assistant(
+            await self.api_manager.agent_manager.add_assistant(
                 new_assistant,
                 workflow_step_order,
             )
 
             await new_tool_processor.process([], new_tools)
             await new_data_processor.process({}, new_data)
-            await new_superrag_processor.process([], new_superrags)
+            superrag_result = await new_superrag_processor.process([], new_superrags)
+            result["superrag_tasks"].extend(superrag_result)
 
-        return new_agent
+        return result
 
     async def process_assistants(self, old_config, new_config):
         validator = SAMLValidator(new_config, self.api_user)
@@ -142,12 +150,21 @@ class AgentProcessor:
         old_assistants = old_config.get("workflows", [])
         new_assistants = new_config.get("workflows", [])
         workflow_step_order = 0
+
+        results = {
+            "superrag_tasks": [],
+        }
         for old_assistant_obj, new_assistant_obj in zip_longest(
             old_assistants, new_assistants, fillvalue={}
         ):
-            await self.process_assistant(
+            res = await self.process_assistant(
                 old_assistant_obj,
                 new_assistant_obj,
                 workflow_step_order,
             )
             workflow_step_order += 1
+
+            if res:
+                results["superrag_tasks"].extend(res.get("superrag_tasks", []))
+
+        return results
