@@ -2,7 +2,7 @@ import datetime
 import json
 import logging
 import re
-from typing import Any, List
+from typing import Any, List, Optional
 
 from decouple import config
 from langchain.agents import AgentType, initialize_agent
@@ -26,6 +26,7 @@ from app.tools import TOOL_TYPE_MAPPING, create_pydantic_model_from_object, crea
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
 from app.utils.helpers import get_first_non_null
 from app.utils.llm import LLM_MAPPING
+from prisma.enums import LLMProvider, MemoryDbProvider
 from prisma.models import LLM, Agent, AgentDatasource, AgentTool, MemoryDb
 
 logger = logging.getLogger(__name__)
@@ -152,7 +153,7 @@ class LangchainAgent(AgentBase):
             **(self.llm_params.dict() if self.llm_params else {}),
         }
 
-        if llm.provider == "OPENAI":
+        if llm.provider == LLMProvider.OPENAI:
             return ChatOpenAI(
                 model=LLM_MAPPING[model],
                 openai_api_key=llm.apiKey,
@@ -161,7 +162,7 @@ class LangchainAgent(AgentBase):
                 **(llm.options if llm.options else {}),
                 **(llm_params),
             )
-        elif llm.provider == "AZURE_OPENAI":
+        elif llm.provider == LLMProvider.AZURE_OPENAI:
             return AzureChatOpenAI(
                 api_key=llm.apiKey,
                 streaming=self.enable_streaming,
@@ -197,15 +198,19 @@ class LangchainAgent(AgentBase):
             content = f"{content}" f"\n\n{datetime.datetime.now().strftime('%Y-%m-%d')}"
         return SystemMessage(content=content)
 
-    async def _get_memory(self, memory_db: MemoryDb) -> List:
+    async def _get_memory(self, memory_db: Optional[MemoryDb]) -> List:
         logger.debug(f"Use memory config: {memory_db}")
         if memory_db is None:
-            memory_provider = config("MEMORY")
+            memory_provider = config("MEMORY", "motorhead")
             options = {}
         else:
             memory_provider = memory_db.provider
             options = memory_db.options
-        if memory_provider == "REDIS" or memory_provider == "redis":
+
+        memory_provider = memory_provider.upper()
+        logger.info(f"Using memory provider: {memory_provider}")
+
+        if memory_provider == MemoryDbProvider.REDIS:
             memory = ConversationBufferWindowMemory(
                 chat_memory=RedisChatMessageHistory(
                     session_id=(
@@ -227,7 +232,17 @@ class LangchainAgent(AgentBase):
                     config("REDIS_MEMORY_WINDOW", 10),
                 ),
             )
-        elif memory_provider == "MOTORHEAD" or memory_provider == "motorhead":
+        elif memory_provider == MemoryDbProvider.MOTORHEAD:
+            url = get_first_non_null(
+                options.get("MEMORY_API_URL"),
+                config("MEMORY_API_URL"),
+            )
+
+            if not url:
+                raise ValueError(
+                    "Memory API URL is required for Motorhead memory provider"
+                )
+
             memory = MotorheadMemory(
                 session_id=(
                     f"{self.agent_id}-{self.session_id}"
@@ -235,10 +250,7 @@ class LangchainAgent(AgentBase):
                     else f"{self.agent_id}"
                 ),
                 memory_key="chat_history",
-                url=get_first_non_null(
-                    options.get("MEMORY_API_URL"),
-                    config("MEMORY_API_URL"),
-                ),
+                url=url,
                 return_messages=True,
                 output_key="output",
             )

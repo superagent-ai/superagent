@@ -21,7 +21,7 @@ class AgentBase:
         callbacks: List[CustomAsyncIteratorCallbackHandler] = [],
         llm_params: Optional[LLMParams] = {},
         agent_config: Agent = None,
-        memory_config: MemoryDb = None,
+        memory_config: Optional[MemoryDb] = None,
     ):
         self.agent_id = agent_id
         self.session_id = session_id
