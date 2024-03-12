@@ -51,6 +51,8 @@ export default function SAML({
 
   const [isSavingConfig, setSavingConfig] = useState(false)
 
+  const isSaveDisabled = isSavingConfig
+
   const { resolvedTheme } = useTheme()
   const codeEditorRef = useRef(null)
 
@@ -68,7 +70,7 @@ export default function SAML({
 
   const saveConfig = useCallback(async () => {
     const api = new Api(profile.api_key)
-    if (isSavingConfig) return
+    if (isSaveDisabled) return
     setSavingConfig(true)
 
     const res = await api.generateWorkflow(
@@ -81,63 +83,66 @@ export default function SAML({
     const superRagTasks = data?.data?.superrag_tasks as any[]
 
     if (superRagTasks) {
-      superRagTasks?.forEach(async (task) => {
-        const currentToast = toast(
-          <div className="flex items-center space-x-1 py-1">
-            <Spinner />
-            <span>Ingestion: {task.id} is pending</span>
-          </div>,
-          {
-            closeButton: false,
-            duration: Number.POSITIVE_INFINITY,
-          }
-        )
+      await Promise.all(
+        superRagTasks?.map(async (task) => {
+          const currentToast = toast(
+            <div className="flex items-center space-x-1 py-1">
+              <Spinner />
+              <span>Ingestion: {task.id} is pending</span>
+            </div>,
+            {
+              closeButton: false,
+              duration: Number.POSITIVE_INFINITY,
+            }
+          )
 
-        let retries = 0
-        const MAX_RETRIES = 3
+          let retries = 0
+          const MAX_RETRIES = 3
 
-        async function fetchTask() {
-          // TODO: Don't directly talk to the SuperRag microservice.
+          async function fetchTask() {
+            // TODO: Don't directly talk to the SuperRag microservice.
 
-          const superRagBaseUrl = `${process.env.NEXT_PUBLIC_SUPERRAG_API_URL}/ingest/tasks/${task.id}?long_polling=true`
+            const superRagBaseUrl = `${process.env.NEXT_PUBLIC_SUPERRAG_API_URL}/ingest/tasks/${task.id}?long_polling=true`
 
-          const res = await fetch(superRagBaseUrl.toString())
-          retries++
+            const res = await fetch(superRagBaseUrl.toString())
+            retries++
 
-          const data = await res.json()
+            const data = await res.json()
 
-          // if request times out, retry
-          if (res.status === 408) {
-            if (retries >= MAX_RETRIES) {
-              toast.error(`Couldn't ingest documents`, {
-                id: currentToast,
-                description: `Ingestion: ${task.id} is taking too long to complete, please contact support`,
-                closeButton: true,
-              })
+            // if request times out, retry
+            if (res.status === 408) {
+              if (retries >= MAX_RETRIES) {
+                toast.error(`Couldn't ingest documents`, {
+                  id: currentToast,
+                  description: `Ingestion: ${task.id} is taking too long to complete, please contact support`,
+                  closeButton: true,
+                })
+                return
+              }
+
+              await delay(3000)
+              await fetchTask()
               return
             }
 
-            await delay(3000)
-            await fetchTask()
+            if (data?.task?.status === IngestTaskStatus.DONE) {
+              toast.success(`Ingestion: ${task.id} is done`, {
+                id: currentToast,
+                duration: 3000,
+                closeButton: true,
+              })
+            } else if (data?.task?.status === IngestTaskStatus.FAILED) {
+              toast.error(`Ingestion: ${task.id} failed`, {
+                id: currentToast,
+                description: data?.task?.error?.message,
+                closeButton: true,
+              })
+            }
           }
 
-          if (data?.task?.status === IngestTaskStatus.DONE) {
-            toast.success(`Ingestion: ${task.id} is done`, {
-              id: currentToast,
-              duration: 3000,
-              closeButton: true,
-            })
-          } else if (data?.task?.status === IngestTaskStatus.FAILED) {
-            toast.error(`Ingestion: ${task.id} failed`, {
-              id: currentToast,
-              description: data?.task?.error?.message,
-              closeButton: true,
-            })
-          }
-        }
-
-        await fetchTask()
-      })
+          return fetchTask()
+        })
+      )
     }
     if (!res.ok) {
       const error = data?.error
@@ -184,7 +189,7 @@ export default function SAML({
             second: "2-digit",
           })}
         </p>
-        <Button size="sm" onClick={() => saveConfig()}>
+        <Button size="sm" disabled={isSaveDisabled} onClick={saveConfig}>
           {isSavingConfig ? <Spinner /> : <span>Save</span>}
         </Button>
       </div>
