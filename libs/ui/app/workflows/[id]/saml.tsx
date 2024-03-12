@@ -89,7 +89,7 @@ export default function SAML({
           </div>,
           {
             closeButton: false,
-            //   duration: Number.POSITIVE_INFINITY,
+            duration: Number.POSITIVE_INFINITY,
           }
         )
 
@@ -98,9 +98,10 @@ export default function SAML({
 
         async function fetchTask() {
           // TODO: Don't directly talk to the SuperRag microservice.
-          const res = await fetch(
-            `${process.env.SUPERRAG_API_URL}/ingest/tasks/${task.id}?long_polling=true`
-          )
+
+          const superRagBaseUrl = `${process.env.NEXT_PUBLIC_SUPERRAG_API_URL}/ingest/tasks/${task.id}?long_polling=true`
+
+          const res = await fetch(superRagBaseUrl.toString())
           retries++
 
           const data = await res.json()
@@ -111,6 +112,7 @@ export default function SAML({
               toast.error(`Couldn't ingest documents`, {
                 id: currentToast,
                 description: `Ingestion: ${task.id} is taking too long to complete, please contact support`,
+                closeButton: true,
               })
               return
             }
@@ -123,11 +125,13 @@ export default function SAML({
             toast.success(`Ingestion: ${task.id} is done`, {
               id: currentToast,
               duration: 3000,
+              closeButton: true,
             })
           } else if (data?.task?.status === IngestTaskStatus.FAILED) {
             toast.error(`Ingestion: ${task.id} failed`, {
               id: currentToast,
               description: data?.task?.error?.message,
+              closeButton: true,
             })
           }
         }
@@ -139,13 +143,14 @@ export default function SAML({
       const error = data?.error
       toast.error("Something went wrong.", {
         description: error?.message,
+        duration: Number.POSITIVE_INFINITY,
       })
     } else {
       router.refresh()
       toast.success("SAML Saved", { duration: 3000 })
     }
     setSavingConfig(false)
-  }, [isSavingConfig, workflow.id, router, toast, profile.api_key])
+  }, [isSavingConfig, workflow.id, router, profile.api_key])
 
   useEffect(() => {
     editorRef?.current?.addCommand(
