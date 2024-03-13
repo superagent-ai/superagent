@@ -100,6 +100,7 @@ class Assistant(BaseModel):
     llm: str
     prompt: str
     intro: Optional[str]
+    params: Optional[LLMParams]
 
 
 # ~~~Agents~~~
@@ -107,7 +108,6 @@ class SuperagentAgent(Assistant):
     tools: Optional[Tools]
     data: Optional[Data] = Field(description="Deprecated! Use `superrag` instead.")
     superrag: Optional[Superrag]
-    params: Optional[LLMParams]
 
 
 class LLMAgent(Assistant):

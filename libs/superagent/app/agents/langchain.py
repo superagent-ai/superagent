@@ -141,28 +141,35 @@ class LangchainAgent(AgentBase):
             tools.append(tool)
         return tools
 
-    async def _get_llm(self, llm: LLM, agent: Agent):
-        llm_params = self.llm_params.dict() if self.llm_params else {}
+    def get_llm_params(self):
+        llm = self.agent_config.llms[0].llm
+        params = self.llm_params.dict() if self.llm_params else {}
+
         options = {
-            **(agent.metadata or {}),
+            **(self.agent_config.metadata or {}),
             **(llm.options or {}),
-            **(llm_params),
+            **(params),
+        }
+        return {
+            "temperature": options.get("temperature"),
+            "max_tokens": options.get("max_tokens"),
         }
 
+    async def _get_llm(self, llm: LLM, agent: Agent):
         if llm.provider == "OPENAI":
             return ChatOpenAI(
                 model=LLM_MAPPING[agent.llmModel],
                 openai_api_key=llm.apiKey,
                 streaming=self.enable_streaming,
                 callbacks=self.callbacks,
-                **options,
+                **self.get_llm_params(),
             )
         elif llm.provider == "AZURE_OPENAI":
             return AzureChatOpenAI(
                 api_key=llm.apiKey,
                 streaming=self.enable_streaming,
                 callbacks=self.callbacks,
-                **options,
+                **self.get_llm_params(),
             )
 
     async def _get_prompt(self, agent: Agent) -> str:
