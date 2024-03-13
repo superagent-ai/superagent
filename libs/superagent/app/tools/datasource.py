@@ -77,6 +77,7 @@ class DatasourceTool(BaseTool):
         vector_store = VectorStoreMain(
             options=self.metadata["options"],
             vector_db_provider=self.metadata["provider"],
+            embeddings_model_provider=self.metadata["embeddings_model_provider"],
         )
         result = vector_store.query_documents(
             prompt=question,
@@ -94,6 +95,7 @@ class DatasourceTool(BaseTool):
         vector_store = VectorStoreMain(
             options=self.metadata["options"],
             vector_db_provider=self.metadata["provider"],
+            embeddings_model_provider=self.metadata["embeddings_model_provider"],
         )
         result = vector_store.query_documents(
             prompt=question,
