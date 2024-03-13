@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field, validator
+from app.models.request import LLMParams
 
 from prisma.enums import LLMProvider
 
@@ -106,6 +107,7 @@ class SuperagentAgent(Assistant):
     tools: Optional[Tools]
     data: Optional[Data] = Field(description="Deprecated! Use `superrag` instead.")
     superrag: Optional[Superrag]
+    params: Optional[LLMParams]
 
 
 class LLMAgent(Assistant):
