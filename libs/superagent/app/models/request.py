@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from openai.types.beta.assistant_create_params import Tool as OpenAiAssistantTool
@@ -71,6 +72,11 @@ class AgentInvoke(BaseModel):
     llm_params: Optional[LLMParams]
 
 
+class EmbeddingsModelProvider(str, Enum):
+    OPENAI = "OPENAI"
+    AZURE_OPENAI = "AZURE_OPENAI"
+
+
 class Datasource(BaseModel):
     name: str
     description: Optional[str]
@@ -79,6 +85,9 @@ class Datasource(BaseModel):
     url: Optional[str]
     metadata: Optional[Dict[Any, Any]]
     vectorDbId: Optional[str]
+    embeddingsModelProvider: Optional[
+        EmbeddingsModelProvider
+    ] = EmbeddingsModelProvider.OPENAI
 
 
 class DatasourceUpdate(BaseModel):

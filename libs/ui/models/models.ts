@@ -1,7 +1,7 @@
 export enum LLMProvider {
-  OPENAI,
-  AZURE_OPENAI,
-  HUGGINGFACE,
+  OPENAI = "OPENAI",
+  AZURE_OPENAI = "AZURE_OPENAI",
+  HUGGINGFACE = "HUGGINGFACE",
 }
 
 export enum LLMModel {

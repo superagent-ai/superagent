@@ -4,6 +4,7 @@ from typing import Any, Literal, Optional
 from decouple import config
 from langchain.docstore.document import Document
 
+from app.models.request import EmbeddingsModelProvider
 from app.utils.helpers import get_first_non_null
 from app.vectorstores.abstract import VectorStoreBase
 from app.vectorstores.astra import AstraVectorStore
@@ -28,7 +29,12 @@ logger = logging.getLogger(__name__)
 
 
 class VectorStoreMain(VectorStoreBase):
-    def __init__(self, options: Optional[dict], vector_db_provider: Optional[str]):
+    def __init__(
+        self,
+        options: Optional[dict],
+        vector_db_provider: Optional[str],
+        embeddings_model_provider: EmbeddingsModelProvider,
+    ):
         """
         Determine the vectorstore
         """
@@ -41,6 +47,7 @@ class VectorStoreMain(VectorStoreBase):
             VECTOR_DB_MAPPING.get(config("VECTORSTORE", None)),
             VectorDbProvider.PINECONE.value,
         )
+        self.embeddings_model_provider = embeddings_model_provider
         self.instance = self.get_database()
 
     def get_database(self, index_name: Optional[str] = None) -> Any:
@@ -84,7 +91,9 @@ class VectorStoreMain(VectorStoreBase):
         if index_name is None:
             index_name = index_names.get(self.vectorstore)
         return vectorstore_classes.get(self.vectorstore)(
-            index_name=index_name, options=self.options
+            index_name=index_name,
+            options=self.options,
+            embeddings_model_provider=self.embeddings_model_provider,
         )
 
     def query(

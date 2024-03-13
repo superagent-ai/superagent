@@ -69,7 +69,6 @@ class LLMAgent(AgentBase):
             async def ainvoke(self, input, *_, **kwargs):
                 function_calling_res = {}
 
-                print("agent_config.tools", agent_config, input)
                 if len(agent_config.tools) > 0:
                     function_calling = await FunctionCalling(
                         enable_streaming=False,

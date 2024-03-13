@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
+import { LLMProvider } from "@/models/models"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
@@ -47,15 +48,19 @@ const formSchema = z.object({
   metadata: z.any(),
 })
 
+interface AddDatasourceProps {
+  profile: any
+  agent: any
+  onSuccess: () => void
+  llmProvider: LLMProvider
+}
+
 function AddDatasource({
   profile,
   agent,
   onSuccess,
-}: {
-  profile: any
-  agent: any
-  onSuccess: () => void
-}) {
+  llmProvider,
+}: AddDatasourceProps) {
   const supabase = createClientComponentClient()
   const router = useRouter()
   const { toast } = useToast()
@@ -90,6 +95,7 @@ function AddDatasource({
       const { data: datasource } = await api.createDatasource({
         ...values,
         vectorDbId: vectorDbs[0]?.id,
+        embeddingsModelProvider: getEmbeddingsModelProvider(llmProvider),
       })
       await api.createAgentDatasource(agent.id, datasource.id)
       form.reset()
@@ -104,6 +110,13 @@ function AddDatasource({
         description: error?.message,
       })
     }
+  }
+
+  function getEmbeddingsModelProvider(llmProvider: LLMProvider): LLMProvider {
+    if (llmProvider === LLMProvider.AZURE_OPENAI)
+      return LLMProvider.AZURE_OPENAI
+
+    return LLMProvider.OPENAI
   }
 
   function mapMimeTypeToFileType(mimeType: string): string {

@@ -86,6 +86,10 @@ class LangchainAgent(AgentBase):
                         if agent_datasource.datasource.vectorDb
                         else None
                     ),
+                    # TODO: This will be removed in v0.3
+                    # This is for the users who wants to
+                    # use Azure both for LLM and embeddings
+                    "embeddings_model_provider": self.agent_config.llms[0].llm.provider,
                     "query_type": "document",
                 }
                 if tool_type == DatasourceTool

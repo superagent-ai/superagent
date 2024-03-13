@@ -6,9 +6,10 @@ import vecs
 import backoff
 from decouple import config
 from langchain.docstore.document import Document
-from langchain.embeddings.openai import OpenAIEmbeddings  # type: ignore
 from app.utils.helpers import get_first_non_null
 from app.vectorstores.abstract import VectorStoreBase
+from app.vectorstores.embeddings import get_embeddings_model_provider
+from app.models.request import EmbeddingsModelProvider
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ class SupabaseVectorStore(VectorStoreBase):
     def __init__(
         self,
         options: dict,
+        embeddings_model_provider: EmbeddingsModelProvider,
         index_name: str = None,
         db_conn_url: str = None,
         url: str = None,
@@ -45,9 +47,7 @@ class SupabaseVectorStore(VectorStoreBase):
         # create vector store client
         self.client = vecs.create_client(variables["SUPABASE_DB_URL"])
 
-        self.embeddings = OpenAIEmbeddings(
-            model="text-embedding-3-small", openai_api_key=config("OPENAI_API_KEY")
-        )
+        self.embeddings = get_embeddings_model_provider(embeddings_model_provider)
 
         # create a collection named 'sentences' with 1536 dimensional vectors (default dimension for text-embedding-3-small)
         self.collection = self.client.get_or_create_collection(

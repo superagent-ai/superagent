@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
+import { LLMProvider } from "@/models/models"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -77,6 +78,7 @@ export default function Settings({
   tools,
   profile,
 }: SettingsProps) {
+  console.log("agent", agent)
   const api = new Api(profile.api_key)
   const router = useRouter()
   const { toast } = useToast()
@@ -95,7 +97,7 @@ export default function Settings({
     },
   })
   const avatar = form.watch("avatar")
-  const llms = form.watch("llms")
+  const currLlmProvider = form.watch("llms") as LLMProvider
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { tools, datasources } = values
 
@@ -140,9 +142,9 @@ export default function Settings({
         (datasourceId) => api.deleteAgentDatasource(agent.id, datasourceId)
       )
 
-      if (llms !== agent.llms?.[0]?.llm.provider) {
+      if (currLlmProvider !== agent.llms?.[0]?.llm.provider) {
         const configuredLLM = configuredLLMs.find(
-          (llm) => llm.provider === llms
+          (llm) => llm.provider === currLlmProvider
         )
 
         if (configuredLLM) {
@@ -278,7 +280,7 @@ export default function Settings({
                         </FormControl>
                         <SelectContent>
                           {siteConfig.llms
-                            .find((llm) => llm.id === llms)
+                            .find((llm) => llm.id === currLlmProvider)
                             ?.options.map((option) => (
                               <SelectItem
                                 key={option.value}
@@ -357,6 +359,7 @@ export default function Settings({
                   <AddDatasource
                     profile={profile}
                     agent={agent}
+                    llmProvider={currLlmProvider}
                     onSuccess={() => {
                       window.location.reload()
                     }}
