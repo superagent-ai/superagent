@@ -104,7 +104,8 @@ class Assistant(BaseModel):
 # ~~~Agents~~~
 class SuperagentAgent(Assistant):
     tools: Optional[Tools]
-    data: Optional[Data] = Field(description="Deprecated! Use `superrag` instead.")
+    data: Optional[Data] = Field(
+        description="Deprecated! Use `superrag` instead.")
     superrag: Optional[Superrag]
 
 
@@ -122,7 +123,7 @@ class BaseAgentToolModel(BaseModel):
 
 
 class SuperagentAgentTool(BaseAgentToolModel, SuperagentAgent):
-    pass
+    return_direct: Optional[bool] = False
 
 
 class OpenAIAgentTool(BaseAgentToolModel, OpenAIAgent):
