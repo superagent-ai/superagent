@@ -43,6 +43,7 @@ from app.models.request import (
 )
 from app.utils.prisma import prisma
 from prisma.models import Agent as AgentModel
+from prisma.enums import ToolType
 
 from .base import BaseApiAgentManager
 
@@ -150,12 +151,12 @@ class ApiAgentToolManager(BaseApiAgentManager):
         new_tool = await self.create_tool(
             assistant=self.parent_agent.dict(),
             data={
+                **data,
                 "name": new_agent.name,
-                "description": data.get("description"),
                 "metadata": {
                     "agentId": new_agent.id,
                 },
-                "type": "AGENT",
+                "type": ToolType.AGENT.value,
             },
         )
 

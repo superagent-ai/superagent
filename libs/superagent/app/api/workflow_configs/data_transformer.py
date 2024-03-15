@@ -117,7 +117,9 @@ class DataTransformer:
             tool_type = get_first_non_null_key(tool_obj)
             tool = tool_obj.get(tool_type)
 
-            rename_and_remove_keys(tool, {"use_for": "description"})
+            rename_and_remove_keys(
+                tool, {"use_for": "description", "return_direct": "returnDirect"}
+            )
 
             if tool_type:
                 tool["type"] = tool_type.upper()
