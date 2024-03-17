@@ -60,12 +60,30 @@ class FunctionCalling(AgentBase):
 
 
 class LLMAgent(AgentBase):
+    def get_llm_params(self):
+        llm = self.agent_config.llms[0].llm
+        params = self.llm_params.dict() if self.llm_params else {}
+
+        options = {
+            **(self.agent_config.metadata or {}),
+            **(llm.options or {}),
+            **(params),
+        }
+        return {
+            "temperature": options.get("temperature"),
+            "max_tokens": options.get("max_tokens"),
+        }
+
     async def get_agent(self):
         enable_streaming = self.enable_streaming
         agent_config = self.agent_config
         session_id = self.session_id
 
         class CustomAgentExecutor:
+            def __init__(self, llm_agent_instance: LLMAgent, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.llm_agent_instance = llm_agent_instance
+
             async def ainvoke(self, input, *_, **kwargs):
                 function_calling_res = {}
 
@@ -108,6 +126,7 @@ class LLMAgent(AgentBase):
                         },
                     ],
                     stream=enable_streaming,
+                    **self.llm_agent_instance.get_llm_params(),
                 )
 
                 output = ""
@@ -137,6 +156,8 @@ class LLMAgent(AgentBase):
                     "output": output,
                 }
 
-        agent_executor = CustomAgentExecutor()
+        agent_executor = CustomAgentExecutor(
+            llm_agent_instance=self,
+        )
 
         return agent_executor
