@@ -6,6 +6,7 @@ from typing import Any, AsyncIterator, List, Literal, Tuple, Union, cast
 
 from decouple import config
 from langchain.callbacks.base import AsyncCallbackHandler
+from langchain.schema.agent import AgentFinish
 from langchain.schema.output import LLMResult
 from langfuse import Langfuse
 from litellm import cost_per_token, token_counter
@@ -21,6 +22,7 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
     done: asyncio.Event
 
     TIMEOUT_SECONDS = 30
+    is_stream_started = False
 
     @property
     def always_verbose(self) -> bool:
@@ -30,15 +32,19 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
         self.queue = asyncio.Queue(maxsize=5)
         self.done = asyncio.Event()
 
-    async def on_chat_model_start(
-        self,
-        *args: Any,  # noqa
-        **kwargs: Any,  # noqa
-    ) -> None:
-        """Run when LLM starts running."""
-        pass
+    async def on_agent_finish(self, finish: AgentFinish, **_: Any) -> Any:
+        """Run on agent end."""
+        # This is for the tools whose return_direct property is set to True
+        if not self.is_stream_started:
+            output = finish.return_values["output"]
+            for token in output.split("\n"):
+                await self.on_llm_new_token(token + "\n")
 
-    async def on_llm_start(self) -> None:
+            while not self.queue.empty():
+                await asyncio.sleep(0.1)
+            self.done.set()
+
+    async def on_llm_start(self, *_: Any, **__: Any) -> None:
         # If two calls are made in a row, this resets the state
         self.done.clear()
 
@@ -86,7 +92,7 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
 
             if token_or_done is True:
                 continue
-
+            self.is_stream_started = True
             yield token_or_done
 
 

@@ -10,6 +10,7 @@ API_BASE_URL = config("SUPERAGENT_API_URL")
 class Agent(BaseTool):
     name = "Agent as a Tool"
     description = "useful for answering questions."
+    return_direct = False
 
     def _run(self, input: str) -> str:
         agent_id = self.metadata["agentId"]
@@ -79,4 +80,5 @@ class Agent(BaseTool):
         result = await agent.ainvoke(
             input=invoke_input,
         )
+        print("Nested agent output: ")
         return result.get("output")
