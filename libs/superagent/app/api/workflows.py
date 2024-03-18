@@ -320,8 +320,6 @@ async def invoke(
         input,
     )
 
-    print("workflow output: ", output)
-
     if SEGMENT_WRITE_KEY:
         track_invocation(output)
 
