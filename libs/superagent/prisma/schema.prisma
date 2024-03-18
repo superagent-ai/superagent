@@ -59,6 +59,7 @@ enum ToolType {
   HTTP
   SUPERRAG
   RESEARCH
+  GITHUB
 }
 
 enum DatasourceType {

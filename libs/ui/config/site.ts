@@ -378,6 +378,14 @@ export const siteConfig = {
       metadata: [{ key: "apiKey", type: "input", label: "Tavily API key" }],
     },
     {
+      value: "GITHUB",
+      title: "Github",
+      metadata: [
+        { key: "apiKey", type: "input", label: "Github API key" },
+        { key: "repository", type: "input", label: "Github Repository" },
+      ],
+    },
+    {
       value: "SUPERRAG",
       title: "SuperRag",
       metadata: [
