@@ -155,7 +155,7 @@ class LangchainAgent(AgentBase):
             **(params),
         }
         return {
-            "temperature": options.get("temperature", 0.5),
+            "temperature": options.get("temperature", 0.1),
             "max_tokens": options.get("max_tokens"),
         }
 
