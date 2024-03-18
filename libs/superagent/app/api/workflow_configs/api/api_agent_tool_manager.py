@@ -153,7 +153,7 @@ class ApiAgentToolManager(BaseApiAgentManager):
             data={
                 **data,
                 "metadata": {
-                    **(data.get("metadata")),
+                    **(data.get("metadata") or {}),
                     "agentId": new_agent.id,
                 },
                 "type": ToolType.AGENT.value,
@@ -237,7 +237,7 @@ class ApiAgentToolManager(BaseApiAgentManager):
                     {
                         **data,
                         "metadata": {
-                            **(data.get("metadata")),
+                            **(data.get("metadata") or {}),
                             "agentId": tool_metadata.get("agentId"),
                         },
                     }

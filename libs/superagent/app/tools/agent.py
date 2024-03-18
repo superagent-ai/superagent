@@ -69,7 +69,6 @@ class Agent(BaseTool):
             agent_config=agent_config,
             session_id=session_id,
         )
-
         agent = await agent_base.get_agent()
 
         invoke_input = agent_base.get_input(
@@ -80,5 +79,4 @@ class Agent(BaseTool):
         result = await agent.ainvoke(
             input=invoke_input,
         )
-        print("Nested agent output: ")
         return result.get("output")
