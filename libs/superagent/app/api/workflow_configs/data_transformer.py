@@ -112,6 +112,11 @@ class DataTransformer:
         else:
             self.assistant["llmModel"] = LLM_REVERSE_MAPPING.get(llm_model, llm_model)
 
+        self.assistant["metadata"] = {
+            **(self.assistant.get("params") or {}),
+            **(self.assistant.get("metadata") or {}),
+        }
+
     def transform_tools(self):
         for tool_obj in self.tools:
             tool_type = get_first_non_null_key(tool_obj)
