@@ -186,6 +186,8 @@ async def invoke(
     )
     session_id = body.sessionId or ""
     session_id = f"wf_{workflow_id}_{session_id}"
+    input = body.input
+    enable_streaming = body.enableStreaming
 
     workflow_steps = []
     for workflow_step in workflow_data.steps:
@@ -197,7 +199,6 @@ async def invoke(
 
         item = {
             "callbacks": {
-                "streaming": CustomAsyncIteratorCallbackHandler(),
                 "cost_calc": CostCalcAsyncHandler(model=llm_model),
             },
             "agent_name": workflow_step.agent.name,
@@ -209,6 +210,9 @@ async def invoke(
         if session_tracker_handler:
             item["callbacks"]["session_tracker"] = session_tracker_handler
 
+        if enable_streaming:
+            item["callbacks"]["streaming"] = CustomAsyncIteratorCallbackHandler()
+
         workflow_steps.append(item)
     workflow_callbacks = []
 
@@ -217,9 +221,6 @@ async def invoke(
         for _, v in s["callbacks"].items():
             callbacks.append(v)
         workflow_callbacks.append(callbacks)
-
-    input = body.input
-    enable_streaming = body.enableStreaming
 
     agentops_api_key = config("AGENTOPS_API_KEY", default=None)
     agentops_org_key = config("AGENTOPS_ORG_KEY", default=None)
@@ -318,6 +319,8 @@ async def invoke(
     output = await workflow.arun(
         input,
     )
+
+    print("workflow output: ", output)
 
     if SEGMENT_WRITE_KEY:
         track_invocation(output)
