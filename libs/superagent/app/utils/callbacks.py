@@ -21,7 +21,7 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
 
     done: asyncio.Event
 
-    TIMEOUT_SECONDS = 30
+    TIMEOUT_SECONDS = 60
     is_stream_started = False
 
     @property
@@ -41,7 +41,7 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
                 await self.on_llm_new_token(token + "\n")
 
             while not self.queue.empty():
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.001)
             self.done.set()
 
     async def on_llm_start(self, *_: Any, **__: Any) -> None:
@@ -81,14 +81,16 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
                 timeout=self.TIMEOUT_SECONDS,
             )
             if not done:
-                logger.warning(f"{self.TIMEOUT_SECONDS} seconds of timeout reached")
+                logger.warning(
+                    f"{self.TIMEOUT_SECONDS} seconds of timeout reached")
                 self.done.set()
                 break
 
             for future in pending:
                 future.cancel()
 
-            token_or_done = cast(Union[str, Literal[True]], done.pop().result())
+            token_or_done = cast(
+                Union[str, Literal[True]], done.pop().result())
 
             if token_or_done is True:
                 continue
