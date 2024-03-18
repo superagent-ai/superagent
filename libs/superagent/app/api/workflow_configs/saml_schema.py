@@ -66,6 +66,11 @@ class Tool(BaseModel):
     name: str
     use_for: str
     metadata: Optional[dict[str, Any]]
+    return_direct: Optional[bool] = Field(
+        default=False,
+        description="""Whether to return the tool's output directly. 
+    If this is set to true, the output of the tool will not be returned to the LLM""",
+    )
 
 
 class ToolModel(BaseModel):
@@ -104,8 +109,7 @@ class Assistant(BaseModel):
 # ~~~Agents~~~
 class SuperagentAgent(Assistant):
     tools: Optional[Tools]
-    data: Optional[Data] = Field(
-        description="Deprecated! Use `superrag` instead.")
+    data: Optional[Data] = Field(description="Deprecated! Use `superrag` instead.")
     superrag: Optional[Superrag]
 
 
@@ -118,19 +122,15 @@ class OpenAIAgent(Assistant):
     pass
 
 
-class BaseAgentToolModel(BaseModel):
-    use_for: str
-
-
-class SuperagentAgentTool(BaseAgentToolModel, SuperagentAgent):
-    return_direct: Optional[bool] = False
-
-
-class OpenAIAgentTool(BaseAgentToolModel, OpenAIAgent):
+class SuperagentAgentTool(Tool, SuperagentAgent):
     pass
 
 
-class LLMAgentTool(BaseAgentToolModel, LLMAgent):
+class OpenAIAgentTool(Tool, OpenAIAgent):
+    pass
+
+
+class LLMAgentTool(Tool, LLMAgent):
     pass
 
 

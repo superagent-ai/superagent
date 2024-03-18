@@ -152,8 +152,8 @@ class ApiAgentToolManager(BaseApiAgentManager):
             assistant=self.parent_agent.dict(),
             data={
                 **data,
-                "name": new_agent.name,
                 "metadata": {
+                    **(data.get("metadata")),
                     "agentId": new_agent.id,
                 },
                 "type": ToolType.AGENT.value,
@@ -228,13 +228,19 @@ class ApiAgentToolManager(BaseApiAgentManager):
             logger.error(f"Error updating assistant: {assistant} - Error: {err}")
 
         tool = await self.get_agent_tool(assistant)
+        tool_metadata = json.loads(tool.metadata)
 
         try:
             await api_update_tool(
                 tool_id=tool.id,
-                body=ToolUpdateRequest(
-                    name=data.get("name"),
-                    description=data.get("description"),
+                body=ToolUpdateRequest.parse_obj(
+                    {
+                        **data,
+                        "metadata": {
+                            **(data.get("metadata")),
+                            "agentId": tool_metadata.get("agentId"),
+                        },
+                    }
                 ),
                 api_user=self.api_user,
             )
