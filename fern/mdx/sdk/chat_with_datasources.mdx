@@ -1,10 +1,10 @@
-With Superagent you can easilly create an AI Assistant that has access to your private data thorugh a conecpt we call `Datasources`. 
+With Superagent you can easily create an AI Assistant that has access to your private data through a concept we call `Datasources`. 
 Superagent supports different types of datasources listed [here](https://docs.superagent.sh/overview/overview/concepts#datasources). Attaching a datasource to an Assistant enables that Assistant to read and analyze that data.
 
 ## Step-by-step guide
 
 <Callout intent="warn">
-Note that you usually only need to create the `llm` object once and re-use it for subsequent agents you create.
+Note that you usually only need to create the `llm` object once and re-use it for subsequent agents you create.
 </Callout>
 <br/>
 
@@ -70,13 +70,13 @@ Note that you usually only need to create the `llm` object once and re-use it f
     </CodeBlock>
 </CodeBlocks>
 
-2. Now let's create a datasource by uploading Teslas Q3 2023 Earnings report to Superagent. Note that the `description` key tells the Assistant when this datasource should be used. Be vary of what you put in as your description as it might effect the Assistants behaviour. 
+2. Now let's create a datasource by uploading Tesla's Q3 2023 Earnings report to Superagent. Note that the `description` key tells the Assistant when this datasource should be used. Be vary of what you put in as your description as it might effect the Assistants behaviour. 
 <CodeBlocks>
     <CodeBlock title="Python">
         ```python 
         datasource = client.datasource.create(request={
             "name": "Tesla Q3 2023",
-            "description": "Useful for answering questions about Teslas Q3 2023 earnings report",
+            "description": "Useful for answering questions about Tesla's Q3 2023 earnings report",
             "type": "PDF",
             "url": "https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q3-2023-Update-3.pdf"
         })
@@ -92,7 +92,7 @@ Note that you usually only need to create the `llm` object once and re-use it f
         ```javascript
         const {data: datasource} = await client.datasource.create({
             name: "Tesla Q3 2023",
-            description: "Useful for answering questions about Teslas Q3 2023 earnings report",
+            description: "Useful for answering questions about Tesla's Q3 2023 earnings report",
             type: "PDF",
             url: "https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q3-2023-Update-3.pdf" 
         })
@@ -112,7 +112,7 @@ Note that you usually only need to create the `llm` object once and re-use it f
         ```python 
         prediction = client.agent.invoke(
             agent_id=agent.data.id,
-            input="What was Teslase revenue?",
+            input="What was Tesla's revenue?",
             enable_streaming=False,
             session_id="my_session_id"
         )
@@ -123,7 +123,7 @@ Note that you usually only need to create the `llm` object once and re-use it f
     <CodeBlock title="Javascript">
         ```javascript
         const {data: prediction} = await client.agent.invoke(agent.id, {
-            input: "What was Teslase revenue?",
+            input: "What was Tesla's revenue?",
             enableStreaming: false,
             sessionId: "my_session_id"
         })
@@ -164,7 +164,7 @@ That's it! You can attach one or many datasources to your Assistants by followin
 
         datasource = client.datasource.create(request={
             "name": "Tesla Q3 2023",
-            "description": "Useful for answering questions about Teslas Q3 2023 earnings report",
+            "description": "Useful for answering questions about Tesla's Q3 2023 earnings report",
             "type": "PDF",
             "url": "https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q3-2023-Update-3.pdf"
         })
@@ -179,14 +179,14 @@ That's it! You can attach one or many datasources to your Assistants by followin
         # Invoke the Assistant
         prediction = client.agent.invoke(
             agent_id=agent.data.id,
-            input="What was Teslase revenue?",
+            input="What was Tesla's revenue?",
             enable_streaming=False,
             session_id="my_session_id"
         )
 
         print(prediction.data.get("output"))
 
-        # Teslas revenue was 24 Billing USD according to the earnings report.
+        # Tesla's revenue was 24 Billing USD according to the earnings report.
 
         ```
     </CodeBlock>
@@ -218,7 +218,7 @@ That's it! You can attach one or many datasources to your Assistants by followin
 
         const {data: datasource} = await client.datasource.create({
             name: "Tesla Q3 2023",
-            description: "Useful for answering questions about Teslas Q3 2023 earnings report",
+            description: "Useful for answering questions about Tesla's Q3 2023 earnings report",
             type: "PDF",
             url: "https://digitalassets.tesla.com/tesla-contents/image/upload/IR/TSLA-Q3-2023-Update-3.pdf" 
         })
@@ -233,14 +233,14 @@ That's it! You can attach one or many datasources to your Assistants by followin
         })
 
         const {data: prediction} = await client.agent.invoke(agent.id, {
-            input: "What was Teslase revenue?",
+            input: "What was Tesla's revenue?",
             enableStreaming: false,
             sessionId: "my_session_id"
         })
 
         console.log(prediction.output)
 
-        // Teslas revenue was 24 Billing USD according to the earnings report.
+        // Tesla's revenue was 24 Billing USD according to the earnings report.
         ```
     </CodeBlock>
 </CodeBlocks>
