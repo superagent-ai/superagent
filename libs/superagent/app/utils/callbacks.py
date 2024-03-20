@@ -41,7 +41,7 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
                 await self.on_llm_new_token(token + "\n")
 
             while not self.queue.empty():
-                await asyncio.sleep(0.001)
+                await asyncio.sleep(0.1)
             self.done.set()
 
     async def on_llm_start(self, *_: Any, **__: Any) -> None:
