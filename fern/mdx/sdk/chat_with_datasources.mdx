@@ -26,15 +26,15 @@ Note that you usually only need to create the `llm` object once and re-use it fo
             "apiKey": os.environ["OPENAI_API_KEY"]
         })
 
-        agent = client.agent.create(request={
-            "name": "Earnings Assistant",
-            "description": "An Assistant that's an expert at analyzing earnings reports",
-            "avatar": "",
-            "isActive": True,
-            "llmModel": "GPT_3_5_TURBO_16K_0613",
-            "initialMessage": "Hi there, how can I help you?",
-            "prompt": "You are an expert at analyzing earnings reports."
-        })
+        agent = client.agent.create(
+            name="Earnings Assistant",
+            description="An Assistant that's an expert at analyzing earnings reports",
+            avatar="",
+            is_active=True,
+            initial_message="Hi there! How can I help you?",
+            llm_model="GPT_3_5_TURBO_16K_0613",
+            prompt="You are an expert at analyzing earnings reports.",
+        )
 
         client.agent.add_llm(agent_id=agent.data.id, llm_id=llm.data.id)
         ```
@@ -70,7 +70,7 @@ Note that you usually only need to create the `llm` object once and re-use it fo
     </CodeBlock>
 </CodeBlocks>
 
-2. Now let's create a datasource by uploading Tesla's Q3 2023 Earnings report to Superagent. Note that the `description` key tells the Assistant when this datasource should be used. Be vary of what you put in as your description as it might effect the Assistants behaviour. 
+2. Now let's create a datasource by uploading Tesla's Q3 2023 Earnings report to Superagent. Note that the `description` key tells the Assistant when this datasource should be used. Be vary of what you put in as your description as it might effect the Assistant's behaviour. 
 <CodeBlocks>
     <CodeBlock title="Python">
         ```python 

@@ -8,14 +8,14 @@ Humans sometimes need to talk to an other human instead of an AI, yeah I know so
 <CodeBlocks>
     <CodeBlock title="Python">
         ```python 
-        tool = client.tool.create(request={
-            "name": "Human hand-off", 
-            "description": "Useful when the user wants to speak to a human operator",
-            "type": "HAND_OFF"
-        })
+        tool = client.tool.create(
+            name="Human hand-off",
+            description="Useful when the user wants to speak to a human operator",
+            type="HAND_OFF"
+        )
 
         # Add the tool to your agent
-        client.agent.add_tool(agent_id=agent_id, tool_id=tool.data.id)
+        client.agent.add_tool(agent_id=agent.data.id, tool_id=tool.data.id)
         ```
     </CodeBlock>
     <CodeBlock title="Javascript">
@@ -37,25 +37,25 @@ Humans sometimes need to talk to an other human instead of an AI, yeah I know so
     <CodeBlock title="Python">
         ```python 
         # Write a helper function that checks for human hand-off
-        def check_for_human_handoff(data):
+        def check_for_human_handoff(data: list) -> bool:
             for item, _ in data:
-                if item['tool'] == 'human-handoff':
+                if item['tool'] == 'human-hand-off':
                     return True
             return False
 
         prediction = client.agent.invoke(
-            agent_id=agent_id,
+            agent_id=agent.data.id,
             enable_streaming=False,
             input="I want to speak to a human",
             session_id="my_session_id"
         )
 
         output = prediction.data.get("output")
-        steps = preduction.data.get("intermediate_steps")
+        steps = prediction.data.get("intermediate_steps")
 
         if check_for_human_handoff(steps):
             # Run any local code here
-            print("HUMAN HANDOFF DETECTED")    
+            print("HUMAN HANDOFF DETECTED")
         ```
     </CodeBlock>
     <CodeBlock title="Javascript">
@@ -95,35 +95,35 @@ That's it, you can now run arbitrary code whenever the human hand-off is trigger
 <CodeBlocks>
     <CodeBlock title="Python">
         ```python 
-        tool = client.tool.create(request={
-            "name": "Human hand-off", 
-            "description": "Useful when the user wants to speak to a human operator",
-            "type": "HAND_OFF"
-        })
+        tool = client.tool.create(
+            name="Human hand-off",
+            description="Useful when the user wants to speak to a human operator",
+            type="HAND_OFF"
+        )
 
         # Add the tool to your agent
-        client.agent.add_tool(agent_id=agent_id, tool_id=tool.data.id)
+        client.agent.add_tool(agent_id=agent.data.id, tool_id=tool.data.id)
 
         # Write a helper function that checks for human hand-off
         def check_for_human_handoff(data: list) -> bool:
             for item, _ in data:
-                if item['tool'] == 'human-handoff':
+                if item['tool'] == 'human-hand-off':
                     return True
             return False
 
         prediction = client.agent.invoke(
-            agent_id=agent_id,
+            agent_id=agent.data.id,
             enable_streaming=False,
             input="I want to speak to a human",
             session_id="my_session_id"
         )
 
         output = prediction.data.get("output")
-        steps = preduction.data.get("intermediate_steps")
+        steps = prediction.data.get("intermediate_steps")
 
         if check_for_human_handoff(steps):
             # Run any local code here
-            print("HUMAN HANDOFF DETECTED")    
+            print("HUMAN HANDOFF DETECTED")
 
         ```
     </CodeBlock>
