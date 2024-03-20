@@ -14,26 +14,25 @@ Workflows allow you to connect multiple assistants in a sequential chain passing
             token=os.environ["SUPERAGENT_API_KEY"]
         )
 
-        agent = client.agent.create(request={
-            "name": "Blog Assistant",
-            "description": "An Assistant that can create blog post contents",
-            "avatar": "https://example.com/logo.png", # Replace with a real image
-            "isActive": True,
-            "llmModel": "GPT_3_5_TURBO_16K_0613",
-            "initialMessage": "Hi there, how can I help you?",
-            "prompt": "Create blog post contents."
-        })
+        agent1 = client.agent.create(
+            name="Blog Assistant",
+            description="An Assistant that can create blog post contents",
+            avatar="https://example.com/logo.png",  # Replace with a real image
+            is_active=True,
+            llm_model="GPT_3_5_TURBO_16K_0613",
+            initial_message="Hi there, how can I help you?",
+            prompt="Create blog post contents."
+        )
 
-        agent2 = client.agent.create(request={
-            "name": "Image Assistant",
-            "description": "An Assistant that can generate image",
-            "avatar": "https://example.com/logo2.png", # Replace with a real image
-            "isActive": True,
-            "llmModel": "GPT_3_5_TURBO_16K_0613",
-            "initialMessage": "Hi there, how can I help you?",
-            "prompt": "Use the SDXL API to generate an image."
-        })
-
+        agent2 = client.agent.create(
+            name="Title Assistant",
+            description="An Assistant that can create a compelling blog post title",
+            avatar="https://example.com/logo2.png",  # Replace with a real image
+            is_active=True,
+            llm_model="GPT_3_5_TURBO_16K_0613",
+            initial_message="Hi there, how can I help you?",
+            prompt="Given a blog post, create a compelling title."
+        )
         ```
     </CodeBlock>
     <CodeBlock title="Javascript">
@@ -155,27 +154,27 @@ Workflows allow you to connect multiple assistants in a sequential chain passing
             token=os.environ["SUPERAGENT_API_KEY"]
         )
 
-        agent = client.agent.create(request={
-            "name": "Blog Assistant",
-            "description": "An Assistant that can create blog post contents",
-            "avatar": "https://example.com/logo.png", # Replace with a real image
-            "isActive": True,
-            "llmModel": "GPT_3_5_TURBO_16K_0613",
-            "initialMessage": "Hi there, how can I help you?",
-            "prompt": "Create blog post contents."
-        })
+        agent1 = client.agent.create(
+            name="Blog Assistant",
+            description="An Assistant that can create blog post contents",
+            avatar="https://example.com/logo.png",  # Replace with a real image
+            is_active=True,
+            llm_model="GPT_3_5_TURBO_16K_0613",
+            initial_message="Hi there, how can I help you?",
+            prompt="Create blog post contents."
+        )
 
-        agent2 = client.agent.create(request={
-            "name": "Image Assistant",
-            "description": "An Assistant that can generate image",
-            "avatar": "https://example.com/logo2.png", # Replace with a real image
-            "isActive": True,
-            "llmModel": "GPT_3_5_TURBO_16K_0613",
-            "initialMessage": "Hi there, how can I help you?",
-            "prompt": "Use the SDXL API to generate an image."
-        })
+        agent2 = client.agent.create(
+            name="Title Assistant",
+            description="An Assistant that can create a compelling blog post title",
+            avatar="https://example.com/logo2.png",  # Replace with a real image
+            is_active=True,
+            llm_model="GPT_3_5_TURBO_16K_0613",
+            initial_message="Hi there, how can I help you?",
+            prompt="Given a blog post, create a compelling title."
+        )
 
-         workflow = client.workflow.create(request={
+        workflow = client.workflow.create(request={
             "name": "Blog Post Generator Workflow",
             "description": "Useful for generating blog post",
         })
@@ -188,9 +187,9 @@ Workflows allow you to connect multiple assistants in a sequential chain passing
             "agentId": agent2.data.id,
             "order": 1
         })
-        response = client.workflow.invoke(workflow_id=workflow.data.id, input="create a blog post about AI", enable_streaming=False)
+        response = client.workflow.invoke(workflow_id=workflow.data.id,
+                                        input="create a blog post about AI", enable_streaming=False)
         print(response)
-
         ```
     </CodeBlock>
     <CodeBlock title="Javascript">
