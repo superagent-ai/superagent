@@ -54,7 +54,7 @@ navigation:
             path: ./mdx/deploy/render.mdx
           - page: Replit
             path: ./mdx/deploy/replit.mdx
-          - page: Runnning locally
+          - page: Running locally
             path: ./mdx/deploy/local.mdx
       - section: RAG & Retrieval
         contents:
