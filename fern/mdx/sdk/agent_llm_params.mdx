@@ -18,7 +18,7 @@ Here's an example of how to set these parameters when invoking an agent:
     <CodeBlock title="Python">
         ```python
         response = client.agent.invoke(
-            agent_id=agent_id,
+            agent_id=agent.data.id,
             input="What was Tesla's revenue?",
             enable_streaming=False,
             session_id="my_session_id",
