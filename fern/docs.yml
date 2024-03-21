@@ -22,7 +22,7 @@ navigation:
             path: ./mdx/concepts.mdx
           - page: Platform
             path: ./mdx/platform.mdx
-      - section: Getting started
+      - section: Getting Started
         contents:
           - page: Install SDKs
             path: ./mdx/sdk/installation.mdx
