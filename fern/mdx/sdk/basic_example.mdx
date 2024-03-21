@@ -1,4 +1,4 @@
-Creating your first assistant is straight forward. You start but configuring the Language Model (LLM) you want to use, then you create your agent and connect the language model to that agent. 
+Creating your first assistant is straightforward. You start by configuring the Language Model (LLM) you want to use, then you create your agent and connect the language model to that agent. 
 
 ## Step by step guide
 
@@ -51,16 +51,16 @@ Note that you usually only need to create the `llm` object once and re-use it f
 <CodeBlocks>
     <CodeBlock title="Python">
         ```python 
-        agent = client.agent.create(request={
-            "name": "Chat Assistant",
-            "description": "My first Assistant",
-            "type": "SUPERAGENT",
-            "avatar": "https://myavatar.com/homanp.png",
-            "isActive": True,
-            "initialMessage": "Hi there! How can I help you?",
-            "llmModel": "GPT_3_5_TURBO_16K_0613",
-            "prompt": "You are an helpful AI Assistant", 
-        })
+        agent = client.agent.create(
+            name="Chat Assistant",
+            description="My first Assistant",
+            type="SUPERAGENT",
+            avatar="https=//myavatar.com/homanp.png",
+            is_active=True,
+            initial_message="Hi there! How can I help you?",
+            llm_model="GPT_3_5_TURBO_16K_0613",
+            prompt="You are a helpful AI Assistant",
+        )
         ```
     </CodeBlock>
     <CodeBlock title="Javascript">
@@ -73,7 +73,7 @@ Note that you usually only need to create the `llm` object once and re-use it f
             isActive: true,
             initialMessage: "Hi there! How can I help you?",
             llmModel: "GPT_3_5_TURBO_16K_0613",
-            prompt: "You are an helpful AI Assistant", 
+            prompt: "You are a helpful AI Assistant", 
         })
         ```
     </CodeBlock>
@@ -206,7 +206,7 @@ By seperating the creation of each object you can reuse, LLMs, Agents or any oth
     </CodeBlock>
 </CodeBlocks>
 
-In just a couple of lines of code we have created a production ready chat Assistant using one of the GPT models. Checkout the other examples on how to add datasources and tools to your Assistants.
+In just a couple of lines of code we have created a production-ready chat Assistant using one of the GPT models. Check out the other examples on how to add datasources and tools to your Assistants.
 
 ## Replit template
 

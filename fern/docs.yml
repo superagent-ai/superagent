@@ -22,7 +22,7 @@ navigation:
             path: ./mdx/concepts.mdx
           - page: Platform
             path: ./mdx/platform.mdx
-      - section: Getting started
+      - section: Getting Started
         contents:
           - page: Install SDKs
             path: ./mdx/sdk/installation.mdx
@@ -54,7 +54,7 @@ navigation:
             path: ./mdx/deploy/render.mdx
           - page: Replit
             path: ./mdx/deploy/replit.mdx
-          - page: Runnning locally
+          - page: Running locally
             path: ./mdx/deploy/local.mdx
       - section: RAG & Retrieval
         contents:
