@@ -38,5 +38,5 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  return NextResponse.json({ session }, { status: 200 })
+  return NextResponse.json(session)
 }
