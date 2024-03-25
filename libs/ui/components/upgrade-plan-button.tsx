@@ -24,15 +24,14 @@ function UpgradeButton({
   const { toast } = useToast()
 
   const redirectToStripeCheckout = async () => {
-    const res = await fetch("/api/stripe/new_session", {
+    const res = await fetch("/api/stripe/sessions", {
       method: "POST",
       body: JSON.stringify({
         planId,
         customerId: stripeCustomerId,
       }),
     })
-    const data = await res.json()
-    const session = data?.session
+    const session = await res.json()
 
     if (!res.ok) {
       return toast({
