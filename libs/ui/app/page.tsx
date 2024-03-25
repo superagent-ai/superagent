@@ -9,6 +9,7 @@ import * as z from "zod"
 
 import { Api } from "@/lib/api"
 import { analytics } from "@/lib/segment"
+import { getSupabase } from "@/lib/supabase"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
@@ -31,8 +32,9 @@ const formSchema = z.object({
   }),
 })
 
+const supabase = getSupabase()
+
 export default function IndexPage() {
-  const supabase = createClientComponentClient()
   const { toast } = useToast()
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
