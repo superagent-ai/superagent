@@ -1,9 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { useTheme } from "next-themes"
-import { useAsync } from "react-use"
 
 import {
   AlertDialog,
@@ -12,35 +10,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import PricingTable from "@/components/pricing-table"
 
-export default function BillingModal({ session }: { session: any }) {
-  const theme = useTheme()
+interface BillingModalProps {
+  profile: any
+}
+
+export default function BillingModal({ profile }: BillingModalProps) {
   const pathname = usePathname()
-  const supabase = createClientComponentClient()
-  const { loading, value: profile } = useAsync(async () => {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", session?.user.id)
-      .single()
+  const [isOpen, setOpen] = useState(false)
 
-    return profile
-  })
-
-  const pricingTableID =
-    theme.resolvedTheme === "dark"
-      ? process.env.NEXT_PUBLIC_STRIPE_DARK_PRICING_TABLE_ID
-      : process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICING_TABLE_ID
+  // a workaround for react hydration error (https://github.com/radix-ui/primitives/issues/1386)
+  useEffect(() => {
+    setOpen(
+      !profile?.stripe_plan_id && pathname !== "/onboarding" && pathname !== "/"
+    )
+  }, [profile, pathname])
 
   return (
-    <AlertDialog
-      open={
-        !loading &&
-        !profile?.stripe_plan_id &&
-        pathname !== "/onboarding" &&
-        pathname !== "/"
-      }
-    >
+    <AlertDialog open={isOpen}>
       <AlertDialogContent className="max-w-[700px]">
         <AlertDialogHeader>
           <AlertDialogTitle>Your free trial has ended!</AlertDialogTitle>
@@ -50,9 +38,9 @@ export default function BillingModal({ session }: { session: any }) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="mt-4">
-          <stripe-pricing-table
-            pricing-table-id={pricingTableID}
-            publishable-key={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+          <PricingTable
+            stripeCustomerId={profile?.stripe_customer_id}
+            currentSubscriptionId={profile?.stripe_plan_id}
           />
         </div>
       </AlertDialogContent>
