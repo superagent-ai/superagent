@@ -28,7 +28,9 @@ export async function middleware(req: NextRequest) {
     }
 
     if (user && req.nextUrl.pathname === "/") {
-      return NextResponse.redirect(new URL("/workflows", req.url))
+      return NextResponse.redirect(
+        new URL(`/workflows${req.nextUrl.search}`, req.url)
+      )
     }
   }
 
