@@ -15,8 +15,8 @@ export const siteConfig = {
   name: "Superagent Cloud",
   description: "The agent framework for large language models",
   paymentPlans: {
-    hobby: process.env.NEXT_PUBLIC_STRIPE_HOBBY_PLAN_ID!,
-    pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PLAN_ID!,
+    hobby: process.env.NEXT_PUBLIC_STRIPE_HOBBY_PLAN!,
+    pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PLAN!,
   },
   mainNav: [
     {
