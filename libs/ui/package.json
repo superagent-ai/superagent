@@ -52,6 +52,7 @@
     "@uiw/codemirror-theme-vscode": "^4.21.20",
     "@uiw/react-codemirror": "^4.21.21",
     "class-variance-authority": "^0.4.0",
+    "client-only": "^0.0.1",
     "clsx": "^1.2.1",
     "cmdk": "^0.2.0",
     "dayjs": "^1.11.9",
