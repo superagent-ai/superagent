@@ -1,6 +1,6 @@
 import { cookies } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import Stripe from "stripe"
 import { z } from "zod"
 
@@ -11,15 +11,9 @@ import { stripe } from "@/lib/stripe"
 import { onboardFormSchema } from "./form-schema"
 
 const api = new Api()
-const supabase = createServerComponentClient(
-  { cookies },
-  {
-    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  }
-)
 
 export const POST = async (req: NextRequest) => {
+  const supabase = createRouteHandlerClient({ cookies })
   const body = await req.json()
   let parsedBody
   try {

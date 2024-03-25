@@ -1,6 +1,6 @@
-import { headers } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
-import { createClient, SupabaseClient } from "@supabase/supabase-js"
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import Stripe from "stripe"
 
 import { stripe } from "@/lib/stripe"
@@ -11,17 +11,6 @@ interface EventData {
   company?: string
   first_name?: string
   last_name?: string
-}
-
-let supabaseClient: SupabaseClient | null = null
-const getSupabase = (): SupabaseClient => {
-  if (!supabaseClient) {
-    supabaseClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-      process.env.SUPABASE_SERVICEROLE_KEY || ""
-    )
-  }
-  return supabaseClient
 }
 
 const sendEvent = async (data: EventData): Promise<void> => {
@@ -37,7 +26,14 @@ const sendEvent = async (data: EventData): Promise<void> => {
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const supabase = getSupabase()
+  const supabase = createRouteHandlerClient(
+    { cookies },
+    {
+      // using service role key because of stripe webhook does not have any user session
+      supabaseKey: process.env.SUPABASE_SERVICEROLE_KEY,
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    }
+  )
   const sig = headers().get("stripe-signature")
 
   if (!sig) return NextResponse.json({ success: false })
@@ -64,16 +60,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     )
   }
   const subscription = event.data.object as Stripe.Subscription
+
+  if (!subscription.customer) return NextResponse.json({ success: false })
+
   const customer = subscription.customer.toString()
 
-  const c_data: Stripe.Response<Stripe.Customer | Stripe.DeletedCustomer> =
-    await stripe.customers.retrieve(customer)
+  const customerData = await stripe.customers.retrieve(customer)
 
-  if ("deleted" in c_data && c_data.deleted === true) {
+  if ("deleted" in customerData && customerData.deleted === true) {
     return NextResponse.json({ success: false })
   }
 
-  const { email, name } = c_data
+  const { email, name } = customerData
 
   if (!email)
     return NextResponse.json(
@@ -86,8 +84,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const eventData: EventData = {
     eventName: "",
-    first_name: c_data.metadata?.first_name,
-    last_name: c_data.metadata?.last_name,
+    first_name: customerData.metadata?.first_name,
+    last_name: customerData.metadata?.last_name,
   }
 
   eventData.email = email
