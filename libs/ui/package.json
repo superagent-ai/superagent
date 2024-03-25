@@ -95,6 +95,7 @@
     "@types/uuid": "^9.0.3",
     "@typescript-eslint/parser": "^5.61.0",
     "autoprefixer": "^10.4.14",
+    "encoding": "^0.1.13",
     "eslint": "^8.44.0",
     "eslint-config-next": "^13.5.2",
     "eslint-config-prettier": "^8.8.0",
