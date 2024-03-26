@@ -44,15 +44,19 @@ async def get_current_api_user(
 
         stripe.api_key = config("STRIPE_SECRET_KEY")
 
-        customer = stripe.Customer.list(
+        data = stripe.Customer.list(
             email=api_user.email, expand=["data.subscriptions"]
-        ).data[0]
-        subscription = customer.subscriptions.data[0]["items"]["data"]
-        has_subscription = any(sub["plan"]["active"] for sub in subscription)
+        ).data
+        has_subscription = False
+        if len(data) > 0:
+            customer = data[0]
+            subscription = customer.subscriptions.data[0]["items"]["data"]
+            has_subscription = any(sub["plan"]["active"] for sub in subscription)
 
         if not has_subscription:
+            logger.error(f"User {api_user.id} has no active subscription")
             raise HTTPException(
-                status_code=402, deatil="You have no active subscription"
+                status_code=402, detail="You have no active subscription"
             )
 
     if not api_user:

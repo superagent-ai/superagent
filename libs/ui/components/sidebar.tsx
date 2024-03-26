@@ -2,16 +2,17 @@
 
 import NextLink from "next/link"
 import { usePathname } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useAsync } from "react-use"
 
 import { siteConfig } from "@/config/site"
+import { getSupabase } from "@/lib/supabase"
 
 import Logo from "./logo"
 import { Button } from "./ui/button"
 
+const supabase = getSupabase()
+
 export default function Sidebar() {
-  const supabase = createClientComponentClient()
   const { value: showSidebar } = useAsync(async () => {
     const {
       data: { user },

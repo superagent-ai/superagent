@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { Workflow } from "@/models/models"
 import { ScrollArea } from "@radix-ui/react-scroll-area"
 import { TbBolt, TbStack2 } from "react-icons/tb"
 
@@ -9,12 +10,12 @@ import { Badge } from "@/components/ui/badge"
 export default function WorkflowCards({
   workflows,
 }: {
-  workflows: Array<any>
+  workflows?: Array<Workflow>
 }) {
   return (
     <ScrollArea className="flex grow overflow-auto px-6">
       <div className="container">
-        {workflows.length === 0 ? (
+        {workflows?.length === 0 ? (
           <div className="container flex max-w-lg flex-col space-y-4 rounded-lg border p-4 text-sm">
             <TbStack2 fontSize="40px" />
             <p className="font-semibold">No workflows found</p>
@@ -25,7 +26,7 @@ export default function WorkflowCards({
           </div>
         ) : (
           <div className="grid grid-cols-4 gap-4">
-            {workflows.map((workflow) => (
+            {workflows?.map((workflow) => (
               <Link
                 key={workflow.id}
                 passHref

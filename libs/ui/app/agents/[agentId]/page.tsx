@@ -4,7 +4,6 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { TbBrandOpenai } from "react-icons/tb"
 
 import { Api } from "@/lib/api"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import Chat from "./chat"
 import Header from "./header"

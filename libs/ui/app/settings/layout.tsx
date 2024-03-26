@@ -2,7 +2,6 @@ import { cookies } from "next/headers"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
 import { siteConfig } from "@/config/site"
-import { Toaster } from "@/components/ui/toaster"
 import { SettingsSidebar } from "@/components/account-sidebar"
 
 interface SettingsLayoutProps {

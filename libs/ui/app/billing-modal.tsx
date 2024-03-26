@@ -1,9 +1,8 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { useTheme } from "next-themes"
-import { useAsync } from "react-use"
+import { set } from "react-hook-form"
 
 import {
   AlertDialog,
@@ -12,30 +11,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import PricingTable from "@/app/settings/billing/pricing-table"
 
-export default function BillingModal({ session }: { session: any }) {
-  const theme = useTheme()
+interface BillingModalProps {
+  profile: any
+}
+
+export default function BillingModal({ profile }: BillingModalProps) {
   const pathname = usePathname()
-  const supabase = createClientComponentClient()
-  const { loading, value: profile } = useAsync(async () => {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", session?.user.id)
-      .single()
+  const [isClient, setClient] = useState(false)
 
-    return profile
-  })
+  // a workaround for react hydration error (https://github.com/radix-ui/primitives/issues/1386)
+  useEffect(() => setClient(true), [])
 
-  const pricingTableID =
-    theme.resolvedTheme === "dark"
-      ? process.env.NEXT_PUBLIC_STRIPE_DARK_PRICING_TABLE_ID
-      : process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICING_TABLE_ID
+  if (!isClient) return null
 
   return (
     <AlertDialog
       open={
-        !loading &&
         !profile?.stripe_plan_id &&
         pathname !== "/onboarding" &&
         pathname !== "/"
@@ -50,9 +43,9 @@ export default function BillingModal({ session }: { session: any }) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="mt-4">
-          <stripe-pricing-table
-            pricing-table-id={pricingTableID}
-            publishable-key={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+          <PricingTable
+            stripeCustomerId={profile?.stripe_customer_id}
+            currentSubscriptionId={profile?.stripe_plan_id}
           />
         </div>
       </AlertDialogContent>

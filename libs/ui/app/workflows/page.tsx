@@ -1,16 +1,21 @@
 import { cookies } from "next/headers"
-import Link from "next/link"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
-import { TbAlertTriangle } from "react-icons/tb"
+import Stripe from "stripe"
 
 import { Api } from "@/lib/api"
+import { stripe } from "@/lib/stripe"
 
 import WorkflowCards from "./cards"
+import CheckoutSessionStatus from "./checkout-session-status"
 import Header from "./header"
 
 export const dynamic = "force-dynamic"
 
-export default async function Agents() {
+export default async function Workflows({
+  searchParams,
+}: {
+  searchParams: { checkout_session_id: string }
+}) {
   const supabase = createRouteHandlerClient({ cookies })
   const {
     data: { user },
@@ -24,8 +29,18 @@ export default async function Agents() {
 
   const { data: workflows } = await api.getWorkflows()
 
+  let checkoutSession: Stripe.Checkout.Session | undefined
+  if (searchParams.checkout_session_id) {
+    try {
+      checkoutSession = await stripe.checkout.sessions.retrieve(
+        searchParams.checkout_session_id
+      )
+    } catch (error) {}
+  }
+
   return (
     <div className="flex h-screen w-full flex-col justify-between space-y-4 overflow-hidden">
+      {checkoutSession && <CheckoutSessionStatus session={checkoutSession} />}
       <Header profile={profile} />
       <WorkflowCards workflows={workflows} />
     </div>
