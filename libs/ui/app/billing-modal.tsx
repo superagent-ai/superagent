@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
+import { set } from "react-hook-form"
 
 import {
   AlertDialog,
@@ -18,17 +19,21 @@ interface BillingModalProps {
 
 export default function BillingModal({ profile }: BillingModalProps) {
   const pathname = usePathname()
-  const [isOpen, setOpen] = useState(false)
+  const [isClient, setClient] = useState(false)
 
   // a workaround for react hydration error (https://github.com/radix-ui/primitives/issues/1386)
-  useEffect(() => {
-    setOpen(
-      !profile?.stripe_plan_id && pathname !== "/onboarding" && pathname !== "/"
-    )
-  }, [profile, pathname])
+  useEffect(() => setClient(true), [])
+
+  if (!isClient) return null
 
   return (
-    <AlertDialog open={isOpen}>
+    <AlertDialog
+      open={
+        !profile?.stripe_plan_id &&
+        pathname !== "/onboarding" &&
+        pathname !== "/"
+      }
+    >
       <AlertDialogContent className="max-w-[700px]">
         <AlertDialogHeader>
           <AlertDialogTitle>Your free trial has ended!</AlertDialogTitle>
