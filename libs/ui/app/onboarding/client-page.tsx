@@ -1,16 +1,11 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
-import Stripe from "stripe"
 import * as z from "zod"
 
 import { initialSamlValue } from "@/config/saml"
-import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
-import { stripe } from "@/lib/stripe"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -33,19 +28,12 @@ import { Spinner } from "@/components/ui/spinner"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/components/ui/use-toast"
 
-const formSchema = z.object({
-  first_name: z.string().nonempty("Invalid first name."),
-  last_name: z.string().nonempty("Invalid last name."),
-  company: z.string().nonempty("Enter a company name"),
-})
+import { onboardFormSchema } from "../api/onboard/form-schema"
 
 export default function OnboardingClientPage() {
-  const api = new Api()
-  const supabase = createClientComponentClient()
   const { toast } = useToast()
-  const router = useRouter()
-  const { ...form } = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const { ...form } = useForm<z.infer<typeof onboardFormSchema>>({
+    resolver: zodResolver(onboardFormSchema),
     defaultValues: {
       first_name: "",
       last_name: "",
@@ -53,102 +41,32 @@ export default function OnboardingClientPage() {
     },
   })
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    let client = null
-    const { first_name, last_name, company } = values
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user?.email) {
-      toast({
-        description: `Ooops! User email is missing!`,
-        variant: "destructive",
-      })
-      return
-    }
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", user?.id)
-      .single()
-
-    if (!profile.api_key) {
-      const {
-        data: { token: api_key },
-      } = await api.createApiUser({
-        email: user.email,
-        firstName: first_name,
-        lastName: last_name,
-        company,
-      })
-      await supabase
-        .from("profiles")
-        .update({
-          api_key,
-        })
-        .eq("user_id", user?.id)
-      client = new Api(api_key)
-    } else {
-      client = new Api(profile.api_key)
-    }
-
-    const params: Stripe.CustomerCreateParams = {
-      name: company,
-      email: user.email,
-      metadata: {
-        first_name,
-        last_name,
+  async function onSubmit(values: z.infer<typeof onboardFormSchema>) {
+    const res = await fetch("/api/onboard", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    }
-    let customer: Stripe.Customer | null = null
-    let subscription: Stripe.Subscription | null = null
-    if (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
-      customer = await stripe.customers.create(params)
-      subscription = await stripe.subscriptions.create({
-        customer: customer?.id,
-        items: [
-          {
-            price: siteConfig.paymentPlans.hobby,
-          },
-        ],
-        trial_period_days: 7,
-        payment_settings: {
-          save_default_payment_method: "on_subscription",
-        },
-        trial_settings: {
-          end_behavior: {
-            missing_payment_method: "cancel",
-          },
-        },
+      body: JSON.stringify(values),
+    })
+
+    const profile = await res.json()
+
+    if (!res.ok || !profile) {
+      return toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
       })
     }
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        first_name,
-        last_name,
-        company,
-        stripe_customer_id: customer?.id,
-        stripe_plan_id: subscription?.id,
-        is_onboarded: true,
-      })
-      .eq("user_id", user?.id)
 
-    if (error) {
-      toast({
-        description: `Ooops! ${error?.message}`,
-        variant: "destructive",
-      })
+    const api = new Api(profile?.api_key)
 
-      return
-    }
-
-    const { data: workflow } = await client.createWorkflow({
+    const { data: workflow } = await api.createWorkflow({
       name: "My Workflow",
       description: "My new workflow",
     })
 
-    await client.generateWorkflow(workflow.id, initialSamlValue)
+    await api.generateWorkflow(workflow.id, initialSamlValue)
 
     window.location.href = `/workflows/${workflow.id}`
   }

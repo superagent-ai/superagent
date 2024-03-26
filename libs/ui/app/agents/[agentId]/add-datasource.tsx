@@ -1,10 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
 import { LLMProvider } from "@/models/models"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useForm } from "react-hook-form"
 import { RxCross2 } from "react-icons/rx"
 import { TbPlus } from "react-icons/tb"
@@ -12,6 +10,7 @@ import { v4 as uuidv4 } from "uuid"
 import * as z from "zod"
 
 import { Api } from "@/lib/api"
+import { getSupabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -55,14 +54,14 @@ interface AddDatasourceProps {
   llmProvider: LLMProvider
 }
 
+const supabase = getSupabase()
+
 function AddDatasource({
   profile,
   agent,
   onSuccess,
   llmProvider,
 }: AddDatasourceProps) {
-  const supabase = createClientComponentClient()
-  const router = useRouter()
   const { toast } = useToast()
   const api = new Api(profile.api_key)
 

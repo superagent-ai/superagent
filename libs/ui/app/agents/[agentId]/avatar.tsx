@@ -2,11 +2,10 @@
 "use client"
 
 import { ChangeEvent, useRef, useState } from "react"
-import Image from "next/image"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { RxImage } from "react-icons/rx"
 import { v4 as uuid } from "uuid"
 
+import { getSupabase } from "@/lib/supabase"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 
@@ -15,9 +14,9 @@ interface AvatarProps {
   onSelect: (url: string) => Promise<void>
   imageUrl: string
 }
+const supabase = getSupabase()
 
 export default function Avatar({ accept, onSelect, imageUrl }: AvatarProps) {
-  const supabase = createClientComponentClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
 

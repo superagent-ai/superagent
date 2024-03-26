@@ -3,7 +3,6 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { TbTerminal2 } from "react-icons/tb"
 
 import { Api } from "@/lib/api"
-import LogList from "@/components/log-list"
 
 export const dynamic = "force-dynamic"
 
