@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import PricingTable from "@/components/pricing-table"
+import PricingTable from "@/app/settings/billing/pricing-table"
 
 interface BillingModalProps {
   profile: any

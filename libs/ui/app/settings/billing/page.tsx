@@ -1,7 +1,7 @@
 import { cookies } from "next/headers"
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 
-import PricingTable from "@/components/pricing-table"
+import PricingTable from "@/app/settings/billing/pricing-table"
 
 export default async function Billing() {
   const supabase = createRouteHandlerClient({ cookies })

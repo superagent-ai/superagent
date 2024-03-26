@@ -5,9 +5,9 @@ import Stripe from "stripe"
 
 import { siteConfig } from "@/config/site"
 import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 
-import { Badge } from "./ui/badge"
-import { Skeleton } from "./ui/skeleton"
 import UpgradeButton from "./upgrade-plan-button"
 
 interface PricingTableProps {

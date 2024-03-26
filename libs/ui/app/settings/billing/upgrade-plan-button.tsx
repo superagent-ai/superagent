@@ -3,9 +3,8 @@
 import getStripe from "@/utils/get-stripejs"
 
 import { Button, ButtonProps } from "@/components/ui/button"
-
-import { Toaster } from "./ui/toaster"
-import { useToast } from "./ui/use-toast"
+import { Toaster } from "@/components/ui/toaster"
+import { useToast } from "@/components/ui/use-toast"
 
 type UpgradeButtonProps = {
   stripeCustomerId: string
