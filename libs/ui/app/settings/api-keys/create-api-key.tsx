@@ -82,7 +82,7 @@ export function CreateSecretKey({ profile }: { profile: any }) {
             <DialogHeader>
               <DialogTitle>API key created</DialogTitle>
               <DialogDescription>
-                You can view the API key ionce. But you can always create a new
+                You can view the API key once. But you can always create a new
                 one.
               </DialogDescription>
             </DialogHeader>
