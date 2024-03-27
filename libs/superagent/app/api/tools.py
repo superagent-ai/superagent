@@ -63,7 +63,10 @@ async def create(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     content={
                         "error": {
-                            "message": f"Vector database {database_provider.capitalize()} not found. Please configure it in the integrations page."
+                            "message": (
+                                f"Vector database {database_provider.capitalize()}",
+                                "not found.",
+                            )
                         },
                     },
                 )
