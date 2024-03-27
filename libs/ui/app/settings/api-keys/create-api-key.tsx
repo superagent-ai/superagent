@@ -117,13 +117,13 @@ export function CreateSecretKey({ profile }: { profile: any }) {
 
                 <TabsContent value="python">
                   <CodeBlock
-                    value={`from superagent.client import Superagent\n\n client = Superagent(\n   token="${generatedKey}",\n   base_url="https://api.beta.superagent.sh" # or your local environment\n)`}
+                    value={`from superagent.client import Superagent\n\nclient = Superagent(\n   token="${generatedKey}",\n   base_url="https://api.beta.superagent.sh" # or your local environment\n)`}
                     language="python"
                   />
                 </TabsContent>
                 <TabsContent value="javascript">
                   <CodeBlock
-                    value={`import {SuperAgentClient} from "superagentai-js";\n\n const client = new SuperAgentClient({\n   token: "${generatedKey}", \n   environment: "https://api.beta.superagent.sh" // or your local environment \n });`}
+                    value={`import {SuperAgentClient} from "superagentai-js";\n\nconst client = new SuperAgentClient({\n   token: "${generatedKey}", \n   environment: "https://api.beta.superagent.sh" // or your local environment \n});`}
                     language="javascript"
                   />
                 </TabsContent>
