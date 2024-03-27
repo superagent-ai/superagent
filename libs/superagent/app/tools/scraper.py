@@ -16,6 +16,7 @@ class Scraper(BaseTool):
             params={
                 "extract_rules": {"text": "body"},
                 "render_js": True,
+                "wait_browser": "load",
             },
         )
         return response.text
