@@ -98,3 +98,7 @@ class HTTPInput(BaseModel):
 
 class TavilyInput(BaseModel):
     query: str
+
+
+class ScraperInput(BaseModel):
+    url: str

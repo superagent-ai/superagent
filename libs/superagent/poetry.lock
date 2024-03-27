@@ -4553,6 +4553,20 @@ doc = ["matplotlib (>2)", "numpydoc", "pydata-sphinx-theme (==0.9.0)", "sphinx (
 test = ["asv", "gmpy2", "mpmath", "pooch", "pytest", "pytest-cov", "pytest-timeout", "pytest-xdist", "scikit-umfpack", "threadpoolctl"]
 
 [[package]]
+name = "scrapingbee"
+version = "2.0.1"
+description = "ScrapingBee Python SDK"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "scrapingbee-2.0.1-py3-none-any.whl", hash = "sha256:55c7eca71f5be891718795750b3149a2aead1458b0ae6716fdefeb6cf8e81e82"},
+    {file = "scrapingbee-2.0.1.tar.gz", hash = "sha256:b33622d4c6111c0ae454fa23398a43dccf7b7e126cc44ac498d3411a8514069f"},
+]
+
+[package.dependencies]
+requests = "*"
+
+[[package]]
 name = "segment-analytics-python"
 version = "2.3.2"
 description = "The hassle-free way to integrate analytics into any python application."
@@ -5942,4 +5956,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1, <3.12"
-content-hash = "400b846f204b1b6d1bc430b96064a962fce4daea83795ee5eed57b44c77347df"
+content-hash = "8aadde3bbb62dc11b841755b5aa658e31159da14de0e2124799b428710750ce9"

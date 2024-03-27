@@ -25,6 +25,7 @@ from app.models.tools import (
     WolframInput,
     ZapierInput,
     TavilyInput,
+    ScraperInput,
 )
 from app.tools.agent import Agent
 from app.tools.algolia import Algolia
@@ -47,6 +48,7 @@ from app.tools.tts_1 import TTS1
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
 from app.tools.tavily import Tavily
+from app.tools.scraper import Scraper
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +82,7 @@ TOOL_TYPE_MAPPING = {
     "HTTP": {"class": LCHttpTool, "schema": HTTPInput},
     "SUPERRAG": {"class": SuperRagTool, "schema": SuperRagInput},
     "RESEARCH": {"class": Tavily, "schema": TavilyInput},
+    "SCRAPER": {"class": Scraper, "schema": ScraperInput},
 }
 
 OSS_TOOL_TYPE_MAPPING = {"BROWSER": Browser, "BING_SEARCH": BingSearch}
