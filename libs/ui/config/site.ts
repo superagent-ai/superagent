@@ -239,6 +239,17 @@ export const siteConfig = {
       ],
     },
     {
+      value: "SCRAPER",
+      title: "Web extractor",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Replicate API key",
+        },
+      ],
+    },
+    {
       value: "HTTP",
       title: "API Request",
       metadata: [
