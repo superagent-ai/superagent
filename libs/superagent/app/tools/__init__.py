@@ -20,11 +20,12 @@ from app.models.tools import (
     OpenapiInput,
     PubMedInput,
     ReplicateInput,
+    ScraperInput,
     SuperRagInput,
+    TavilyInput,
     TTS1Input,
     WolframInput,
     ZapierInput,
-    TavilyInput,
 )
 from app.tools.agent import Agent
 from app.tools.algolia import Algolia
@@ -42,11 +43,12 @@ from app.tools.metaphor import MetaphorSearch
 from app.tools.openapi import Openapi
 from app.tools.pubmed import PubMed
 from app.tools.replicate import Replicate
+from app.tools.scraper import Scraper
 from app.tools.superrag import SuperRagTool
+from app.tools.tavily import Tavily
 from app.tools.tts_1 import TTS1
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
-from app.tools.tavily import Tavily
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +82,7 @@ TOOL_TYPE_MAPPING = {
     "HTTP": {"class": LCHttpTool, "schema": HTTPInput},
     "SUPERRAG": {"class": SuperRagTool, "schema": SuperRagInput},
     "RESEARCH": {"class": Tavily, "schema": TavilyInput},
+    "SCRAPER": {"class": Scraper, "schema": ScraperInput},
 }
 
 OSS_TOOL_TYPE_MAPPING = {"BROWSER": Browser, "BING_SEARCH": BingSearch}
