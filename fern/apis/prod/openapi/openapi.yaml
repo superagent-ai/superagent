@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: 🥷 Run AI-agents with an API
-  version: 0.2.19
+  version: 0.2.23
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -1701,6 +1701,13 @@ components:
         - FUNCTION
       type: string
       description: An enumeration.
+    EmbeddingsModelProvider:
+      title: EmbeddingsModelProvider
+      enum:
+        - OPENAI
+        - AZURE_OPENAI
+      type: string
+      description: An enumeration.
     FunctionDefinition:
       title: FunctionDefinition
       type: object
@@ -1864,6 +1871,8 @@ components:
         - HTTP
         - SUPERRAG
         - RESEARCH
+        - GITHUB
+        - SCRAPER
       type: string
       description: An enumeration.
     ToolUpdate:
@@ -2197,6 +2206,10 @@ components:
         vectorDbId:
           title: Vectordbid
           type: string
+        embeddingsModelProvider:
+          allOf:
+            - $ref: '#/components/schemas/EmbeddingsModelProvider'
+          default: OPENAI
     app__models__request__LLM:
       title: LLM
       required:
