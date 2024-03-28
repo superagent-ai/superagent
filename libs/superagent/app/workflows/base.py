@@ -4,11 +4,24 @@ from agentops.langchain_callback_handler import (
     AsyncCallbackHandler,
     LangchainCallbackHandler,
 )
+from langchain.output_parsers.json import SimpleJsonOutputParser
 
 from app.agents.base import AgentBase
 from app.utils.callbacks import CustomAsyncIteratorCallbackHandler
 from app.utils.prisma import prisma
 from prisma.models import Workflow
+
+# Adapted from https://github.com/langchain-ai/langchain/blob/d1a2e194c376f241116bf8e520f1a9bb297cdf3a/libs/core/langchain_core/output_parsers/format_instructions.py
+JSON_FORMAT_INSTRUCTIONS = """The output should be formatted as a JSON instance that conforms to the JSON schema below.
+
+As an example, for the schema {{"properties": {{"foo": {{"title": "Foo", "description": "a list of strings", "type": "array", "items": {{"type": "string"}}}}}}, "required": ["foo"]}}
+the object {{"foo": ["bar", "baz"]}} is a well-formatted instance of the schema. The object {{"properties": {{"foo": ["bar", "baz"]}}}} is not well-formatted.
+
+Here is the output schema:
+```
+{schema}
+```
+"""
 
 
 class WorkflowBase:
@@ -43,6 +56,8 @@ class WorkflowBase:
                     "tools": {"include": {"tool": True}},
                 },
             )
+            output_schema = agent_config.outputSchema
+            input = previous_output
             agent_base = AgentBase(
                 agent_id=step.agentId,
                 enable_streaming=self.enable_streaming,
@@ -52,8 +67,16 @@ class WorkflowBase:
             )
 
             agent = await agent_base.get_agent()
+
+            if output_schema:
+                input = f"""
+                {JSON_FORMAT_INSTRUCTIONS.format(schema=output_schema)}
+
+                User input: {input}
+                """
+
             agent_input = agent_base.get_input(
-                previous_output,
+                input=input,
                 agent_type=agent_config.type,
             )
 
@@ -63,6 +86,11 @@ class WorkflowBase:
                     "callbacks": self.callbacks[stepIndex],
                 },
             )
+            if output_schema:
+                json_parser = SimpleJsonOutputParser()
+                agent_response["output"] = json_parser.parse(
+                    text=agent_response["output"]
+                )
 
             previous_output = agent_response.get("output")
             steps_output.append(agent_response)

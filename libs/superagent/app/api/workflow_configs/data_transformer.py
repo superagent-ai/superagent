@@ -86,7 +86,12 @@ class DataTransformer:
 
     def transform_assistant(self):
         rename_and_remove_keys(
-            self.assistant, {"llm": "llmModel", "intro": "initialMessage"}
+            self.assistant,
+            {
+                "llm": "llmModel",
+                "intro": "initialMessage",
+                "output_schema": "outputSchema",
+            },
         )
 
         if self.assistant_type:

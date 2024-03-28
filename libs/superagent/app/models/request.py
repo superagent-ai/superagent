@@ -37,6 +37,7 @@ class Agent(BaseModel):
     type: Optional[AgentType] = AgentType.SUPERAGENT
     parameters: Optional[OpenAiAssistantParameters]
     metadata: Optional[dict]
+    outputSchema: Optional[dict[str, Any]]
 
 
 class AgentUpdate(BaseModel):
@@ -49,6 +50,7 @@ class AgentUpdate(BaseModel):
     avatar: Optional[str]
     type: Optional[str]
     metadata: Optional[Dict[str, Any]]
+    outputSchema: Optional[dict[str, Any]]
 
 
 class AgentLLM(BaseModel):

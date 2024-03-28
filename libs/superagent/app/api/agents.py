@@ -352,6 +352,9 @@ async def update(
 
         new_agent_data = {
             **body.dict(exclude_unset=True),
+            "outputSchema": (
+                json.dumps(body.outputSchema) if body.outputSchema else None
+            ),
         }
 
         if json.dumps(metadata) != json.dumps(agent.metadata):
