@@ -371,6 +371,9 @@ async def list_steps(workflow_id: str, api_user=Depends(get_current_api_user)):
             include={"agent": True},
         )
 
+        for step in data:
+            step.agent.metadata = json.dumps(step.agent.metadata)
+
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
