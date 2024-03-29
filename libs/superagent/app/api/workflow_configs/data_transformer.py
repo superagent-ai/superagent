@@ -123,10 +123,12 @@ class DataTransformer:
             **(self.assistant.get("metadata") or {}),
         }
 
-        if isinstance(self.assistant.get("outputSchema"), dict):
-            self.assistant["outputSchema"] = json.dumps(self.assistant["outputSchema"])
-        else:
-            self.assistant["outputSchema"] = str(self.assistant.get("outputSchema"))
+        output_schema = self.assistant.get("outputSchema")
+        if output_schema:
+            if isinstance(output_schema, dict):
+                self.assistant["outputSchema"] = json.dumps(output_schema)
+            else:
+                self.assistant["outputSchema"] = str(output_schema)
 
     def transform_tools(self):
         for tool_obj in self.tools:
