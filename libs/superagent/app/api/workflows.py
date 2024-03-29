@@ -288,7 +288,6 @@ async def invoke(
                             schema_tokens += token
                         else:
                             yield f"id: {workflow_step['agent_name']}\ndata: {token}\n\n"
-                        print("token", token)
 
                     if output_schema:
                         from langchain.output_parsers.json import SimpleJsonOutputParser

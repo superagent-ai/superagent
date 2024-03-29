@@ -186,7 +186,6 @@ class DataTransformer:
                 f"Database provider is not set, using default provider - {database}"
             )
 
-        print(database, database_provider)
         # this is for superrag
         if database:
             database_provider = REVERSE_VECTOR_DB_MAPPING.get(database.provider)
