@@ -182,29 +182,46 @@ async def invoke(
 
     workflow_data = await prisma.workflow.find_unique(
         where={"id": workflow_id},
-        include={"steps": {"include": {"agent": True}, "order_by": {"order": "asc"}}},
+        include={"steps": {"order_by": {"order": "asc"}}},
     )
     session_id = body.sessionId or ""
     session_id = f"wf_{workflow_id}_{session_id}"
     input = body.input
     enable_streaming = body.enableStreaming
+    output_schemas = body.outputSchemas
 
     workflow_steps = []
-    for workflow_step in workflow_data.steps:
-        llm_model = LLM_MAPPING.get(workflow_step.agent.llmModel)
-        metadata = workflow_step.agent.metadata or {}
+    for step in workflow_data.steps:
+        agent_data = await prisma.agent.find_unique_or_raise(
+            where={"id": step.agentId},
+            include={
+                "llms": {"include": {"llm": True}},
+                "datasources": {
+                    "include": {"datasource": {"include": {"vectorDb": True}}}
+                },
+                "tools": {"include": {"tool": True}},
+            },
+        )
+        output_schema = agent_data.outputSchema
+        llm_model = LLM_MAPPING.get(agent_data.llmModel)
+        metadata = agent_data.metadata or {}
 
         if not llm_model and metadata.get("model"):
-            llm_model = workflow_step.agent.metadata.get("model")
+            llm_model = agent_data.metadata.get("model")
+
+        if output_schemas and output_schemas.get(step.id):
+            output_schema = output_schemas[step.id]
 
         item = {
             "callbacks": {
                 "cost_calc": CostCalcAsyncHandler(model=llm_model),
             },
-            "agent_name": workflow_step.agent.name,
+            "agent_name": agent_data.name,
+            "output_schema": output_schema,
+            "agent_data": agent_data,
         }
         session_tracker_handler = get_session_tracker_handler(
-            workflow_data.id, workflow_step.agent.id, session_id, api_user.id
+            workflow_data.id, agent_data.id, session_id, api_user.id
         )
 
         if session_tracker_handler:
@@ -230,7 +247,7 @@ async def invoke(
     )
 
     workflow = WorkflowBase(
-        workflow=workflow_data,
+        workflow_steps=workflow_steps,
         enable_streaming=enable_streaming,
         callbacks=workflow_callbacks,
         constructor_callbacks=[agentops_handler],
@@ -241,7 +258,7 @@ async def invoke(
         for index, workflow_step in enumerate(workflow_steps):
             workflow_step_result = output.get("steps")[index]
             cost_callback = workflow_step["callbacks"]["cost_calc"]
-            agent = workflow_data.steps[index].agent
+            agent = workflow_steps[index]["agent_data"]
 
             track_agent_invocation(
                 {
@@ -261,8 +278,27 @@ async def invoke(
             try:
                 task = asyncio.ensure_future(workflow.arun(input))
                 for workflow_step in workflow_steps:
+                    output_schema = workflow_step["output_schema"]
+
+                    # we are not streaming token by token if output schema is set
+                    schema_tokens = ""
+
                     async for token in workflow_step["callbacks"]["streaming"].aiter():
-                        yield f"id: {workflow_step['agent_name']}\ndata: {token}\n\n"
+                        if output_schema:
+                            schema_tokens += token
+                        else:
+                            yield f"id: {workflow_step['agent_name']}\ndata: {token}\n\n"
+                        print("token", token)
+
+                    if output_schema:
+                        from langchain.output_parsers.json import SimpleJsonOutputParser
+
+                        parser = SimpleJsonOutputParser()
+                        schema_tokens = str(parser.parse(schema_tokens))
+
+                        # stream line by line to prevent streaming large data in one go
+                        for line in schema_tokens.split("\n"):
+                            yield f"id: {workflow_step['agent_name']}\ndata: {line}\n\n"
 
                 await task
                 exception = task.exception()

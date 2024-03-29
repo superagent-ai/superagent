@@ -96,20 +96,13 @@ class Tools(BaseModel):
     __root__: list[ToolModel]
 
 
-class OutputSchema(BaseModel):
-    type: str
-    properties: Optional[dict[str, Any]]
-    items: Optional[dict[str, Any]]
-    required: Optional[list[str]]
-
-
 class Assistant(BaseModel):
     name: str
     llm: str
     prompt: str
     intro: Optional[str]
     params: Optional[LLMParams]
-    output_schema: Optional[OutputSchema]
+    output_schema: Optional[Any]
 
 
 # ~~~Agents~~~

@@ -176,31 +176,27 @@ class LangchainAgent(AgentBase):
                 **self.get_llm_params(),
             )
 
-    async def _get_prompt(self, agent: Agent) -> str:
+    async def _get_prompt(self, agent: Agent):
+        base_prompt = agent.prompt or DEFAULT_PROMPT
         if self.output_schema:
-            if agent.prompt:
-                content = (
-                    f"{agent.prompt}\n\n"
-                    "Always answer using the below output schema. "
-                    "No other characters allowed.\n\n"
-                    "Here is the output schema:\n"
-                    f"{self.output_schema}"
-                    "\n\nCurrent date: "
-                    f"{datetime.datetime.now().strftime('%Y-%m-%d')}"
-                )
-            else:
-                content = (
-                    f"{DEFAULT_PROMPT}\n\n"
-                    "Always answer using the below output schema. "
-                    "No other characters allowed.\n\n"
-                    "Here is the output schema:\n"
-                    f"{self.output_schema}"
-                    "\n\nCurrent date: "
-                    f"{datetime.datetime.now().strftime('%Y-%m-%d')}"
-                )
+            content = f"""
+                {base_prompt}\n\n"
+                Always answer using the below output schema. 
+                The output should be formatted as a JSON instance that conforms to the JSON schema below.
+                
+                As an example, for the schema {{"properties": {{"foo": {{"title": "Foo", "description": "a list of strings", "type": "array", "items": {{"type": "string"}}}}}}, "required": ["foo"]}}
+                the object {{"foo": ["bar", "baz"]}} is a well-formatted instance of the schema. The object {{"properties": {{"foo": ["bar", "baz"]}}}} is not well-formatted.
+
+                Here is the output schema:
+                ```
+                {self.output_schema}
+                ```
+                """
         else:
-            content = agent.prompt or DEFAULT_PROMPT
-            content = f"{content}" f"\n\n{datetime.datetime.now().strftime('%Y-%m-%d')}"
+            content = f"{base_prompt}"
+
+        content += f"\n\nCurrent date: {datetime.datetime.now().strftime('%Y-%m-%d')}"
+
         return SystemMessage(content=content)
 
     async def _get_memory(
@@ -262,20 +258,17 @@ class LangchainAgent(AgentBase):
             )
             return agent
         else:
-            prompt_base = (
-                f"{self.agent_config.prompt.replace('{', '{{').replace('}', '}}')}"
-                if self.agent_config.prompt
-                else None
-            )
-            prompt_base = prompt_base or DEFAULT_PROMPT
-            prompt_question = "Question: {input}"
+            user_prompt = prompt.content.replace("{", "{{").replace("}", "}}")
+            user_input = "Question: {input}"
             prompt_history = "History: \n {chat_history}"
-            prompt = f"{prompt_base} \n {prompt_question} \n {prompt_history}"
+            prompt_template = f"{user_prompt} \n {user_input} \n {prompt_history}"
+
             agent = LLMChain(
                 llm=llm,
                 memory=memory,
                 output_key="output",
                 verbose=True,
-                prompt=PromptTemplate.from_template(prompt),
+                prompt=PromptTemplate.from_template(prompt_template),
             )
+
         return agent

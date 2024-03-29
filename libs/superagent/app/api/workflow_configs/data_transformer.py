@@ -1,3 +1,4 @@
+import json
 import logging
 
 from app.api.workflow_configs.api.api_manager import ApiManager
@@ -122,6 +123,11 @@ class DataTransformer:
             **(self.assistant.get("metadata") or {}),
         }
 
+        if isinstance(self.assistant.get("outputSchema"), dict):
+            self.assistant["outputSchema"] = json.dumps(self.assistant["outputSchema"])
+        else:
+            self.assistant["outputSchema"] = str(self.assistant.get("outputSchema"))
+
     def transform_tools(self):
         for tool_obj in self.tools:
             tool_type = get_first_non_null_key(tool_obj)
@@ -180,6 +186,7 @@ class DataTransformer:
                 f"Database provider is not set, using default provider - {database}"
             )
 
+        print(database, database_provider)
         # this is for superrag
         if database:
             database_provider = REVERSE_VECTOR_DB_MAPPING.get(database.provider)

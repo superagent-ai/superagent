@@ -352,9 +352,6 @@ async def update(
 
         new_agent_data = {
             **body.dict(exclude_unset=True),
-            "outputSchema": (
-                json.dumps(body.outputSchema) if body.outputSchema else None
-            ),
         }
 
         if json.dumps(metadata) != json.dumps(agent.metadata):
@@ -454,6 +451,7 @@ async def invoke(
             "tools": {"include": {"tool": True}},
         },
     )
+
     model = LLM_MAPPING.get(agent_config.llmModel)
     metadata = agent_config.metadata or {}
     if not model and metadata.get("model"):
@@ -519,8 +517,17 @@ async def invoke(
                 )
             )
 
+            # we are not streaming token by token if output schema is set
+            schema_tokens = ""
             async for token in streaming_callback.aiter():
-                yield ("event: message\n" f"data: {token}\n\n")
+                if not output_schema:
+                    yield ("event: message\n" f"data: {token}\n\n")
+                else:
+                    schema_tokens += token
+
+            # stream line by line to prevent streaming large data in one go
+            for line in schema_tokens.split("\n"):
+                yield ("event: message\n" f"data: {line}\n\n")
 
             await task
 
@@ -566,7 +573,7 @@ async def invoke(
     logger.info("Invoking agent...")
     input = body.input
     enable_streaming = body.enableStreaming
-    output_schema = body.outputSchema
+    output_schema = body.outputSchema or agent_config.outputSchema
     cost_callback = CostCalcAsyncHandler(model=model)
     streaming_callback = CustomAsyncIteratorCallbackHandler()
 
@@ -607,12 +614,6 @@ async def invoke(
         },
     )
 
-    if output_schema:
-        try:
-            output = json.loads(output.get("output"))
-        except Exception as e:
-            logger.error(f"Error parsing output: {e}")
-
     if not enable_streaming and SEGMENT_WRITE_KEY:
         try:
             track_agent_invocation(
@@ -626,6 +627,12 @@ async def invoke(
             )
         except Exception as e:
             logger.error(f"Error tracking agent invocation: {e}")
+
+    if output_schema:
+        from langchain.output_parsers.json import SimpleJsonOutputParser
+
+        json_parser = SimpleJsonOutputParser()
+        output["output"] = json_parser.parse(text=output["output"])
 
     return {"success": True, "data": output}
 

@@ -37,7 +37,7 @@ class Agent(BaseModel):
     type: Optional[AgentType] = AgentType.SUPERAGENT
     parameters: Optional[OpenAiAssistantParameters]
     metadata: Optional[dict]
-    outputSchema: Optional[dict[str, Any]]
+    outputSchema: Optional[str]
 
 
 class AgentUpdate(BaseModel):
@@ -50,7 +50,7 @@ class AgentUpdate(BaseModel):
     avatar: Optional[str]
     type: Optional[str]
     metadata: Optional[Dict[str, Any]]
-    outputSchema: Optional[dict[str, Any]]
+    outputSchema: Optional[str]
 
 
 class AgentLLM(BaseModel):
@@ -154,6 +154,7 @@ class WorkflowInvoke(BaseModel):
     input: str
     enableStreaming: bool
     sessionId: Optional[str]
+    outputSchemas: Optional[dict[str, str]]
 
 
 class VectorDb(BaseModel):
