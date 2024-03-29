@@ -331,11 +331,12 @@ async def invoke(
                 yield (f"event: error\n" f"data: {error}\n\n")
 
                 if SEGMENT_WRITE_KEY:
-                    for workflow_step in workflow_data.steps:
+                    for workflow_step in workflow_steps:
+                        agent = workflow_step["agent_data"]
                         track_agent_invocation(
                             {
                                 "workflow_id": workflow_id,
-                                "agent": workflow_step.agent,
+                                "agent": agent,
                                 "user_id": api_user.id,
                                 "session_id": session_id,
                                 "error": str(error),
