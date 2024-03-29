@@ -4,6 +4,8 @@ import aiohttp
 import requests
 from langchain_community.tools import BaseTool as LCBaseTool
 
+from app.utils.helpers import get_first_non_null
+
 supported_methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
 
@@ -12,19 +14,26 @@ class LCHttpTool(LCBaseTool):
     description = "useful for making GET/POST API requests"
     return_direct = False
 
-    def _run(self, url: str = None, method: str = "GET", body: dict = None) -> None:
+    def _run(self, body: dict = None) -> None:
         headers = self.metadata.get("headers")
         if isinstance(headers, str):
             headers = json.loads(headers)
         elif headers is None:
             headers = {}
         headers["content-type"] = "application/json"
+
         try:
+            url = get_first_non_null(
+                self.metadata.get("url"),
+                self.metadata.get("defaultURL"),
+            )
+
+            method = get_first_non_null(
+                self.metadata.get("method"),
+                self.metadata.get("defaultMethod"),
+            )
             if method not in supported_methods:
                 method = self.metadata.get("defaultMethod", "GET")
-
-            if not url:
-                url = self.metadata.get("defaultURL", None)
 
             if body is None:
                 body = self.metadata.get("defaultBody", {})
@@ -41,21 +50,27 @@ class LCHttpTool(LCBaseTool):
         except requests.exceptions.RequestException as e:
             return str(e)
 
-    async def _arun(
-        self, url: str = None, method: str = "GET", body: dict = None
-    ) -> str:
+    async def _arun(self, body: dict = None) -> str:
         headers = self.metadata.get("headers")
         if isinstance(headers, str):
             headers = json.loads(headers)
         elif headers is None:
             headers = {}
         headers["content-type"] = "application/json"
+
+        url = get_first_non_null(
+            self.metadata.get("url"),
+            self.metadata.get("defaultURL"),
+        )
+
+        method = get_first_non_null(
+            self.metadata.get("method"),
+            self.metadata.get("defaultMethod"),
+        )
+
         try:
             if method not in supported_methods:
                 method = self.metadata.get("defaultMethod", "GET")
-
-            if not url:
-                url = self.metadata.get("defaultURL", None)
 
             if body is None:
                 body = self.metadata.get("defaultBody", {})
