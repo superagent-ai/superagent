@@ -37,14 +37,13 @@ class LCHttpTool(LCBaseTool):
             method = "GET"
 
         if body is None:
+            logger.debug("No body provided. Using default body")
             body = self.metadata.get("defaultBody", {})
 
-        request_kwargs = {"method": method, "url": url, "headers": headers}
-        if body is not None:
-            request_kwargs["json"] = body
-
         try:
-            response = requests.request(**request_kwargs)
+            response = requests.request(
+                method=method, url=url, headers=headers, json=body
+            )
             response.raise_for_status()
             return response.json()
         except Exception as e:
@@ -73,15 +72,15 @@ class LCHttpTool(LCBaseTool):
             method = "GET"
 
         if body is None:
+            logger.debug("No body provided. Using default body")
             body = self.metadata.get("defaultBody", {})
-
-        request_kwargs = {"method": method, "url": url, "headers": headers}
-        if body is not None:
-            request_kwargs["json"] = body
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.request(**request_kwargs) as response:
+                # TODO: add timeout
+                async with session.request(
+                    method=method, url=url, headers=headers, json=body
+                ) as response:
                     response.raise_for_status()
                     return await response.json()
         except Exception as e:
