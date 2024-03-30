@@ -23,7 +23,8 @@ from app.models.tools import DatasourceInput
 from app.tools import TOOL_TYPE_MAPPING, create_pydantic_model_from_object, create_tool
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
 from app.utils.llm import LLM_MAPPING
-from prisma.models import LLM, Agent, AgentDatasource, AgentTool
+from lib.prompts import JSON_FORMAT_INSTRUCTIONS
+from prisma.models import LLM, AgentDatasource, AgentTool
 
 DEFAULT_PROMPT = (
     "You are a helpful AI Assistant, answer the users questions to "
@@ -159,10 +160,10 @@ class LangchainAgent(AgentBase):
             "max_tokens": options.get("max_tokens"),
         }
 
-    async def _get_llm(self, llm: LLM, agent: Agent):
+    async def _get_llm(self, llm: LLM):
         if llm.provider == "OPENAI":
             return ChatOpenAI(
-                model=LLM_MAPPING[agent.llmModel],
+                model=LLM_MAPPING[self.agent_config.llmModel],
                 openai_api_key=llm.apiKey,
                 streaming=self.enable_streaming,
                 callbacks=self.callbacks,
@@ -176,26 +177,16 @@ class LangchainAgent(AgentBase):
                 **self.get_llm_params(),
             )
 
-    async def _get_prompt(self, agent: Agent):
-        base_prompt = agent.prompt or DEFAULT_PROMPT
+    async def _get_prompt(self):
+        base_prompt = self.agent_config.prompt or DEFAULT_PROMPT
+        content = f"{datetime.datetime.now().strftime('%Y-%m-%d')}"
+
         if self.output_schema:
-            content = f"""
-                {base_prompt}\n\n"
-                Always answer using the below output schema. 
-                The output should be formatted as a JSON instance that conforms to the JSON schema below.
-                
-                As an example, for the schema {{"properties": {{"foo": {{"title": "Foo", "description": "a list of strings", "type": "array", "items": {{"type": "string"}}}}}}, "required": ["foo"]}}
-                the object {{"foo": ["bar", "baz"]}} is a well-formatted instance of the schema. The object {{"properties": {{"foo": ["bar", "baz"]}}}} is not well-formatted.
-
-                Here is the output schema:
-                ```
-                {self.output_schema}
-                ```
-                """
+            content += JSON_FORMAT_INSTRUCTIONS.format(
+                base_prompt=base_prompt, output_schema=self.output_schema
+            )
         else:
-            content = f"{base_prompt}"
-
-        content += f"\n\nCurrent date: {datetime.datetime.now().strftime('%Y-%m-%d')}"
+            content += f"{base_prompt}"
 
         return SystemMessage(content=content)
 
@@ -231,14 +222,12 @@ class LangchainAgent(AgentBase):
         return memory
 
     async def get_agent(self):
-        llm = await self._get_llm(
-            llm=self.agent_config.llms[0].llm, agent=self.agent_config
-        )
+        llm = await self._get_llm(llm=self.agent_config.llms[0].llm)
         tools = await self._get_tools(
             agent_datasources=self.agent_config.datasources,
             agent_tools=self.agent_config.tools,
         )
-        prompt = await self._get_prompt(agent=self.agent_config)
+        prompt = await self._get_prompt()
         memory = await self._get_memory()
 
         if len(tools) > 0:
