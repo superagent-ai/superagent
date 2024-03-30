@@ -61,6 +61,7 @@ enum ToolType {
   RESEARCH
   GITHUB
   SCRAPER
+  ADVANCED_SCRAPER
 }
 
 enum DatasourceType {

@@ -87,6 +87,7 @@ class ToolModel(BaseModel):
     openai_assistant: Optional["OpenAIAgentTool"]
     llm: Optional["LLMAgentTool"]
     scraper: Optional[Tool]
+    advanced_scraper: Optional[Tool]
 
     # OpenAI Assistant tools
     code_interpreter: Optional[Tool]

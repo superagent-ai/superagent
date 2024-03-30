@@ -102,3 +102,6 @@ class TavilyInput(BaseModel):
 
 class ScraperInput(BaseModel):
     url: str
+
+class AdvancedScraperInput(BaseModel):
+    url: str
