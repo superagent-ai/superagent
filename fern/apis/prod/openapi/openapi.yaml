@@ -2087,7 +2087,7 @@ components:
         description:
           title: Description
           type: string
-          default: An helpful agent.
+          default: A helpful agent.
         avatar:
           title: Avatar
           type: string
@@ -2239,7 +2239,7 @@ components:
         description:
           title: Description
           type: string
-          default: An helpful tool.
+          default: a helpful tool.
         type:
           title: Type
           type: string

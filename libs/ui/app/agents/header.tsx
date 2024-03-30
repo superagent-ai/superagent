@@ -19,7 +19,7 @@ export default function Header({ profile }: { profile: Profile }) {
       description: "",
       llmModel: "GPT_3_5_TURBO_16K_0613",
       isActive: true,
-      prompt: "You are an helpful AI Assistant",
+      prompt: "You are a helpful AI Assistant",
     })
     router.push(`/agents/${agent.id}`)
   })

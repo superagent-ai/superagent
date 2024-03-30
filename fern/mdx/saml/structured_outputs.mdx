@@ -1,0 +1,66 @@
+Besides SDK we support setting output schemas as well. In this page we will show you how to set output schema for forcing LLM to generate output in a specific format.
+Output schema is a JSON object that describes the structure of the output. This can be anything from a simple JSON object to a complex nested structure.
+
+
+Note: We will use `Scraper` tool in our examples. You can get the API Key from [ScrapingBee's website](https://www.scrapingbee.com/)
+
+### Natural Language Schema
+This is a simple and intuitive way to define the output schema. It can be anything.
+
+```yaml
+workflows:
+  - anthropic:
+      llm: claude-3-haiku-20240307
+      name: Structured Assistant
+      tools:
+        - scraper:
+            name: browser
+            use_for: searching the internet
+            metadata:
+              apiKey:  <YOUR_SCRAPINGBEE_API_KEY>
+      prompt: You're a helpful assistant.
+      output_schema: |-
+        [
+          {
+           product_url: Product URL that links to the Amazon page
+           product_name: Name of the product
+           product_price: Price of the product in U.S dollars
+          }
+        ]
+```
+
+
+### JSON Schema
+JSON schema is more powerful than natural language schema. It allows you to define the output schema in a more structured way.
+
+```yaml
+workflows:
+  - anthropic:
+      llm: claude-3-haiku-20240307
+      name: Structured Assistant
+      tools:
+        - scraper:
+            name: browser
+            use_for: searching the internet
+            metadata:
+              apiKey: <YOUR_SCRAPINGBEE_API_KEY>
+      prompt: You're a helpful assistant.
+      output_schema:
+        type: array
+        items:
+          type: object
+          required:
+            - product_url
+            - product_name
+            - product_price
+          properties:
+            product_url:
+              type: string
+            product_name:
+              type: string
+            product_price:
+              type: number
+              description: the price of the product in U.S dollars
+```
+
+For example, you can ask for `I need a list of books about programming from Amazon.`. The scraper tool will scrape the data from Amazon's website and return the data in the format you have defined in the output schema.

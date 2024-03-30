@@ -44,8 +44,12 @@ navigation:
             path: ./mdx/sdk/workflows.mdx
           - page: Configuring Vector Database
             path: ./mdx/sdk/configure_vector_database.mdx
-          - page: SuperAgent Markup Language
-            path: ./mdx/sdk/saml.mdx
+      - section: SAML
+        contents:
+          - page: Intro
+            path: ./mdx/saml/intro.mdx
+          - page: Structured Outputs
+            path: ./mdx/saml/structured_outputs.mdx
       - section: Installation 
         contents:
           - page: Docker Compose
