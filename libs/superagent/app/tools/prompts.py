@@ -42,7 +42,7 @@ def create_function_response_prompt(input: str, context: str) -> str:
     """
 
     prompt = (
-        "You are an helpful AI Assistant, answer the question by "
+        "You are a helpful AI Assistant, answer the question by "
         "providing the most suitable response based on the context provided.\n\n"
         f"Input: {input}\n\n"
         f"Context:\n{context}"
