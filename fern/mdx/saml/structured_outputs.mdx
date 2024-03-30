@@ -17,13 +17,16 @@ workflows:
             name: browser
             use_for: searching the internet
             metadata:
-              apiKey: <YOUR_SCRAPINGBEE_API_KEY>
-      prompt: You're an helpful assistant.
-      output_schema:
-        products: 
+              apiKey:  <YOUR_SCRAPINGBEE_API_KEY>
+      prompt: You're a helpful assistant.
+      output_schema: |-
+        [
+          {
            product_url: Product URL that links to the Amazon page
            product_name: Name of the product
            product_price: Price of the product in U.S dollars
+          }
+        ]
 ```
 
 
@@ -41,7 +44,7 @@ workflows:
             use_for: searching the internet
             metadata:
               apiKey: <YOUR_SCRAPINGBEE_API_KEY>
-      prompt: You're an helpful assistant.
+      prompt: You're a helpful assistant.
       output_schema:
         type: array
         items:
@@ -60,4 +63,4 @@ workflows:
               description: the price of the product in U.S dollars
 ```
 
-You can ask for `I need a list books from Amazon about programming.`. The scraper tool will scrape the data from Amazon's website and return the data in the format you have defined in the output schema.
+For example, you can ask for `I need a list of books about programming from Amazon.`. The scraper tool will scrape the data from Amazon's website and return the data in the format you have defined in the output schema.
