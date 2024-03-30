@@ -103,6 +103,7 @@ class Assistant(BaseModel):
     prompt: str
     intro: Optional[str]
     params: Optional[LLMParams]
+    output_schema: Optional[Any]
 
 
 # ~~~Agents~~~

@@ -80,5 +80,5 @@ class Agent(BaseTool):
         result = await agent.ainvoke(
             input=invoke_input,
         )
-        print("Nested agent output: ")
+
         return result.get("output")

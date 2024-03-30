@@ -23,7 +23,8 @@ from app.models.tools import DatasourceInput
 from app.tools import TOOL_TYPE_MAPPING, create_pydantic_model_from_object, create_tool
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
 from app.utils.llm import LLM_MAPPING
-from prisma.models import LLM, Agent, AgentDatasource, AgentTool
+from lib.prompts import JSON_FORMAT_INSTRUCTIONS
+from prisma.models import LLM, AgentDatasource, AgentTool
 
 DEFAULT_PROMPT = (
     "You are a helpful AI Assistant, answer the users questions to "
@@ -159,10 +160,10 @@ class LangchainAgent(AgentBase):
             "max_tokens": options.get("max_tokens"),
         }
 
-    async def _get_llm(self, llm: LLM, agent: Agent):
+    async def _get_llm(self, llm: LLM):
         if llm.provider == "OPENAI":
             return ChatOpenAI(
-                model=LLM_MAPPING[agent.llmModel],
+                model=LLM_MAPPING[self.agent_config.llmModel],
                 openai_api_key=llm.apiKey,
                 streaming=self.enable_streaming,
                 callbacks=self.callbacks,
@@ -176,31 +177,17 @@ class LangchainAgent(AgentBase):
                 **self.get_llm_params(),
             )
 
-    async def _get_prompt(self, agent: Agent) -> str:
+    async def _get_prompt(self):
+        base_prompt = self.agent_config.prompt or DEFAULT_PROMPT
+        content = f"{datetime.datetime.now().strftime('%Y-%m-%d')}"
+
         if self.output_schema:
-            if agent.prompt:
-                content = (
-                    f"{agent.prompt}\n\n"
-                    "Always answer using the below output schema. "
-                    "No other characters allowed.\n\n"
-                    "Here is the output schema:\n"
-                    f"{self.output_schema}"
-                    "\n\nCurrent date: "
-                    f"{datetime.datetime.now().strftime('%Y-%m-%d')}"
-                )
-            else:
-                content = (
-                    f"{DEFAULT_PROMPT}\n\n"
-                    "Always answer using the below output schema. "
-                    "No other characters allowed.\n\n"
-                    "Here is the output schema:\n"
-                    f"{self.output_schema}"
-                    "\n\nCurrent date: "
-                    f"{datetime.datetime.now().strftime('%Y-%m-%d')}"
-                )
+            content += JSON_FORMAT_INSTRUCTIONS.format(
+                base_prompt=base_prompt, output_schema=self.output_schema
+            )
         else:
-            content = agent.prompt or DEFAULT_PROMPT
-            content = f"{content}" f"\n\n{datetime.datetime.now().strftime('%Y-%m-%d')}"
+            content += f"{base_prompt}"
+
         return SystemMessage(content=content)
 
     async def _get_memory(
@@ -235,14 +222,12 @@ class LangchainAgent(AgentBase):
         return memory
 
     async def get_agent(self):
-        llm = await self._get_llm(
-            llm=self.agent_config.llms[0].llm, agent=self.agent_config
-        )
+        llm = await self._get_llm(llm=self.agent_config.llms[0].llm)
         tools = await self._get_tools(
             agent_datasources=self.agent_config.datasources,
             agent_tools=self.agent_config.tools,
         )
-        prompt = await self._get_prompt(agent=self.agent_config)
+        prompt = await self._get_prompt()
         memory = await self._get_memory()
 
         if len(tools) > 0:
@@ -262,20 +247,17 @@ class LangchainAgent(AgentBase):
             )
             return agent
         else:
-            prompt_base = (
-                f"{self.agent_config.prompt.replace('{', '{{').replace('}', '}}')}"
-                if self.agent_config.prompt
-                else None
-            )
-            prompt_base = prompt_base or DEFAULT_PROMPT
-            prompt_question = "Question: {input}"
+            user_prompt = prompt.content.replace("{", "{{").replace("}", "}}")
+            user_input = "Question: {input}"
             prompt_history = "History: \n {chat_history}"
-            prompt = f"{prompt_base} \n {prompt_question} \n {prompt_history}"
+            prompt_template = f"{user_prompt} \n {user_input} \n {prompt_history}"
+
             agent = LLMChain(
                 llm=llm,
                 memory=memory,
                 output_key="output",
                 verbose=True,
-                prompt=PromptTemplate.from_template(prompt),
+                prompt=PromptTemplate.from_template(prompt_template),
             )
+
         return agent
