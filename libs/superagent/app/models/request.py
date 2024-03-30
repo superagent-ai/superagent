@@ -32,7 +32,7 @@ class Agent(BaseModel):
     prompt: Optional[str]
     llmModel: Optional[str]
     llmProvider: Optional[LLMProvider]
-    description: Optional[str] = "An helpful agent."
+    description: Optional[str] = "a helpful agent."
     avatar: Optional[str]
     type: Optional[AgentType] = AgentType.SUPERAGENT
     parameters: Optional[OpenAiAssistantParameters]
@@ -116,7 +116,7 @@ class DatasourceUpdate(BaseModel):
 
 class Tool(BaseModel):
     name: str
-    description: Optional[str] = "An helpful tool."
+    description: Optional[str] = "a helpful tool."
     type: str
     metadata: Optional[Dict[Any, Any]]
     returnDirect: Optional[bool] = False

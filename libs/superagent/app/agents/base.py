@@ -69,6 +69,7 @@ class AgentBase:
                 agent_id=self.agent_id,
                 session_id=self.session_id,
                 enable_streaming=self.enable_streaming,
+                output_schema=self.output_schema,
                 callbacks=self.callbacks,
                 llm_params=self.llm_params,
                 agent_config=self.agent_config,
