@@ -83,7 +83,7 @@ You can force your Assistant to reply using structured outputs. This can be bene
         ```python 
         prediction = client.agent.invoke(
             agent_id=agent.data.id,
-            input="List the top 5 articles on https://news.ycombinator.com."
+            input="List the top 5 articles on https://news.ycombinator.com.",
             enable_streaming=False,
             session_id="my_session_id",
             output_schema="[{title: string, points: number, url: string}]" # Your desired output schema
@@ -103,7 +103,7 @@ You can force your Assistant to reply using structured outputs. This can be bene
     <CodeBlock title="Javascript">
         ```javascript 
         const {data: prediction} = await client.agent.invoke(agent.id, {
-            input: "List the top 5 articles on https://news.ycombinator.com."
+            input: "List the top 5 articles on https://news.ycombinator.com.",
             enableStreaming: false,
             sessionId: "my_session_id",
             outputSchema: "[{title: string, points: number, url: string}]" // Your desired output schema
