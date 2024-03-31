@@ -250,6 +250,17 @@ export const siteConfig = {
       ],
     },
     {
+      value: "GOOGLE_SEARCH",
+      title: "Google search",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Google search api key",
+        },
+      ],
+    },
+    {
       value: "HTTP",
       title: "API Request",
       metadata: [
