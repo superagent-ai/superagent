@@ -100,3 +100,7 @@ class TavilyInput(BaseModel):
 
 class ScraperInput(BaseModel):
     url: str
+
+
+class GoogleSearchInput(BaseModel):
+    query: str
