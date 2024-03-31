@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: 🥷 Run AI-agents with an API
-  version: 0.2.23
+  version: 0.2.24
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -2087,7 +2087,7 @@ components:
         description:
           title: Description
           type: string
-          default: A helpful agent.
+          default: An helpful agent.
         avatar:
           title: Avatar
           type: string
@@ -2239,7 +2239,7 @@ components:
         description:
           title: Description
           type: string
-          default: a helpful tool.
+          default: An helpful tool.
         type:
           title: Type
           type: string
