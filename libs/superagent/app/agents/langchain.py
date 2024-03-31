@@ -23,8 +23,8 @@ from app.models.tools import DatasourceInput
 from app.tools import TOOL_TYPE_MAPPING, create_pydantic_model_from_object, create_tool
 from app.tools.datasource import DatasourceTool, StructuredDatasourceTool
 from app.utils.llm import LLM_MAPPING
-from lib.prompts import JSON_FORMAT_INSTRUCTIONS
 from prisma.models import LLM, AgentDatasource, AgentTool
+from prompts.json import JSON_FORMAT_INSTRUCTIONS
 
 DEFAULT_PROMPT = (
     "You are a helpful AI Assistant, answer the users questions to "
