@@ -1,5 +1,6 @@
 FROM python:3.11 AS builder
 # Use the python latest image
+WORKDIR /app
 
 RUN pip install poetry
 
@@ -9,8 +10,6 @@ ENV POETRY_NO_INTERACTION=1 \
     POETRY_CACHE_DIR=/tmp/poetry_cache \
     MAX_CONCURRENCY=20
 
-WORKDIR /app
-
 # Copy only dependency files for layer caching
 COPY pyproject.toml poetry.lock ./
 
@@ -18,6 +17,7 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry install --no-root && rm -rf $POETRY_CACHE_DIR
 
 FROM python:3.11 AS runtime
+WORKDIR /app
 
 RUN apt-get update && apt-get install -y curl ca-certificates gnupg netcat-openbsd && \
     mkdir -p /etc/apt/keyrings && \
