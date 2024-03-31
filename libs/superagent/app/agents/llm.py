@@ -8,9 +8,9 @@ from app.agents.base import AgentBase
 from app.utils.callbacks import CustomAsyncIteratorCallbackHandler
 from app.utils.llm import LLM_REVERSE_MAPPING
 from app.utils.prisma import prisma
-from lib.prompts import JSON_FORMAT_INSTRUCTIONS
 from prisma.enums import AgentType, LLMProvider
 from prisma.models import Agent
+from prompts.json import JSON_FORMAT_INSTRUCTIONS
 
 logger = logging.getLogger(__name__)
 
