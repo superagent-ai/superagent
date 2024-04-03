@@ -62,6 +62,7 @@ enum ToolType {
   GITHUB
   SCRAPER
   ADVANCED_SCRAPER
+  GOOGLE_SEARCH
 }
 
 enum DatasourceType {
@@ -145,6 +146,7 @@ model Agent {
   tools          AgentTool[]
   workflowSteps  WorkflowStep[]
   metadata       Json?
+  outputSchema   String?
 }
 
 model Datasource {

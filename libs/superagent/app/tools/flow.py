@@ -84,7 +84,7 @@ async def generate_route(function_schema: Dict[str, Any]) -> str:
         model="openrouter/mistralai/mixtral-8x7b-instruct",
         api_key=config("OPENROUTER_API_KEY"),
         messages=[
-            {"role": "system", "content": "You are an helpful assistant."},
+            {"role": "system", "content": "You are a helpful assistant."},
             {
                 "role": "user",
                 "content": prompt,

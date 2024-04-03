@@ -126,6 +126,7 @@ const PricingTable = ({
                 planId={planId}
                 stripeCustomerId={stripeCustomerId}
                 isAlreadySubscribedToPlan={currentPlan?.id === planId}
+                currentSubscriptionId={currentSubscription?.id}
                 isLowerPlan={
                   plans[currentPlan?.id as string]?.order > plan.order
                 }

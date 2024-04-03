@@ -27,6 +27,7 @@ from app.models.tools import (
     WolframInput,
     ZapierInput,
     AdvancedScraperInput
+    GoogleSearchInput,
 )
 from app.tools.agent import Agent
 from app.tools.algolia import Algolia
@@ -51,6 +52,7 @@ from app.tools.tts_1 import TTS1
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
 from app.tools.advanced_scraper import AdvancedScraper
+from app.tools.google_search import GoogleSearch
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +87,8 @@ TOOL_TYPE_MAPPING = {
     "SUPERRAG": {"class": SuperRagTool, "schema": SuperRagInput},
     "RESEARCH": {"class": Tavily, "schema": TavilyInput},
     "SCRAPER": {"class": Scraper, "schema": ScraperInput},
-    "ADVANCED_SCRAPER": {"class": AdvancedScraper, "schema": AdvancedScraperInput}
+    "ADVANCED_SCRAPER": {"class": AdvancedScraper, "schema": AdvancedScraperInput},
+    "GOOGLE_SEARCH": {"class": GoogleSearch, "schema": GoogleSearchInput},
 }
 
 OSS_TOOL_TYPE_MAPPING = {"BROWSER": Browser, "BING_SEARCH": BingSearch}

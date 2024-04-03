@@ -91,8 +91,6 @@ class FunctionInput(BaseModel):
 
 
 class HTTPInput(BaseModel):
-    url: Optional[str] = None
-    method: Optional[str] = None
     body: Optional[dict] = {}
 
 
@@ -103,10 +101,16 @@ class TavilyInput(BaseModel):
 class ScraperInput(BaseModel):
     url: str
 
+ 
 class FormatEnum(str, Enum):
     markdown = "markdown"
     html = "html"
 
+
 class AdvancedScraperInput(BaseModel):
     url: str
     format: Optional[FormatEnum] = FormatEnum.markdown
+
+
+class GoogleSearchInput(BaseModel):
+    query: str

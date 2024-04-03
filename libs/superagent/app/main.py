@@ -36,7 +36,7 @@ app = FastAPI(
     title="Superagent",
     docs_url="/",
     description="🥷 Run AI-agents with an API",
-    version="0.2.23",
+    version="0.2.24",
     servers=[{"url": config("SUPERAGENT_API_URL")}],
 )
 

@@ -88,6 +88,7 @@ class ToolModel(BaseModel):
     llm: Optional["LLMAgentTool"]
     scraper: Optional[Tool]
     advanced_scraper: Optional[Tool]
+    google_search: Optional[Tool]
 
     # OpenAI Assistant tools
     code_interpreter: Optional[Tool]
@@ -104,6 +105,7 @@ class Assistant(BaseModel):
     prompt: str
     intro: Optional[str]
     params: Optional[LLMParams]
+    output_schema: Optional[Any]
 
 
 # ~~~Agents~~~

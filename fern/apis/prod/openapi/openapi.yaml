@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: 🥷 Run AI-agents with an API
-  version: 0.2.23
+  version: 0.2.24
 servers:
   - url: https://api.beta.superagent.sh
 paths:
