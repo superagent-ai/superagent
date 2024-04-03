@@ -1,5 +1,5 @@
 from typing import Optional
-
+from enum import Enum
 from pydantic import BaseModel
 
 
@@ -103,5 +103,10 @@ class TavilyInput(BaseModel):
 class ScraperInput(BaseModel):
     url: str
 
+class FormatEnum(str, Enum):
+    markdown = "markdown"
+    html = "html"
+
 class AdvancedScraperInput(BaseModel):
     url: str
+    format: Optional[FormatEnum] = FormatEnum.markdown

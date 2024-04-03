@@ -2,31 +2,49 @@ import asyncio
 import requests
 
 from langchain_community.tools import BaseTool
-#from Olostep import OlostepClient
 
 
 class AdvancedScraper(BaseTool):
     name = "AdvancedScraper"
-    description = "useful for quickly and easily extracting content from a webpage"
+    description = "useful for quickly and easily extracting content from a webpage (uses a real browser via Olostep)"
     return_direct = False
 
-    def _run(self, url: str) -> str:
+    def _run(self, url: str, format: str = "markdown") -> str:
 
-        url = "https://agent.olostep.com/olostep-p2p-incomingAPI"
-        headers = {"Authorization": "Bearer <token>"}
+        endpoint = "https://agent.olostep.com/olostep-p2p-incomingAPI"
+        headers = {"Authorization": "Bearer " + self.metadata.get("apiKey")}
 
-        #for more details look at => https://docs.olostep.com/api-reference/start-agent
+        if format == "markdown":
+            saveHtml = False
+            saveMarkdown = True
+            expandHtml = False
+            expandMarkdown = True
+        else:
+            saveHtml = True
+            saveMarkdown = False
+            expandHtml = True
+            expandMarkdown = False
+
+        # for more details look at => https://docs.olostep.com/api-reference/start-agent
         querystring = {
-            "url": "https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping",
-            "expandHtml":"true",
-            "expandMarkdown": "false",
-            "waitBeforeScraping": 0
+            "url": url,
+            "saveHtml": saveHtml,
+            "saveMarkdown": saveMarkdown,
+            "expandHtml": expandHtml,
+            "expandMarkdown": expandMarkdown,
+            "waitBeforeScraping": 1,
+            "fastLane": True,
+            "removeCSSselectors": "default",
+            "timeout": 45
         }
 
-        response = requests.request("GET", url, headers=headers, params=querystring)
-        return response.text
+        response = requests.get(endpoint, headers=headers, params=querystring)
+        if format=="markdown":
+            return response.json().get("markdown_content")
+        else:
+            return response.json().get("html_content")
 
-    async def _arun(self, url: str) -> str:
+    async def _arun(self, url: str, format: str = "markdown") -> str:
         loop = asyncio.get_event_loop()
-        response_text = await loop.run_in_executor(None, self._run, url)
+        response_text = await loop.run_in_executor(None, self._run, url, format)
         return response_text
