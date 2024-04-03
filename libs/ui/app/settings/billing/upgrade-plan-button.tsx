@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast"
 type UpgradeButtonProps = {
   stripeCustomerId: string
   planId: string
+  currentSubscriptionId?: string
   isAlreadySubscribedToPlan: boolean
   isLowerPlan: boolean
 } & ButtonProps
@@ -16,6 +17,7 @@ type UpgradeButtonProps = {
 function UpgradeButton({
   stripeCustomerId,
   planId,
+  currentSubscriptionId,
   isAlreadySubscribedToPlan,
   isLowerPlan,
   ...buttonProps
@@ -46,21 +48,48 @@ function UpgradeButton({
     })
   }
 
+  const cancelSubscription = async () => {
+    const res = await fetch(
+      `/api/stripe/subscriptions/${currentSubscriptionId}/cancel`,
+      {
+        method: "POST",
+      }
+    )
+
+    if (!res.ok) {
+      return toast({
+        title: "Error",
+        description: "Something went wrong",
+      })
+    }
+
+    toast({
+      title: "Success",
+      description: "Subscription canceled",
+    })
+  }
+
   const isDisabled = isAlreadySubscribedToPlan
 
   return (
     <>
-      <Button
-        onClick={redirectToStripeCheckout}
-        disabled={isDisabled}
-        {...buttonProps}
-      >
-        {isAlreadySubscribedToPlan
-          ? "Your Current Plan"
-          : isLowerPlan
-            ? "Downgrade"
-            : "Upgrade"}
-      </Button>
+      {isAlreadySubscribedToPlan ? (
+        <Button
+          onClick={cancelSubscription}
+          variant="secondary"
+          {...buttonProps}
+        >
+          Cancel Subscription
+        </Button>
+      ) : (
+        <Button
+          onClick={redirectToStripeCheckout}
+          disabled={isDisabled}
+          {...buttonProps}
+        >
+          {isLowerPlan ? "Downgrade" : "Upgrade"}
+        </Button>
+      )}
       <Toaster />
     </>
   )
