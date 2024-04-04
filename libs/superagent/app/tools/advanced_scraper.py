@@ -14,16 +14,10 @@ class AdvancedScraper(BaseTool):
         endpoint = "https://agent.olostep.com/olostep-p2p-incomingAPI"
         headers = {"Authorization": "Bearer " + self.metadata.get("apiKey")}
 
-        if format == "markdown":
-            saveHtml = False
-            saveMarkdown = True
-            expandHtml = False
-            expandMarkdown = True
-        else:
-            saveHtml = True
-            saveMarkdown = False
-            expandHtml = True
-            expandMarkdown = False
+        saveHtml = format == "html"
+        saveMarkdown = format == "markdown"
+        expandHtml = format == "html"
+        expandMarkdown = format == "markdown"
 
         # for more details look at => https://docs.olostep.com/api-reference/start-agent
         querystring = {
