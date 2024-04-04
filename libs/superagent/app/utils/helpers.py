@@ -131,3 +131,8 @@ def get_first_non_null_key(dictionary) -> str:
     for key in dictionary:
         if dictionary[key] is not None:
             return key
+
+
+async def stream_dict_keys(dict_to_stream):
+    for key, value in dict_to_stream.items():
+        yield (f"{key}: {value}\n")
