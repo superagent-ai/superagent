@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "superagent"
-version = "0.2.24"
+version = "0.2.25"
 description = "🥷 Run AI-agents with an API"
 authors = ["Ismail Pelaseyed"]
 readme = "../../README.md"
