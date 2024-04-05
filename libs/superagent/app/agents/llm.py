@@ -84,7 +84,6 @@ class LLMAgent(AgentBase):
 
     async def _get_prompt(self):
         base_prompt = self.agent_config.prompt or DEFAULT_PROMPT
-        print("OUTPUT SCHEMA", self.output_schema)
 
         prompt = f"Current date: {datetime.datetime.now().strftime('%Y-%m-%d')}\n"
 
