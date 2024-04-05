@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from openai.types.beta.assistant_create_params import Tool as OpenAiAssistantTool
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, Field, validator
 
 from prisma.enums import AgentType, LLMProvider, VectorDbProvider
 
@@ -154,7 +154,21 @@ class WorkflowInvoke(BaseModel):
     input: str
     enableStreaming: bool
     sessionId: Optional[str]
-    outputSchemas: Optional[dict[str, str]]
+    outputSchemas: Optional[dict[str, str]] = Field(default_factory=dict)
+    """A dictionary of step_id to output_schema 
+        
+        Example:
+        ```
+        {
+            "step_id_1": "your output schema",
+            "step_id_2": "your output schema"
+        }
+        ```
+    """
+    outputSchema = Optional[str]
+    """The output schema that will be used for only the final output, 
+    if output schema for last step is defined in outputSchemas, 
+    it will be used instead of this one."""
 
 
 class VectorDb(BaseModel):
