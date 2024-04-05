@@ -189,9 +189,10 @@ async def invoke(
     input = body.input
     enable_streaming = body.enableStreaming
     output_schemas = body.outputSchemas
+    last_output_schema = body.outputSchema
 
     workflow_steps = []
-    for step in workflow_data.steps:
+    for idx, step in enumerate(workflow_data.steps):
         agent_data = await prisma.agent.find_unique_or_raise(
             where={"id": step.agentId},
             include={
@@ -209,8 +210,10 @@ async def invoke(
         if not llm_model and metadata.get("model"):
             llm_model = agent_data.metadata.get("model")
 
-        if output_schemas and output_schemas.get(step.id):
+        if output_schemas.get(step.id):
             output_schema = output_schemas[step.id]
+        elif last_output_schema and idx == len(workflow_data.steps) - 1:
+            output_schema = last_output_schema
 
         item = {
             "callbacks": {

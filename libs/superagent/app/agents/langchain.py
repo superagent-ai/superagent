@@ -179,7 +179,7 @@ class LangchainAgent(AgentBase):
 
     async def _get_prompt(self):
         base_prompt = self.agent_config.prompt or DEFAULT_PROMPT
-        content = f"{datetime.datetime.now().strftime('%Y-%m-%d')}"
+        content = f"Current date: {datetime.datetime.now().strftime('%Y-%m-%d')}\n"
 
         if self.output_schema:
             content += JSON_FORMAT_INSTRUCTIONS.format(
