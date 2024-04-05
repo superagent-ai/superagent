@@ -165,7 +165,7 @@ class WorkflowInvoke(BaseModel):
         }
         ```
     """
-    outputSchema = Optional[str]
+    outputSchema: Optional[str]
     """The output schema that will be used for only the final output, 
     if output schema for last step is defined in outputSchemas, 
     it will be used instead of this one."""
