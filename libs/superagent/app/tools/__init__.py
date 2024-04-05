@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional, Type
 from pydantic import create_model
 
 from app.models.tools import (
+    AdvancedScraperInput,
     AgentInput,
     AlgoliaInput,
     BingSearchInput,
@@ -13,6 +14,7 @@ from app.models.tools import (
     CodeInterpreterInput,
     # E2BCodeExecutorInput,
     FunctionInput,
+    GoogleSearchInput,
     GPTVisionInput,
     HandOffInput,
     HTTPInput,
@@ -26,8 +28,8 @@ from app.models.tools import (
     TTS1Input,
     WolframInput,
     ZapierInput,
-    GoogleSearchInput,
 )
+from app.tools.advanced_scraper import AdvancedScraper
 from app.tools.agent import Agent
 from app.tools.algolia import Algolia
 from app.tools.bing_search import BingSearch, LCBingSearch
@@ -37,6 +39,7 @@ from app.tools.code_interpreter import CodeInterpreter
 
 # from app.tools.e2b import E2BCodeExecutor
 from app.tools.function import Function
+from app.tools.google_search import GoogleSearch
 from app.tools.gpt_vision import GPTVision
 from app.tools.hand_off import HandOff
 from app.tools.http import LCHttpTool
@@ -50,7 +53,6 @@ from app.tools.tavily import Tavily
 from app.tools.tts_1 import TTS1
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
-from app.tools.google_search import GoogleSearch
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +87,7 @@ TOOL_TYPE_MAPPING = {
     "SUPERRAG": {"class": SuperRagTool, "schema": SuperRagInput},
     "RESEARCH": {"class": Tavily, "schema": TavilyInput},
     "SCRAPER": {"class": Scraper, "schema": ScraperInput},
+    "ADVANCED_SCRAPER": {"class": AdvancedScraper, "schema": AdvancedScraperInput},
     "GOOGLE_SEARCH": {"class": GoogleSearch, "schema": GoogleSearchInput},
 }
 

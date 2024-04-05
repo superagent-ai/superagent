@@ -56,3 +56,5 @@ libs/.docker/ui/supabase/supabase-setup
 
 google_cloud_service_key.json
 
+# idea
+.idea/
