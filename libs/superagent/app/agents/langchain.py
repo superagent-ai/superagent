@@ -156,8 +156,8 @@ class LangchainAgent(AgentBase):
             **(params),
         }
         return {
+            **options,
             "temperature": options.get("temperature", 0.1),
-            "max_tokens": options.get("max_tokens"),
         }
 
     async def _get_llm(self, llm: LLM):
