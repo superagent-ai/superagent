@@ -57,7 +57,6 @@ class WorkflowBase:
                     "callbacks": self.callbacks[stepIndex],
                 },
             )
-            print("agent_response", agent_response)
             if output_schema:
                 # TODO: throw error if output is not valid
                 json_parser = SimpleJsonOutputParser()
