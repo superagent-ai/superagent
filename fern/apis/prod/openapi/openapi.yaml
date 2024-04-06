@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: 🥷 Run AI-agents with an API
-  version: 0.2.26
+  version: 0.2.27
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -195,8 +195,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
-      x-fern-sdk-group-name: agent
       x-fern-sdk-method-name: invoke
+      x-fern-sdk-group-name: agent
   /api/v1/agents/{agent_id}/llms:
     post:
       tags:
@@ -1876,6 +1876,7 @@ components:
         - RESEARCH
         - GITHUB
         - SCRAPER
+        - ADVANCED_SCRAPER
         - GOOGLE_SEARCH
       type: string
       description: An enumeration.
@@ -1999,6 +2000,9 @@ components:
           type: object
           additionalProperties:
             type: string
+        outputSchema:
+          title: Outputschema
+          type: string
     WorkflowList:
       title: WorkflowList
       required:
