@@ -125,6 +125,16 @@ You can force your Assistant to reply using structured outputs. This can be bene
 
 By passing the `output_schema` we make sure the Assistant returns a `json` repsonse in our desired output schema.
 
+
+You can also define the output schema for workflows. 
+
+1) If you want to define output schema for specific steps in a workflow, you can do so by passing the `output_schemas` to the `invoke` method.
+`output_schemas` is a list of dictionaries where each dictionary contains the `step_id` and the `output_schema` for that step. 
+e.g. `output_schemas=[{step_id: "step_id", output_schema: "schema"}, ...]`
+
+2) If you want to define output schema for only the final step, you can pass the `output_schema` to the `invoke` method.
+
+
 ## Full code
 <CodeBlocks>
     <CodeBlock title="Python">
