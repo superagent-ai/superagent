@@ -29,6 +29,7 @@ from app.utils.callbacks import (
     CustomAsyncIteratorCallbackHandler,
     get_session_tracker_handler,
 )
+from app.utils.helpers import stream_dict_keys
 from app.utils.llm import LLM_MAPPING
 from app.utils.prisma import prisma
 from app.workflows.base import WorkflowBase
@@ -287,20 +288,34 @@ async def invoke(
                     schema_tokens = ""
 
                     async for token in workflow_step["callbacks"]["streaming"].aiter():
-                        if output_schema:
-                            schema_tokens += token
+                        if not output_schema:
+                            agent_name = workflow_step["agent_name"]
+                            async for val in stream_dict_keys(
+                                {
+                                    "id": agent_name,
+                                    "data": token,
+                                }
+                            ):
+                                yield val
                         else:
-                            yield f"id: {workflow_step['agent_name']}\ndata: {token}\n\n"
+                            schema_tokens += token
 
                     if output_schema:
                         from langchain.output_parsers.json import SimpleJsonOutputParser
 
                         parser = SimpleJsonOutputParser()
-                        schema_tokens = str(parser.parse(schema_tokens))
+                        parsed_schema = str(parser.parse(schema_tokens))
 
                         # stream line by line to prevent streaming large data in one go
-                        for line in schema_tokens.split("\n"):
-                            yield f"id: {workflow_step['agent_name']}\ndata: {line}\n\n"
+                        for line in parsed_schema.split("\n"):
+                            agent_name = workflow_step["agent_name"]
+                            async for val in stream_dict_keys(
+                                {
+                                    "id": agent_name,
+                                    "data": line,
+                                }
+                            ):
+                                yield val
 
                 await task
                 exception = task.exception()
@@ -315,19 +330,23 @@ async def invoke(
                     if SEGMENT_WRITE_KEY:
                         track_invocation(workflow_result)
 
-                    if "intermediate_steps" in workflow_step_result:
-                        for step in workflow_step_result["intermediate_steps"]:
-                            (agent_action_message_log, tool_response) = step
-                            function = agent_action_message_log.tool
-                            args = agent_action_message_log.tool_input
-                            if function and args:
-                                yield (
-                                    "event: function_call\n"
-                                    f'data: {{"function": "{function}", '
-                                    f'"step_name": "{workflow_step["agent_name"]}", '
-                                    f'"args": {json.dumps(args)}, '
-                                    f'"response": {json.dumps(tool_response)}}}\n\n'
-                                )
+                    for step in workflow_step_result.get("intermediate_steps", []):
+                        (agent_action_message_log, tool_response) = step
+                        function = agent_action_message_log.tool
+                        args = agent_action_message_log.tool_input
+                        if function and args:
+                            async for val in stream_dict_keys(
+                                {
+                                    "event": "function_call",
+                                    "data": {
+                                        "step_name": workflow_step["agent_name"],
+                                        "function": function,
+                                        "args": json.dumps(args),
+                                        "response": tool_response,
+                                    },
+                                }
+                            ):
+                                yield val
 
             except Exception as error:
                 yield (f"event: error\n" f"data: {error}\n\n")

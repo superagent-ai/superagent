@@ -52,6 +52,7 @@ from app.models.response import (
 )
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.callbacks import CostCalcAsyncHandler, CustomAsyncIteratorCallbackHandler
+from app.utils.helpers import stream_dict_keys
 from app.utils.llm import LLM_MAPPING, LLM_PROVIDER_MAPPING
 from app.utils.prisma import prisma
 from prisma.enums import AgentType
@@ -521,13 +522,25 @@ async def invoke(
             schema_tokens = ""
             async for token in streaming_callback.aiter():
                 if not output_schema:
-                    yield ("event: message\n" f"data: {token}\n\n")
+                    async for val in stream_dict_keys(
+                        {"event": "message", "data": token}
+                    ):
+                        yield val
                 else:
                     schema_tokens += token
 
-            # stream line by line to prevent streaming large data in one go
-            for line in schema_tokens.split("\n"):
-                yield ("event: message\n" f"data: {line}\n\n")
+            if output_schema:
+                from langchain.output_parsers.json import SimpleJsonOutputParser
+
+                parser = SimpleJsonOutputParser()
+                parsed_schema = str(parser.parse(schema_tokens))
+
+                # stream line by line to prevent streaming large data in one go
+                for line in parsed_schema.split("\n"):
+                    async for val in stream_dict_keys(
+                        {"event": "message", "data": line}
+                    ):
+                        yield val
 
             await task
 
@@ -553,12 +566,18 @@ async def invoke(
                     function = agent_action_message_log.tool
                     args = agent_action_message_log.tool_input
                     if function and args:
-                        yield (
-                            "event: function_call\n"
-                            f'data: {{"function": "{function}", '
-                            f'"args": {json.dumps(args)}, '
-                            f'"response": {json.dumps(tool_response)}}}\n\n'
-                        )
+                        async for val in stream_dict_keys(
+                            {
+                                "event": "function_call",
+                                "data": {
+                                    "function": function,
+                                    "args": json.dumps(args),
+                                    "response": tool_response,
+                                },
+                            }
+                        ):
+                            yield val
+
         except Exception as error:
             logger.error(f"Error in send_message: {error}")
             if SEGMENT_WRITE_KEY:
