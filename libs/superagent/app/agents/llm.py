@@ -54,6 +54,10 @@ class FunctionCalling(AgentBase):
         self.agent_config.type = AgentType.SUPERAGENT
         self.agent_config.llmModel = LLM_REVERSE_MAPPING.get("gpt-3.5-turbo-0125")
         self.agent_id = self.agent_config.id
+        # resetting the metadata to avoid any conflicts, as the metadata is not used
+        # E.g parent agent metadata have a model key, and if we pass it to ChatOpenAI
+        # It will give us an error, because we will try to use parent Agent's LLM model.
+        self.agent_config.metadata = {}
 
         await self._set_llm()
         await self._set_tools_return_direct()
