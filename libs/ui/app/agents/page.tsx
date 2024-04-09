@@ -1,5 +1,5 @@
 import { cookies } from "next/headers"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 
 import { Api } from "@/lib/api"
 
@@ -17,7 +17,7 @@ export default async function Agents({
     take: string
   }
 }) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createServerComponentClient({ cookies })
   const {
     data: { user },
   } = await supabase.auth.getUser()

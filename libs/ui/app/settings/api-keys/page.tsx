@@ -1,5 +1,5 @@
 import { cookies } from "next/headers"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 
 import { Api } from "@/lib/api"
 
@@ -7,7 +7,7 @@ import ApiKeysTable from "./api-keys"
 import { CreateSecretKey } from "./create-api-key"
 
 export default async function Settings() {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createServerComponentClient({ cookies })
   const {
     data: { user },
   } = await supabase.auth.getUser()

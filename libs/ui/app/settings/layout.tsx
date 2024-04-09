@@ -1,5 +1,5 @@
 import { cookies } from "next/headers"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 
 import { siteConfig } from "@/config/site"
 import { SettingsSidebar } from "@/components/account-sidebar"
@@ -11,7 +11,7 @@ interface SettingsLayoutProps {
 export default async function SettingsLayout({
   children,
 }: SettingsLayoutProps) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createServerComponentClient({ cookies })
   const {
     data: { user },
   } = await supabase.auth.getUser()

@@ -1,5 +1,5 @@
 import { cookies } from "next/headers"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { TbTerminal2 } from "react-icons/tb"
 
 import { Api } from "@/lib/api"
@@ -14,7 +14,7 @@ export default async function Agents({
   }
 }) {
   let agent = ""
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createServerComponentClient({ cookies })
   const {
     data: { user },
   } = await supabase.auth.getUser()

@@ -1,12 +1,15 @@
 import { cookies } from "next/headers"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import {
+  createRouteHandlerClient,
+  createServerComponentClient,
+} from "@supabase/auth-helpers-nextjs"
 
 import SettingsClientPage from "./client-page"
 
 export const dynamic = "force-dynamic"
 
 export default async function Settings() {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createServerComponentClient({ cookies })
   const {
     data: { user },
   } = await supabase.auth.getUser()

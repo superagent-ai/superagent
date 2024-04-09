@@ -1,6 +1,6 @@
 import { cookies } from "next/headers"
 import Link from "next/link"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { TbBrandOpenai } from "react-icons/tb"
 
 import { Api } from "@/lib/api"
@@ -12,7 +12,7 @@ import Settings from "./settings"
 export const dynamic = "force-dynamic"
 export default async function AgentPage({ params }: { params: any }) {
   const { agentId } = params
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createServerComponentClient({ cookies })
   const {
     data: { user },
   } = await supabase.auth.getUser()
