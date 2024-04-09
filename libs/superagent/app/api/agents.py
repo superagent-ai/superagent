@@ -50,6 +50,7 @@ from app.models.response import (
 from app.models.response import (
     AgentToolList as AgentToolListResponse,
 )
+from app.utils.analytics import track_agent_invocation
 from app.utils.api import get_current_api_user, handle_exception
 from app.utils.callbacks import CostCalcAsyncHandler, CustomAsyncIteratorCallbackHandler
 from app.utils.helpers import stream_dict_keys
@@ -458,39 +459,6 @@ async def invoke(
     if not model and metadata.get("model"):
         model = metadata.get("model")
 
-    def track_agent_invocation(result):
-        intermediate_steps_to_obj = [
-            {
-                **vars(toolClass),
-                "message_log": str(toolClass.message_log),
-                "response": response,
-            }
-            for toolClass, response in result.get("intermediate_steps", [])
-        ]
-
-        analytics.track(
-            api_user.id,
-            "Invoked Agent",
-            {
-                "agent": agent_config.id,
-                "llm_model": agent_config.llmModel,
-                "sessionId": session_id,
-                # default http status code is 200
-                "response": {
-                    "status_code": result.get("status_code", 200),
-                    "error": result.get("error", None),
-                },
-                "output": result.get("output", None),
-                "input": result.get("input", None),
-                "intermediate_steps": intermediate_steps_to_obj,
-                "prompt_tokens": costCallback.prompt_tokens,
-                "completion_tokens": costCallback.completion_tokens,
-                "prompt_tokens_cost_usd": costCallback.prompt_tokens_cost_usd,
-                "completion_tokens_cost_usd": costCallback.completion_tokens_cost_usd,
-                "type": agent_config.type,
-            },
-        )
-
     costCallback = CostCalcAsyncHandler(model=model)
 
     monitoring_callbacks = [costCallback]
@@ -547,18 +515,15 @@ async def invoke(
             result = task.result()
 
             if SEGMENT_WRITE_KEY:
-                try:
-                    track_agent_invocation(
-                        {
-                            "user_id": api_user.id,
-                            "agent": agent_config,
-                            "session_id": session_id,
-                            **result,
-                            **vars(cost_callback),
-                        }
-                    )
-                except Exception as e:
-                    logger.error(f"Error tracking agent invocation: {e}")
+                track_agent_invocation(
+                    {
+                        "user_id": api_user.id,
+                        "agent": agent_config,
+                        "session_id": session_id,
+                        **result,
+                        **vars(cost_callback),
+                    }
+                )
 
             if "intermediate_steps" in result:
                 for step in result["intermediate_steps"]:
@@ -581,10 +546,7 @@ async def invoke(
         except Exception as error:
             logger.error(f"Error in send_message: {error}")
             if SEGMENT_WRITE_KEY:
-                try:
-                    track_agent_invocation({"error": str(error), "status_code": 500})
-                except Exception as e:
-                    logger.error(f"Error tracking agent invocation: {e}")
+                track_agent_invocation({"error": str(error), "status_code": 500})
             yield ("event: error\n" f"data: {error}\n\n")
         finally:
             streaming_callback.done.set()
@@ -634,18 +596,15 @@ async def invoke(
     )
 
     if not enable_streaming and SEGMENT_WRITE_KEY:
-        try:
-            track_agent_invocation(
-                {
-                    "user_id": api_user.id,
-                    "agent": agent_config,
-                    "session_id": session_id,
-                    **output,
-                    **vars(cost_callback),
-                }
-            )
-        except Exception as e:
-            logger.error(f"Error tracking agent invocation: {e}")
+        track_agent_invocation(
+            {
+                "user_id": api_user.id,
+                "agent": agent_config,
+                "session_id": session_id,
+                **output,
+                **vars(cost_callback),
+            }
+        )
 
     if output_schema:
         from langchain.output_parsers.json import SimpleJsonOutputParser
