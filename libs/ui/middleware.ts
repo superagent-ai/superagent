@@ -47,6 +47,7 @@ export const config = {
     "/logs/:path*",
     "/settings/:path*",
     "/integrations/:path*",
+    "/agents/:path*",
     "/workflows/:path*",
     "/onboarding",
   ],
