@@ -1,5 +1,5 @@
 import { cookies } from "next/headers"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import Stripe from "stripe"
 
 import { Api } from "@/lib/api"
@@ -16,7 +16,7 @@ export default async function Workflows({
 }: {
   searchParams: { checkout_session_id: string }
 }) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createServerComponentClient({ cookies })
   const {
     data: { user },
   } = await supabase.auth.getUser()

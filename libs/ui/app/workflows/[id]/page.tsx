@@ -1,5 +1,5 @@
 import { cookies } from "next/headers"
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 
 import { Api } from "@/lib/api"
 
@@ -10,7 +10,7 @@ export default async function Assistant({
 }: {
   params: { id: string }
 }) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createServerComponentClient({ cookies })
   const { id } = params
   const {
     data: { user },
