@@ -12,7 +12,7 @@ class Tavily(BaseTool):
 
     def _run(self, query: str) -> str:
         tavily = TavilyClient(
-            api_key=config("TAVILY_API_KEY") or self.metadata.get("apiKey")
+            api_key=self.metadata.get("apiKey") or config("TAVILY_API_KEY")
         )
         response = tavily.search(query=query, search_depth="advanced")
         context = [
@@ -22,7 +22,7 @@ class Tavily(BaseTool):
 
     async def _arun(self, query: str) -> str:
         tavily = TavilyClient(
-            api_key=config("TAVILY_API_KEY") or self.metadata.get("apiKey")
+            api_key=self.metadata.get("apiKey") or config("TAVILY_API_KEY")
         )
         loop = asyncio.get_event_loop()
         response = await loop.run_in_executor(None, tavily.search, query, "advanced")
