@@ -102,3 +102,14 @@ async def update(
         return {"success": True, "data": data}
     except Exception as e:
         handle_exception(e)
+
+
+@router.delete(
+    "/vector-dbs/{vector_db_id}",
+    name="delete",
+    description="Delete a Vector Database",
+)
+async def delete(vector_db_id: str, api_user=Depends(get_current_api_user)):
+    """Endpoint for deleting a Vector Database"""
+    await prisma.vectordb.delete(where={"id": vector_db_id, "apiUserId": api_user.id})
+    return {"success": True}
