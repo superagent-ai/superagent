@@ -140,7 +140,7 @@ class LLMAgent(AgentBase):
                     )
 
                 if function_calling_res.get("output") and function_calling_res.get(
-                    "indermediate_steps"
+                    "intermediate_steps"
                 ):
                     INPUT_TEMPLATE = "{input}\n Context: {context}\n"
                     input = INPUT_TEMPLATE.format(
