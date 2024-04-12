@@ -84,6 +84,9 @@ class LLMAgent(AgentBase):
         return {
             "temperature": options.get("temperature"),
             "max_tokens": options.get("max_tokens"),
+            "aws_access_key_id": options.get("aws_access_key_id"),
+            "aws_secret_access_key": options.get("aws_secret_access_key"),
+            "aws_region_name": options.get("aws_region_name"),
         }
 
     async def _get_prompt(self):
