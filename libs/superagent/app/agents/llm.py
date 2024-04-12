@@ -10,6 +10,7 @@ from app.utils.llm import LLM_REVERSE_MAPPING
 from app.utils.prisma import prisma
 from prisma.enums import AgentType, LLMProvider
 from prisma.models import Agent
+from prompts.function_calling_agent import FUNCTION_CALLING_AGENT_PROMPT
 from prompts.json import JSON_FORMAT_INSTRUCTIONS
 
 logger = logging.getLogger(__name__)
@@ -58,6 +59,7 @@ class FunctionCalling(AgentBase):
         # E.g parent agent metadata have a model key, and if we pass it to ChatOpenAI
         # It will give us an error, because we will try to use parent Agent's LLM model.
         self.agent_config.metadata = {}
+        self.agent_config.prompt = FUNCTION_CALLING_AGENT_PROMPT
 
         await self._set_llm()
         await self._set_tools_return_direct()
@@ -137,7 +139,9 @@ class LLMAgent(AgentBase):
                         input=input
                     )
 
-                if function_calling_res.get("output"):
+                if function_calling_res.get("output") and function_calling_res.get(
+                    "indermediate_steps"
+                ):
                     INPUT_TEMPLATE = "{input}\n Context: {context}\n"
                     input = INPUT_TEMPLATE.format(
                         input=input, context=function_calling_res.get("output")
