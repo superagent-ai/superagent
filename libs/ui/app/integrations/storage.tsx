@@ -3,12 +3,14 @@
 import * as React from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { VectorDb } from "@/models/models"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 
 import { siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -29,8 +31,9 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
+import { Toaster } from "@/components/ui/toaster"
+import { useToast } from "@/components/ui/use-toast"
 
 const pineconeSchema = z.object({
   PINECONE_API_KEY: z.string(),
@@ -83,6 +86,7 @@ export default function Storage({
   const [open, setOpen] = React.useState<boolean>()
   const [selectedDB, setSelectedDB] = React.useState<any>()
   const router = useRouter()
+  const { toast } = useToast()
   const api = new Api(profile.api_key)
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -116,6 +120,20 @@ export default function Storage({
     setOpen(false)
   }
 
+  const onDelete = async (vectorDb: VectorDb) => {
+    await api.deleteVectorDb(vectorDb.id)
+    router.refresh()
+
+    let providerName = vectorDb.provider.toLowerCase()
+
+    providerName = providerName.charAt(0).toUpperCase() + providerName.slice(1)
+
+    toast({
+      title: "Success",
+      description: `Successfully disconnected: ${providerName}`,
+    })
+  }
+
   return (
     <div className="container flex max-w-4xl flex-col space-y-10 pt-10">
       <div className="flex flex-col">
@@ -127,7 +145,7 @@ export default function Storage({
       </div>
       <div className="flex-col border-b">
         {siteConfig.vectorDbs.map((vectorDb) => {
-          const isConfigured = configuredDBs.find(
+          const currentDB = configuredDBs.find(
             (db: any) => db.provider === vectorDb.provider
           )
 
@@ -137,11 +155,12 @@ export default function Storage({
               key={vectorDb.provider}
             >
               <div className="flex items-center space-x-4">
-                {isConfigured ? (
-                  <div className="h-2 w-2 rounded-full bg-green-400" />
-                ) : (
-                  <div className="h-2 w-2 rounded-full bg-muted" />
-                )}
+                <div
+                  className={cn(
+                    "h-2 w-2 rounded-full",
+                    currentDB ? "bg-green-400" : "bg-muted"
+                  )}
+                />
                 <div className="flex items-center space-x-3">
                   <Image
                     src={vectorDb.logo}
@@ -152,16 +171,27 @@ export default function Storage({
                   <p className="font-medium">{vectorDb.name}</p>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSelectedDB(vectorDb)
-                  setOpen(true)
-                }}
-              >
-                Settings
-              </Button>
+              {currentDB ? (
+                <Button
+                  variant="outline"
+                  className="border-destructive text-destructive hover:bg-destructive"
+                  size="sm"
+                  onClick={() => onDelete(new VectorDb(currentDB))}
+                >
+                  Disconnect
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedDB(vectorDb)
+                    setOpen(true)
+                  }}
+                >
+                  Connect
+                </Button>
+              )}
             </div>
           )
         })}
@@ -241,6 +271,7 @@ export default function Storage({
           </div>
         </DialogContent>
       </Dialog>
+      <Toaster />
     </div>
   )
 }

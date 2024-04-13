@@ -299,4 +299,10 @@ export class Api {
       body: JSON.stringify(payload),
     })
   }
+
+  async deleteVectorDb(id: string) {
+    return this.fetchFromApi(`/vector-dbs/${id}`, {
+      method: "DELETE",
+    })
+  }
 }
