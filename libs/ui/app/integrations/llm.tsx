@@ -46,7 +46,7 @@ const bedrockSchema = z.object({
 
 const formSchema = z.object({
   apiKey: z.string().optional(),
-  options: z.union([azureSchema, bedrockSchema]),
+  options: z.union([azureSchema, bedrockSchema]).optional(),
 })
 
 export default function LLM({
@@ -67,7 +67,6 @@ export default function LLM({
     },
   })
 
-  console.log("form", form.formState.errors)
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const payload = {
       ...values,
@@ -77,14 +76,16 @@ export default function LLM({
           : values.options,
     }
 
-    const isExistingConnection = configuredLLMs.find(
+    const currentProviderLLMs = configuredLLMs.filter(
       (db: any) => db.provider === selectedProvider.provider
     )
 
-    if (isExistingConnection) {
-      await api.patchLLM(isExistingConnection.id, {
-        ...payload,
-        provider: selectedProvider.provider,
+    if (currentProviderLLMs.length > 0) {
+      currentProviderLLMs.forEach(async (llm: any) => {
+        await api.patchLLM(llm.id, {
+          ...payload,
+          provider: selectedProvider.provider,
+        })
       })
     } else {
       await api.createLLM({ ...payload, provider: selectedProvider.provider })
