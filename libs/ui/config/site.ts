@@ -249,7 +249,7 @@ export const siteConfig = {
         },
       ],
     },
-     {
+    {
       value: "ADVANCED_SCRAPER",
       title: "Advanced Web extractor",
       metadata: [
@@ -486,15 +486,25 @@ export const siteConfig = {
       ],
     },
     {
-      disabled: true,
-      formDescription: "Please enter your HF API key.",
-      provider: "HUGGINGFACE",
-      name: "Hugging Face",
+      disabled: false,
+      formDescription: "Please enter your AWS credentials.",
+      provider: "BEDROCK",
+      name: "Amazon Bedrock",
       metadata: [
         {
-          key: "apiKey",
+          key: "options.aws_access_key_id",
           type: "input",
-          label: "HF API Key",
+          label: "AWS Access Key",
+        },
+        {
+          key: "options.aws_secret_access_key",
+          type: "input",
+          label: "AWS Secret Access Key",
+        },
+        {
+          key: "options.aws_region_name",
+          type: "input",
+          label: "AWS Region",
         },
       ],
     },
@@ -523,6 +533,19 @@ export const siteConfig = {
           key: "options.azure_deployment",
           type: "input",
           label: "Azure deployment name",
+        },
+      ],
+    },
+    {
+      disabled: true,
+      formDescription: "Please enter your HF API key.",
+      provider: "HUGGINGFACE",
+      name: "Hugging Face",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "HF API Key",
         },
       ],
     },

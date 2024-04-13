@@ -36,9 +36,17 @@ const azureSchema = z.object({
   azure_deployment: z.string().nonempty("Deployment cannnot be empty"),
 })
 
+const bedrockSchema = z.object({
+  aws_access_key_id: z.string().nonempty("Access key ID cannot be empty"),
+  aws_secret_access_key: z
+    .string()
+    .nonempty("Secret access key cannot be empty"),
+  aws_region: z.string().nonempty("Region cannot be empty"),
+})
+
 const formSchema = z.object({
-  apiKey: z.string().nonempty("API key is mandatory"),
-  options: azureSchema.optional(),
+  apiKey: z.string().optional(),
+  options: z.union([azureSchema, bedrockSchema]),
 })
 
 export default function LLM({
@@ -59,6 +67,7 @@ export default function LLM({
     },
   })
 
+  console.log("form", form.formState.errors)
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const payload = {
       ...values,

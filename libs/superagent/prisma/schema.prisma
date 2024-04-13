@@ -23,6 +23,7 @@ enum LLMProvider {
   PERPLEXITY
   TOGETHER_AI
   ANTHROPIC
+  BEDROCK
 }
 
 enum LLMModel {
