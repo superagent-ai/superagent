@@ -2,10 +2,10 @@ import json
 import logging
 
 from app.api.workflow_configs.api.api_manager import ApiManager
+from app.api.workflow_configs.exceptions import MissingVectorDatabaseProvider
 from app.api.workflow_configs.saml_schema import SAML_OSS_LLM_PROVIDERS
 from app.utils.helpers import (
     get_first_non_null_key,
-    get_mimetype_from_url,
     get_superrag_compatible_credentials,
     remove_key_if_present,
     rename_and_remove_keys,
@@ -13,6 +13,7 @@ from app.utils.helpers import (
 from app.utils.llm import LLM_REVERSE_MAPPING, get_llm_provider
 from app.vectorstores.base import REVERSE_VECTOR_DB_MAPPING
 from prisma.enums import AgentType, ToolType
+from services.superrag import File
 
 logger = logging.getLogger(__name__)
 
@@ -22,24 +23,6 @@ DEFAULT_ENCODER_OPTIONS = {
     "name": "embed-multilingual-light-v3.0",
     "dimensions": 384,
 }
-
-
-SUPERRAG_MIME_TYPE_TO_EXTENSION = {
-    "text/plain": "TXT",
-    "text/markdown": "MARKDOWN",
-    "application/pdf": "PDF",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "DOCX",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "XLSX",
-    "text/csv": "CSV",
-}
-
-
-class MissingVectorDatabaseProvider(Exception):
-    pass
-
-
-class UnkownFileType(Exception):
-    pass
 
 
 # Source https://stackoverflow.com/questions/33797126/proper-way-to-remove-keys-in-dictionary-with-none-values-in-python
@@ -198,7 +181,7 @@ class DataTransformer:
             }
         else:
             raise MissingVectorDatabaseProvider(
-                "Vector database provider not found."
+                "Vector database provider not found. "
                 "Please configure it by going to the integrations page"
             )
         remove_key_if_present(datasource, "database_provider")
@@ -208,27 +191,13 @@ class DataTransformer:
         files = []
 
         for url in urls:
-            file_type = self._get_file_type(url)
+            file = File(url=url)
             files.append(
                 {
-                    "type": file_type,
-                    "url": url,
+                    "type": file.type.value,
+                    "url": file.url,
                 }
             )
 
         datasource["files"] = files
         remove_key_if_present(datasource, "urls")
-
-    def _get_file_type(self, url: str):
-        try:
-            file_type = SUPERRAG_MIME_TYPE_TO_EXTENSION[get_mimetype_from_url(url)]
-        except KeyError:
-            supported_file_types = ", ".join(
-                value for value in SUPERRAG_MIME_TYPE_TO_EXTENSION.values()
-            )
-            raise UnkownFileType(
-                f"Unknown file type for URL {url}"
-                f"Supported file types are: {supported_file_types}"
-            )
-
-        return file_type
