@@ -2,11 +2,12 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
+import { LLMProvider } from "@/models/models"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 
-import { siteConfig } from "@/config/site"
+import { LLMForm, siteConfig } from "@/config/site"
 import { Api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,24 +31,57 @@ import {
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 
-const azureSchema = z.object({
-  azure_endpoint: z.string().nonempty("Endpoint cannot be empty"),
-  openai_api_version: z.string().nonempty("API version cannnot be empty"),
-  azure_deployment: z.string().nonempty("Deployment cannnot be empty"),
+const openAiSchema = z.object({
+  llmType: z.literal(LLMProvider.OPENAI),
+  apiKey: z.string().nonempty("API key is required"),
+  options: z.object({}),
 })
 
-const bedrockSchema = z.object({
-  aws_access_key_id: z.string().nonempty("Access key ID cannot be empty"),
-  aws_secret_access_key: z
-    .string()
-    .nonempty("Secret access key cannot be empty"),
-  aws_region: z.string().nonempty("Region cannot be empty"),
+const perplexityAiSchema = z.object({
+  llmType: z.literal(LLMProvider.PERPLEXITY),
+  apiKey: z.string().nonempty("API key is required"),
+  options: z.object({}),
 })
 
-const formSchema = z.object({
-  apiKey: z.string().optional(),
-  options: z.union([azureSchema, bedrockSchema]),
+const togetherAiSchema = z.object({
+  llmType: z.literal(LLMProvider.TOGETHER_AI),
+  apiKey: z.string().nonempty("API key is required"),
+  options: z.object({}),
 })
+
+const antrophicSchema = z.object({
+  llmType: z.literal(LLMProvider.ANTHROPIC),
+  apiKey: z.string().nonempty("API key is required"),
+  options: z.object({}),
+})
+const amazonBedrockSchema = z.object({
+  llmType: z.literal(LLMProvider.BEDROCK),
+  apiKey: z.literal(""),
+  options: z.object({
+    aws_access_key_id: z.string(),
+    aws_secret_access_key: z.string(),
+    aws_region_name: z.string(),
+  }),
+})
+
+const azureOpenAiSchema = z.object({
+  llmType: z.literal(LLMProvider.AZURE_OPENAI),
+  apiKey: z.string().nonempty("API key is required"),
+  options: z.object({
+    azure_endpoint: z.string(),
+    openai_api_version: z.string(),
+    azure_deployment: z.string(),
+  }),
+})
+
+const formSchema = z.discriminatedUnion("llmType", [
+  openAiSchema,
+  perplexityAiSchema,
+  togetherAiSchema,
+  antrophicSchema,
+  amazonBedrockSchema,
+  azureOpenAiSchema,
+])
 
 export default function LLM({
   profile,
@@ -57,13 +91,15 @@ export default function LLM({
   configuredLLMs: any
 }) {
   const [open, setOpen] = React.useState<boolean>()
-  const [selectedProvider, setSelectedProvider] = React.useState<any>()
+  const [selectedProvider, setSelectedProvider] = React.useState<LLMForm[0]>()
   const router = useRouter()
   const api = new Api(profile.api_key)
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    values: {
+      llmType: selectedProvider?.provider ?? LLMProvider.OPENAI,
       apiKey: "",
+      options: {} as any,
     },
   })
 
@@ -78,23 +114,22 @@ export default function LLM({
     }
 
     const isExistingConnection = configuredLLMs.find(
-      (db: any) => db.provider === selectedProvider.provider
+      (db: any) => db.provider === selectedProvider?.provider
     )
 
     if (isExistingConnection) {
       await api.patchLLM(isExistingConnection.id, {
         ...payload,
-        provider: selectedProvider.provider,
+        provider: selectedProvider?.provider,
       })
     } else {
-      await api.createLLM({ ...payload, provider: selectedProvider.provider })
+      await api.createLLM({ ...payload, provider: selectedProvider?.provider })
     }
 
     form.reset()
     router.refresh()
     setOpen(false)
   }
-
   return (
     <div className="container flex max-w-4xl flex-col space-y-10 pt-10">
       <div className="flex flex-col">
