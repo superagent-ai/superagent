@@ -97,7 +97,7 @@ export default function Settings({
     },
   })
   const avatar = form.watch("avatar")
-  const currLlmProvider = form.watch("llms") as LLMProvider
+  const currLlmProvider = form.watch("llms") as keyof typeof LLMProvider
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { tools, datasources } = values
 
