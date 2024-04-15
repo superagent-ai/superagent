@@ -51,7 +51,7 @@ interface AddDatasourceProps {
   profile: any
   agent: any
   onSuccess: () => void
-  llmProvider: LLMProvider
+  llmProvider: keyof typeof LLMProvider
 }
 
 const supabase = getSupabase()
@@ -111,7 +111,9 @@ function AddDatasource({
     }
   }
 
-  function getEmbeddingsModelProvider(llmProvider: LLMProvider): LLMProvider {
+  function getEmbeddingsModelProvider(
+    llmProvider: keyof typeof LLMProvider
+  ): keyof typeof LLMProvider {
     if (llmProvider === LLMProvider.AZURE_OPENAI)
       return LLMProvider.AZURE_OPENAI
 

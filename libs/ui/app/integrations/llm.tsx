@@ -97,7 +97,7 @@ export default function LLM({
   const { ...form } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     values: {
-      llmType: selectedProvider?.provider ?? "OPENAI",
+      llmType: selectedProvider?.provider ?? LLMProvider.OPENAI,
       apiKey: "",
       options: {} as any,
     },

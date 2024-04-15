@@ -9,9 +9,7 @@ import {
   TbUserCircle,
 } from "react-icons/tb"
 
-export type SiteConfig = typeof siteConfig & {
-  llmForm: LLMForm
-}
+export type SiteConfig = typeof siteConfig
 
 export type LLMForm = {
   disabled: boolean
