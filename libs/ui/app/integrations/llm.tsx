@@ -103,7 +103,6 @@ export default function LLM({
     },
   })
 
-  console.log("form", form.formState.errors)
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const payload = {
       ...values,
