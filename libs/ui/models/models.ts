@@ -1,8 +1,11 @@
-export enum LLMProvider {
-  OPENAI = "OPENAI",
-  AZURE_OPENAI = "AZURE_OPENAI",
-  HUGGINGFACE = "HUGGINGFACE",
-}
+export const LLMProvider = {
+  OPENAI: "OPENAI",
+  PERPLEXITY: "PERPLEXITY",
+  TOGETHER_AI: "TOGETHER_AI",
+  ANTHROPIC: "ANTHROPIC",
+  BEDROCK: "BEDROCK",
+  AZURE_OPENAI: "AZURE_OPENAI",
+} as const
 
 export enum LLMModel {
   GPT_3_5_TURBO_16K_0613,
@@ -252,7 +255,7 @@ export class AgentTool {
 
 export class LLM {
   id: string
-  provider: LLMProvider
+  provider: typeof LLMProvider
   apiKey: string
   options?: JSON
   agents: AgentLLM[]
