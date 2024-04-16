@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: 🥷 Run AI-agents with an API
-  version: 0.2.29
+  version: 0.2.30
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -1499,6 +1499,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/app__models__response__VectorDb'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+    delete:
+      tags:
+        - Vector Database
+      summary: Delete
+      description: Delete a Vector Database
+      operationId: delete_api_v1_vector_dbs__vector_db_id__delete
+      parameters:
+        - required: true
+          schema:
+            title: Vector Db Id
+            type: string
+          name: vector_db_id
+          in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
         '422':
           description: Validation Error
           content:
