@@ -502,13 +502,13 @@ async def invoke(
 
                 parser = SimpleJsonOutputParser()
                 try:
-                    parsed_res = str(parser.parse(schema_tokens))
+                    parsed_res = parser.parse(schema_tokens)
                 except Exception as e:
                     logger.error(f"Error parsing output: {e}")
-                    parsed_res = "{}"
+                    parsed_res = {}
 
                 # stream line by line to prevent streaming large data in one go
-                for line in parsed_res.split("\n"):
+                for line in json.dumps(parsed_res).split("\n"):
                     async for val in stream_dict_keys(
                         {"event": "message", "data": line}
                     ):
@@ -618,7 +618,9 @@ async def invoke(
             output["output"] = parser.parse(text=output["output"])
         except Exception as e:
             logger.error(f"Error parsing output: {e}")
-            output["output"] = "{}"
+            output["output"] = {}
+
+        output = json.dumps(output)
 
     return {"success": True, "data": output}
 
