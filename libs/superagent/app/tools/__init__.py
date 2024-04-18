@@ -230,13 +230,12 @@ def get_tools(agent_data: AgentModel, session_id: str) -> list[BaseTool]:
             },
         }
 
-        tool_name = conform_function_name(
-            slugify(metadata.get("functionName", agent_tool.tool.name))
-        )
-
         tool_info = TOOL_TYPE_MAPPING.get(agent_tool.tool.type)
         if agent_tool.tool.type == "FUNCTION":
             metadata = recursive_json_loads(agent_tool_metadata)
+            tool_name = conform_function_name(
+                slugify(metadata.get("functionName", agent_tool.tool.name))
+            )
             args = metadata.get("args", {})
             PydanticModel = create_pydantic_model_from_object(args)
             tool = create_tool(
@@ -249,6 +248,9 @@ def get_tools(agent_data: AgentModel, session_id: str) -> list[BaseTool]:
             )
         else:
             metadata = agent_tool_metadata
+            tool_name = conform_function_name(
+                slugify(metadata.get("functionName", agent_tool.tool.name))
+            )
             tool = create_tool(
                 tool_class=tool_info["class"],
                 name=tool_name,

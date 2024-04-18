@@ -1,6 +1,4 @@
 import datetime
-import json
-import re
 
 from decouple import config
 from langchain.agents import AgentType, initialize_agent
@@ -12,85 +10,25 @@ from langchain.memory import (
 )
 from langchain.prompts import MessagesPlaceholder, PromptTemplate
 from langchain.schema import SystemMessage
+from langchain_community.tools import BaseTool
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
 
 from app.agents.base import AgentBase
 from app.tools import get_tools
 from app.utils.llm import LLM_MAPPING
-from prisma.models import LLM
+from prisma.enums import LLMProvider
+from prompts.default import DEFAULT_PROMPT
 from prompts.json import JSON_FORMAT_INSTRUCTIONS
-
-DEFAULT_PROMPT = (
-    "You are a helpful AI Assistant, answer the users questions to "
-    "the best of your ability."
-)
-
-
-def conform_function_name(url):
-    """
-    Validates OpenAI function names and modifies them to conform to the regex
-    """
-    regex_pattern = r"^[a-zA-Z0-9_-]{1,64}$"
-
-    # Check if the URL matches the regex
-    if re.match(regex_pattern, url):
-        return url  # URL is already valid
-    else:
-        # Modify the URL to conform to the regex
-        valid_url = re.sub(r"[^a-zA-Z0-9_-]", "", url)[:64]
-        return valid_url
-
-
-def recursive_json_loads(data):
-    if isinstance(data, str):
-        try:
-            data = json.loads(data)
-        except json.JSONDecodeError:
-            return data
-    if isinstance(data, dict):
-        return {k: recursive_json_loads(v) for k, v in data.items()}
-    if isinstance(data, list):
-        return [recursive_json_loads(v) for v in data]
-    return data
 
 
 class LangchainAgent(AgentBase):
-    async def _get_tools(self) -> list:
-        return get_tools(self.agent_config, self.session_id)
+    @property
+    def tools(self) -> list[BaseTool]:
+        return get_tools(agent_data=self.agent_data, session_id=self.session_id)
 
-    def get_llm_params(self):
-        llm = self.agent_config.llms[0].llm
-        params = self.llm_params.dict() if self.llm_params else {}
-
-        options = {
-            **(self.agent_config.metadata or {}),
-            **(llm.options or {}),
-            **(params),
-        }
-        return {
-            **options,
-            "temperature": options.get("temperature", 0.1),
-        }
-
-    async def _get_llm(self, llm: LLM):
-        if llm.provider == "OPENAI":
-            return ChatOpenAI(
-                model=LLM_MAPPING[self.agent_config.llmModel],
-                openai_api_key=llm.apiKey,
-                streaming=self.enable_streaming,
-                callbacks=self.callbacks,
-                **self.get_llm_params(),
-            )
-        elif llm.provider == "AZURE_OPENAI":
-            return AzureChatOpenAI(
-                api_key=llm.apiKey,
-                streaming=self.enable_streaming,
-                callbacks=self.callbacks,
-                **self.get_llm_params(),
-            )
-
-    async def _get_prompt(self):
-        base_prompt = self.agent_config.prompt or DEFAULT_PROMPT
+    @property
+    def prompt(self):
+        base_prompt = self.agent_data.prompt or DEFAULT_PROMPT
         content = f"Current date: {datetime.datetime.now().strftime('%Y-%m-%d')}\n"
 
         if self.output_schema:
@@ -101,6 +39,28 @@ class LangchainAgent(AgentBase):
             content += f"{base_prompt}"
 
         return SystemMessage(content=content)
+
+    def _get_llm(self):
+        llm_data = self.llm_data
+        llm_data.params.dict(exclude_unset=True)
+
+        if llm_data.llm.provider == LLMProvider.OPENAI:
+            return ChatOpenAI(
+                model=LLM_MAPPING[self.agent_data.llmModel],
+                openai_api_key=llm_data.llm.apiKey,
+                streaming=self.enable_streaming,
+                callbacks=self.callbacks,
+                temperature=llm_data.params.temperature,
+                max_tokens=llm_data.params.max_tokens,
+            )
+        elif llm_data.llm.provider == LLMProvider.AZURE_OPENAI:
+            return AzureChatOpenAI(
+                api_key=llm_data.llm.apiKey,
+                streaming=self.enable_streaming,
+                callbacks=self.callbacks,
+                temperature=llm_data.params.temperature,
+                max_tokens=llm_data.params.max_tokens,
+            )
 
     async def _get_memory(
         self,
@@ -134,10 +94,10 @@ class LangchainAgent(AgentBase):
         return memory
 
     async def get_agent(self):
-        llm = await self._get_llm(llm=self.agent_config.llms[0].llm)
-        tools = await self._get_tools()
-        prompt = await self._get_prompt()
+        llm = self._get_llm()
         memory = await self._get_memory()
+        tools = self.tools
+        prompt = self.prompt
 
         if len(tools) > 0:
             agent = initialize_agent(
