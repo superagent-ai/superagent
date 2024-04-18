@@ -149,7 +149,7 @@ class LLMAgentOpenAIFunctionCallingExecutor(LLMAgent):
                 openai_api_key = openai_llm.apiKey
             else:
                 openai_api_key = config("OPENAI_API_KEY")
-                logger.log(
+                logger.warn(
                     "OpenAI API Key not found in database, using environment variable"
                 )
 
