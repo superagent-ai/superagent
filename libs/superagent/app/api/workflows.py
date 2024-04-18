@@ -304,10 +304,15 @@ async def invoke(
                         from langchain.output_parsers.json import SimpleJsonOutputParser
 
                         parser = SimpleJsonOutputParser()
-                        parsed_schema = str(parser.parse(schema_tokens))
+                        try:
+                            parsed_res = parser.parse(schema_tokens)
+                        except Exception as e:
+                            # TODO: stream schema parsing error as well
+                            logger.error(f"Error in parsing schema: {e}")
+                            parsed_res = {}
 
                         # stream line by line to prevent streaming large data in one go
-                        for line in parsed_schema.split("\n"):
+                        for line in json.dumps(parsed_res).split("\n"):
                             agent_name = workflow_step["agent_name"]
                             async for val in stream_dict_keys(
                                 {
