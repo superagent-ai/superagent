@@ -1,3 +1,5 @@
+import json
+import logging
 from typing import Any, List
 
 from agentops.langchain_callback_handler import (
@@ -8,6 +10,8 @@ from langchain.output_parsers.json import SimpleJsonOutputParser
 
 from app.agents.base import AgentBase
 from app.utils.callbacks import CustomAsyncIteratorCallbackHandler
+
+logger = logging.getLogger(__name__)
 
 
 class WorkflowBase:
@@ -59,10 +63,15 @@ class WorkflowBase:
             )
             if output_schema:
                 # TODO: throw error if output is not valid
-                json_parser = SimpleJsonOutputParser()
-                agent_response["output"] = json_parser.parse(
-                    text=agent_response["output"]
-                )
+                parser = SimpleJsonOutputParser()
+                try:
+                    agent_response["output"] = parser.parse(
+                        text=agent_response["output"]
+                    )
+                except Exception as e:
+                    logger.error(f"Error parsing output: {e}")
+                    agent_response["output"] = {}
+                agent_response["output"] = json.dumps(agent_response["output"])
 
             previous_output = agent_response.get("output")
             steps_output.append(agent_response)
