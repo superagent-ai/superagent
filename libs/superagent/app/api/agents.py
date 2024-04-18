@@ -16,7 +16,7 @@ from langchain.chains import LLMChain
 from langfuse import Langfuse
 from openai import AsyncOpenAI
 
-from app.agents.base import AgentBase
+from app.agents.base import AgentFactory
 from app.models.request import (
     Agent as AgentRequest,
 )
@@ -445,7 +445,7 @@ async def invoke(
             tags=[agent_id, session_id],
         )
 
-    agent_config = await prisma.agent.find_unique_or_raise(
+    agent_data = await prisma.agent.find_unique_or_raise(
         where={"id": agent_id},
         include={
             "llms": {"include": {"llm": True}},
@@ -454,8 +454,8 @@ async def invoke(
         },
     )
 
-    model = LLM_MAPPING.get(agent_config.llmModel)
-    metadata = agent_config.metadata or {}
+    model = LLM_MAPPING.get(agent_data.llmModel)
+    metadata = agent_data.metadata or {}
     if not model and metadata.get("model"):
         model = metadata.get("model")
 
@@ -518,7 +518,7 @@ async def invoke(
                 track_agent_invocation(
                     {
                         "user_id": api_user.id,
-                        "agent": agent_config,
+                        "agent": agent_data,
                         "session_id": session_id,
                         **result,
                         **vars(cost_callback),
@@ -544,7 +544,7 @@ async def invoke(
                             yield val
 
         except Exception as error:
-            logger.error(f"Error in send_message: {error}")
+            logger.exception(f"Error in send_message: {error}")
             if SEGMENT_WRITE_KEY:
                 track_agent_invocation({"error": str(error), "status_code": 500})
             yield ("event: error\n" f"data: {error}\n\n")
@@ -554,32 +554,26 @@ async def invoke(
     logger.info("Invoking agent...")
     input = body.input
     enable_streaming = body.enableStreaming
-    output_schema = body.outputSchema or agent_config.outputSchema
+    output_schema = body.outputSchema or agent_data.outputSchema
     cost_callback = CostCalcAsyncHandler(model=model)
     streaming_callback = CustomAsyncIteratorCallbackHandler()
 
-    agent_base = AgentBase(
-        agent_id=agent_id,
+    agent_base = AgentFactory(
         session_id=session_id,
         enable_streaming=enable_streaming,
         output_schema=output_schema,
         callbacks=monitoring_callbacks,
         llm_params=body.llm_params,
-        agent_config=agent_config,
+        agent_data=agent_data,
     )
     agent = await agent_base.get_agent()
-
-    agent_input = agent_base.get_input(
-        input,
-        agent_type=agent_config.type,
-    )
 
     if enable_streaming:
         logger.info("Streaming enabled. Preparing streaming response...")
 
         generator = send_message(
             agent,
-            input=agent_input,
+            input=input,
             streaming_callback=streaming_callback,
             callbacks=[cost_callback],
         )
@@ -588,7 +582,7 @@ async def invoke(
     logger.info("Streaming not enabled. Invoking agent synchronously...")
 
     output = await agent.ainvoke(
-        input=agent_input,
+        input=input,
         config={
             "callbacks": [cost_callback],
             "tags": [agent_id],
@@ -599,7 +593,7 @@ async def invoke(
         track_agent_invocation(
             {
                 "user_id": api_user.id,
-                "agent": agent_config,
+                "agent": agent_data,
                 "session_id": session_id,
                 **output,
                 **vars(cost_callback),
