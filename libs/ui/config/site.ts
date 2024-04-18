@@ -502,6 +502,19 @@ export const siteConfig = {
     },
     {
       disabled: false,
+      formDescription: "Please enter your Groq API key.",
+      provider: LLMProvider.GROQ,
+      name: "Groq",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Groq API Key",
+        },
+      ],
+    },
+    {
+      disabled: false,
       formDescription: "Please enter your AWS credentials.",
       provider: LLMProvider.BEDROCK,
       name: "Amazon Bedrock",
