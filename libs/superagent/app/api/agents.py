@@ -620,8 +620,6 @@ async def invoke(
             logger.error(f"Error parsing output: {e}")
             output["output"] = {}
 
-        output = json.dumps(output)
-
     return {"success": True, "data": output}
 
 
