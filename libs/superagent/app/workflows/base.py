@@ -1,4 +1,3 @@
-import json
 import logging
 from typing import Any, List
 
@@ -71,7 +70,6 @@ class WorkflowBase:
                 except Exception as e:
                     logger.error(f"Error parsing output: {e}")
                     agent_response["output"] = {}
-                agent_response["output"] = json.dumps(agent_response["output"])
 
             previous_output = agent_response.get("output")
             steps_output.append(agent_response)
