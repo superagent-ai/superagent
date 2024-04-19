@@ -5,6 +5,7 @@ export const LLMProvider = {
   ANTHROPIC: "ANTHROPIC",
   BEDROCK: "BEDROCK",
   MISTRAL: "MISTRAL",
+  GROQ: "GROQ",
   AZURE_OPENAI: "AZURE_OPENAI",
 } as const
 

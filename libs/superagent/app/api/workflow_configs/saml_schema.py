@@ -150,6 +150,7 @@ SAML_OSS_LLM_PROVIDERS = [
     LLMProvider.ANTHROPIC.value,
     LLMProvider.BEDROCK.value,
     LLMProvider.MISTRAL.value,
+    LLMProvider.GROQ.value,
 ]
 
 
@@ -161,6 +162,7 @@ class Workflow(BaseModel):
     together_ai: Optional[LLMAgent]
     bedrock: Optional[LLMAgent]
     mistral: Optional[LLMAgent]
+    groq: Optional[LLMAgent]
     anthropic: Optional[LLMAgent]
     llm: Optional[LLMAgent] = Field(
         description="Deprecated! Use LLM providers instead. e.g. `perplexity` or `together_ai`"

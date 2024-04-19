@@ -25,6 +25,7 @@ enum LLMProvider {
   ANTHROPIC
   BEDROCK
   MISTRAL
+  GROQ
 }
 
 enum LLMModel {
