@@ -26,6 +26,7 @@ enum LLMProvider {
   BEDROCK
   GROQ
   MISTRAL
+  COHERE_CHAT
 }
 
 enum LLMModel {
