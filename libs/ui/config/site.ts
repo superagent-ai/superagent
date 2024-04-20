@@ -551,6 +551,19 @@ export const siteConfig = {
     },
     {
       disabled: false,
+      formDescription: "Please enter your Cohere API key.",
+      provider: LLMProvider.COHERE_CHAT,
+      name: "Cohere",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Cohere API Key",
+        },
+      ],
+    },
+    {
+      disabled: false,
       formDescription: "Please enter your Azure OpenAI API key.",
       provider: LLMProvider.AZURE_OPENAI,
       name: "Azure OpenAI",
