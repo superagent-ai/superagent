@@ -1,3 +1,4 @@
+import json
 import logging
 
 from langchain_community.tools import BaseTool
@@ -57,7 +58,7 @@ class SuperRagTool(BaseTool):
 
         credentials = get_superrag_compatible_credentials(provider.options)
 
-        return self.superrag_service.query(
+        res = self.superrag_service.query(
             {
                 "vector_database": {"type": database_provider, "config": credentials},
                 "index_name": index_name,
@@ -67,3 +68,4 @@ class SuperRagTool(BaseTool):
                 "interpreter_mode": interpreter_mode,
             }
         )
+        return json.dumps(res)

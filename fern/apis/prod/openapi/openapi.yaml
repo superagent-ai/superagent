@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: 🥷 Run AI-agents with an API
-  version: 0.2.30
+  version: 0.2.32
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -195,8 +195,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       security:
         - HTTPBearer: []
-      x-fern-sdk-group-name: agent
       x-fern-sdk-method-name: invoke
+      x-fern-sdk-group-name: agent
   /api/v1/agents/{agent_id}/llms:
     post:
       tags:
@@ -1810,6 +1810,8 @@ components:
         - TOGETHER_AI
         - ANTHROPIC
         - BEDROCK
+        - GROQ
+        - MISTRAL
       type: string
       description: An enumeration.
     OpenAiAssistantParameters:
