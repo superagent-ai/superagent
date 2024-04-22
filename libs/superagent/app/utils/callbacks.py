@@ -42,7 +42,7 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
 
             while not self.queue.empty():
                 await asyncio.sleep(0.1)
-            self.done.set()
+        self.done.set()
 
     async def on_llm_start(self, *_: Any, **__: Any) -> None:
         # If two calls are made in a row, this resets the state
@@ -93,6 +93,7 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
             if token_or_done is True:
                 continue
             self.is_stream_started = True
+
             yield token_or_done
 
 
