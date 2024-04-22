@@ -150,14 +150,14 @@ def conform_function_name(url):
     """
     Validates OpenAI function names and modifies them to conform to the regex
     """
-    regex_pattern = r"^[a-zA-Z0-9_-]{1,64}$"
+    regex_pattern = r"^[A-Za-z0-9_]{1,64}$"
 
     # Check if the URL matches the regex
     if re.match(regex_pattern, url):
         return url  # URL is already valid
     else:
         # Modify the URL to conform to the regex
-        valid_url = re.sub(r"[^a-zA-Z0-9_-]", "", url)[:64]
+        valid_url = re.sub(r"[^A-Za-z0-9_]", "", url)[:64]
         return valid_url
 
 
