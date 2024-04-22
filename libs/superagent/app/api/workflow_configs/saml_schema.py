@@ -164,7 +164,7 @@ class Workflow(BaseModel):
     bedrock: Optional[LLMAgent]
     groq: Optional[LLMAgent]
     mistral: Optional[LLMAgent]
-    cohere_chat: Optional[LLMAgent] = Field(alias="cohere")
+    cohere_chat: Optional[LLMAgent]
     anthropic: Optional[LLMAgent]
     llm: Optional[LLMAgent] = Field(
         description="Deprecated! Use LLM providers instead. e.g. `perplexity` or `together_ai`"

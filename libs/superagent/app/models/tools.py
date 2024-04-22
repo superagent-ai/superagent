@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AlgoliaInput(BaseModel):
@@ -61,7 +61,7 @@ class E2BCodeExecutorInput(BaseModel):
 
 
 class BrowserInput(BaseModel):
-    url: str
+    url: str = Field(..., description="A valid url including protocol to analyze")
 
 
 class GPTVisionInputModel(BaseModel):

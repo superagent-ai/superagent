@@ -7,7 +7,7 @@ workflows:
       name: Browser assistant 
       intro: |- 
         👋 Hi there! How can I help search for answers on the internet.
-      prompt: Use the browser to answer any questions
+      prompt: Use the browser tool to answer any questions
       tools:
         - browser:
             name: browser
@@ -22,7 +22,7 @@ workflows:
   - superagent: 
       name: Browser assistant
       llm: gpt-3.5-turbo-16k-0613
-      prompt: Use the browser to answer all questions
+      prompt: Use the browser tool to answer all questions
       intro: 👋 Hi there! How can I help you?
       tools:
         - browser:
