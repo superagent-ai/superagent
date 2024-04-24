@@ -8,6 +8,9 @@ class SEC(BaseTool):
     description = "useful for searching SEC filings for a company"
     return_direct = False
 
+    def _run(self, ticker: str) -> str:
+        pass
+
     async def _arun(self, ticker: str) -> str:
         form = self.metadata.get("form")
         identity = self.metadata.get("identity")
