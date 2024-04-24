@@ -10,9 +10,9 @@ class SEC(BaseTool):
 
     async def _arun(self, ticker: str) -> str:
         form = self.metadata.get("form")
-        indentity = self.metadata.get("identity")
+        identity = self.metadata.get("identity")
         url = "https://super-sec.replit.app/search"
-        data = {"form": form, "identity": indentity, "ticker": ticker}
+        data = {"form": form, "identity": identity, "ticker": ticker}
 
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=data) as response:

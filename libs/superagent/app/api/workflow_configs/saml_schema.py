@@ -82,7 +82,7 @@ class ToolModel(BaseModel):
     metaphor: Optional[Tool]
     function: Optional[Tool]
     research: Optional[Tool]
-    sec_api: Optional[Tool]
+    sec: Optional[Tool]
     # ~~~~~~Assistants as tools~~~~~~
     superagent: Optional["SuperagentAgentTool"]
     openai_assistant: Optional["OpenAIAgentTool"]
