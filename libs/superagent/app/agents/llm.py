@@ -163,10 +163,14 @@ class AgentExecutor(LLMAgent):
             xml_output = "<root>" + output + "</root>"
             output = xml_parse(xml_output)
             output = output["root"]
-            if "result" in output:
-                output = output.get("result")
+
+            if isinstance(output, str):
+                return output
             else:
-                output = output.get("#text")
+                if "result" in output:
+                    output = output.get("result")
+                else:
+                    output = output.get("#text")
         return output
 
     def _transform_completion_to_streaming(self, res, **kwargs):
