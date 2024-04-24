@@ -67,6 +67,7 @@ enum ToolType {
   SCRAPER
   ADVANCED_SCRAPER
   GOOGLE_SEARCH
+  SEC
 }
 
 enum DatasourceType {
