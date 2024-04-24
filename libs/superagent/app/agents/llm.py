@@ -46,29 +46,35 @@ async def call_tool(
 
     logging.info(f"Calling tool {name} with arguments {args}")
 
-    res = await tool_to_call._arun(**args)
+    action_log = AgentActionMessageLog(
+        tool=name,
+        tool_input=args,
+        log=f"\nInvoking: `{name}` with `{args}`\n\n\n",
+        message_log=[
+            AIMessage(
+                content="",
+                additional_kwargs={
+                    "function_call": {
+                        "arguments": args,
+                        "name": name,
+                    }
+                },
+            )
+        ],
+    )
+
+    try:
+        res = await tool_to_call._arun(**args)
+    except Exception as e:
+        logging.error(f"Error calling tool {name}: {e}")
+        return (
+            action_log,
+            f"Error calling {tool_to_call.name} tool with arguments {args}: {e}",
+        )
 
     logging.info(f"Tool {name} returned {res}")
 
-    return (
-        AgentActionMessageLog(
-            tool=name,
-            tool_input=args,
-            log=f"\nInvoking: `{name}` with `{args}`\n\n\n",
-            message_log=[
-                AIMessage(
-                    content="",
-                    additional_kwargs={
-                        "function_call": {
-                            "arguments": args,
-                            "name": name,
-                        }
-                    },
-                )
-            ],
-        ),
-        res,
-    )
+    return (action_log, res)
 
 
 class LLMAgent(AgentBase):
@@ -127,18 +133,12 @@ class AgentExecutor(LLMAgent):
     async def _execute_tool_calls(self, tool_calls: list[dict], **kwargs):
         messages: list = kwargs.get("messages")
         for tool_call in tool_calls:
-            try:
-                intermediate_step = await call_tool(
-                    agent_data=self.agent_data,
-                    session_id=self.session_id,
-                    function=tool_call.get("function"),
-                )
-                self.intermediate_steps.append(intermediate_step)
-            except Exception as e:
-                logger.error(
-                    f"Error calling function {tool_call.get('function').get('name')}: {e}"
-                )
-                continue
+            intermediate_step = await call_tool(
+                agent_data=self.agent_data,
+                session_id=self.session_id,
+                function=tool_call.get("function"),
+            )
+            self.intermediate_steps.append(intermediate_step)
             (_, tool_res) = intermediate_step
             new_message = {
                 "role": "tool",
@@ -349,17 +349,11 @@ class AgentExecutorOpenAIFunc(LLMAgent):
 
             tool_calls = res.choices[0].message.get("tool_calls", [])
             for tool_call in tool_calls:
-                try:
-                    res = await call_tool(
-                        agent_data=self.agent_data,
-                        session_id=self.session_id,
-                        function=tool_call.function.dict(),
-                    )
-                except Exception as e:
-                    logger.error(
-                        f"Error calling function {tool_call.function.name}: {e}"
-                    )
-                    continue
+                res = await call_tool(
+                    agent_data=self.agent_data,
+                    session_id=self.session_id,
+                    function=tool_call.function.dict(),
+                )
                 tool_results.append(res)
 
         if len(tool_results) > 0:
