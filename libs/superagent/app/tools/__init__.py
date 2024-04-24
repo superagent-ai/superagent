@@ -28,6 +28,7 @@ from app.models.tools import (
     TTS1Input,
     WolframInput,
     ZapierInput,
+    SECInput,
 )
 from app.tools.advanced_scraper import AdvancedScraper
 from app.tools.agent import Agent
@@ -53,6 +54,7 @@ from app.tools.tavily import Tavily
 from app.tools.tts_1 import TTS1
 from app.tools.wolfram_alpha import WolframAlpha
 from app.tools.zapier import ZapierNLA
+from app.tools.sec import SEC
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +91,7 @@ TOOL_TYPE_MAPPING = {
     "SCRAPER": {"class": Scraper, "schema": ScraperInput},
     "ADVANCED_SCRAPER": {"class": AdvancedScraper, "schema": AdvancedScraperInput},
     "GOOGLE_SEARCH": {"class": GoogleSearch, "schema": GoogleSearchInput},
+    "SEC": {"class": SEC, "schema": SECInput},
 }
 
 OSS_TOOL_TYPE_MAPPING = {"BROWSER": Browser, "BING_SEARCH": BingSearch}
