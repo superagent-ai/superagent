@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AlgoliaInput(BaseModel):
@@ -111,4 +111,4 @@ class GoogleSearchInput(BaseModel):
 
 
 class SECInput(BaseModel):
-    ticker: str
+    ticker: str = Field(..., description="The stock ticker symbol for the company")
