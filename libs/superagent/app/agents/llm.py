@@ -277,7 +277,7 @@ class AgentExecutor(LLMAgent):
 
         output = self._cleanup_output(output)
 
-        if not self._stream_directly:
+        if not self._stream_directly and self.enable_streaming:
             await self._stream_by_lines(output)
 
         if self.enable_streaming:
