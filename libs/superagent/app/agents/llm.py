@@ -74,6 +74,23 @@ async def call_tool(
 
 
 class LLMAgent(AgentBase):
+    _streaming_callback: CustomAsyncIteratorCallbackHandler
+
+    @property
+    def streaming_callback(self):
+        return self._streaming_callback
+
+    def _set_streaming_callback(
+        self, callbacks: list[CustomAsyncIteratorCallbackHandler]
+    ):
+        for callback in callbacks:
+            if isinstance(callback, CustomAsyncIteratorCallbackHandler):
+                self._streaming_callback = callback
+                break
+
+        if not self._streaming_callback:
+            raise Exception("Streaming Callback not found")
+
     @property
     def tools(self):
         tools = get_tools(
@@ -104,7 +121,7 @@ class LLMAgent(AgentBase):
         return prompt
 
     @property
-    def _is_tool_calling_supported(self):
+    def _tool_calling_supported(self):
         (model, custom_llm_provider, _, _) = get_llm_provider(self.llm_data.model)
         supported_params = get_supported_openai_params(
             model=model, custom_llm_provider=custom_llm_provider
@@ -122,7 +139,7 @@ class LLMAgent(AgentBase):
             await self.streaming_callback.on_llm_new_token(output_by_lines[0])
 
     async def get_agent(self):
-        if self._is_tool_calling_supported:
+        if self._tool_calling_supported:
             logger.info("Using native function calling")
             return AgentExecutor(**self.__dict__)
 
@@ -131,6 +148,15 @@ class LLMAgent(AgentBase):
 
 class AgentExecutor(LLMAgent):
     """Agent Executor for LLM (with native function calling)"""
+
+    def __init__(
+        self,
+        **kwargs,
+    ):
+        super().__init__(
+            **kwargs,
+        )
+        self._streaming_callback = None
 
     NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS = [
         LLMProvider.GROQ,
@@ -193,19 +219,21 @@ class AgentExecutor(LLMAgent):
             choice.delta = choice.message
         return [res]
 
+    @property
+    def _stream_directly(self):
+        return (
+            self.enable_streaming
+            and self.llm_data.llm.provider
+            not in self.NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS
+            and self.llm_data.llm.provider != LLMProvider.ANTHROPIC
+        )
+
     async def _completion(self, **kwargs) -> Any:
         logger.info(f"Calling LLM with kwargs: {kwargs}")
         new_messages = self.messages
 
         if kwargs.get("stream"):
             await self.streaming_callback.on_llm_start()
-
-        should_stream_directly = (
-            self.enable_streaming
-            and self.llm_data.llm.provider
-            not in self.NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS
-            and self.llm_data.llm.provider != LLMProvider.ANTHROPIC
-        )
 
         # TODO: Remove this when Groq and Bedrock supports streaming with tools
         if self.llm_data.llm.provider in self.NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS:
@@ -239,7 +267,7 @@ class AgentExecutor(LLMAgent):
 
             if content:
                 output += content
-                if should_stream_directly:
+                if self._stream_directly:
                     await self.streaming_callback.on_llm_new_token(content)
 
         self.messages = new_messages
@@ -249,7 +277,7 @@ class AgentExecutor(LLMAgent):
 
         output = self._cleanup_output(output)
 
-        if not should_stream_directly:
+        if not self._stream_directly:
             await self._stream_by_lines(output)
 
         if self.enable_streaming:
@@ -271,12 +299,7 @@ class AgentExecutor(LLMAgent):
         ]
 
         if self.enable_streaming:
-            for callback in kwargs["config"]["callbacks"]:
-                if isinstance(callback, CustomAsyncIteratorCallbackHandler):
-                    self.streaming_callback = callback
-
-            if not self.streaming_callback:
-                raise Exception("Streaming Callback not found")
+            self._set_streaming_callback(kwargs.get("config", {}).get("callbacks", []))
 
         output = await self._completion(
             model=self.llm_data.model,
@@ -297,6 +320,15 @@ class AgentExecutor(LLMAgent):
 
 class AgentExecutorOpenAIFunc(LLMAgent):
     """Agent Executor that binded with OpenAI Function Calling"""
+
+    def __init__(
+        self,
+        **kwargs,
+    ):
+        super().__init__(
+            **kwargs,
+        )
+        self._streaming_callback = None
 
     @property
     def messages_function_calling(self):
@@ -327,13 +359,9 @@ class AgentExecutorOpenAIFunc(LLMAgent):
     async def ainvoke(self, input, *_, **kwargs):
         self.input = input
         tool_results = []
-        if self.enable_streaming:
-            for callback in kwargs["config"]["callbacks"]:
-                if isinstance(callback, CustomAsyncIteratorCallbackHandler):
-                    self.streaming_callback = callback
 
-            if not self.streaming_callback:
-                raise Exception("Streaming Callback not found")
+        if self.enable_streaming:
+            self._set_streaming_callback(kwargs.get("config", {}).get("callbacks", []))
 
         if len(self.tools) > 0:
             openai_llm = await prisma.llm.find_first(
@@ -397,22 +425,15 @@ class AgentExecutorOpenAIFunc(LLMAgent):
 
         output = ""
         if self.enable_streaming:
-            streaming_callback = None
-            for callback in kwargs["config"]["callbacks"]:
-                if isinstance(callback, CustomAsyncIteratorCallbackHandler):
-                    streaming_callback = callback
-
-            if not streaming_callback:
-                raise Exception("Streaming Callback not found")
-            await streaming_callback.on_llm_start()
+            await self.streaming_callback.on_llm_start()
 
             for chunk in res:
                 token = chunk.choices[0].delta.content
                 if token:
                     output += token
-                    await streaming_callback.on_llm_new_token(token)
+                    await self.streaming_callback.on_llm_new_token(token)
 
-            streaming_callback.done.set()
+            self.streaming_callback.done.set()
         else:
             output = res.choices[0].message.content
 
