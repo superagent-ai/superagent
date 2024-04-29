@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Superagent
   description: 🥷 Run AI-agents with an API
-  version: 0.2.32
+  version: 0.2.34
 servers:
   - url: https://api.beta.superagent.sh
 paths:
@@ -1812,6 +1812,7 @@ components:
         - BEDROCK
         - GROQ
         - MISTRAL
+        - COHERE_CHAT
       type: string
       description: An enumeration.
     OpenAiAssistantParameters:
@@ -1908,6 +1909,7 @@ components:
         - SCRAPER
         - ADVANCED_SCRAPER
         - GOOGLE_SEARCH
+        - SEC
       type: string
       description: An enumeration.
     ToolUpdate:

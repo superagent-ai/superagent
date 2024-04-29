@@ -446,6 +446,22 @@ export const siteConfig = {
         },
       ],
     },
+    {
+      value: "SEC",
+      title: "SEC API",
+      metadata: [
+        {
+          key: "identity",
+          type: "input",
+          label: "Identity string",
+        },
+        {
+          key: "form",
+          type: "input",
+          label: "10-K, 10-Q, 8-K etc",
+        },
+      ],
+    },
   ],
   llmForm: [
     {

@@ -31,6 +31,7 @@ from app.models.tools import (
     PubMedInput,
     ReplicateInput,
     ScraperInput,
+    SECInput,
     SuperRagInput,
     TavilyInput,
     TTS1Input,
@@ -57,6 +58,7 @@ from app.tools.openapi import Openapi
 from app.tools.pubmed import PubMed
 from app.tools.replicate import Replicate
 from app.tools.scraper import Scraper
+from app.tools.sec import SEC
 from app.tools.superrag import SuperRagTool
 from app.tools.tavily import Tavily
 from app.tools.tts_1 import TTS1
@@ -99,6 +101,7 @@ TOOL_TYPE_MAPPING = {
     "SCRAPER": {"class": Scraper, "schema": ScraperInput},
     "ADVANCED_SCRAPER": {"class": AdvancedScraper, "schema": AdvancedScraperInput},
     "GOOGLE_SEARCH": {"class": GoogleSearch, "schema": GoogleSearchInput},
+    "SEC": {"class": SEC, "schema": SECInput},
 }
 
 OSS_TOOL_TYPE_MAPPING = {"BROWSER": Browser, "BING_SEARCH": BingSearch}

@@ -108,3 +108,7 @@ class AdvancedScraperInput(BaseModel):
 
 class GoogleSearchInput(BaseModel):
     query: str
+
+
+class SECInput(BaseModel):
+    ticker: str = Field(..., description="The stock ticker symbol for the company")
