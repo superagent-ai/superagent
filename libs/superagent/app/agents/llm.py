@@ -161,6 +161,7 @@ class AgentExecutor(LLMAgent):
     NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS = [
         LLMProvider.GROQ,
         LLMProvider.BEDROCK,
+        LLMProvider.COHERE_CHAT,
     ]
 
     intermediate_steps = []
@@ -236,7 +237,10 @@ class AgentExecutor(LLMAgent):
             await self.streaming_callback.on_llm_start()
 
         # TODO: Remove this when Groq and Bedrock supports streaming with tools
-        if self.llm_data.llm.provider in self.NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS:
+        if (
+            self.llm_data.llm.provider in self.NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS
+            and len(self.tools) > 0
+        ):
             logger.info(
                 f"Disabling streaming for {self.llm_data.llm.provider}, as tools are used"
             )
@@ -251,6 +255,7 @@ class AgentExecutor(LLMAgent):
 
         for chunk in res:
             new_message = chunk.choices[0].delta.dict()
+            print("new_message", new_message)
             # clean up tool calls
             if new_message.get("tool_calls"):
                 new_message["role"] = "assistant"
@@ -277,6 +282,7 @@ class AgentExecutor(LLMAgent):
 
         output = self._cleanup_output(output)
 
+        print("self._stream_directly", self._stream_directly)
         if not self._stream_directly:
             await self._stream_by_lines(output)
 
@@ -310,6 +316,7 @@ class AgentExecutor(LLMAgent):
             stream=self.enable_streaming,
             **self.llm_data.params.dict(exclude_unset=True),
         )
+        print("output", output)
 
         return {
             "intermediate_steps": self.intermediate_steps,
