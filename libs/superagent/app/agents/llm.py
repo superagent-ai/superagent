@@ -55,7 +55,7 @@ async def call_tool(
                 content="",
                 additional_kwargs={
                     "function_call": {
-                        "arguments": args,
+                        "arguments": json.dumps(args),
                         "name": name,
                     }
                 },
