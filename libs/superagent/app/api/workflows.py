@@ -370,7 +370,7 @@ async def invoke(
                             }
                         )
 
-                logger.error(f"Error in send_message: {error}")
+                logger.exception(f"Error in send_message: {error}")
             finally:
                 for workflow_step in workflow_steps:
                     workflow_step["callbacks"]["streaming"].done.set()

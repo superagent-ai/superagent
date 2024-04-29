@@ -61,7 +61,7 @@ class E2BCodeExecutorInput(BaseModel):
 
 
 class BrowserInput(BaseModel):
-    url: str
+    url: str = Field(..., description="A valid url including protocol to analyze")
 
 
 class GPTVisionInputModel(BaseModel):

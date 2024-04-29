@@ -7,7 +7,7 @@ from agentops.langchain_callback_handler import (
 )
 from langchain.output_parsers.json import SimpleJsonOutputParser
 
-from app.agents.base import AgentBase
+from app.agents.base import AgentFactory
 from app.utils.callbacks import CustomAsyncIteratorCallbackHandler
 
 logger = logging.getLogger(__name__)
@@ -35,27 +35,21 @@ class WorkflowBase:
         steps_output = []
 
         for stepIndex, step in enumerate(self.workflow_steps):
-            agent_config = step["agent_data"]
+            agent_data = step["agent_data"]
             input = previous_output
             output_schema = step["output_schema"]
-            agent_base = AgentBase(
-                agent_id=agent_config.id,
+            agent_base = AgentFactory(
                 enable_streaming=self.enable_streaming,
                 callbacks=self.constructor_callbacks,
                 session_id=self.session_id,
-                agent_config=agent_config,
+                agent_data=agent_data,
                 output_schema=output_schema,
             )
 
             agent = await agent_base.get_agent()
 
-            agent_input = agent_base.get_input(
-                input=input,
-                agent_type=agent_config.type,
-            )
-
             agent_response = await agent.ainvoke(
-                input=agent_input,
+                input=input,
                 config={
                     "callbacks": self.callbacks[stepIndex],
                 },
