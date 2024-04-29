@@ -158,14 +158,15 @@ class AgentExecutor(LLMAgent):
         )
         self._streaming_callback = None
 
-    NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS = [
+    streaming_disabled_providers_with_tools = [
         LLMProvider.GROQ,
         LLMProvider.BEDROCK,
     ]
+    max_tool_call_depth = 10
 
     intermediate_steps = []
 
-    async def _execute_tool_calls(self, tool_calls: list[dict], **kwargs):
+    async def _execute_tool_calls(self, tool_calls: list[dict], depth: int, **kwargs):
         messages: list = kwargs.get("messages")
         for tool_call in tool_calls:
             intermediate_step = await call_tool(
@@ -192,7 +193,7 @@ class AgentExecutor(LLMAgent):
 
         self.messages = messages
         kwargs["messages"] = self.messages
-        return await self._completion(**kwargs)
+        return await self._completion(depth=depth + 1, **kwargs)
 
     def _cleanup_output(self, output):
         # anthropic returns a XML formatted response
@@ -224,11 +225,11 @@ class AgentExecutor(LLMAgent):
         return (
             self.enable_streaming
             and self.llm_data.llm.provider
-            not in self.NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS
+            not in self.streaming_disabled_providers_with_tools
             and self.llm_data.llm.provider != LLMProvider.ANTHROPIC
         )
 
-    async def _completion(self, **kwargs) -> Any:
+    async def _completion(self, depth: int = 0, **kwargs) -> Any:
         logger.info(f"Calling LLM with kwargs: {kwargs}")
         new_messages = self.messages
 
@@ -236,7 +237,10 @@ class AgentExecutor(LLMAgent):
             await self.streaming_callback.on_llm_start()
 
         # TODO: Remove this when Groq and Bedrock supports streaming with tools
-        if self.llm_data.llm.provider in self.NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS:
+        if (
+            self.llm_data.llm.provider in self.streaming_disabled_providers_with_tools
+            and len(self.tools) > 0
+        ):
             logger.info(
                 f"Disabling streaming for {self.llm_data.llm.provider}, as tools are used"
             )
@@ -272,8 +276,11 @@ class AgentExecutor(LLMAgent):
 
         self.messages = new_messages
 
-        if tool_calls:
-            return await self._execute_tool_calls(tool_calls, **kwargs)
+        if tool_calls and depth < self.max_tool_call_depth:
+            return await self._execute_tool_calls(tool_calls, depth=depth, **kwargs)
+
+        if depth >= self.max_tool_call_depth:
+            logger.error(f"Exceeded max tool call depth of {self.max_tool_call_depth}")
 
         output = self._cleanup_output(output)
 
