@@ -46,7 +46,7 @@ class LangchainAgent(AgentBase):
 
         if llm_data.llm.provider == LLMProvider.OPENAI:
             return ChatOpenAI(
-                model=LLM_MAPPING[self.agent_data.llmModel],
+                model=LLM_MAPPING[self.llm_data.model],
                 openai_api_key=llm_data.llm.apiKey,
                 streaming=self.enable_streaming,
                 callbacks=self.callbacks,

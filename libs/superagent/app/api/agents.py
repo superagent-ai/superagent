@@ -501,10 +501,14 @@ async def invoke(
                 from langchain.output_parsers.json import SimpleJsonOutputParser
 
                 parser = SimpleJsonOutputParser()
-                parsed_schema = str(parser.parse(schema_tokens))
+                try:
+                    parsed_res = parser.parse(schema_tokens)
+                except Exception as e:
+                    logger.error(f"Error parsing output: {e}")
+                    parsed_res = {}
 
                 # stream line by line to prevent streaming large data in one go
-                for line in parsed_schema.split("\n"):
+                for line in json.dumps(parsed_res).split("\n"):
                     async for val in stream_dict_keys(
                         {"event": "message", "data": line}
                     ):
@@ -603,8 +607,12 @@ async def invoke(
     if output_schema:
         from langchain.output_parsers.json import SimpleJsonOutputParser
 
-        json_parser = SimpleJsonOutputParser()
-        output["output"] = json_parser.parse(text=output["output"])
+        parser = SimpleJsonOutputParser()
+        try:
+            output["output"] = parser.parse(text=output["output"])
+        except Exception as e:
+            logger.error(f"Error parsing output: {e}")
+            output["output"] = {}
 
     return {"success": True, "data": output}
 

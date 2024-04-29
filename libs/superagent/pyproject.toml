@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "superagent"
-version = "0.2.29"
+version = "0.2.32"
 description = "🥷 Run AI-agents with an API"
 authors = ["Ismail Pelaseyed"]
 readme = "../../README.md"
@@ -50,7 +50,7 @@ openai = "^1.1.1"
 langchain-experimental = "^0.0.37"
 pydub = "^0.25.1"
 algoliasearch = "^3.0.0"
-litellm = "1.35.2"
+litellm = "1.35.21"
 weaviate-client = "^3.25.3"
 qdrant-client = "^1.6.9"
 vecs = "^0.4.2"

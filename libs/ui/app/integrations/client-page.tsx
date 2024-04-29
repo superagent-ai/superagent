@@ -15,7 +15,7 @@ export default function IntegrationsClientPage({
   configuredLLMs: any
 }) {
   return (
-    <Tabs defaultValue="storage" className="flex-1 space-y-0 overflow-hidden">
+    <Tabs defaultValue="storage" className="flex-1 space-y-0">
       <TabsList className="px-6 py-1.5">
         <TabsTrigger value="storage" className="space-x-1">
           <span>STORAGE</span>

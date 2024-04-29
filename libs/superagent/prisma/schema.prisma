@@ -24,6 +24,9 @@ enum LLMProvider {
   TOGETHER_AI
   ANTHROPIC
   BEDROCK
+  GROQ
+  MISTRAL
+  COHERE_CHAT
 }
 
 enum LLMModel {

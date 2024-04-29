@@ -502,6 +502,19 @@ export const siteConfig = {
     },
     {
       disabled: false,
+      formDescription: "Please enter your Groq API key.",
+      provider: LLMProvider.GROQ,
+      name: "Groq",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Groq API Key",
+        },
+      ],
+    },
+    {
+      disabled: false,
       formDescription: "Please enter your AWS credentials.",
       provider: LLMProvider.BEDROCK,
       name: "Amazon Bedrock",
@@ -520,6 +533,32 @@ export const siteConfig = {
           key: "options.aws_region_name",
           type: "input",
           label: "AWS Region",
+        },
+      ],
+    },
+    {
+      disabled: false,
+      formDescription: "Please enter your Mistral API key.",
+      provider: LLMProvider.MISTRAL,
+      name: "Mistral",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Mistral API Key",
+        },
+      ],
+    },
+    {
+      disabled: false,
+      formDescription: "Please enter your Cohere API key.",
+      provider: LLMProvider.COHERE_CHAT,
+      name: "Cohere",
+      metadata: [
+        {
+          key: "apiKey",
+          type: "input",
+          label: "Cohere API Key",
         },
       ],
     },
