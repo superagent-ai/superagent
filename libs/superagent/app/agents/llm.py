@@ -7,7 +7,7 @@ from decouple import config
 from langchain_core.agents import AgentActionMessageLog
 from langchain_core.messages import AIMessage
 from langchain_core.utils.function_calling import convert_to_openai_function
-from litellm import completion
+from litellm import completion, get_llm_provider, get_supported_openai_params
 
 from app.agents.base import AgentBase
 from app.tools import get_tools
@@ -107,17 +107,21 @@ class LLMAgent(AgentBase):
 
         return prompt
 
+    @property
+    def _is_tool_calling_supported(self):
+        (model, custom_llm_provider, _, _) = get_llm_provider(self.llm_data.model)
+        supported_params = get_supported_openai_params(
+            model=model, custom_llm_provider=custom_llm_provider
+        )
+
+        return "tools" in supported_params
+
     async def get_agent(self):
-        if self.llm_data.llm.provider in [
-            LLMProvider.ANTHROPIC,
-            LLMProvider.MISTRAL,
-            LLMProvider.GROQ,
-            LLMProvider.BEDROCK,
-        ]:
+        if self._is_tool_calling_supported:
             logger.info("Using native function calling")
             return AgentExecutor(**self.__dict__)
 
-        return AgentExecutorOpenAIFunc(*self.__dict__)
+        return AgentExecutorOpenAIFunc(**self.__dict__)
 
 
 class AgentExecutor(LLMAgent):
