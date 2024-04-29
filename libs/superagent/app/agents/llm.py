@@ -187,13 +187,11 @@ class AgentExecutor(LLMAgent):
                     output = output.get("#text")
         return output
 
-    def _transform_completion_to_streaming(self, res, **kwargs):
+    def _transform_completion_to_streaming(self, res):
         # hacky way to convert non-streaming response to streaming response
-        if not kwargs.get("stream"):
-            for choice in res.choices:
-                choice.delta = choice.message
-            res = [res]
-        return res
+        for choice in res.choices:
+            choice.delta = choice.message
+        return [res]
 
     async def _completion(self, **kwargs) -> Any:
         logger.info(f"Calling LLM with kwargs: {kwargs}")
@@ -217,7 +215,8 @@ class AgentExecutor(LLMAgent):
             kwargs["stream"] = False
 
         res = completion(**kwargs)
-        res = self._transform_completion_to_streaming(res, **kwargs)
+        if not kwargs.get("stream"):
+            res = self._transform_completion_to_streaming(res)
 
         tool_calls = []
         output = ""
