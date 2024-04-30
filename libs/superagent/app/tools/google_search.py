@@ -1,10 +1,8 @@
-import aiohttp
-import requests
 import json
 
-from decouple import config
+import aiohttp
+import requests
 from langchain_community.tools import BaseTool
-
 
 url = "https://google.serper.dev/search"
 
