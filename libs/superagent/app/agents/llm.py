@@ -258,8 +258,8 @@ class AgentExecutor(LLMAgent):
                     await self.streaming_callback.on_llm_new_token(content)
             chunks.append(chunk)
 
-        completion = stream_chunk_builder(chunks=chunks)
-        new_messages.append(completion.choices[0].message)
+        res = stream_chunk_builder(chunks=chunks)
+        new_messages.append(res.choices[0].message)
 
         return (tool_calls, new_messages, output)
 
@@ -296,17 +296,15 @@ class AgentExecutor(LLMAgent):
             kwargs["stream"] = False
 
         if kwargs.get("stream"):
-            (
-                tool_calls,
-                new_messages,
-                output,
-            ) = await self._process_acompletion_response(await acompletion(**kwargs))
+            result = await self._process_acompletion_response(
+                await acompletion(**kwargs)
+            )
         else:
-            (
-                tool_calls,
-                new_messages,
-                output,
-            ) = await self._process_completion_response(await acompletion(**kwargs))
+            result = await self._process_completion_response(
+                await acompletion(**kwargs)
+            )
+
+        tool_calls, new_messages, output = result
 
         self.messages = new_messages
 
