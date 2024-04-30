@@ -7,7 +7,7 @@ from decouple import config
 from langchain_core.agents import AgentActionMessageLog
 from langchain_core.messages import AIMessage
 from langchain_core.utils.function_calling import convert_to_openai_function
-from litellm import completion, get_llm_provider, get_supported_openai_params
+from litellm import acompletion, get_llm_provider, get_supported_openai_params
 
 from app.agents.base import AgentBase
 from app.tools import get_tools
@@ -242,7 +242,7 @@ class AgentExecutor(LLMAgent):
             )
             kwargs["stream"] = False
 
-        res = completion(**kwargs)
+        res = await acompletion(**kwargs)
         if not kwargs.get("stream"):
             res = self._transform_completion_to_streaming(res)
 
@@ -378,7 +378,7 @@ class AgentExecutorOpenAIFunc(LLMAgent):
                     "OpenAI API Key not found in database, using environment variable"
                 )
 
-            res = completion(
+            res = await acompletion(
                 api_key=openai_api_key,
                 model="gpt-3.5-turbo-0125",
                 messages=self.messages_function_calling,
@@ -415,7 +415,7 @@ class AgentExecutorOpenAIFunc(LLMAgent):
             )
 
         params = self.llm_data.params.dict(exclude_unset=True)
-        res = completion(
+        res = await acompletion(
             api_key=self.llm_data.llm.apiKey,
             model=self.llm_data.model,
             messages=self.messages,
