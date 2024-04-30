@@ -7,7 +7,12 @@ from decouple import config
 from langchain_core.agents import AgentActionMessageLog
 from langchain_core.messages import AIMessage
 from langchain_core.utils.function_calling import convert_to_openai_function
-from litellm import completion, get_llm_provider, get_supported_openai_params
+from litellm import (
+    acompletion,
+    get_llm_provider,
+    get_supported_openai_params,
+    stream_chunk_builder,
+)
 
 from app.agents.base import AgentBase
 from app.tools import get_tools
@@ -192,7 +197,7 @@ class AgentExecutor(LLMAgent):
 
         self.messages = messages
         kwargs["messages"] = self.messages
-        return await self._completion(**kwargs)
+        return await self._acompletion(**kwargs)
 
     def _cleanup_output(self, output):
         # anthropic returns a XML formatted response
@@ -213,12 +218,6 @@ class AgentExecutor(LLMAgent):
                     output = output.get("#text")
         return output
 
-    def _transform_completion_to_streaming(self, res):
-        # hacky way to convert non-streaming response to streaming response
-        for choice in res.choices:
-            choice.delta = choice.message
-        return [res]
-
     @property
     def _stream_directly(self):
         return (
@@ -228,9 +227,63 @@ class AgentExecutor(LLMAgent):
             and self.llm_data.llm.provider != LLMProvider.ANTHROPIC
         )
 
-    async def _completion(self, **kwargs) -> Any:
-        logger.info(f"Calling LLM with kwargs: {kwargs}")
+    def _process_tool_calls(self, message):
+        message["role"] = "assistant"
+        tool_calls = message.get("tool_calls", [])
+        for tool_call in tool_calls:
+            tool_call["type"] = "function"
+            if "index" in tool_call:
+                del tool_call["index"]
+
+        return tool_calls
+
+    async def _process_acompletion_response(self, res):
+        tool_calls = []
         new_messages = self.messages
+        output = ""
+
+        chunks = []
+
+        async for chunk in res:
+            new_message = chunk.choices[0].delta.dict()
+            if new_message.get("tool_calls"):
+                new_tool_calls = self._process_tool_calls(new_message)
+                tool_calls.extend(new_tool_calls)
+
+            content = new_message.get("content", "")
+
+            if content:
+                output += content
+                if self._stream_directly:
+                    await self.streaming_callback.on_llm_new_token(content)
+            chunks.append(chunk)
+
+        res = stream_chunk_builder(chunks=chunks)
+        new_messages.append(res.choices[0].message)
+
+        return (tool_calls, new_messages, output)
+
+    async def _process_completion_response(self, res):
+        tool_calls = []
+        new_messages = self.messages
+        output = ""
+
+        new_message = res.choices[0].message.dict()
+        if new_message.get("tool_calls"):
+            new_tool_calls = self._process_tool_calls(new_message)
+            tool_calls.extend(new_tool_calls)
+
+        new_messages.append(new_message)
+        content = new_message.get("content", "")
+        if content:
+            output += content
+            if self._stream_directly:
+                await self.streaming_callback.on_llm_new_token(content)
+
+        return (tool_calls, new_messages, output)
+
+    async def _acompletion(self, **kwargs) -> Any:
+        logger.info(f"Calling LLM with kwargs: {kwargs}")
 
         if kwargs.get("stream"):
             await self.streaming_callback.on_llm_start()
@@ -242,33 +295,16 @@ class AgentExecutor(LLMAgent):
             )
             kwargs["stream"] = False
 
-        res = completion(**kwargs)
-        if not kwargs.get("stream"):
-            res = self._transform_completion_to_streaming(res)
+        if kwargs.get("stream"):
+            result = await self._process_acompletion_response(
+                await acompletion(**kwargs)
+            )
+        else:
+            result = await self._process_completion_response(
+                await acompletion(**kwargs)
+            )
 
-        tool_calls = []
-        output = ""
-
-        for chunk in res:
-            new_message = chunk.choices[0].delta.dict()
-            # clean up tool calls
-            if new_message.get("tool_calls"):
-                new_message["role"] = "assistant"
-                new_tool_calls = new_message.get("tool_calls", [])
-                for tool_call in new_tool_calls:
-                    tool_call["type"] = "function"
-                    if "index" in tool_call:
-                        del tool_call["index"]
-
-                new_messages.append(new_message)
-                tool_calls.extend(new_tool_calls)
-
-            content = new_message.get("content", "")
-
-            if content:
-                output += content
-                if self._stream_directly:
-                    await self.streaming_callback.on_llm_new_token(content)
+        tool_calls, new_messages, output = result
 
         self.messages = new_messages
 
@@ -301,7 +337,7 @@ class AgentExecutor(LLMAgent):
         if self.enable_streaming:
             self._set_streaming_callback(kwargs.get("config", {}).get("callbacks", []))
 
-        output = await self._completion(
+        output = await self._acompletion(
             model=self.llm_data.model,
             api_key=self.llm_data.llm.apiKey,
             messages=self.messages,
@@ -378,7 +414,7 @@ class AgentExecutorOpenAIFunc(LLMAgent):
                     "OpenAI API Key not found in database, using environment variable"
                 )
 
-            res = completion(
+            res = await acompletion(
                 api_key=openai_api_key,
                 model="gpt-3.5-turbo-0125",
                 messages=self.messages_function_calling,
@@ -415,7 +451,7 @@ class AgentExecutorOpenAIFunc(LLMAgent):
             )
 
         params = self.llm_data.params.dict(exclude_unset=True)
-        res = completion(
+        res = await acompletion(
             api_key=self.llm_data.llm.apiKey,
             model=self.llm_data.model,
             messages=self.messages,
@@ -427,7 +463,7 @@ class AgentExecutorOpenAIFunc(LLMAgent):
         if self.enable_streaming:
             await self.streaming_callback.on_llm_start()
 
-            for chunk in res:
+            async for chunk in res:
                 token = chunk.choices[0].delta.content
                 if token:
                     output += token
