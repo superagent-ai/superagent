@@ -531,7 +531,7 @@ class AgentExecutorOpenAIFunc(LLMAgent):
                     self.memory.aadd_message(
                         message=BaseMessage(
                             type=MessageType.TOOL_CALL,
-                            content=json.dumps(tool_call),
+                            content=tool_call.json(),
                         )
                     )
                     for tool_call in tool_calls
