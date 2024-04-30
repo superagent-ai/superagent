@@ -266,7 +266,6 @@ class AgentExecutor(LLMAgent):
     async def _process_completion_response(self, res):
         tool_calls = []
         new_messages = self.messages
-        output = ""
 
         new_message = res.choices[0].message.dict()
         if new_message.get("tool_calls"):
@@ -274,11 +273,9 @@ class AgentExecutor(LLMAgent):
             tool_calls.extend(new_tool_calls)
 
         new_messages.append(new_message)
-        content = new_message.get("content", "")
-        if content:
-            output += content
-            if self._stream_directly:
-                await self.streaming_callback.on_llm_new_token(content)
+        output = new_message.get("content", "")
+        if output and self._stream_directly:
+            await self._stream_by_lines(output)
 
         return (tool_calls, new_messages, output)
 
