@@ -255,7 +255,6 @@ class AgentExecutor(LLMAgent):
 
         for chunk in res:
             new_message = chunk.choices[0].delta.dict()
-            print("new_message", new_message)
             # clean up tool calls
             if new_message.get("tool_calls"):
                 new_message["role"] = "assistant"
@@ -282,7 +281,6 @@ class AgentExecutor(LLMAgent):
 
         output = self._cleanup_output(output)
 
-        print("self._stream_directly", self._stream_directly)
         if not self._stream_directly:
             await self._stream_by_lines(output)
 
@@ -316,7 +314,6 @@ class AgentExecutor(LLMAgent):
             stream=self.enable_streaming,
             **self.llm_data.params.dict(exclude_unset=True),
         )
-        print("output", output)
 
         return {
             "intermediate_steps": self.intermediate_steps,
