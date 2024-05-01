@@ -3,6 +3,9 @@
 # getting changed files (only staged)
 changes=$(git diff --name-only --cached | grep '^libs/superagent.*\.py$' | sed 's|^libs/superagent/||')
 
+# Filter deleted files
+changes=$(echo "$changes" | while read -r file; do [ -e "$file" ] && echo "$file"; done)
+
 lint() {
     poetry run black $changes
     # sort imports 

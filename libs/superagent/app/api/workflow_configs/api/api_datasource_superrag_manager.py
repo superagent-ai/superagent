@@ -143,7 +143,7 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
         data["index_name"] = await self._get_unique_index_name(data, assistant)
 
         await self._add_superrag_tool(assistant, data)
-        self.superrag_service.ingest(data=data)
+        await self.superrag_service.aingest(data=data)
 
     async def delete_datasource(self, assistant: dict, datasource: dict):
         tool = await self.agent_manager.get_tool(
@@ -156,7 +156,7 @@ class ApiDatasourceSuperRagManager(BaseApiDatasourceManager):
             tool_metadata = json.loads(tool.metadata)
 
             await self._delete_tool(assistant, datasource)
-            self.superrag_service.delete(
+            await self.superrag_service.adelete(
                 {
                     **datasource,
                     "index_name": tool_metadata.get("index_name"),
