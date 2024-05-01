@@ -261,7 +261,7 @@ class AgentExecutor(LLMAgent):
 
         async for chunk in res:
             new_message = chunk.choices[0].delta
-            if new_message.tool_calls:
+            if hasattr(new_message, "tool_calls"):
                 new_tool_calls = self._process_tool_calls(new_message)
                 tool_calls.extend(new_tool_calls)
 
@@ -281,7 +281,7 @@ class AgentExecutor(LLMAgent):
         new_messages = self.messages
 
         new_message = res.choices[0].message
-        if new_message.tool_calls:
+        if hasattr(new_message, "tool_calls"):
             new_tool_calls = self._process_tool_calls(new_message)
             tool_calls.extend(new_tool_calls)
 
