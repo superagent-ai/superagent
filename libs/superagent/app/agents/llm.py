@@ -162,6 +162,7 @@ class AgentExecutor(LLMAgent):
     NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS = [
         LLMProvider.GROQ,
         LLMProvider.BEDROCK,
+        LLMProvider.COHERE_CHAT,
     ]
 
     async def _execute_tool_calls(self, tool_calls: list[dict], **kwargs):
@@ -235,7 +236,10 @@ class AgentExecutor(LLMAgent):
             await self.streaming_callback.on_llm_start()
 
         # TODO: Remove this when Groq and Bedrock supports streaming with tools
-        if self.llm_data.llm.provider in self.NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS:
+        if (
+            self.llm_data.llm.provider in self.NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS
+            and len(self.tools) > 0
+        ):
             logger.info(
                 f"Disabling streaming for {self.llm_data.llm.provider}, as tools are used"
             )
