@@ -157,13 +157,12 @@ class AgentExecutor(LLMAgent):
             **kwargs,
         )
         self._streaming_callback = None
+        self._intermediate_steps = []
 
     NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS = [
         LLMProvider.GROQ,
         LLMProvider.BEDROCK,
     ]
-
-    intermediate_steps = []
 
     async def _execute_tool_calls(self, tool_calls: list[dict], **kwargs):
         messages: list = kwargs.get("messages")
@@ -174,7 +173,7 @@ class AgentExecutor(LLMAgent):
                 function=tool_call.get("function"),
             )
             (action_log, tool_res, return_direct) = intermediate_step
-            self.intermediate_steps.append((action_log, tool_res))
+            self._intermediate_steps.append((action_log, tool_res))
             new_message = {
                 "role": "tool",
                 "name": tool_call.get("function").get("name"),
@@ -312,7 +311,7 @@ class AgentExecutor(LLMAgent):
         )
 
         return {
-            "intermediate_steps": self.intermediate_steps,
+            "intermediate_steps": self._intermediate_steps,
             "input": self.input,
             "output": output,
         }
