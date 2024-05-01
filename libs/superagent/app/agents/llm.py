@@ -4,18 +4,27 @@ import json
 import logging
 from dataclasses import dataclass
 from functools import cached_property, partial
-from typing import Any
+from typing import Any, cast
 
 from decouple import config
 from langchain_core.agents import AgentActionMessageLog
 from langchain_core.messages import AIMessage
 from langchain_core.utils.function_calling import convert_to_openai_function
 from litellm import (
+    CustomStreamWrapper,
+    Message,
+    ModelResponse,
     acompletion,
     get_llm_provider,
     get_supported_openai_params,
     stream_chunk_builder,
     token_counter,
+)
+from litellm.utils import (
+    ChatCompletionDeltaToolCall,
+    ChatCompletionMessageToolCall,
+    Delta,
+    Function,
 )
 
 from app.agents.base import AgentBase
@@ -44,21 +53,19 @@ class ToolCallResponse:
 
 
 async def call_tool(
-    agent_data: Agent, session_id: str, function: Any
+    agent_data: Agent, session_id: str, function: Function
 ) -> ToolCallResponse:
-    name = function.get("name")
-    args = function.get("arguments")
     action_log = AgentActionMessageLog(
-        tool=name,
-        tool_input=args,
-        log=f"\nInvoking: `{name}` with `{args}`\n\n\n",
+        tool=function.name,
+        tool_input=function.arguments,
+        log=f"\nInvoking: `{function.name}` with `{function.arguments}`\n\n\n",
         message_log=[
             AIMessage(
                 content="",
                 additional_kwargs={
                     "function_call": {
-                        "arguments": json.dumps(args),
-                        "name": name,
+                        "arguments": function.arguments,
+                        "name": function.name,
                     }
                 },
             )
@@ -66,10 +73,10 @@ async def call_tool(
     )
 
     try:
-        args = json.loads(args)
+        args = json.loads(function.arguments)
     except Exception as e:
-        msg = f"Error parsing function arguments for {name}: {e}"
-        logger.error(msg)
+        msg = f"Error parsing arguments for {function.name}: {e}"
+        logging.error(msg)
         return ToolCallResponse(
             action_log=action_log,
             result=msg,
@@ -82,16 +89,16 @@ async def call_tool(
         session_id=session_id,
     )
 
-    logging.info(f"Calling tool {name} with arguments {args}")
+    logging.info(f"Calling tool {function.name} with arguments {args}")
 
     tool_to_call = None
     for tool in tools:
-        if tool.name == name:
+        if tool.name == function.name:
             tool_to_call = tool
             break
 
     if not tool_to_call:
-        msg = f"Function {name} not found in tools, avaliable tool names: {', '.join([tool.name for tool in tools])}"
+        msg = f"Function {function.name} not found in tools, avaliable tool names: {', '.join([tool.name for tool in tools])}"
         logger.error(msg)
         return ToolCallResponse(
             action_log=action_log,
@@ -101,22 +108,22 @@ async def call_tool(
         )
 
     try:
-        result = await tool_to_call._arun(**args)
-        logging.info(f"Tool {name} returned {result}")
+        tool_res = await tool_to_call._arun(**args)
+        logging.info(f"Tool {function.name} returned {tool_res}")
         return ToolCallResponse(
             action_log=action_log,
-            result=result,
+            result=tool_res,
             return_direct=tool_to_call.return_direct,
             success=True,
         )
     except Exception as e:
         msg = f"Error calling {tool_to_call.name} tool with arguments {args}: {e}"
-        logger.error(msg)
+        logging.error(f"Error calling tool {function.name}: {e}")
         return ToolCallResponse(
             action_log=action_log,
             result=msg,
-            return_direct=False,
             success=False,
+            return_direct=False,
         )
 
 
@@ -127,6 +134,7 @@ class LLMAgent(AgentBase):
     def streaming_callback(self):
         return self._streaming_callback
 
+    # TODO: call all callbacks in the list, don't distinguish between them
     def _set_streaming_callback(
         self, callbacks: list[CustomAsyncIteratorCallbackHandler]
     ):
@@ -138,7 +146,7 @@ class LLMAgent(AgentBase):
         if not self._streaming_callback:
             raise Exception("Streaming Callback not found")
 
-    @property
+    @cached_property
     def tools(self):
         tools = get_tools(
             agent_data=self.agent_data,
@@ -193,7 +201,7 @@ class LLMAgent(AgentBase):
         return prompt
 
     @property
-    def _tool_calling_supported(self):
+    def _supports_tool_calling(self):
         (model, custom_llm_provider, _, _) = get_llm_provider(self.llm_data.model)
         supported_params = get_supported_openai_params(
             model=model, custom_llm_provider=custom_llm_provider
@@ -201,7 +209,7 @@ class LLMAgent(AgentBase):
 
         return "tools" in supported_params
 
-    async def _stream_by_lines(self, output: str):
+    async def _stream_text_by_lines(self, output: str):
         output_by_lines = output.split("\n")
         if len(output_by_lines) > 1:
             for line in output_by_lines:
@@ -211,7 +219,7 @@ class LLMAgent(AgentBase):
             await self.streaming_callback.on_llm_new_token(output_by_lines[0])
 
     async def get_agent(self):
-        if self._tool_calling_supported:
+        if self._supports_tool_calling:
             logger.info("Using native function calling")
             return AgentExecutor(**self.__dict__)
 
@@ -229,45 +237,54 @@ class AgentExecutor(LLMAgent):
             **kwargs,
         )
         self._streaming_callback = None
+        self._intermediate_steps = []
 
-    NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS = [
+    NON_STREAMING_TOOL_PROVIDERS = [
         LLMProvider.GROQ,
         LLMProvider.BEDROCK,
+        LLMProvider.COHERE_CHAT,
     ]
 
-    intermediate_steps = []
+    @property
+    def max_tool_call_depth(self):
+        return 10
 
-    async def _execute_tool_calls(self, tool_calls: list[dict], **kwargs):
+    async def _execute_tools(
+        self,
+        tool_calls: list[ChatCompletionMessageToolCall | ChatCompletionDeltaToolCall],
+        depth: int,
+        **kwargs,
+    ):
         messages: list = kwargs.get("messages")
         for tool_call in tool_calls:
-            intermediate_step = await call_tool(
+            tool_call_res = await call_tool(
                 agent_data=self.agent_data,
                 session_id=self.session_id,
-                function=tool_call.get("function"),
+                function=tool_call.function,
             )
-            self.intermediate_steps.append(
-                (intermediate_step.action_log, intermediate_step.result)
+            self._intermediate_steps.append(
+                (tool_call_res.action_log, tool_call_res.result)
             )
             new_message = {
                 "role": "tool",
                 "name": tool_call.get("function").get("name"),
-                "content": intermediate_step.result,
+                "content": tool_call_res.result,
             }
-            if tool_call.get("id"):
-                new_message["tool_call_id"] = tool_call.get("id")
+            if tool_call.id:
+                new_message["tool_call_id"] = tool_call.id
 
             messages.append(new_message)
-            if intermediate_step.return_direct:
+            if tool_call_res.return_direct:
                 if self.enable_streaming:
-                    await self._stream_by_lines(intermediate_step.result)
+                    await self._stream_text_by_lines(tool_call_res.result)
                     self.streaming_callback.done.set()
-                return intermediate_step.result
+                return tool_call_res.result
 
         self.messages = messages
         kwargs["messages"] = self.messages
-        return await self._acompletion(**kwargs)
+        return await self._acompletion(depth=depth + 1, **kwargs)
 
-    def _cleanup_output(self, output):
+    def _cleanup_output(self, output: str) -> str:
         # anthropic returns a XML formatted response
         # we need to get the content between <result> </result> tags
         if self.llm_data.llm.provider == LLMProvider.ANTHROPIC:
@@ -287,25 +304,24 @@ class AgentExecutor(LLMAgent):
         return output
 
     @property
-    def _stream_directly(self):
+    def _can_stream_directly(self):
         return (
             self.enable_streaming
-            and self.llm_data.llm.provider
-            not in self.NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS
+            and self.llm_data.llm.provider not in self.NON_STREAMING_TOOL_PROVIDERS
             and self.llm_data.llm.provider != LLMProvider.ANTHROPIC
         )
 
-    def _process_tool_calls(self, message):
-        message["role"] = "assistant"
-        tool_calls = message.get("tool_calls", [])
+    def _process_tool_calls(
+        self, message: Message | Delta
+    ) -> list[ChatCompletionMessageToolCall | ChatCompletionDeltaToolCall]:
+        message.role = "assistant"
+        tool_calls = message.tool_calls
         for tool_call in tool_calls:
-            tool_call["type"] = "function"
-            if "index" in tool_call:
-                del tool_call["index"]
+            tool_call.type = "function"
 
         return tool_calls
 
-    async def _process_acompletion_response(self, res):
+    async def _process_stream_response(self, res: CustomStreamWrapper):
         tool_calls = []
         new_messages = self.messages
         output = ""
@@ -313,64 +329,62 @@ class AgentExecutor(LLMAgent):
         chunks = []
 
         async for chunk in res:
-            new_message = chunk.choices[0].delta.dict()
-            if new_message.get("tool_calls"):
+            new_message = chunk.choices[0].delta
+            if (
+                hasattr(new_message, "tool_calls")
+                and new_message.tool_calls is not None
+            ):
                 new_tool_calls = self._process_tool_calls(new_message)
                 tool_calls.extend(new_tool_calls)
 
-            content = new_message.get("content", "")
-
-            if content:
-                output += content
-                if self._stream_directly:
-                    await self.streaming_callback.on_llm_new_token(content)
+            if new_message.content:
+                output += new_message.content
+                if self._can_stream_directly:
+                    await self.streaming_callback.on_llm_new_token(new_message.content)
             chunks.append(chunk)
 
-        res = stream_chunk_builder(chunks=chunks)
-        new_messages.append(res.choices[0].message)
+        model_response = stream_chunk_builder(chunks=chunks)
+        new_messages.append(model_response.choices[0].message.dict())
 
         return (tool_calls, new_messages, output)
 
-    async def _process_completion_response(self, res):
+    async def _process_model_response(self, res: ModelResponse):
         tool_calls = []
         new_messages = self.messages
-        output = ""
 
-        new_message = res.choices[0].message.dict()
-        if new_message.get("tool_calls"):
+        new_message = res.choices[0].message
+        if hasattr(new_message, "tool_calls") and new_message.tool_calls is not None:
             new_tool_calls = self._process_tool_calls(new_message)
             tool_calls.extend(new_tool_calls)
 
-        new_messages.append(new_message)
-        content = new_message.get("content", "")
-        if content:
-            output += content
-            if self._stream_directly:
-                await self._stream_by_lines(content)
+        new_messages.append(new_message.dict())
 
-        return (tool_calls, new_messages, output)
+        if new_message.content and self._can_stream_directly:
+            await self.streaming_callback.on_llm_new_token(new_message.content)
 
-    async def _acompletion(self, **kwargs) -> Any:
+        return (tool_calls, new_messages, new_message.content)
+
+    async def _acompletion(self, depth: int = 0, **kwargs) -> Any:
         logger.info(f"Calling LLM with kwargs: {kwargs}")
 
         if kwargs.get("stream"):
             await self.streaming_callback.on_llm_start()
 
         # TODO: Remove this when Groq and Bedrock supports streaming with tools
-        if self.llm_data.llm.provider in self.NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS:
+        if (
+            self.llm_data.llm.provider in self.NON_STREAMING_TOOL_PROVIDERS
+            and len(self.tools) > 0
+        ):
             logger.info(
                 f"Disabling streaming for {self.llm_data.llm.provider}, as tools are used"
             )
             kwargs["stream"] = False
 
+        model_completion = await acompletion(**kwargs)
         if kwargs.get("stream"):
-            result = await self._process_acompletion_response(
-                await acompletion(**kwargs)
-            )
+            result = await self._process_stream_response(model_completion)
         else:
-            result = await self._process_completion_response(
-                await acompletion(**kwargs)
-            )
+            result = await self._process_model_response(model_completion)
 
         tool_calls, new_messages, output = result
 
@@ -398,12 +412,21 @@ class AgentExecutor(LLMAgent):
         self.messages = new_messages
 
         if tool_calls:
-            return await self._execute_tool_calls(tool_calls, **kwargs)
+            if depth < self.max_tool_call_depth:
+                return await self._execute_tools(tool_calls, depth=depth, **kwargs)
+            else:
+                logger.error(
+                    f"Exceeded max tool call depth of {self.max_tool_call_depth}"
+                )
+                if not output:
+                    output = (
+                        f"Exceeded max tool call depth of {self.max_tool_call_depth}"
+                    )
 
         output = self._cleanup_output(output)
 
-        if not self._stream_directly and self.enable_streaming:
-            await self._stream_by_lines(output)
+        if not self._can_stream_directly and self.enable_streaming:
+            await self._stream_text_by_lines(output)
 
         if self.enable_streaming:
             self.streaming_callback.done.set()
@@ -444,7 +467,7 @@ class AgentExecutor(LLMAgent):
         )
 
         return {
-            "intermediate_steps": self.intermediate_steps,
+            "intermediate_steps": self._intermediate_steps,
             "input": self.input,
             "output": output,
         }
@@ -526,23 +549,11 @@ class AgentExecutorOpenAIFunc(LLMAgent):
             )
 
             tool_calls = res.choices[0].message.get("tool_calls", [])
-            await asyncio.gather(
-                *[
-                    self.memory.aadd_message(
-                        message=BaseMessage(
-                            type=MessageType.TOOL_CALL,
-                            content=tool_call.json(),
-                        )
-                    )
-                    for tool_call in tool_calls
-                ]
-            )
-
             for tool_call in tool_calls:
-                intermediate_step = await call_tool(
+                tool_call_res = await call_tool(
                     agent_data=self.agent_data,
                     session_id=self.session_id,
-                    function=tool_call.function.dict(),
+                    function=tool_call.function,
                 )
 
                 # TODO: handle the failure in tool call case
@@ -554,19 +565,17 @@ class AgentExecutorOpenAIFunc(LLMAgent):
                 #         )
                 #     )
 
-                tool_results.append(
-                    (intermediate_step.action_log, intermediate_step.result)
-                )
+                tool_results.append((tool_call_res.action_log, tool_call_res.result))
 
-                if intermediate_step.return_direct:
+                if tool_call_res.return_direct:
                     if self.enable_streaming:
-                        await self._stream_by_lines(intermediate_step.result)
+                        await self._stream_text_by_lines(tool_call_res.result)
                         self.streaming_callback.done.set()
 
                     return {
                         "intermediate_steps": tool_results,
                         "input": self.input,
-                        "output": intermediate_step.result,
+                        "output": tool_call_res.result,
                     }
 
         if len(tool_results) > 0:
@@ -579,7 +588,7 @@ class AgentExecutorOpenAIFunc(LLMAgent):
             )
 
         params = self.llm_data.params.dict(exclude_unset=True)
-        res = await acompletion(
+        second_res = await acompletion(
             api_key=self.llm_data.llm.apiKey,
             model=self.llm_data.model,
             messages=self.messages,
@@ -590,8 +599,9 @@ class AgentExecutorOpenAIFunc(LLMAgent):
         output = ""
         if self.enable_streaming:
             await self.streaming_callback.on_llm_start()
+            second_res = cast(CustomStreamWrapper, second_res)
 
-            async for chunk in res:
+            async for chunk in second_res:
                 token = chunk.choices[0].delta.content
                 if token:
                     output += token
@@ -599,7 +609,8 @@ class AgentExecutorOpenAIFunc(LLMAgent):
 
             self.streaming_callback.done.set()
         else:
-            output = res.choices[0].message.content
+            second_res = cast(ModelResponse, second_res)
+            output = second_res.choices[0].message.content
 
         await self.memory.aadd_message(
             message=BaseMessage(

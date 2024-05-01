@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Optional
 from urllib.parse import unquote, urlparse
 
-import requests
+from aiohttp import ClientSession
 from decouple import config
 from pydantic import BaseModel
 
@@ -42,10 +42,10 @@ class FileType(Enum):
 
 class File(BaseModel):
     url: str
-    name: str | None = None
+    name: Optional[str] = None
 
     @property
-    def type(self) -> FileType | None:
+    def type(self) -> Optional[FileType]:
         url = self.url
         if url:
             parsed_url = urlparse(url)
@@ -79,25 +79,29 @@ class SuperRagService:
         if not self.url:
             raise ValueError("SUPERRAG_API_URL is not set")
 
-    def _request(self, method, endpoint, data):
-        return requests.request(method, f"{self.url}/{endpoint}", json=data).json()
+    async def _arequest(self, method, endpoint, data):
+        async with ClientSession() as session:
+            async with session.request(
+                method, f"{self.url}/{endpoint}", json=data
+            ) as response:
+                return await response.json()
 
-    def ingest(self, data):
-        return self._request(
+    async def aingest(self, data):
+        return await self._arequest(
             "POST",
             "ingest",
             data,
         )
 
-    def delete(self, data):
-        return self._request(
+    async def adelete(self, data):
+        return await self._arequest(
             "DELETE",
             "delete",
             data,
         )
 
-    def query(self, data):
-        return self._request(
+    async def aquery(self, data):
+        return await self._arequest(
             "POST",
             "query",
             data,
