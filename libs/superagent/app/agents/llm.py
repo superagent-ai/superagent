@@ -180,11 +180,14 @@ class AgentExecutor(LLMAgent):
         LLMProvider.COHERE_CHAT,
     ]
 
-    intermediate_steps = []
+    @property
+    def max_tool_call_depth(self):
+        return 10
 
     async def _execute_tools(
         self,
         tool_calls: list[ChatCompletionMessageToolCall | ChatCompletionDeltaToolCall],
+        depth: int,
         **kwargs,
     ):
         messages: list = kwargs.get("messages")
@@ -213,7 +216,7 @@ class AgentExecutor(LLMAgent):
 
         self.messages = messages
         kwargs["messages"] = self.messages
-        return await self._acompletion(**kwargs)
+        return await self._acompletion(depth=depth + 1, **kwargs)
 
     def _cleanup_output(self, output: str) -> str:
         # anthropic returns a XML formatted response
@@ -295,7 +298,7 @@ class AgentExecutor(LLMAgent):
 
         return (tool_calls, new_messages, new_message.content)
 
-    async def _acompletion(self, **kwargs) -> Any:
+    async def _acompletion(self, depth: int = 0, **kwargs) -> Any:
         logger.info(f"Calling LLM with kwargs: {kwargs}")
 
         if kwargs.get("stream"):
@@ -321,7 +324,16 @@ class AgentExecutor(LLMAgent):
         self.messages = new_messages
 
         if tool_calls:
-            return await self._execute_tools(tool_calls, **kwargs)
+            if depth < self.max_tool_call_depth:
+                return await self._execute_tools(tool_calls, depth=depth, **kwargs)
+            else:
+                logger.error(
+                    f"Exceeded max tool call depth of {self.max_tool_call_depth}"
+                )
+                if not output:
+                    output = (
+                        f"Exceeded max tool call depth of {self.max_tool_call_depth}"
+                    )
 
         output = self._cleanup_output(output)
 
