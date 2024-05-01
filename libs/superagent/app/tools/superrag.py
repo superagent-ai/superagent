@@ -58,7 +58,7 @@ class SuperRagTool(BaseTool):
 
         credentials = get_superrag_compatible_credentials(provider.options)
 
-        res = self.superrag_service.query(
+        res = await self.superrag_service.aquery(
             {
                 "vector_database": {"type": database_provider, "config": credentials},
                 "index_name": index_name,
