@@ -249,8 +249,6 @@ class AgentExecutor(LLMAgent):
         tool_calls = message.tool_calls
         for tool_call in tool_calls:
             tool_call.type = "function"
-            if "index" in tool_call:
-                del tool_call["index"]
 
         return tool_calls
 
@@ -274,7 +272,7 @@ class AgentExecutor(LLMAgent):
             chunks.append(chunk)
 
         model_res = stream_chunk_builder(chunks=chunks)
-        new_messages.append(model_res.choices[0].message)
+        new_messages.append(model_res.choices[0].message.dict())
 
         return (tool_calls, new_messages, output)
 
@@ -287,7 +285,7 @@ class AgentExecutor(LLMAgent):
             new_tool_calls = self._process_tool_calls(new_message)
             tool_calls.extend(new_tool_calls)
 
-        new_messages.append(new_message)
+        new_messages.append(new_message.dict())
 
         if new_message.content and self._can_stream_directly:
             await self._stream_text_by_lines(new_message.content)
@@ -302,7 +300,7 @@ class AgentExecutor(LLMAgent):
 
         # TODO: Remove this when Groq and Bedrock supports streaming with tools
         if (
-            self.llm_data.llm.provider in self.NOT_TOOLS_STREAMING_SUPPORTED_PROVIDERS
+            self.llm_data.llm.provider in self.NON_STREAMING_TOOL_PROVIDERS
             and len(self.tools) > 0
         ):
             logger.info(
@@ -433,7 +431,7 @@ class AgentExecutorOpenAIFunc(LLMAgent):
                 stream=False,
             )
 
-            for tool_call in res.choices[0].message.tool_calls:
+            for tool_call in res.choices[0].message.tool_calls or []:
                 (action_log, tool_res, return_direct) = await call_tool(
                     agent_data=self.agent_data,
                     session_id=self.session_id,
