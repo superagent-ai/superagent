@@ -52,7 +52,7 @@ class ToolCallResponse:
     success: bool = True
 
 
-async def call_tool(
+async def execute_tool(
     agent_data: Agent, session_id: str, function: Function
 ) -> ToolCallResponse:
     action_log = AgentActionMessageLog(
@@ -257,7 +257,7 @@ class AgentExecutor(LLMAgent):
     ):
         messages: list = kwargs.get("messages")
         for tool_call in tool_calls:
-            tool_call_res = await call_tool(
+            tool_call_res = await execute_tool(
                 agent_data=self.agent_data,
                 session_id=self.session_id,
                 function=tool_call.function,
@@ -553,7 +553,7 @@ class AgentExecutorOpenAIFunc(LLMAgent):
                     tool_calls = res.choices[0].message.tool_calls
 
                 for tool_call in tool_calls:
-                    tool_call_res = await call_tool(
+                    tool_call_res = await execute_tool(
                         agent_data=self.agent_data,
                         session_id=self.session_id,
                         function=tool_call.function,
