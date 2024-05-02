@@ -193,6 +193,7 @@ class LLMAgent(AgentBase):
             inital_token_usage=len(prompt),
         )
         if len(messages) > 0:
+            messages.reverse()
             prompt += "\n\n Here's the previous conversation: <chat_history> \n"
             for message in messages:
                 prompt += f"""<{message.type.value}> {message.content} </{message.type.value}>\n"""
