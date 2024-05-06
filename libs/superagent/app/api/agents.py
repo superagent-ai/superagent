@@ -52,7 +52,7 @@ from app.models.response import (
 )
 from app.utils.analytics import track_agent_invocation
 from app.utils.api import get_current_api_user, handle_exception
-from app.utils.callbacks import CostCalcAsyncHandler, CustomAsyncIteratorCallbackHandler
+from app.utils.callbacks import CostCalcCallback, CustomAsyncIteratorCallbackHandler
 from app.utils.helpers import stream_dict_keys
 from app.utils.llm import LLM_MAPPING, LLM_PROVIDER_MAPPING
 from app.utils.prisma import prisma
@@ -459,7 +459,7 @@ async def invoke(
     if not model and metadata.get("model"):
         model = metadata.get("model")
 
-    costCallback = CostCalcAsyncHandler(model=model)
+    costCallback = CostCalcCallback(model=model)
 
     monitoring_callbacks = [costCallback]
 
@@ -559,7 +559,7 @@ async def invoke(
     input = body.input
     enable_streaming = body.enableStreaming
     output_schema = body.outputSchema or agent_data.outputSchema
-    cost_callback = CostCalcAsyncHandler(model=model)
+    cost_callback = CostCalcCallback(model=model)
     streaming_callback = CustomAsyncIteratorCallbackHandler()
 
     agent_base = AgentFactory(

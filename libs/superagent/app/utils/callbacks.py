@@ -2,16 +2,54 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, AsyncIterator, List, Literal, Tuple, Union, cast
+from abc import ABC, abstractmethod
+from typing import Any, AsyncIterator, Literal, Tuple, Union, cast
 
+from agentops.langchain_callback_handler import AsyncLangchainCallbackHandler
 from decouple import config
-from langchain.callbacks.base import AsyncCallbackHandler
 from langchain.schema.agent import AgentFinish
-from langchain.schema.output import LLMResult
 from langfuse import Langfuse
 from litellm import cost_per_token, token_counter
 
 logger = logging.getLogger(__name__)
+
+
+class AsyncCallbackHandler(ABC):
+    @abstractmethod
+    async def on_agent_finish(self, content: str):
+        pass
+
+    @abstractmethod
+    async def on_llm_start(self, prompt: str):
+        pass
+
+    @abstractmethod
+    async def on_llm_new_token(self, token: str):
+        pass
+
+    @abstractmethod
+    async def on_llm_end(self, response: str):
+        pass
+
+    @abstractmethod
+    async def on_chain_start(self):
+        pass
+
+    @abstractmethod
+    async def on_chain_end(self):
+        pass
+
+    @abstractmethod
+    async def on_llm_error(self, response: str):
+        pass
+
+    @abstractmethod
+    async def on_human_message(self, input: str):
+        pass
+
+    @abstractmethod
+    async def aiter(self) -> AsyncIterator[str]:
+        pass
 
 
 class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
@@ -58,14 +96,17 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
                 except asyncio.QueueFull:
                     continue
 
-    async def on_llm_end(self, response, **kwargs: Any) -> None:  # noqa
-        # TODO:
-        # This should be removed when Langchain has merged
-        # https://github.com/langchain-ai/langchain/pull/9536
-        for gen_list in response.generations:
-            for gen in gen_list:
-                if gen.message.content != "":
-                    self.done.set()
+    # async def on_llm_end(self, response, **kwargs: Any) -> None:  # noqa
+    #     # TODO:
+    #     # This should be removed when Langchain has merged
+    #     # https://github.com/langchain-ai/langchain/pull/9536
+    #     for gen_list in response.generations:
+    #         for gen in gen_list:
+    #             if gen.message.content != "":
+    #                 self.done.set()
+
+    async def on_chain_end(self) -> None:
+        self.done.set()
 
     async def on_llm_error(self, *args: Any, **kwargs: Any) -> None:  # noqa
         self.done.set()
@@ -96,8 +137,20 @@ class CustomAsyncIteratorCallbackHandler(AsyncCallbackHandler):
 
             yield token_or_done
 
+    async def on_chain_start(self, *args: Any, **kwargs: Any) -> None:
+        pass
 
-class CostCalcAsyncHandler(AsyncCallbackHandler):
+    async def on_human_message(self, input: str) -> None:
+        pass
+
+    async def on_llm_end(self, *args: Any, **kwargs: Any) -> None:
+        pass
+
+    async def on_llm_start(self, *args: Any, **kwargs: Any) -> None:
+        pass
+
+
+class CostCalcCallback(AsyncCallbackHandler):
     """Callback handler that calculates the cost of the prompt and completion."""
 
     def __init__(self, model):
@@ -109,11 +162,11 @@ class CostCalcAsyncHandler(AsyncCallbackHandler):
         self.prompt_tokens_cost_usd: float = 0.0
         self.completion_tokens_cost_usd: float = 0.0
 
-    def on_llm_start(self, _, prompts: List[str], **kwargs: Any) -> None:  # noqa
-        self.prompt = prompts[0]
+    async def on_llm_start(self, prompt: str) -> None:  # noqa
+        self.prompt = prompt
 
-    def on_llm_end(self, llm_result: LLMResult, **kwargs: Any) -> None:  # noqa
-        self.completion = llm_result.generations[0][0].message.content
+    async def on_llm_end(self, response: str) -> None:  # noqa
+        self.completion = response
         completion_tokens = self._calculate_tokens(self.completion)
         prompt_tokens = self._calculate_tokens(self.prompt)
 
@@ -139,12 +192,34 @@ class CostCalcAsyncHandler(AsyncCallbackHandler):
             completion_tokens=completion_tokens,
         )
 
+    async def on_agent_finish(self, content: str):
+        pass
 
-def get_session_tracker_handler(
-    workflow_id,
-    agent_id,
-    session_id,
-    user_id,
+    async def on_llm_new_token(self, token: str):
+        pass
+
+    async def on_chain_start(self):
+        pass
+
+    async def on_chain_end(self):
+        pass
+
+    async def on_llm_error(self, response: str):
+        pass
+
+    async def on_human_message(self, input: str):
+        pass
+
+    async def aiter(self):
+        pass
+
+
+def get_langfuse_handler(
+    *,
+    workflow_id: str,
+    agent_id: str,
+    session_id: str,
+    user_id: str,
 ):
     langfuse_secret_key = config("LANGFUSE_SECRET_KEY", "")
     langfuse_public_key = config("LANGFUSE_PUBLIC_KEY", "")
@@ -169,3 +244,44 @@ def get_session_tracker_handler(
         return langfuse_handler
 
     return None
+
+
+def get_agentops_handler(
+    *,
+    session_id: str,
+):
+    agentops_api_key = config("AGENTOPS_API_KEY", default=None)
+    agentops_org_key = config("AGENTOPS_ORG_KEY", default=None)
+
+    if not agentops_api_key or not agentops_org_key:
+        return None
+
+    return AsyncLangchainCallbackHandler(
+        api_key=agentops_api_key, org_key=agentops_org_key, tags=[session_id]
+    )
+
+
+def get_logging_handlers(
+    *,
+    workflow_id: str,
+    agent_id: str,
+    session_id: str,
+    user_id: str,
+):
+    langfuse_handler = get_langfuse_handler(
+        workflow_id=session_id,
+        agent_id=session_id,
+        session_id=session_id,
+        user_id=session_id,
+    )
+    agentops_handler = get_agentops_handler(
+        session_id=session_id,
+    )
+
+    callback_handlers = []
+    if langfuse_handler:
+        callback_handlers.append(langfuse_handler)
+    if agentops_handler:
+        callback_handlers.append(agentops_handler)
+
+    return callback_handlers
