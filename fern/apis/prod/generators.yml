@@ -1,3 +1,7 @@
+api:
+  path: ./openapi/openapi.yaml
+  settings:
+    use-title: false
 groups:
   publish:
     generators:
