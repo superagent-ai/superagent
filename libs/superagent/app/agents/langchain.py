@@ -1,4 +1,5 @@
 import datetime
+from functools import cached_property
 
 from decouple import config
 from langchain.agents import AgentType, initialize_agent
@@ -62,9 +63,8 @@ class LangchainAgent(AgentBase):
                 max_tokens=llm_data.params.max_tokens,
             )
 
-    async def _get_memory(
-        self,
-    ) -> None | MotorheadMemory | ConversationBufferWindowMemory:
+    @cached_property
+    async def memory(self) -> None | MotorheadMemory | ConversationBufferWindowMemory:
         # if memory is already set, in the main agent base class, return it
         if not self.session_id:
             raise ValueError("Session ID is required to initialize memory")
@@ -95,7 +95,7 @@ class LangchainAgent(AgentBase):
 
     async def get_agent(self):
         llm = self._get_llm()
-        memory = await self._get_memory()
+        memory = await self.memory
         tools = self.tools
         prompt = self.prompt
 

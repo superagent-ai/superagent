@@ -1,7 +1,9 @@
+import asyncio
 import datetime
 import json
 import logging
-from functools import cached_property
+from dataclasses import dataclass
+from functools import cached_property, partial
 from typing import Any, cast
 
 from decouple import config
@@ -16,6 +18,7 @@ from litellm import (
     get_llm_provider,
     get_supported_openai_params,
     stream_chunk_builder,
+    token_counter,
 )
 from litellm.utils import (
     ChatCompletionDeltaToolCall,
@@ -25,6 +28,10 @@ from litellm.utils import (
 )
 
 from app.agents.base import AgentBase
+from app.memory.base import BaseMessage
+from app.memory.buffer_memory import BufferMemory
+from app.memory.memory_stores.redis import RedisMemoryStore
+from app.memory.message import MessageType
 from app.tools import get_tools
 from app.utils.callbacks import CustomAsyncIteratorCallbackHandler
 from app.utils.prisma import prisma
@@ -37,54 +44,87 @@ from prompts.json import JSON_FORMAT_INSTRUCTIONS
 logger = logging.getLogger(__name__)
 
 
-async def call_tool(
+@dataclass
+class ToolCallResponse:
+    action_log: AgentActionMessageLog
+    result: Any
+    return_direct: bool = False
+    success: bool = True
+
+
+async def execute_tool(
     agent_data: Agent, session_id: str, function: Function
-) -> tuple[AgentActionMessageLog, Any]:
-    try:
-        args = json.loads(function.arguments)
-    except Exception as e:
-        logger.error(f"Error parsing function arguments for {function.name}: {e}")
-        raise e
-
-    tools = get_tools(
-        agent_data=agent_data,
-        session_id=session_id,
-    )
-    tool_to_call = None
-    for tool in tools:
-        if tool.name == function.name:
-            tool_to_call = tool
-            break
-    if not tool_to_call:
-        raise Exception(f"Function {function.name} not found in tools")
-
-    logging.info(f"Calling tool {function.name} with arguments {args}")
-
+) -> ToolCallResponse:
     action_log = AgentActionMessageLog(
         tool=function.name,
-        tool_input=args,
-        log=f"\nInvoking: `{function.name}` with `{args}`\n\n\n",
+        tool_input=function.arguments,
+        log=f"\nInvoking: `{function.name}` with `{function.arguments}`\n\n\n",
         message_log=[
             AIMessage(
                 content="",
                 additional_kwargs={
                     "function_call": {
-                        "arguments": json.dumps(args),
+                        "arguments": function.arguments,
                         "name": function.name,
                     }
                 },
             )
         ],
     )
-    tool_res = None
+
+    try:
+        args = json.loads(function.arguments)
+    except Exception as e:
+        msg = f"Error parsing arguments for {function.name}: {e}"
+        logging.error(msg)
+        return ToolCallResponse(
+            action_log=action_log,
+            result=msg,
+            return_direct=False,
+            success=False,
+        )
+
+    tools = get_tools(
+        agent_data=agent_data,
+        session_id=session_id,
+    )
+
+    logging.info(f"Calling tool {function.name} with arguments {args}")
+
+    tool_to_call = None
+    for tool in tools:
+        if tool.name == function.name:
+            tool_to_call = tool
+            break
+
+    if not tool_to_call:
+        msg = f"Tool {function.name} not found in tools, avaliable tool names: {', '.join([tool.name for tool in tools])}"
+        logger.error(msg)
+        return ToolCallResponse(
+            action_log=action_log,
+            result=msg,
+            return_direct=False,
+            success=False,
+        )
+
     try:
         tool_res = await tool_to_call._arun(**args)
         logging.info(f"Tool {function.name} returned {tool_res}")
+        return ToolCallResponse(
+            action_log=action_log,
+            result=tool_res,
+            return_direct=tool_to_call.return_direct,
+            success=True,
+        )
     except Exception as e:
-        tool_res = f"Error calling {tool_to_call.name} tool with arguments {args}: {e}"
+        msg = f"Error calling {tool_to_call.name} tool with arguments {args}: {e}"
         logging.error(f"Error calling tool {function.name}: {e}")
-
-    return (action_log, tool_res, tool_to_call.return_direct)
+        return ToolCallResponse(
+            action_log=action_log,
+            result=msg,
+            success=False,
+            return_direct=False,
+        )
 
 
 class LLMAgent(AgentBase):
@@ -117,6 +157,22 @@ class LLMAgent(AgentBase):
             for tool in tools
         ]
 
+    @cached_property
+    def memory(self) -> BufferMemory:
+        redisMemoryStore = RedisMemoryStore(
+            uri=config("REDIS_MEMORY_URL", "redis://localhost:6379/0"),
+            session_id=self.session_id,
+        )
+        tokenizer_fn = partial(token_counter, model=self.llm_data.model)
+
+        bufferMemory = BufferMemory(
+            memory_store=redisMemoryStore,
+            model=self.llm_data.model,
+            tokenizer_fn=tokenizer_fn,
+        )
+
+        return bufferMemory
+
     @property
     def prompt(self):
         base_prompt = self.agent_data.prompt or DEFAULT_PROMPT
@@ -132,6 +188,16 @@ class LLMAgent(AgentBase):
                 """
         else:
             prompt = base_prompt
+
+        messages = self.memory.get_messages(
+            inital_token_usage=len(prompt),
+        )
+        if len(messages) > 0:
+            messages.reverse()
+            prompt += "\n\n Here's the previous conversation: <chat_history> \n"
+            for message in messages:
+                prompt += f"""<{message.type.value}> {message.content} </{message.type.value}>\n"""
+            prompt += " </chat_history> \n"
 
         return prompt
 
@@ -192,27 +258,28 @@ class AgentExecutor(LLMAgent):
     ):
         messages: list = kwargs.get("messages")
         for tool_call in tool_calls:
-            intermediate_step = await call_tool(
+            tool_call_res = await execute_tool(
                 agent_data=self.agent_data,
                 session_id=self.session_id,
                 function=tool_call.function,
             )
-            (action_log, tool_res, return_direct) = intermediate_step
-            self._intermediate_steps.append((action_log, tool_res))
+            self._intermediate_steps.append(
+                (tool_call_res.action_log, tool_call_res.result)
+            )
             new_message = {
                 "role": "tool",
                 "name": tool_call.function.name,
-                "content": tool_res,
+                "content": tool_call_res.result,
             }
             if tool_call.id:
                 new_message["tool_call_id"] = tool_call.id
 
             messages.append(new_message)
-            if return_direct:
+            if tool_call_res.return_direct:
                 if self.enable_streaming:
-                    await self._stream_text_by_lines(tool_res)
+                    await self._stream_text_by_lines(tool_call_res.result)
                     self.streaming_callback.done.set()
-                return tool_res
+                return tool_call_res.result
 
         self.messages = messages
         kwargs["messages"] = self.messages
@@ -277,8 +344,8 @@ class AgentExecutor(LLMAgent):
                     await self.streaming_callback.on_llm_new_token(new_message.content)
             chunks.append(chunk)
 
-        model_res = stream_chunk_builder(chunks=chunks)
-        new_messages.append(model_res.choices[0].message.dict())
+        model_response = stream_chunk_builder(chunks=chunks)
+        new_messages.append(model_response.choices[0].message.dict())
 
         return (tool_calls, new_messages, output)
 
@@ -294,7 +361,7 @@ class AgentExecutor(LLMAgent):
         new_messages.append(new_message.dict())
 
         if new_message.content and self._can_stream_directly:
-            await self._stream_text_by_lines(new_message.content)
+            await self.streaming_callback.on_llm_new_token(new_message.content)
 
         return (tool_calls, new_messages, new_message.content)
 
@@ -314,12 +381,34 @@ class AgentExecutor(LLMAgent):
             )
             kwargs["stream"] = False
 
+        model_completion = await acompletion(**kwargs)
         if kwargs.get("stream"):
-            result = await self._process_stream_response(await acompletion(**kwargs))
+            result = await self._process_stream_response(model_completion)
         else:
-            result = await self._process_model_response(await acompletion(**kwargs))
+            result = await self._process_model_response(model_completion)
 
         tool_calls, new_messages, output = result
+
+        if output:
+            await self.memory.aadd_message(
+                message=BaseMessage(
+                    type=MessageType.AI,
+                    content=output,
+                )
+            )
+
+        if tool_calls:
+            await asyncio.gather(
+                *[
+                    self.memory.aadd_message(
+                        message=BaseMessage(
+                            type=MessageType.TOOL_CALL,
+                            content=tool_call.json(),
+                        )
+                    )
+                    for tool_call in tool_calls
+                ]
+            )
 
         self.messages = new_messages
 
@@ -357,6 +446,13 @@ class AgentExecutor(LLMAgent):
                 "role": "user",
             },
         ]
+
+        await self.memory.aadd_message(
+            message=BaseMessage(
+                type=MessageType.HUMAN,
+                content=self.input,
+            )
+        )
 
         if self.enable_streaming:
             self._set_streaming_callback(kwargs.get("config", {}).get("callbacks", []))
@@ -417,89 +513,128 @@ class AgentExecutorOpenAIFunc(LLMAgent):
         ]
 
     async def ainvoke(self, input, *_, **kwargs):
-        self.input = input
-        tool_results = []
-
-        if self.enable_streaming:
-            self._set_streaming_callback(kwargs.get("config", {}).get("callbacks", []))
-
-        if len(self.tools) > 0:
-            openai_llm = await prisma.llm.find_first(
-                where={
-                    "provider": LLMProvider.OPENAI.value,
-                    "apiUserId": self.agent_data.apiUserId,
-                }
-            )
-            if openai_llm:
-                openai_api_key = openai_llm.apiKey
-            else:
-                openai_api_key = config("OPENAI_API_KEY")
-                logger.warn(
-                    "OpenAI API Key not found in database, using environment variable"
-                )
-
-            res = await acompletion(
-                api_key=openai_api_key,
-                model="gpt-3.5-turbo-0125",
-                messages=self.messages_function_calling,
-                tools=self.tools,
-                stream=False,
-            )
-
-            for tool_call in res.choices[0].message.tool_calls or []:
-                (action_log, tool_res, return_direct) = await call_tool(
-                    agent_data=self.agent_data,
-                    session_id=self.session_id,
-                    function=tool_call.function,
-                )
-                tool_results.append((action_log, tool_res))
-                if return_direct:
-                    if self.enable_streaming:
-                        await self._stream_text_by_lines(tool_res)
-                        self.streaming_callback.done.set()
-
-                    return {
-                        "intermediate_steps": tool_results,
-                        "input": self.input,
-                        "output": tool_res,
-                    }
-
-        if len(tool_results) > 0:
-            INPUT_TEMPLATE = "{input}\n Context: {context}\n"
-            self.input = INPUT_TEMPLATE.format(
-                input=self.input,
-                context="\n\n".join(
-                    [tool_response for (_, tool_response) in tool_results]
-                ),
-            )
-
-        params = self.llm_data.params.dict(exclude_unset=True)
-        second_res = await acompletion(
-            api_key=self.llm_data.llm.apiKey,
-            model=self.llm_data.model,
-            messages=self.messages,
-            stream=self.enable_streaming,
-            **params,
-        )
-
         output = ""
-        if self.enable_streaming:
-            await self.streaming_callback.on_llm_start()
-            second_res = cast(CustomStreamWrapper, second_res)
+        try:
+            self.input = input
+            tool_results = []
 
-            async for chunk in second_res:
-                token = chunk.choices[0].delta.content
-                if token:
-                    output += token
-                    await self.streaming_callback.on_llm_new_token(token)
+            if self.enable_streaming:
+                self._set_streaming_callback(
+                    kwargs.get("config", {}).get("callbacks", [])
+                )
 
-            self.streaming_callback.done.set()
-        else:
-            second_res = cast(ModelResponse, second_res)
-            output = second_res.choices[0].message.content
+            if len(self.tools) > 0:
+                openai_llm = await prisma.llm.find_first(
+                    where={
+                        "provider": LLMProvider.OPENAI.value,
+                        "apiUserId": self.agent_data.apiUserId,
+                    }
+                )
+                if openai_llm:
+                    openai_api_key = openai_llm.apiKey
+                else:
+                    openai_api_key = config("OPENAI_API_KEY")
+                    logger.warn(
+                        "OpenAI API Key not found in database, using environment variable"
+                    )
 
-        return {
-            "intermediate_steps": tool_results,
-            "input": self.input,
-            "output": output,
-        }
+                res = await acompletion(
+                    api_key=openai_api_key,
+                    model="gpt-3.5-turbo-0125",
+                    messages=self.messages_function_calling,
+                    tools=self.tools,
+                    stream=False,
+                )
+
+                tool_calls = []
+                if (
+                    hasattr(res.choices[0].message, "tool_calls")
+                    and res.choices[0].message.tool_calls
+                ):
+                    tool_calls = res.choices[0].message.tool_calls
+
+                for tool_call in tool_calls:
+                    tool_call_res = await execute_tool(
+                        agent_data=self.agent_data,
+                        session_id=self.session_id,
+                        function=tool_call.function,
+                    )
+
+                    # TODO: handle the failure in tool call case
+                    # if not intermediate_step.success:
+                    #     self.memory.add_message(
+                    #         message=BaseMessage(
+                    #             type=MessageType.TOOL_RESULT,
+                    #             content=intermediate_step.result,
+                    #         )
+                    #     )
+
+                    tool_results.append(
+                        (tool_call_res.action_log, tool_call_res.result)
+                    )
+
+                    if tool_call_res.return_direct:
+                        if self.enable_streaming:
+                            await self._stream_text_by_lines(tool_call_res.result)
+                            self.streaming_callback.done.set()
+
+                        output = tool_call_res.result
+
+                        return {
+                            "intermediate_steps": tool_results,
+                            "input": self.input,
+                            "output": output,
+                        }
+
+            if len(tool_results) > 0:
+                INPUT_TEMPLATE = "{input}\n Context: {context}\n"
+                self.input = INPUT_TEMPLATE.format(
+                    input=self.input,
+                    context="\n\n".join(
+                        [tool_response for (_, tool_response) in tool_results]
+                    ),
+                )
+
+            params = self.llm_data.params.dict(exclude_unset=True)
+            second_res = await acompletion(
+                api_key=self.llm_data.llm.apiKey,
+                model=self.llm_data.model,
+                messages=self.messages,
+                stream=self.enable_streaming,
+                **params,
+            )
+
+            if self.enable_streaming:
+                await self.streaming_callback.on_llm_start()
+                second_res = cast(CustomStreamWrapper, second_res)
+
+                async for chunk in second_res:
+                    token = chunk.choices[0].delta.content
+                    if token:
+                        output += token
+                        await self.streaming_callback.on_llm_new_token(token)
+
+                self.streaming_callback.done.set()
+            else:
+                second_res = cast(ModelResponse, second_res)
+                output = second_res.choices[0].message.content
+
+            return {
+                "intermediate_steps": tool_results,
+                "input": self.input,
+                "output": output,
+            }
+        finally:
+            await self.memory.aadd_message(
+                message=BaseMessage(
+                    type=MessageType.HUMAN,
+                    content=self.input,
+                )
+            )
+
+            await self.memory.aadd_message(
+                message=BaseMessage(
+                    type=MessageType.AI,
+                    content=output,
+                )
+            )
