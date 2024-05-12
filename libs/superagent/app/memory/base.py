@@ -1,58 +1,29 @@
-from typing import Any, Dict, List, Optional, Tuple
+from abc import ABC, abstractmethod
+from typing import List
 
-import requests
-from decouple import config
-
-MANAGED_URL = config("MEMORY_API_URL")
+from app.memory.memory_stores.base import BaseMemoryStore
+from app.memory.message import BaseMessage
 
 
-class Memory:
-    """Assistant memory"""
+class BaseMemory(ABC):
+    memory_store: BaseMemoryStore
 
-    def __init__(
-        self,
-        session_id: str,
-        url: str = MANAGED_URL,
-        timeout: int = 3000,
-        context: Optional[str] = None,
-    ):
-        self.url = url
-        self.timeout = timeout
-        self.session_id = session_id
-        self.context = context
-        self.chat_memory = []
+    @abstractmethod
+    def add_message(self, message: BaseMessage) -> None:
+        ...
 
-    def __get_headers(self) -> Dict[str, str]:
-        headers = {
-            "Content-Type": "application/json",
-        }
-        return headers
+    @abstractmethod
+    async def aadd_message(self, message: BaseMessage) -> None:
+        ...
 
-    async def init(self) -> Tuple[str, List[Any]]:
-        res = requests.get(
-            f"{self.url}/sessions/{self.session_id}/memory",
-            timeout=self.timeout,
-            headers=self.__get_headers(),
-        )
-        res_data = res.json()
-        res_data = res_data.get("data", res_data)
-        messages = res_data.get("messages", [])
-        context = res_data.get("context", "NONE")
-        return (context, list(reversed(messages)))
+    @abstractmethod
+    def get_messages(self) -> List[BaseMessage]:
+        """
+        List all the messages stored in the memory.
+        Messages are returned in the descending order of their creation.
+        """
+        ...
 
-    def save_context(self, input: str, output: str) -> None:
-        requests.post(
-            f"{self.url}/sessions/{self.session_id}/memory",
-            timeout=self.timeout,
-            json={
-                "messages": [
-                    {"role": "Human", "content": f"{input}"},
-                    {"role": "AI", "content": f"{output}"},
-                ]
-            },
-            headers=self.__get_headers(),
-        )
-
-    def delete_session(self) -> None:
-        """Delete a session"""
-        requests.delete(f"{self.url}/sessions/{self.session_id}/memory")
+    @abstractmethod
+    def clear(self) -> None:
+        ...
