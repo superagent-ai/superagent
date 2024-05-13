@@ -21,6 +21,7 @@ class AdvancedScraper(BaseTool):
             "waitBeforeScraping": 1,
             "fastLane": True,
             "removeCSSselectors": "default",
+            "triggersDownload": True,
             "timeout": 45,
         }
 
