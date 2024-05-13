@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from functools import cached_property
 from typing import Any, List, Optional
 
 from langchain.agents import AgentExecutor
@@ -76,6 +77,11 @@ class AgentBase(ABC):
     @property
     @abstractmethod
     def tools(self) -> Any:
+        ...
+
+    # TODO: Set a proper return type when we remove Langchain agent type
+    @cached_property
+    async def memory(self) -> Any:
         ...
 
     @abstractmethod
