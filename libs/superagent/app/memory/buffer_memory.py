@@ -17,9 +17,9 @@ def get_context_window(model: str) -> int:
     # But they point to the same model
     # Example: claude-3-haiku-20240307 and anthropic/claude-3-haiku-20240307
     if not max_input_tokens:
-        model_parts = model.split("/")
+        model_parts = model.split("/", 1)
         if len(model_parts) > 1:
-            model_without_prefix = model_parts[-1]
+            model_without_prefix = model_parts[1]
             max_input_tokens = model_cost.get(model_without_prefix, {}).get(
                 "max_input_tokens", DEFAULT_TOKEN_LIMIT
             )
