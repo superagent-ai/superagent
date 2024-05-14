@@ -17,6 +17,7 @@ export enum LLMModel {
   GPT_4_0613,
   GPT_4_32K_0613,
   GPT_4_1106_PREVIEW,
+  GPT_4_O,
   MISTRAL_7B_INSTRUCT_V01,
 }
 
