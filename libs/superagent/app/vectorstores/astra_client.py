@@ -160,6 +160,7 @@ class AstraClient:
         query = {
             "sort": {"$vector": vector},
             "options": {"limit": top_k, "includeSimilarity": True},
+            "projection": {"*": 1},
         }
         if filters is not None:
             query["filter"] = filters
