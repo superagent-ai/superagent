@@ -130,6 +130,10 @@ export const siteConfig = {
           value: "GPT_4_TURBO_PREVIEW",
           title: "gpt-4-turbo-preview",
         },
+        {
+          value: "GPT_4_O",
+          title: "gpt-4o",
+        },
       ],
     },
     {

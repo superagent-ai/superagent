@@ -15,6 +15,7 @@ LLM_MAPPING = {
     "GPT_4_TURBO": "gpt-4-turbo",
     "GPT_4_TURBO_2024_04_09": "gpt-4-turbo-2024-04-09",
     "GPT_4_0125_PREVIEW": "gpt-4-0125-preview",
+    "GPT_4_O": "gpt-4o",
 }
 
 LLM_REVERSE_MAPPING = {v: k for k, v in LLM_MAPPING.items()}
@@ -36,6 +37,7 @@ LLM_PROVIDER_MAPPING = {
         "GPT_4_TURBO_2024_04_09",
         "GPT_4_0125_PREVIEW",
         "GPT_4_32K",
+        "GPT_4_O",
     ]
 }
 
