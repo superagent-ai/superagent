@@ -6,7 +6,7 @@ groups:
   publish:
     generators:
       - name: fernapi/fern-python-sdk
-        version: 0.11.9
+        version: 2.2.0
         disable-examples: true
         output:
           location: pypi
@@ -16,6 +16,13 @@ groups:
           repository: homanp/superagent-py
         config:
           client_class_name: Superagent
+          inline_request_params: false
+          improved_imports: false
+          pydantic_config:
+            require_optional_fields: true
+            use_str_enums: false
+            extra_fields: "forbid"
+
       - name: fernapi/fern-typescript-node-sdk
         version: 0.12.5
         output:
