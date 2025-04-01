@@ -49,11 +49,6 @@ export const siteConfig = {
       href: "/logs",
       icon: TbTerminal2,
     },
-    {
-      title: "Integrations",
-      href: "/integrations",
-      icon: TbPlug,
-    },
   ],
   footerNav: [
     {
@@ -65,6 +60,11 @@ export const siteConfig = {
       title: "Documentation",
       href: "https://docs.superagent.sh",
       icon: TbFileCode,
+    },
+    {
+      title: "Integrations",
+      href: "/integrations",
+      icon: TbPlug,
     },
     {
       title: "Settings",
