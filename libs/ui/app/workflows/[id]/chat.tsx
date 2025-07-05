@@ -218,7 +218,7 @@ export default function Chat({
         for (let i = updatedMessages.length - 1; i >= 0; i--) {
           if (updatedMessages[i].type === "ai") {
             updatedMessages[i].message =
-              "An error occured with your agent, please contact support."
+              "An error occurred with your workflow, please contact support."
             break
           }
         }
