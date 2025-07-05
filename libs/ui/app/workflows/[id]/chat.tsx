@@ -65,6 +65,7 @@ export default function Chat({
   const [open, setOpen] = React.useState<boolean>(false)
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
   const { toast } = useToast()
+  const [error, setError] = React.useState<string | null>(null)
 
   const abortControllerRef = React.useRef<AbortController | null>(null)
 
@@ -85,6 +86,7 @@ export default function Chat({
   }
 
   async function onSubmit(value?: string) {
+    setError(null)
     let messageByEventIds: Record<string, string> = {}
     let currentEventId = ""
 
@@ -188,15 +190,31 @@ export default function Chat({
             }
           },
           onerror(error) {
-            throw error
+            setIsLoading(false)
+            setTimer(0)
+            setError("An error occurred with your workflow, please contact support.")
+            if (timerRef.current) {
+              clearInterval(timerRef.current)
+            }
+            setMessages((previousMessages) => {
+              let updatedMessages = [...previousMessages]
+              for (let i = updatedMessages.length - 1; i >= 0; i--) {
+                if (updatedMessages[i].type === "ai") {
+                  updatedMessages[i].message =
+                    "An error occured with your workflow, please contact support."
+                  break
+                }
+              }
+              return updatedMessages
+            })
           },
         }
       )
     } catch {
       resetState()
+      setError("An error occurred with your workflow, please contact support.")
       setMessages((previousMessages) => {
         let updatedMessages = [...previousMessages]
-
         for (let i = updatedMessages.length - 1; i >= 0; i--) {
           if (updatedMessages[i].type === "ai") {
             updatedMessages[i].message =
@@ -204,7 +222,6 @@ export default function Chat({
             break
           }
         }
-
         return updatedMessages
       })
     }
@@ -259,6 +276,13 @@ export default function Chat({
           </div>
         </ScrollArea>
         <div className="from-bg-background absolute bottom-0 z-50 flex w-full flex-col bg-gradient-to-t from-0% to-transparent to-50% pb-8 sm:px-5 lg:px-20">
+          {error && (
+            <div className="mx-auto mb-2 max-w-2xl px-8">
+              <div className="rounded bg-red-100 text-red-800 px-4 py-2 text-sm font-medium border border-red-300">
+                {error}
+              </div>
+            </div>
+          )}
           <div className="container max-w-4xl grow self-center px-8">
             <PromptForm
               onStop={() => abortStream()}

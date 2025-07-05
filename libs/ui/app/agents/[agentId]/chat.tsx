@@ -58,6 +58,7 @@ export default function Chat({
   const [session, setSession] = React.useState<string | null>(uuidv4())
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
   const { toast } = useToast()
+  const [error, setError] = React.useState<string | null>(null)
 
   const [{ loading: isLoadingRuns, value: runs = [] }, getAgentRuns] =
     useAsyncFn(async () => {
@@ -87,6 +88,7 @@ export default function Chat({
   }
 
   async function onSubmit(value: string) {
+    setError(null)
     let message = ""
 
     if (abortControllerRef.current) {
@@ -218,19 +220,35 @@ export default function Chat({
               }
             },
             onerror(error) {
-              throw error
+              setIsLoading(false)
+              setTimer(0)
+              setError("An error occurred with your agent, please contact support.")
+              if (timerRef.current) {
+                clearInterval(timerRef.current)
+              }
+              setMessages((previousMessages) => {
+                let updatedMessages = [...previousMessages]
+                for (let i = updatedMessages.length - 1; i >= 0; i--) {
+                  if (updatedMessages[i].type === "ai") {
+                    updatedMessages[i].message =
+                      "An error occured with your agent, please contact support."
+                    break
+                  }
+                }
+                return updatedMessages
+              })
             },
           }
         )
       } catch {
         setIsLoading(false)
         setTimer(0)
+        setError("An error occurred with your agent, please contact support.")
         if (timerRef.current) {
           clearInterval(timerRef.current)
         }
         setMessages((previousMessages) => {
           let updatedMessages = [...previousMessages]
-
           for (let i = updatedMessages.length - 1; i >= 0; i--) {
             if (updatedMessages[i].type === "ai") {
               updatedMessages[i].message =
@@ -238,7 +256,6 @@ export default function Chat({
               break
             }
           }
-
           return updatedMessages
         })
       }
@@ -415,6 +432,13 @@ export default function Chat({
               }}
               isLoading={isLoading}
             />
+          </div>
+        </div>
+      )}
+      {selectedView === "chat" && error && (
+        <div className="mx-auto mb-2 max-w-2xl px-8">
+          <div className="rounded bg-red-100 text-red-800 px-4 py-2 text-sm font-medium border border-red-300">
+            {error}
           </div>
         </div>
       )}
