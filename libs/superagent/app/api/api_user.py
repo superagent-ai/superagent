@@ -33,7 +33,11 @@ async def create(body: ApiUserRequest):
         if SEGMENT_WRITE_KEY:
             analytics.identify(api_user.id, {**body.dict()})
             analytics.track(api_user.id, "Signed Up")
-        return {"success": True, "data": data}
+        # Remove token from response
+        data_dict = data.copy()
+        if "token" in data_dict:
+            data_dict["token"] = None
+        return {"success": True, "data": data_dict}
     except Exception as e:
         handle_exception(e)
 
