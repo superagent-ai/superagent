@@ -1,0 +1,39 @@
+{
+  "name": "@vibe-kit/proxy",
+  "version": "0.0.21",
+  "description": "VibeKit proxy server for secure API routing with built-in data redaction",
+  "main": "src/index.js",
+  "type": "module",
+  "bin": {
+    "vibekit-proxy": "./src/cli.js"
+  },
+  "files": [
+    "src/**/*",
+    "Dockerfile"
+  ],
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "build": "echo 'No build step needed for proxy package'",
+    "type-check": "echo 'No TypeScript type checking needed for proxy package (JavaScript only)'"
+  },
+  "keywords": [
+    "proxy",
+    "api-gateway",
+    "security",
+    "redaction",
+    "claude",
+    "openai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "fs-extra": "^11.0.0",
+    "js-yaml": "^4.1.0",
+    "redact-pii": "^3.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

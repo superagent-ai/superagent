@@ -1,0 +1,69 @@
+# Source files that shouldn't be published
+node_modules/
+*/node_modules/
+
+# Development files
+.git/
+.gitignore
+.eslintrc*
+.prettierrc*
+jest.config.*
+*.test.js
+*.spec.js
+test/
+tests/
+__tests__/
+
+# Build tools
+webpack.config.js
+rollup.config.js
+babel.config.js
+tsconfig.json
+
+# Documentation that's not needed in package
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+docs/
+
+# CI/CD files
+.github/
+.travis.yml
+.circleci/
+.gitlab-ci.yml
+azure-pipelines.yml
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env*
+
+# Logs
+*.log
+logs/
+
+# Coverage reports
+coverage/
+
+# Temporary files
+tmp/
+temp/
+
+# Language-specific build outputs (for monorepo)
+rust/target/
+go/bin/
+*/target/
+*/bin/
+
+# Docker files (not needed in npm package)
+Dockerfile*
+docker-compose.yml
+.dockerignore
