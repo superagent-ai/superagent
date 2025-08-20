@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   build:
@@ -92,8 +93,35 @@ jobs:
       working-directory: ./rust
       run: cargo publish --token ${{ secrets.CARGO_TOKEN }}
 
+  publish-docker:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/rust-v}" >> $GITHUB_OUTPUT
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/Dockerfile.rust
+        push: true
+        tags: |
+          ghcr.io/${{ github.repository }}/rust:${{ steps.get_version.outputs.VERSION }}
+          ghcr.io/${{ github.repository }}/rust:latest
+
   create-release:
-    needs: [build, publish-crate]
+    needs: [build, publish-crate, publish-docker]
     runs-on: ubuntu-latest
     steps:
     - name: Download all artifacts
@@ -105,5 +133,25 @@ jobs:
         files: |
           **/vibekit-proxy-*
         generate_release_notes: true
+        body: |
+          ## Rust Package Release
+          
+          ### Installation Options
+          
+          **Via crates.io:**
+          ```bash
+          cargo install vibekit-proxy
+          ```
+          
+          **Via Docker:**
+          ```bash
+          docker pull ghcr.io/${{ github.repository }}/rust:${{ steps.get_version.outputs.VERSION }}
+          ```
+          
+          **Via binary download:**
+          Download the appropriate binary for your platform below.
+          
+          ### What's Changed
+          See the auto-generated release notes below.
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
