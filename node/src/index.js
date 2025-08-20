@@ -1,8 +1,15 @@
 #!/usr/bin/env node
 import ProxyServer from './server.js';
 
+// Parse command line arguments for config path
+const args = process.argv.slice(2);
+const configIndex = args.indexOf('--config');
+const configPath = (configIndex !== -1 && configIndex + 1 < args.length) ? 
+  args[configIndex + 1] : 
+  'config.yaml';
+
 const port = process.env.PORT || process.env.VIBEKIT_PROXY_PORT || 8080;
-const proxy = new ProxyServer(port);
+const proxy = new ProxyServer(port, configPath);
 
 // Handle graceful shutdown
 const shutdown = (signal) => {
