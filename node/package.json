@@ -1,7 +1,7 @@
 {
-  "name": "@vibe-kit/proxy",
-  "version": "0.0.21",
-  "description": "VibeKit proxy server for secure API routing with built-in data redaction",
+  "name": "vibekit-proxy",
+  "version": "0.0.1",
+  "description": "The runtime firewall for AI, blocks LLM vulnerabilities in real time.",
   "main": "src/index.js",
   "type": "module",
   "bin": {

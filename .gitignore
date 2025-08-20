@@ -95,3 +95,6 @@ go.sum
 # Temporary files
 tmp/
 temp/
+
+# Coding agents
+.claude/

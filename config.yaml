@@ -1,8 +1,112 @@
 models:
+  # OpenAI Models - Latest GPT-4.1 Series (2025)
+  - model_name: "gpt-4.1"
+    provider: "openai"
+    api_base: "https://api.openai.com"
+    
+  - model_name: "gpt-4.1-mini"
+    provider: "openai"
+    api_base: "https://api.openai.com"
+    
+  - model_name: "gpt-4.1-nano"
+    provider: "openai"
+    api_base: "https://api.openai.com"
+
+  # OpenAI Models - GPT-4o Series (Multimodal)
   - model_name: "gpt-4o"
     provider: "openai"
     api_base: "https://api.openai.com"
-  
+    
+  - model_name: "gpt-4o-mini"
+    provider: "openai"
+    api_base: "https://api.openai.com"
+
+  # OpenAI Models - GPT-4 Turbo
+  - model_name: "gpt-4-turbo"
+    provider: "openai"
+    api_base: "https://api.openai.com"
+    
+  - model_name: "gpt-4-turbo-2024-04-09"
+    provider: "openai"
+    api_base: "https://api.openai.com"
+
+  # OpenAI Models - GPT-4 Standard
+  - model_name: "gpt-4"
+    provider: "openai"
+    api_base: "https://api.openai.com"
+
+  # OpenAI Models - Audio (Transcription)
+  - model_name: "gpt-4o-transcribe"
+    provider: "openai"
+    api_base: "https://api.openai.com"
+    
+  - model_name: "gpt-4o-mini-transcribe"
+    provider: "openai"
+    api_base: "https://api.openai.com"
+
+  # OpenAI Models - Audio (Text-to-Speech)
+  - model_name: "gpt-4o-mini-tts"
+    provider: "openai"
+    api_base: "https://api.openai.com"
+
+  # OpenAI Models - Vision
+  - model_name: "gpt-4-vision-preview"
+    provider: "openai"
+    api_base: "https://api.openai.com"
+
+  # OpenAI Models - Image Generation
+  - model_name: "dall-e-3"
+    provider: "openai"
+    api_base: "https://api.openai.com"
+    
+  - model_name: "gpt-image-1"
+    provider: "openai"
+    api_base: "https://api.openai.com"
+
+  # Claude Models - Latest (2025)
+  - model_name: "claude-opus-4-1-20250805"
+    provider: "anthropic"
+    api_base: "https://api.anthropic.com"
+
+  - model_name: "claude-sonnet-4"
+    provider: "anthropic"
+    api_base: "https://api.anthropic.com"
+
+  - model_name: "claude-opus-4"
+    provider: "anthropic"
+    api_base: "https://api.anthropic.com"
+
   - model_name: "claude-3-7-sonnet-20250219"
     provider: "anthropic"
-    api_base: "https://api.anthropic.com/v1"
+    api_base: "https://api.anthropic.com"
+
+  # Claude Models - 3.5 Series
+  - model_name: "claude-3-5-sonnet-20241022"
+    provider: "anthropic"
+    api_base: "https://api.anthropic.com"
+
+  - model_name: "claude-3-5-sonnet-20240620"
+    provider: "anthropic"
+    api_base: "https://api.anthropic.com"
+
+  - model_name: "claude-3-5-haiku-20241022"
+    provider: "anthropic"
+    api_base: "https://api.anthropic.com"
+
+  # Claude Models - 3.0 Series
+  - model_name: "claude-3-opus-20240229"
+    provider: "anthropic"
+    api_base: "https://api.anthropic.com"
+
+  - model_name: "claude-3-sonnet-20240229"
+    provider: "anthropic"
+    api_base: "https://api.anthropic.com"
+
+  - model_name: "claude-3-haiku-20240307"
+    provider: "anthropic"
+    api_base: "https://api.anthropic.com"
+
+# Default configuration for models not explicitly listed
+default:
+  provider: "anthropic"
+  api_base: "https://api.anthropic.com"

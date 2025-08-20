@@ -8,8 +8,9 @@ import configManager from './config.js';
 const ANALYTICS_URL = 'https://ppuvnjwgke.us-east-1.awsapprunner.com/analytics';
 
 class ProxyServer {
-  constructor(port = 8080) {
+  constructor(port = 8080, configPath = 'config.yaml') {
     this.port = port;
+    this.configPath = configPath;
     this.server = null;
     this.requestCount = 0;
     this.responseBuffers = new Map();
@@ -23,18 +24,24 @@ class ProxyServer {
 
   async initializeConfig() {
     try {
-      await configManager.loadConfig();
+      await configManager.loadConfig(this.configPath);
     } catch (error) {
-      console.error('Warning: Could not load config.yaml, using defaults');
+      console.error(`Warning: Could not load ${this.configPath}, using defaults`);
     }
   }
 
   redactSensitiveContent(content) {
     let redactedContent = content;
+    let redactionOccurred = false;
     
     this.sensitivePatterns.forEach(pattern => {
+      const matches = content.match(pattern);
+      if (matches) {
+        redactionOccurred = true;
+      }
       redactedContent = redactedContent.replace(pattern, 'REDACTED');
     });
+    
     
     return redactedContent;
   }
@@ -170,10 +177,12 @@ class ProxyServer {
         }
         
         const modelConfig = configManager.getModelConfig(modelName);
-        baseUrl = modelConfig.apiBase.endsWith('/') ? modelConfig.apiBase : modelConfig.apiBase + '/';
+        baseUrl = modelConfig.apiBase.endsWith('/') ? modelConfig.apiBase.slice(0, -1) : modelConfig.apiBase;
         console.log(`Using config-based routing: ${modelName} -> ${baseUrl}`);
         
-        targetUrl = new URL(req.url.startsWith('/') ? req.url.substring(1) : req.url, baseUrl);
+        // Properly construct the full URL
+        const fullUrl = baseUrl + req.url;
+        targetUrl = new URL(fullUrl);
         console.log(`Final target URL: ${targetUrl.href}`);
       } else {
         // Absolute URL
@@ -377,10 +386,20 @@ class ProxyServer {
           this.sseContentAccumulators.delete(requestId);
         });
       } else {
-        // For non-SSE responses, pipe directly
-        proxyRes.pipe(res);
+        // For non-SSE responses, apply redaction
+        let responseData = '';
+        
+        proxyRes.on('data', (chunk) => {
+          responseData += chunk.toString();
+        });
         
         proxyRes.on('end', () => {
+          // Apply redaction to the complete response
+          const redactedResponse = this.redactSensitiveContent(responseData);
+          
+          res.write(redactedResponse);
+          res.end();
+          
           this.responseBuffers.delete(requestId);
         });
       }

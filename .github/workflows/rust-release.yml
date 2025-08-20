@@ -1,0 +1,106 @@
+name: Release Rust Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact_name: vibekit-proxy
+            asset_name: vibekit-proxy-linux-amd64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact_name: vibekit-proxy
+            asset_name: vibekit-proxy-darwin-amd64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact_name: vibekit-proxy
+            asset_name: vibekit-proxy-darwin-arm64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_name: vibekit-proxy.exe
+            asset_name: vibekit-proxy-windows-amd64.exe
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        target: ${{ matrix.target }}
+        override: true
+        profile: minimal
+
+    - name: Cache cargo build
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Build
+      working-directory: ./rust
+      run: cargo build --release --target ${{ matrix.target }}
+
+    - name: Create artifact directory
+      run: mkdir artifacts
+
+    - name: Copy artifact (Unix)
+      if: runner.os != 'Windows'
+      run: cp rust/target/${{ matrix.target }}/release/${{ matrix.artifact_name }} artifacts/${{ matrix.asset_name }}
+
+    - name: Copy artifact (Windows)
+      if: runner.os == 'Windows'
+      run: copy rust\target\${{ matrix.target }}\release\${{ matrix.artifact_name }} artifacts\${{ matrix.asset_name }}
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.asset_name }}
+        path: artifacts/${{ matrix.asset_name }}
+
+  publish-crate:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        profile: minimal
+
+    - name: Publish to crates.io
+      working-directory: ./rust
+      run: cargo publish --token ${{ secrets.CARGO_TOKEN }}
+
+  create-release:
+    needs: [build, publish-crate]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          **/vibekit-proxy-*
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,536 @@
+use std::collections::HashMap;
+use std::convert::Infallible;
+use std::net::SocketAddr;
+use std::sync::Arc;
+
+use hyper::service::{make_service_fn, service_fn};
+use hyper::{Body, Client, Method, Request, Response, Server, StatusCode};
+use hyper_tls::HttpsConnector;
+use serde_json::Value;
+use tokio::sync::{Mutex, RwLock};
+use tracing::{info, warn};
+
+use crate::config::ConfigManager;
+use crate::redaction::RedactionEngine;
+use crate::{Error, Result};
+
+#[derive(Debug, Clone)]
+struct SseAccumulator {
+    buffer: String,
+}
+
+pub struct ProxyServer {
+    port: u16,
+    request_count: Arc<Mutex<u64>>,
+    redaction_engine: RedactionEngine,
+    config_manager: Arc<RwLock<ConfigManager>>,
+    client: Client<HttpsConnector<hyper::client::HttpConnector>>,
+    sse_content_accumulators: Arc<RwLock<HashMap<u64, SseAccumulator>>>,
+}
+
+impl ProxyServer {
+    pub async fn new(port: u16, config_path: Option<String>) -> Result<Self> {
+        let https = HttpsConnector::new();
+        let client = Client::builder().build::<_, hyper::Body>(https);
+        
+        let mut config_manager = ConfigManager::new_with_path(config_path);
+        if let Err(e) = config_manager.load_config().await {
+            warn!("Warning: Could not load config file, using defaults: {}", e);
+        }
+
+        Ok(Self {
+            port,
+            request_count: Arc::new(Mutex::new(0)),
+            redaction_engine: RedactionEngine::new(),
+            config_manager: Arc::new(RwLock::new(config_manager)),
+            client,
+            sse_content_accumulators: Arc::new(RwLock::new(HashMap::new())),
+        })
+    }
+
+    pub async fn start(&self) -> Result<()> {
+        let addr = SocketAddr::from(([0, 0, 0, 0], self.port));
+        
+        let server_clone = Arc::new(self.clone());
+        let make_svc = make_service_fn(move |_conn| {
+            let server = Arc::clone(&server_clone);
+            async move {
+                Ok::<_, Infallible>(service_fn(move |req| {
+                    let server = Arc::clone(&server);
+                    async move { server.handle_request(req).await }
+                }))
+            }
+        });
+
+        let server = Server::bind(&addr).serve(make_svc);
+        info!("Proxy server listening on http://{}", addr);
+
+        if let Err(e) = server.await {
+            return Err(Error::Server(e.to_string()));
+        }
+
+        Ok(())
+    }
+
+    pub async fn stop(&self) {
+        info!("Stopping proxy server...");
+    }
+
+    async fn handle_request(&self, req: Request<Body>) -> std::result::Result<Response<Body>, Infallible> {
+        let result = self.handle_request_inner(req).await;
+        Ok(result.unwrap_or_else(|e| {
+            Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::from(format!("Internal Server Error: {}", e)))
+                .unwrap()
+        }))
+    }
+
+    async fn handle_request_inner(&self, req: Request<Body>) -> Result<Response<Body>> {
+        // Health check endpoint
+        if req.uri().path() == "/health" && req.method() == Method::GET {
+            let request_count = self.request_count.lock().await;
+            let count = *request_count;
+            drop(request_count);
+
+            let health_data = serde_json::json!({
+                "status": "healthy",
+                "uptime": std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs(),
+                "timestamp": chrono::Utc::now(),
+                "requestCount": count
+            });
+
+            return Ok(Response::builder()
+                .status(StatusCode::OK)
+                .header("content-type", "application/json")
+                .body(Body::from(health_data.to_string()))?);
+        }
+
+        let mut request_count = self.request_count.lock().await;
+        *request_count += 1;
+        let request_id = *request_count;
+        drop(request_count);
+
+        // Capture request body
+        let (parts, body) = req.into_parts();
+        let body_bytes = hyper::body::to_bytes(body).await?;
+        let request_body = String::from_utf8_lossy(&body_bytes);
+
+
+        self.process_request_with_config(request_body.to_string(), parts, request_id).await
+    }
+
+    async fn process_request_with_config(
+        &self,
+        request_body: String,
+        parts: http::request::Parts,
+        request_id: u64,
+    ) -> Result<Response<Body>> {
+        // Extract model name from request body
+        let mut model_name = None;
+        if !request_body.is_empty() {
+            if let Ok(parsed_body) = serde_json::from_str::<Value>(&request_body) {
+                if let Some(model) = parsed_body.get("model") {
+                    if let Some(model_str) = model.as_str() {
+                        model_name = Some(model_str.to_string());
+                    }
+                }
+            }
+        }
+
+        // Parse the target URL - handle relative URLs by prepending API base
+        let target_url = if parts.uri.path().starts_with('/') {
+            // Use model from config - always require model to be specified
+            let model = model_name.ok_or_else(|| {
+                Error::Server("Bad Request: Model must be specified in request body".to_string())
+            })?;
+            
+            let config_manager = self.config_manager.read().await;
+            let model_config = config_manager.get_model_config(&model);
+            let base_url = if model_config.api_base.ends_with('/') {
+                model_config.api_base
+            } else {
+                format!("{}/", model_config.api_base)
+            };
+            
+            
+            let path = if parts.uri.path().starts_with('/') {
+                &parts.uri.path()[1..]
+            } else {
+                parts.uri.path()
+            };
+            
+            let final_url = format!("{}{}{}", base_url, path, 
+                parts.uri.query().map_or(String::new(), |q| format!("?{}", q)));
+            
+            final_url
+        } else {
+            // Absolute URL
+            parts.uri.to_string()
+        };
+
+        // Build the proxied request
+        let reqwest_method = match parts.method.as_str() {
+            "GET" => reqwest::Method::GET,
+            "POST" => reqwest::Method::POST,
+            "PUT" => reqwest::Method::PUT,
+            "DELETE" => reqwest::Method::DELETE,
+            "PATCH" => reqwest::Method::PATCH,
+            "HEAD" => reqwest::Method::HEAD,
+            "OPTIONS" => reqwest::Method::OPTIONS,
+            _ => reqwest::Method::GET, // fallback
+        };
+
+        let mut req_builder = reqwest::Client::new()
+            .request(reqwest_method, &target_url);
+
+        // Copy headers (clean up proxy-specific ones)
+        for (name, value) in parts.headers.iter() {
+            if !matches!(name.as_str(), "host" | "proxy-connection" | "proxy-authorization") {
+                if let Ok(header_value) = value.to_str() {
+                    req_builder = req_builder.header(name.as_str(), header_value);
+                }
+            }
+        }
+
+        // Add request body
+        if !request_body.is_empty() {
+            req_builder = req_builder.body(request_body.clone());
+        }
+
+        // Make the proxied request
+        let proxy_response = req_builder.send().await?;
+        
+
+        // Check if this is an SSE response
+        let is_sse = proxy_response
+            .headers()
+            .get("content-type")
+            .and_then(|v| v.to_str().ok())
+            .map_or(false, |ct| ct.contains("text/event-stream"));
+
+        if is_sse {
+            self.handle_sse_response(proxy_response, &target_url, request_id).await
+        } else {
+            // Handle regular responses
+            let status = proxy_response.status();
+            let response_body = proxy_response.text().await?;
+            let redacted_response = self.redaction_engine.redact_sensitive_content(&response_body);
+            
+
+            Ok(Response::builder()
+                .status(status)
+                .header("content-type", "application/json")
+                .body(Body::from(redacted_response))?)
+        }
+    }
+
+    async fn handle_sse_response(
+        &self,
+        proxy_response: reqwest::Response,
+        target_url: &str,
+        request_id: u64,
+    ) -> Result<Response<Body>> {
+        use futures::StreamExt;
+        
+
+        // Initialize SSE accumulator for this request
+        self.sse_content_accumulators.write().await.insert(
+            request_id,
+            SseAccumulator {
+                buffer: String::new(),
+            },
+        );
+
+        // Detect if this is OpenAI format
+        let is_openai_format = target_url.contains("openai.com") || target_url.contains("/responses");
+
+        // Create streaming body
+        let (tx, rx) = tokio::sync::mpsc::channel::<std::result::Result<bytes::Bytes, Box<dyn std::error::Error + Send + Sync>>>(100);
+
+        // Clone necessary data for the async task
+        let redaction_engine = self.redaction_engine.clone();
+        let sse_accumulators = Arc::clone(&self.sse_content_accumulators);
+
+        // Spawn task to process SSE stream
+        tokio::spawn(async move {
+            let mut event_buffer = String::new();
+            let mut stream = proxy_response.bytes_stream();
+
+            while let Some(chunk_result) = stream.next().await {
+                match chunk_result {
+                    Ok(chunk) => {
+                        let chunk_str = String::from_utf8_lossy(&chunk);
+                        event_buffer.push_str(&chunk_str);
+
+                        // Split by double newlines to get complete events
+                        let buffer_clone = event_buffer.clone();
+                        let events: Vec<&str> = buffer_clone.split("\n\n").collect();
+                        
+                        if events.len() > 1 {
+                            // Keep the last (potentially incomplete) event in buffer
+                            event_buffer = events.last().unwrap_or(&"").to_string();
+
+                            // Process complete events
+                            for event_data in &events[..events.len() - 1] {
+                                if !event_data.trim().is_empty() {
+                                    if let Some(processed_event) = Self::process_sse_event(
+                                        event_data,
+                                        request_id,
+                                        is_openai_format,
+                                        &redaction_engine,
+                                        &sse_accumulators,
+                                    ).await {
+                                        let event_bytes = bytes::Bytes::from(format!("{}\n\n", processed_event));
+                                        if tx.send(Ok(event_bytes)).await.is_err() {
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        let _ = tx.send(Err(Box::new(e) as Box<dyn std::error::Error + Send + Sync>)).await;
+                        break;
+                    }
+                }
+            }
+
+            // Handle any remaining buffered event
+            if !event_buffer.trim().is_empty() {
+                if let Some(processed_event) = Self::process_sse_event(
+                    &event_buffer,
+                    request_id,
+                    is_openai_format,
+                    &redaction_engine,
+                    &sse_accumulators,
+                ).await {
+                    let event_bytes = bytes::Bytes::from(format!("{}\n\n", processed_event));
+                    let _ = tx.send(Ok(event_bytes)).await;
+                }
+            }
+
+            // Clean up
+            sse_accumulators.write().await.remove(&request_id);
+        });
+
+        // Create streaming response
+        let stream = tokio_stream::wrappers::ReceiverStream::new(rx);
+        let body = Body::wrap_stream(stream.map(|item| {
+            item.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+        }));
+
+        Ok(Response::builder()
+            .status(StatusCode::OK)
+            .header("content-type", "text/event-stream")
+            .header("cache-control", "no-cache")
+            .header("connection", "keep-alive")
+            .body(body)?)
+    }
+
+    async fn process_sse_event(
+        event_data: &str,
+        request_id: u64,
+        is_openai_format: bool,
+        redaction_engine: &RedactionEngine,
+        sse_accumulators: &Arc<RwLock<HashMap<u64, SseAccumulator>>>,
+    ) -> Option<String> {
+        let lines: Vec<&str> = event_data.split('\n').collect();
+        let mut event_type = String::new();
+        let mut event_data_json: Option<serde_json::Value> = None;
+
+        // Parse SSE event
+        for line in lines {
+            if let Some(event_value) = line.strip_prefix("event: ") {
+                event_type = event_value.to_string();
+            } else if let Some(data_value) = line.strip_prefix("data: ") {
+                if let Ok(data) = serde_json::from_str::<serde_json::Value>(data_value) {
+                    event_data_json = Some(data);
+                } else {
+                    // Handle non-JSON data (like [DONE])
+                    if data_value == "[DONE]" {
+                        return Some(event_data.to_string());
+                    }
+                }
+            }
+        }
+
+        // Extract text content for redaction
+        let mut should_redact_and_forward = false;
+        let mut text_content = String::new();
+
+        if let Some(data) = &event_data_json {
+            
+            if is_openai_format {
+                // Handle OpenAI streaming format
+                if event_type == "response.output_text.delta" {
+                    if let Some(delta) = data.get("delta").and_then(|d| d.as_str()) {
+                        text_content = delta.to_string();
+                        should_redact_and_forward = true;
+                    }
+                } else if event_type == "response.output_text.done" {
+                    if let Some(text) = data.get("text").and_then(|t| t.as_str()) {
+                        text_content = text.to_string();
+                        should_redact_and_forward = true;
+                    }
+                }
+            } else {
+                // Handle Claude streaming format  
+                if event_type == "content_block_delta" {
+                    if let Some(delta) = data.get("delta") {
+                        if let Some(text) = delta.get("text").and_then(|t| t.as_str()) {
+                            text_content = text.to_string();
+                            should_redact_and_forward = true;
+                        }
+                    }
+                }
+            }
+            
+            if !should_redact_and_forward {
+            }
+        }
+
+        if should_redact_and_forward && !text_content.is_empty() {
+            
+            // Apply redaction with buffering (same as Node.js)
+            let redacted_content = if is_openai_format && event_type == "response.output_text.done" {
+                // For complete text events, apply redaction directly
+                let redacted = redaction_engine.redact_sensitive_content(&text_content);
+                Some(redacted)
+            } else {
+                // For streaming deltas, use buffering
+                let result = Self::process_chunk_with_buffer(&text_content, request_id, redaction_engine, sse_accumulators).await;
+                result
+            };
+
+            if let Some(redacted) = redacted_content {
+                if let Some(mut data) = event_data_json {
+                    if is_openai_format {
+                        // Update OpenAI format
+                        if event_type == "response.output_text.delta" {
+                            data["delta"] = serde_json::Value::String(redacted);
+                        } else if event_type == "response.output_text.done" {
+                            data["text"] = serde_json::Value::String(redacted);
+                        }
+                    } else {
+                        // Update Claude format
+                        if let Some(delta) = data.get_mut("delta") {
+                            delta["text"] = serde_json::Value::String(redacted);
+                        }
+                    }
+
+                    return Some(format!("event: {}\ndata: {}", event_type, data));
+                }
+            } else {
+                // Don't forward this event since we're buffering
+                return None;
+            }
+        } else if event_type == "content_block_stop" && !is_openai_format {
+            // Claude-specific: Flush any remaining buffer content
+            if let Some(final_chunk) = Self::flush_buffer(request_id, redaction_engine, sse_accumulators).await {
+                let final_event_data = serde_json::json!({
+                    "type": "content_block_delta",
+                    "index": 0,
+                    "delta": {
+                        "type": "text_delta",
+                        "text": final_chunk
+                    }
+                });
+                return Some(format!("event: content_block_delta\ndata: {}\n\nevent: content_block_stop\ndata: {}", 
+                    final_event_data, event_data_json.unwrap_or(serde_json::Value::Null)));
+            }
+        } else if is_openai_format && (event_type == "response.completed" || event_data.contains("[DONE]")) {
+            // OpenAI-specific: Handle end of stream and flush buffer
+            if let Some(final_chunk) = Self::flush_buffer(request_id, redaction_engine, sse_accumulators).await {
+                let final_data = serde_json::json!({
+                    "type": "response.output_text.delta",
+                    "delta": final_chunk
+                });
+                return Some(format!("event: response.output_text.delta\ndata: {}\n\n{}", 
+                    final_data, event_data));
+            }
+        }
+
+        // Forward all other events as-is
+        Some(event_data.to_string())
+    }
+
+    async fn process_chunk_with_buffer(
+        new_chunk: &str,
+        request_id: u64,
+        redaction_engine: &RedactionEngine,
+        sse_accumulators: &Arc<RwLock<HashMap<u64, SseAccumulator>>>,
+    ) -> Option<String> {
+        let mut accumulators = sse_accumulators.write().await;
+        if let Some(accumulator) = accumulators.get_mut(&request_id) {
+            // Add new chunk to buffer
+            accumulator.buffer.push_str(new_chunk);
+
+            // Split by lines and process complete lines
+            let buffer_copy = accumulator.buffer.clone();
+            let mut lines: Vec<&str> = buffer_copy.split('\n').collect();
+            
+            // Keep the last (potentially incomplete) line in buffer (like Node.js pop())
+            accumulator.buffer = lines.pop().unwrap_or("").to_string();
+            
+            // Process complete lines
+            if !lines.is_empty() {
+                let complete_lines = lines.join("\n") + "\n";
+                let redacted = redaction_engine.redact_sensitive_content(&complete_lines);
+                return Some(redacted);
+            }
+            
+            // No complete lines yet, don't send anything
+            return None;
+        }
+        None
+    }
+
+    async fn flush_buffer(
+        request_id: u64,
+        redaction_engine: &RedactionEngine,
+        sse_accumulators: &Arc<RwLock<HashMap<u64, SseAccumulator>>>,
+    ) -> Option<String> {
+        let mut accumulators = sse_accumulators.write().await;
+        if let Some(accumulator) = accumulators.get_mut(&request_id) {
+            if accumulator.buffer.is_empty() {
+                return None;
+            }
+            
+            // Process remaining buffer content
+            let remaining = accumulator.buffer.clone();
+            accumulator.buffer.clear();
+            
+            let redacted = redaction_engine.redact_sensitive_content(&remaining);
+            Some(redacted)
+        } else {
+            None
+        }
+    }
+}
+
+impl Clone for ProxyServer {
+    fn clone(&self) -> Self {
+        let https = HttpsConnector::new();
+        let client = Client::builder().build::<_, hyper::Body>(https);
+        
+        Self {
+            port: self.port,
+            request_count: Arc::clone(&self.request_count),
+            redaction_engine: self.redaction_engine.clone(),
+            config_manager: Arc::clone(&self.config_manager),
+            client,
+            sse_content_accumulators: Arc::clone(&self.sse_content_accumulators),
+        }
+    }
+}
+
+impl Clone for RedactionEngine {
+    fn clone(&self) -> Self {
+        RedactionEngine::new()
+    }
+}

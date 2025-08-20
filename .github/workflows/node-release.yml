@@ -1,0 +1,178 @@
+name: Release Node.js Package
+
+on:
+  push:
+    tags:
+      - 'node-v*'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: node/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./node
+      run: npm ci
+    
+    - name: Run tests
+      working-directory: ./node
+      run: npm test
+      continue-on-error: true  # Since there might not be tests yet
+    
+    - name: Check package can be packaged
+      working-directory: ./node
+      run: npm pack --dry-run
+
+  publish-npm:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        registry-url: 'https://registry.npmjs.org'
+        cache: 'npm'
+        cache-dependency-path: node/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./node
+      run: npm ci
+    
+    - name: Extract version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/node-v}" >> $GITHUB_OUTPUT
+    
+    - name: Update package version
+      working-directory: ./node
+      run: npm version ${{ steps.get_version.outputs.VERSION }} --no-git-tag-version
+    
+    - name: Publish to npm
+      working-directory: ./node
+      run: npm publish --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  build-binaries:
+    needs: test
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            asset_name: vibekit-proxy-node-linux-amd64.tar.gz
+          - os: macos-latest
+            asset_name: vibekit-proxy-node-darwin-amd64.tar.gz
+          - os: windows-latest
+            asset_name: vibekit-proxy-node-windows-amd64.zip
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: node/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./node
+      run: npm ci --only=production
+    
+    - name: Create package directory
+      run: mkdir -p package/vibekit-proxy-node
+    
+    - name: Copy files (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cp -r node/src package/vibekit-proxy-node/
+        cp node/package.json package/vibekit-proxy-node/
+        cp node/package-lock.json package/vibekit-proxy-node/
+        cp -r node/node_modules package/vibekit-proxy-node/
+        cp config.yaml package/vibekit-proxy-node/
+        chmod +x package/vibekit-proxy-node/src/cli.js
+    
+    - name: Copy files (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        xcopy /E /I node\src package\vibekit-proxy-node\src
+        copy node\package.json package\vibekit-proxy-node\
+        copy node\package-lock.json package\vibekit-proxy-node\
+        xcopy /E /I node\node_modules package\vibekit-proxy-node\node_modules
+        copy config.yaml package\vibekit-proxy-node\
+    
+    - name: Create tarball (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd package
+        tar -czf ${{ matrix.asset_name }} vibekit-proxy-node/
+    
+    - name: Create zip (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        cd package
+        Compress-Archive -Path vibekit-proxy-node -DestinationPath ${{ matrix.asset_name }}
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.asset_name }}
+        path: package/${{ matrix.asset_name }}
+
+  create-release:
+    needs: [publish-npm, build-binaries]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          **/*.tar.gz
+          **/*.zip
+        generate_release_notes: true
+        body: |
+          ## Node.js Package Release
+          
+          ### Installation
+          
+          **Via npm:**
+          ```bash
+          npm install -g vibekit-proxy
+          ```
+          
+          **Via binary download:**
+          Download the appropriate binary for your platform and extract it.
+          
+          ### Usage
+          ```bash
+          vibekit-proxy start --port 8080 --config config.yaml
+          ```
+          
+          ### What's Changed
+          See the auto-generated release notes below.
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

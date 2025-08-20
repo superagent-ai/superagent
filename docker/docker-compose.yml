@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  vibekit-proxy:
+  vibekit-proxy-node:
     build:
       context: ..
       dockerfile: docker/Dockerfile.node
@@ -19,6 +19,24 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - vibekit-network
+
+  vibekit-proxy-rust:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.rust
+    ports:
+      - "8081:8080"
+    volumes:
+      - ../config.yaml:/app/config.yaml:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "./vibekit-proxy", "status"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     networks:
       - vibekit-network
 
