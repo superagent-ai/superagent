@@ -40,7 +40,7 @@ libc = "0.2"
 dirs = "5.0"
 
 [profile.release]
-lto = true
-codegen-units = 1
+lto = "thin"
+codegen-units = 4
 panic = "abort"
 strip = true

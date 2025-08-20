@@ -54,7 +54,9 @@ jobs:
 
     - name: Build
       working-directory: ./rust
-      run: cargo build --release --target ${{ matrix.target }}
+      env:
+        CARGO_BUILD_JOBS: 4
+      run: cargo build --release --target ${{ matrix.target }} --jobs 4
 
     - name: Create artifact directory
       run: mkdir artifacts
