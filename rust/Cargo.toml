@@ -1,7 +1,7 @@
 [package]
 name = "vibekit-proxy"
-version = "0.0.21"
-description = "VibeKit proxy server for secure API routing with built-in data redaction"
+version = "0.0.1"
+description = "The runtime firewall for AI, blocks LLM vulnerabilities in real time."
 authors = ["VibeKit Team"]
 license = "MIT"
 edition = "2021"
