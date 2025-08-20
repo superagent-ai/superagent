@@ -1,6 +1,6 @@
 [package]
 name = "vibekit-proxy"
-version = "0.0.2-rc.4"
+version = "0.0.2-rc.6"
 description = "The runtime firewall for AI, blocks LLM vulnerabilities in real time."
 authors = ["VibeKit Team"]
 license = "MIT"
