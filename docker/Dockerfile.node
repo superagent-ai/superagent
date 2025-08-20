@@ -27,7 +27,7 @@ COPY --chown=vibekit:nodejs ../node/src ./src
 COPY --chown=vibekit:nodejs ../node/package.json ./
 
 # Copy shared config
-COPY --chown=vibekit:nodejs ../config.yaml ./
+COPY --chown=vibekit:nodejs ../vibekit.yaml ./
 
 # Switch to non-root user
 USER vibekit

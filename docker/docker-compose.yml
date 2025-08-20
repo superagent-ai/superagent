@@ -11,7 +11,7 @@ services:
       - NODE_ENV=production
       - PORT=8080
     volumes:
-      - ../config.yaml:/app/config.yaml:ro
+      - ../vibekit.yaml:/app/vibekit.yaml:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "http.get('http://localhost:8080/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
@@ -29,7 +29,7 @@ services:
     ports:
       - "8081:8080"
     volumes:
-      - ../config.yaml:/app/config.yaml:ro
+      - ../vibekit.yaml:/app/vibekit.yaml:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "./vibekit-proxy", "status"]

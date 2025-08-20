@@ -20,4 +20,4 @@ Thumbs.db
 .env.local
 
 # Config (may contain secrets)
-config.yaml
+vibekit.yaml
