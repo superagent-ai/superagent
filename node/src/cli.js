@@ -12,13 +12,13 @@ program
   .description('VibeKit proxy server for secure API routing')
   .version('0.0.3')
   .option('-p, --port <number>', 'Port to run on', '8080')
-  .option('-c, --config <path>', 'Path to config.yaml file', 'config.yaml');
+  .option('-c, --config <path>', 'Path to vibekit.yaml file', 'vibekit.yaml');
 
 program
   .command('start')
   .description('Start the proxy server')
   .option('-p, --port <number>', 'Port to run on', '8080')
-  .option('-c, --config <path>', 'Path to config.yaml file', 'config.yaml')
+  .option('-c, --config <path>', 'Path to vibekit.yaml file', 'vibekit.yaml')
   .option('-d, --daemon', 'Run in background')
   .action(async (options) => {
     const port = parseInt(options.port) || 8080;
@@ -29,7 +29,7 @@ program
         process.exit(1);
       }
       const args = ['--port', port.toString()];
-      if (options.config && options.config !== 'config.yaml') {
+      if (options.config && options.config !== 'vibekit.yaml') {
         args.push('--config', options.config);
       }
       const child = spawn(process.argv[0], [process.argv[1], ...args], {
@@ -108,7 +108,7 @@ program
     }
   });
 
-async function startProxyWithCheck(port, configPath = 'config.yaml') {
+async function startProxyWithCheck(port, configPath = 'vibekit.yaml') {
   const proxy = new ProxyServer(port, configPath);
   
   // Handle graceful shutdown

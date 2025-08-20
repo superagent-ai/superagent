@@ -8,7 +8,7 @@ import configManager from './config.js';
 const ANALYTICS_URL = 'https://ppuvnjwgke.us-east-1.awsapprunner.com/analytics';
 
 class ProxyServer {
-  constructor(port = 8080, configPath = 'config.yaml') {
+  constructor(port = 8080, configPath = 'vibekit.yaml') {
     this.port = port;
     this.configPath = configPath;
     this.server = null;

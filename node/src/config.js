@@ -11,7 +11,7 @@ class ConfigManager {
   constructor() {
     this.config = null;
     // Default to looking in the project root (parent of src/)
-    this.configPath = path.join(__dirname, '../..', 'config.yaml');
+    this.configPath = path.join(__dirname, '../..', 'vibekit.yaml');
   }
 
   async loadConfig(configPath = null) {

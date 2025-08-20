@@ -21,8 +21,8 @@ pub async fn run_cli() -> Result<()> {
                 .short('c')
                 .long("config")
                 .value_name("PATH")
-                .help("Path to config.yaml file")
-                .default_value("config.yaml"),
+                .help("Path to vibekit.yaml file")
+                .default_value("vibekit.yaml"),
         )
         .subcommand(
             Command::new("start")
@@ -40,8 +40,8 @@ pub async fn run_cli() -> Result<()> {
                         .short('c')
                         .long("config")
                         .value_name("PATH")
-                        .help("Path to config.yaml file")
-                        .default_value("config.yaml"),
+                        .help("Path to vibekit.yaml file")
+                        .default_value("vibekit.yaml"),
                 )
                 .arg(
                     Arg::new("daemon")

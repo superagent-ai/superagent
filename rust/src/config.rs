@@ -57,13 +57,13 @@ impl ConfigManager {
             // 1. Environment variable
             std::env::var("VIBEKIT_CONFIG").ok(),
             // 2. Current working directory
-            Some("config.yaml".to_string()),
+            Some("vibekit.yaml".to_string()),
             // 3. Parent directory (for rust/ subdirectory setup)
-            Some("../config.yaml".to_string()),
+            Some("../vibekit.yaml".to_string()),
             // 4. Home directory
-            dirs::home_dir().map(|home| home.join(".vibekit").join("config.yaml").to_string_lossy().to_string()),
+            dirs::home_dir().map(|home| home.join(".vibekit").join("vibekit.yaml").to_string_lossy().to_string()),
             // 5. System config directory
-            Some("/etc/vibekit/config.yaml".to_string()),
+            Some("/etc/vibekit/vibekit.yaml".to_string()),
         ];
 
         for path_option in possible_paths {
@@ -75,7 +75,7 @@ impl ConfigManager {
         }
 
         // Default fallback
-        "config.yaml".to_string()
+        "vibekit.yaml".to_string()
     }
 
     pub async fn load_config(&mut self) -> Result<()> {

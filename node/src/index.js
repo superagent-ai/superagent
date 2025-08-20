@@ -6,7 +6,7 @@ const args = process.argv.slice(2);
 const configIndex = args.indexOf('--config');
 const configPath = (configIndex !== -1 && configIndex + 1 < args.length) ? 
   args[configIndex + 1] : 
-  'config.yaml';
+  'vibekit.yaml';
 
 const port = process.env.PORT || process.env.VIBEKIT_PROXY_PORT || 8080;
 const proxy = new ProxyServer(port, configPath);
