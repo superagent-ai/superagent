@@ -3,7 +3,7 @@ name: Release Rust Package
 on:
   push:
     tags:
-      - 'v*'
+      - 'rust/v*'
   workflow_dispatch:
 
 permissions:
