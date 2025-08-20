@@ -1,6 +1,6 @@
 {
   "name": "vibekit-proxy",
-  "version": "0.0.1",
+  "version": "0.0.2-rc.12",
   "description": "The runtime firewall for AI, blocks LLM vulnerabilities in real time.",
   "main": "src/index.js",
   "type": "module",

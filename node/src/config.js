@@ -1,17 +1,12 @@
 import fs from 'fs-extra';
 import yaml from 'js-yaml';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 class ConfigManager {
   constructor() {
     this.config = null;
-    // Default to looking in the project root (parent of src/)
-    this.configPath = path.join(__dirname, '../..', 'vibekit.yaml');
+    // Default to looking in the current working directory
+    this.configPath = path.resolve(process.cwd(), 'vibekit.yaml');
   }
 
   async loadConfig(configPath = null) {
@@ -20,9 +15,8 @@ class ConfigManager {
       if (path.isAbsolute(configPath)) {
         this.configPath = configPath;
       } else {
-        // For relative paths like '../config.yaml', resolve from node/ directory to project root
-        // __dirname is /path/to/project/node/src, so we need to go up two levels to get to project root
-        this.configPath = path.resolve(__dirname, '../..', configPath.replace('../', ''));
+        // For relative paths, resolve from current working directory
+        this.configPath = path.resolve(process.cwd(), configPath);
       }
     }
     

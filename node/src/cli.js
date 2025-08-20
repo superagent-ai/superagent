@@ -2,7 +2,14 @@
 import { Command } from 'commander';
 import { spawn, exec } from 'child_process';
 import { promisify } from 'util';
+import { readFileSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import ProxyServer from './server.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'));
 
 const execAsync = promisify(exec);
 const program = new Command();
@@ -10,7 +17,7 @@ const program = new Command();
 program
   .name('vibekit-proxy')
   .description('VibeKit proxy server for secure API routing')
-  .version('0.0.3')
+  .version(packageJson.version)
   .option('-p, --port <number>', 'Port to run on', '8080')
   .option('-c, --config <path>', 'Path to vibekit.yaml file', 'vibekit.yaml');
 
