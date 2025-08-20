@@ -66,7 +66,14 @@ jobs:
     
     - name: Update package version
       working-directory: ./node
-      run: npm version ${{ steps.get_version.outputs.VERSION }} --no-git-tag-version
+      run: |
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        TARGET_VERSION="${{ steps.get_version.outputs.VERSION }}"
+        if [ "$CURRENT_VERSION" != "$TARGET_VERSION" ]; then
+          npm version $TARGET_VERSION --no-git-tag-version
+        else
+          echo "Version already matches: $TARGET_VERSION"
+        fi
     
     - name: Publish to npm
       working-directory: ./node
@@ -168,7 +175,13 @@ jobs:
     - name: Update package version for GitHub
       working-directory: ./node
       run: |
-        npm version ${{ steps.get_version.outputs.VERSION }} --no-git-tag-version
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        TARGET_VERSION="${{ steps.get_version.outputs.VERSION }}"
+        if [ "$CURRENT_VERSION" != "$TARGET_VERSION" ]; then
+          npm version $TARGET_VERSION --no-git-tag-version
+        else
+          echo "Version already matches: $TARGET_VERSION"
+        fi
         # Update package name for GitHub registry
         sed -i 's/"name": "vibekit-proxy"/"name": "@${{ github.repository_owner }}\/vibekit-proxy"/' package.json
     
