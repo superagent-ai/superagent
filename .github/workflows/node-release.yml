@@ -3,7 +3,7 @@ name: Release Node.js Package
 on:
   push:
     tags:
-      - 'node/v*'
+      - 'node-v*'
   workflow_dispatch:
 
 permissions:
@@ -61,7 +61,7 @@ jobs:
     
     - name: Extract version from tag
       id: get_version
-      run: echo "VERSION=${GITHUB_REF#refs/tags/node/v}" >> $GITHUB_OUTPUT
+      run: echo "VERSION=${GITHUB_REF#refs/tags/node-v}" >> $GITHUB_OUTPUT
     
     - name: Update package version
       working-directory: ./node
