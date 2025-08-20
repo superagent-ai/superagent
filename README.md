@@ -86,6 +86,59 @@ vibekit-proxy status --port 8080
 - `-c, --config <PATH>`: Path to config.yaml file (default: config.yaml)
 - `-d, --daemon`: Run in background (start command only)
 
+## Programmatic Usage
+
+### Node.js Package
+
+Install the package:
+```bash
+npm install vibekit-proxy
+```
+
+Create a server programmatically:
+```javascript
+import ProxyServer from 'vibekit-proxy';
+
+const port = 8080;
+const configPath = './config.yaml'; // optional, defaults to 'config.yaml'
+const proxy = new ProxyServer(port, configPath);
+
+// Start the server
+await proxy.start();
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  proxy.stop();
+  process.exit(0);
+});
+```
+
+### Rust Crate
+
+Add to your `Cargo.toml`:
+```toml
+[dependencies]
+vibekit-proxy = "0.0.1"
+```
+
+Create a server programmatically:
+```rust
+use vibekit_proxy::ProxyServer;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let port = 8080;
+    let config_path = Some("./config.yaml".to_string()); // optional
+    
+    let server = ProxyServer::new(port, config_path).await?;
+    
+    // Start the server (this blocks)
+    server.start().await?;
+    
+    Ok(())
+}
+```
+
 ## Usage
 
 Point your AI client to the proxy URL instead of the direct API:
