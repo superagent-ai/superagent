@@ -101,7 +101,7 @@ jobs:
 
     - name: Publish to crates.io
       working-directory: ./rust
-      run: cargo publish --token ${{ secrets.CARGO_TOKEN }}
+      run: cargo publish --allow-dirty --token ${{ secrets.CARGO_TOKEN }}
 
   publish-docker:
     needs: build

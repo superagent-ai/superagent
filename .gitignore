@@ -85,7 +85,7 @@ jspm_packages/
 .dynamodb/
 
 # Rust specific
-Cargo.lock
+# Cargo.lock - committed for applications (not libraries)
 target/
 
 # Go specific

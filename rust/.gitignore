@@ -1,6 +1,6 @@
 # Rust
 /target/
-Cargo.lock
+# Cargo.lock - committed for applications
 
 # IDE
 .vscode/
