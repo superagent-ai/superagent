@@ -120,7 +120,7 @@ jobs:
         cp node/package.json package/vibekit-proxy-node/
         cp node/package-lock.json package/vibekit-proxy-node/
         cp -r node/node_modules package/vibekit-proxy-node/
-        cp config.yaml package/vibekit-proxy-node/
+        cp vibekit.yaml package/vibekit-proxy-node/
         chmod +x package/vibekit-proxy-node/src/cli.js
     
     - name: Copy files (Windows)
@@ -130,7 +130,7 @@ jobs:
         copy node\package.json package\vibekit-proxy-node\
         copy node\package-lock.json package\vibekit-proxy-node\
         xcopy /E /I node\node_modules package\vibekit-proxy-node\node_modules
-        copy config.yaml package\vibekit-proxy-node\
+        copy vibekit.yaml package\vibekit-proxy-node\
     
     - name: Create tarball (Unix)
       if: runner.os != 'Windows'
@@ -262,7 +262,7 @@ jobs:
           
           ### Usage
           ```bash
-          vibekit-proxy start --port 8080 --config config.yaml
+          vibekit-proxy start --port 8080 --config vibekit.yaml
           ```
           
           ### What's Changed
