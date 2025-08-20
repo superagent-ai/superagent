@@ -6,7 +6,7 @@ use crate::{ProxyServer, Result};
 
 pub async fn run_cli() -> Result<()> {
     let matches = Command::new("vibekit-proxy")
-        .version("0.0.21")
+        .version(env!("CARGO_PKG_VERSION"))
         .about("VibeKit proxy server for secure API routing")
         .arg(
             Arg::new("port")
