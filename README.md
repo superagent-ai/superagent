@@ -6,6 +6,13 @@ The runtime firewall for AI, blocks LLM vulnerabilities in real time.
 
 ### Node.js
 
+Global installation:
+```bash
+npm i -g vibekit-proxy
+vibekit-proxy start
+```
+
+Or run locally:
 ```bash
 cd node/
 npm install
@@ -17,6 +24,13 @@ npm start -- --config=/path/to/vibekit.yaml
 
 ### Rust (High Performance)
 
+Global installation:
+```bash
+cargo install vibekit-proxy
+vibekit-proxy start
+```
+
+Or build locally:
 ```bash
 cd rust/
 cargo build --release
