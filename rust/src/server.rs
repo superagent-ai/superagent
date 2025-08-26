@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Instant;
 
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Client, Method, Request, Response, Server, StatusCode};
@@ -9,6 +10,7 @@ use hyper_tls::HttpsConnector;
 use serde_json::Value;
 use tokio::sync::{Mutex, RwLock};
 use tracing::{info, warn};
+use uuid::Uuid;
 
 use crate::config::ConfigManager;
 use crate::redaction::{RedactionEngine, RedactionService};
@@ -34,9 +36,14 @@ impl ProxyServer {
         let https = HttpsConnector::new();
         let client = Client::builder().build::<_, hyper::Body>(https);
         
-        let mut config_manager = ConfigManager::new_with_path(config_path);
+        let mut config_manager = ConfigManager::new_with_path(config_path.clone());
         if let Err(e) = config_manager.load_config().await {
-            warn!("Warning: Could not load config file, using defaults: {}", e);
+            warn!(
+                event_type = "config_load_failed",
+                config_path = config_path.as_deref().unwrap_or("default"),
+                error = %e,
+                "Could not load config file, using defaults"
+            );
         }
 
         Ok(Self {
@@ -53,6 +60,15 @@ impl ProxyServer {
     pub async fn start(&self) -> Result<()> {
         let addr = SocketAddr::from(([0, 0, 0, 0], self.port));
         
+        info!(
+            event_type = "server_start",
+            service = "ai-firewall-rust",
+            version = "0.0.1",
+            port = self.port,
+            address = %addr,
+            "Proxy server starting"
+        );
+        
         let server_clone = Arc::new(self.clone());
         let make_svc = make_service_fn(move |_conn| {
             let server = Arc::clone(&server_clone);
@@ -65,7 +81,11 @@ impl ProxyServer {
         });
 
         let server = Server::bind(&addr).serve(make_svc);
-        info!("Proxy server listening on http://{}", addr);
+        info!(
+            event_type = "server_listening",
+            address = %addr,
+            "Proxy server listening"
+        );
 
         if let Err(e) = server.await {
             return Err(Error::Server(e.to_string()));
@@ -75,7 +95,10 @@ impl ProxyServer {
     }
 
     pub async fn stop(&self) {
-        info!("Stopping proxy server...");
+        info!(
+            event_type = "server_stop",
+            "Stopping proxy server"
+        );
     }
 
     async fn handle_request(&self, req: Request<Body>) -> std::result::Result<Response<Body>, Infallible> {
@@ -126,8 +149,17 @@ impl ProxyServer {
     }
 
     async fn handle_request_inner(&self, req: Request<Body>) -> Result<Response<Body>> {
+        let start_time = Instant::now();
+        let trace_id = Uuid::new_v4().to_string();
+
         // Health check endpoint
         if req.uri().path() == "/health" && req.method() == Method::GET {
+            info!(
+                event_type = "health_check",
+                trace_id = %trace_id,
+                "Health check requested"
+            );
+
             let request_count = self.request_count.lock().await;
             let count = *request_count;
             drop(request_count);
@@ -158,8 +190,7 @@ impl ProxyServer {
         let body_bytes = hyper::body::to_bytes(body).await?;
         let request_body = String::from_utf8_lossy(&body_bytes);
 
-
-        self.process_request_with_config(request_body.to_string(), parts, request_id).await
+        self.process_request_with_config(request_body.to_string(), parts, request_id, start_time, trace_id).await
     }
 
     async fn process_request_with_config(
@@ -167,6 +198,8 @@ impl ProxyServer {
         request_body: String,
         parts: http::request::Parts,
         request_id: u64,
+        start_time: Instant,
+        trace_id: String,
     ) -> Result<Response<Body>> {
         // Extract model name from request body and process user message redaction
         let mut model_name = None;
@@ -203,18 +236,18 @@ impl ProxyServer {
                     }
                 }
 
-                serde_json::to_string(&parsed_body).unwrap_or(request_body)
+                serde_json::to_string(&parsed_body).unwrap_or_else(|_| request_body.clone())
             } else {
-                request_body
+                request_body.clone()
             }
         } else {
-            request_body
+            request_body.clone()
         };
 
         // Parse the target URL - handle relative URLs by prepending API base
         let target_url = if parts.uri.path().starts_with('/') {
             // Use model from config - always require model to be specified
-            let model = model_name.ok_or_else(|| {
+            let model = model_name.as_ref().ok_or_else(|| {
                 Error::Server("Bad Request: Model must be specified in request body".to_string())
             })?;
             
@@ -273,7 +306,7 @@ impl ProxyServer {
 
         // Make the proxied request
         let proxy_response = req_builder.send().await?;
-        
+        let response_status = proxy_response.status();
 
         // Check if this is an SSE response
         let is_sse = proxy_response
@@ -282,20 +315,83 @@ impl ProxyServer {
             .and_then(|v| v.to_str().ok())
             .map_or(false, |ct| ct.contains("text/event-stream"));
 
-        if is_sse {
+        // Extract headers for logging
+        let user_agent = parts.headers.get("user-agent")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or("")
+            .to_string();
+        let originator = parts.headers.get("originator")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or("")
+            .to_string();
+
+        let response = if is_sse {
             self.handle_sse_response(proxy_response, &target_url, request_id).await
         } else {
             // Handle regular responses
-            let status = proxy_response.status();
             let response_body = proxy_response.text().await?;
+            let response_size = response_body.len();
             let redacted_response = self.redaction_engine.redact_sensitive_content(&response_body);
             
-
-            Ok(Response::builder()
-                .status(status)
+            let result = Ok(Response::builder()
+                .status(response_status)
                 .header("content-type", "application/json")
-                .body(Body::from(redacted_response))?)
+                .body(Body::from(redacted_response))?);
+
+            // Log the completed request
+            let duration = start_time.elapsed();
+            let input_redacted = processed_request_body != request_body;
+            
+            info!(
+                event_type = "request_processed",
+                trace_id = %trace_id,
+                method = %parts.method,
+                url = %parts.uri,
+                model = model_name.as_deref().unwrap_or(""),
+                user_agent = %user_agent,
+                originator = %originator,
+                body_size_bytes = request_body.len(),
+                status = %response_status.as_u16(),
+                duration_ms = duration.as_millis() as u64,
+                response_size_bytes = response_size,
+                is_sse = false,
+                input_redacted = input_redacted,
+                output_redacted = true, // Always true for non-SSE responses
+                target_url = %target_url,
+                model_routing = model_name.is_some(),
+                "Request processed"
+            );
+
+            result
+        };
+
+        // For SSE responses, we'll log after the stream completes
+        if is_sse {
+            let duration = start_time.elapsed();
+            let input_redacted = processed_request_body != request_body;
+            
+            info!(
+                event_type = "request_processed",
+                trace_id = %trace_id,
+                method = %parts.method,
+                url = %parts.uri,
+                model = model_name.as_deref().unwrap_or(""),
+                user_agent = %user_agent,
+                originator = %originator,
+                body_size_bytes = request_body.len(),
+                status = %response_status.as_u16(),
+                duration_ms = duration.as_millis() as u64,
+                response_size_bytes = 0, // Not easily measurable for SSE
+                is_sse = true,
+                input_redacted = input_redacted,
+                output_redacted = true, // SSE responses are redacted
+                target_url = %target_url,
+                model_routing = model_name.is_some(),
+                "SSE request processed"
+            );
         }
+
+        response
     }
 
     async fn handle_sse_response(
