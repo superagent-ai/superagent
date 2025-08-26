@@ -11,7 +11,7 @@ use tokio::sync::{Mutex, RwLock};
 use tracing::{info, warn};
 
 use crate::config::ConfigManager;
-use crate::redaction::RedactionEngine;
+use crate::redaction::{RedactionEngine, RedactionService};
 use crate::{Error, Result};
 
 #[derive(Debug, Clone)]
@@ -23,13 +23,14 @@ pub struct ProxyServer {
     port: u16,
     request_count: Arc<Mutex<u64>>,
     redaction_engine: RedactionEngine,
+    redaction_service: RedactionService,
     config_manager: Arc<RwLock<ConfigManager>>,
     client: Client<HttpsConnector<hyper::client::HttpConnector>>,
     sse_content_accumulators: Arc<RwLock<HashMap<u64, SseAccumulator>>>,
 }
 
 impl ProxyServer {
-    pub async fn new(port: u16, config_path: Option<String>) -> Result<Self> {
+    pub async fn new(port: u16, config_path: Option<String>, redaction_api_url: Option<String>) -> Result<Self> {
         let https = HttpsConnector::new();
         let client = Client::builder().build::<_, hyper::Body>(https);
         
@@ -42,6 +43,7 @@ impl ProxyServer {
             port,
             request_count: Arc::new(Mutex::new(0)),
             redaction_engine: RedactionEngine::new(),
+            redaction_service: RedactionService::new(redaction_api_url),
             config_manager: Arc::new(RwLock::new(config_manager)),
             client,
             sse_content_accumulators: Arc::new(RwLock::new(HashMap::new())),
@@ -84,6 +86,43 @@ impl ProxyServer {
                 .body(Body::from(format!("Internal Server Error: {}", e)))
                 .unwrap()
         }))
+    }
+
+    async fn redact_content(&self, content: &mut Value) -> Result<Value> {
+        match content {
+            Value::String(text) => {
+                let redacted = self.redaction_service.redact_user_prompt(text).await?;
+                Ok(Value::String(redacted))
+            }
+            Value::Array(content_blocks) => {
+                let mut redacted_blocks = Vec::new();
+                for block in content_blocks.iter() {
+                    if let Some(block_obj) = block.as_object() {
+                        if let Some(block_type) = block_obj.get("type") {
+                            if block_type == "text" {
+                                if let Some(text) = block_obj.get("text").and_then(|t| t.as_str()) {
+                                    let redacted_text = self.redaction_service.redact_user_prompt(text).await?;
+                                    let mut new_block = block_obj.clone();
+                                    new_block.insert("text".to_string(), Value::String(redacted_text));
+                                    redacted_blocks.push(Value::Object(new_block));
+                                } else {
+                                    redacted_blocks.push(block.clone());
+                                }
+                            } else {
+                                // Non-text blocks (like tool_result) pass through unchanged
+                                redacted_blocks.push(block.clone());
+                            }
+                        } else {
+                            redacted_blocks.push(block.clone());
+                        }
+                    } else {
+                        redacted_blocks.push(block.clone());
+                    }
+                }
+                Ok(Value::Array(redacted_blocks))
+            }
+            _ => Ok(content.clone()),
+        }
     }
 
     async fn handle_request_inner(&self, req: Request<Body>) -> Result<Response<Body>> {
@@ -129,17 +168,48 @@ impl ProxyServer {
         parts: http::request::Parts,
         request_id: u64,
     ) -> Result<Response<Body>> {
-        // Extract model name from request body
+        // Extract model name from request body and process user message redaction
         let mut model_name = None;
-        if !request_body.is_empty() {
-            if let Ok(parsed_body) = serde_json::from_str::<Value>(&request_body) {
+        let processed_request_body = if !request_body.is_empty() {
+            if let Ok(mut parsed_body) = serde_json::from_str::<Value>(&request_body) {
                 if let Some(model) = parsed_body.get("model") {
                     if let Some(model_str) = model.as_str() {
                         model_name = Some(model_str.to_string());
                     }
                 }
+
+                // Process user messages for redaction
+                if let Some(messages) = parsed_body.get_mut("messages") {
+                    if let Some(messages_array) = messages.as_array_mut() {
+                        for message in messages_array.iter_mut() {
+                            if let Some(message_obj) = message.as_object_mut() {
+                                if let Some(role) = message_obj.get("role") {
+                                    if role == "user" {
+                                        if let Some(content) = message_obj.get_mut("content") {
+                                            match self.redact_content(content).await {
+                                                Ok(redacted_content) => {
+                                                    *content = redacted_content;
+                                                }
+                                                Err(e) => {
+                                                    warn!("Failed to redact user message: {}", e);
+                                                    // Continue with original content on redaction failure
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                serde_json::to_string(&parsed_body).unwrap_or(request_body)
+            } else {
+                request_body
             }
-        }
+        } else {
+            request_body
+        };
 
         // Parse the target URL - handle relative URLs by prepending API base
         let target_url = if parts.uri.path().starts_with('/') {
@@ -196,9 +266,9 @@ impl ProxyServer {
             }
         }
 
-        // Add request body
-        if !request_body.is_empty() {
-            req_builder = req_builder.body(request_body.clone());
+        // Add request body (using processed body with redacted user messages)
+        if !processed_request_body.is_empty() {
+            req_builder = req_builder.body(processed_request_body.clone());
         }
 
         // Make the proxied request
@@ -522,6 +592,7 @@ impl Clone for ProxyServer {
             port: self.port,
             request_count: Arc::clone(&self.request_count),
             redaction_engine: self.redaction_engine.clone(),
+            redaction_service: self.redaction_service.clone(),
             config_manager: Arc::clone(&self.config_manager),
             client,
             sse_content_accumulators: Arc::clone(&self.sse_content_accumulators),

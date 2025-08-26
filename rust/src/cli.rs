@@ -49,6 +49,13 @@ pub async fn run_cli() -> Result<()> {
                         .long("daemon")
                         .help("Run in background")
                         .action(clap::ArgAction::SetTrue),
+                )
+                .arg(
+                    Arg::new("redaction_api_url")
+                        .long("redaction-api-url")
+                        .value_name("URL")
+                        .help("URL for redaction API to screen user messages")
+                        .required(false),
                 ),
         )
         .subcommand(
@@ -96,11 +103,16 @@ pub async fn run_cli() -> Result<()> {
                 .unwrap()
                 .clone();
 
+            let redaction_api_url = sub_matches
+                .get_one::<String>("redaction_api_url")
+                .cloned()
+                .or_else(|| std::env::var("VIBEKIT_REDACTION_API_URL").ok());
+
             let _daemon = sub_matches.get_flag("daemon");
 
             // Daemon mode (simplified)
 
-            start_proxy_with_check(port, Some(config_path)).await?;
+            start_proxy_with_check(port, Some(config_path), redaction_api_url).await?;
         }
         Some(("stop", sub_matches)) => {
             let port: u16 = sub_matches
@@ -133,18 +145,23 @@ pub async fn run_cli() -> Result<()> {
                 .unwrap()
                 .clone();
 
-            start_proxy_with_check(port, Some(config_path)).await?;
+            let redaction_api_url = matches
+                .get_one::<String>("redaction_api_url")
+                .cloned()
+                .or_else(|| std::env::var("VIBEKIT_REDACTION_API_URL").ok());
+
+            start_proxy_with_check(port, Some(config_path), redaction_api_url).await?;
         }
     }
 
     Ok(())
 }
 
-async fn start_proxy_with_check(port: u16, config_path: Option<String>) -> Result<()> {
+async fn start_proxy_with_check(port: u16, config_path: Option<String>, redaction_api_url: Option<String>) -> Result<()> {
     use std::sync::Arc;
     use tokio::signal;
     
-    let server = Arc::new(ProxyServer::new(port, config_path).await?);
+    let server = Arc::new(ProxyServer::new(port, config_path, redaction_api_url).await?);
     let server_clone = Arc::clone(&server);
 
     // Handle graceful shutdown
