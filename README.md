@@ -4,7 +4,8 @@ The runtime firewall for AI, blocks LLM vulnerabilities in real time.
 
 ## Quick Start
 
-### Node.js
+<details>
+<summary><strong>Node.js</strong></summary>
 
 Global installation:
 ```bash
@@ -21,8 +22,10 @@ npm start
 # With custom config file
 npm start -- --config=/path/to/vibekit.yaml
 ```
+</details>
 
-### Rust (High Performance)
+<details>
+<summary><strong>Rust (High Performance)</strong></summary>
 
 Global installation:
 ```bash
@@ -42,17 +45,21 @@ cargo build --release
 # With redaction API for input screening
 ./target/release/vibekit-proxy start --redaction-api-url=http://localhost:3000/redact
 ```
+</details>
 
-### Docker
+<details>
+<summary><strong>Docker</strong></summary>
 
 ```bash
 docker build -f docker/Dockerfile.node -t vibekit-proxy .
 docker run -p 8080:8080 -v ./vibekit.yaml:/app/vibekit.yaml vibekit-proxy
 ```
+</details>
 
 ## Configuration
 
-### Config File Location
+<details>
+<summary><strong>Config File Location</strong></summary>
 
 By default, both implementations look for `vibekit.yaml` in the current working directory. You can specify a custom config file path using the `--config` parameter:
 
@@ -63,8 +70,10 @@ npm start -- --config=/etc/vibekit/vibekit.yaml
 # Rust
 ./target/release/vibekit-proxy start --config=/etc/vibekit/vibekit.yaml
 ```
+</details>
 
-### Config File Format
+<details>
+<summary><strong>Config File Format</strong></summary>
 
 Edit `vibekit.yaml` to add models and API endpoints:
 
@@ -78,8 +87,12 @@ models:
     provider: "anthropic"
     api_base: "https://api.anthropic.com/v1"
 ```
+</details>
 
 ## CLI Options
+
+<details>
+<summary><strong>Command Examples</strong></summary>
 
 Both Node.js and Rust implementations support the following CLI options:
 
@@ -100,16 +113,21 @@ vibekit-proxy start --daemon
 vibekit-proxy stop --port 8080
 vibekit-proxy status --port 8080
 ```
+</details>
 
-### Global Options
+<details>
+<summary><strong>Global Options</strong></summary>
+
 - `-p, --port <PORT>`: Port to run on (default: 8080)
 - `-c, --config <PATH>`: Path to vibekit.yaml file (default: vibekit.yaml)
 - `--redaction-api-url <URL>`: URL for redaction API to screen user messages
 - `-d, --daemon`: Run in background (start command only)
+</details>
 
 ## Programmatic Usage
 
-### Node.js Package
+<details>
+<summary><strong>Node.js Package</strong></summary>
 
 Install the package:
 ```bash
@@ -134,8 +152,10 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 ```
+</details>
 
-### Rust Cratefi
+<details>
+<summary><strong>Rust Crate</strong></summary>
 
 Add to your `Cargo.toml`:
 ```toml
@@ -161,6 +181,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 ```
+</details>
 
 ## Usage
 
@@ -177,9 +198,14 @@ Health check: `GET /health`
 
 ## Input Redaction
 
-VibeKit Proxy supports optional pre-request redaction by calling an external redaction API to screen user messages before forwarding them to AI providers.
+<details>
+<summary><strong>Overview</strong></summary>
 
-### Setup
+VibeKit Proxy supports optional pre-request redaction by calling an external redaction API to screen user messages before forwarding them to AI providers.
+</details>
+
+<details>
+<summary><strong>Setup</strong></summary>
 
 Configure the redaction API URL using either:
 
@@ -197,14 +223,16 @@ VIBEKIT_REDACTION_API_URL=http://localhost:3000/redact node src/index.js
 export VIBEKIT_REDACTION_API_URL=http://localhost:3000/redact
 vibekit-proxy start
 ```
+</details>
 
-### Built-in Redaction Server
+<details>
+<summary><strong>Built-in Redaction Server</strong></summary>
 
 VibeKit includes a built-in redaction server powered by a fine-tuned Gemma 3 270M model:
 
 ```bash
 # Start the redaction server
-cd server/
+cd api/
 ./start.sh
 
 # Start VibeKit with redaction enabled
@@ -216,8 +244,10 @@ The redaction server:
 - Automatically downloads the model on first run
 - Replaces sensitive data with `[REDACTED]`, prompt injections with `[INJECTION]`, and backdoors with `[BACKDOOR]`
 - Runs on port 3000 by default
+</details>
 
-### Custom Redaction API Interface
+<details>
+<summary><strong>Custom Redaction API Interface</strong></summary>
 
 You can also implement your own redaction API that accepts POST requests with this format:
 
@@ -234,13 +264,16 @@ You can also implement your own redaction API that accepts POST requests with th
   "redacted_prompt": "redacted version of the content"
 }
 ```
+</details>
 
-### Behavior
+<details>
+<summary><strong>Behavior</strong></summary>
 
 - **Only user messages** with `role: "user"` are sent for redaction
 - **All content types** are supported: simple strings and complex content blocks
 - **Graceful fallback**: If redaction fails, the original content is used
 - **No impact**: When no redaction URL is provided, requests are processed normally
+</details>
 
 ## Features
 
@@ -256,7 +289,7 @@ You can also implement your own redaction API that accepts POST requests with th
 ```
 ├── node/           # Node.js implementation
 ├── rust/           # Rust implementation (high performance)
-├── server/         # Built-in redaction server (Python/FastAPI)
+├── api/            # Built-in redaction server (Python/FastAPI)
 ├── docker/         # Docker configurations
 └── README.md       # This file
 ```
