@@ -294,10 +294,112 @@ You can also implement your own redaction API that accepts POST requests with th
 - **No impact**: When no redaction URL is provided, requests are processed normally
 </details>
 
+## Logging Configuration
+
+<details>
+<summary><strong>Structured Logging</strong></summary>
+
+Superagent outputs structured JSON logs to stdout that can be ingested by any log aggregation system (ELK, Splunk, DataDog, Loki, etc.).
+
+**Environment Variables:**
+```bash
+LOG_LEVEL=info    # debug|info|warn|error (default: info)
+```
+
+**Example log output:**
+```json
+{
+  "timestamp": "2024-08-26T10:30:00.000Z",
+  "level": "info",
+  "message": "Request processed",
+  "service": "ai-firewall-node",
+  "version": "0.0.1",
+  "event_type": "request_processed",
+  "trace_id": "abc123-def456-789",
+  "request": {
+    "method": "POST",
+    "url": "/v1/messages",
+    "model": "claude-3-5-sonnet",
+    "headers": {
+      "user-agent": "curl/7.68.0",
+      "originator": "my-app"
+    },
+    "body_size_bytes": 1024
+  },
+  "response": {
+    "status": 200,
+    "duration_ms": 1250,
+    "body_size_bytes": 2048,
+    "is_sse": true
+  },
+  "redaction": {
+    "input_redacted": true,
+    "output_redacted": true,
+    "processing_time_ms": 15
+  },
+  "proxy": {
+    "target_url": "https://api.anthropic.com/v1/messages",
+    "model_routing": true
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>Log Integration Examples</strong></summary>
+
+**Docker/Kubernetes (stdout):**
+```bash
+# View logs directly
+docker logs container-name | jq '.'
+kubectl logs deployment/ai-firewall | jq '.'
+
+# Pipe to analysis tools
+docker logs container-name | grep '"level":"error"'
+```
+
+**Fluent Bit:**
+```conf
+[INPUT]
+    Name tail
+    Path /var/log/containers/ai-firewall*.log
+    Parser json
+
+[OUTPUT] 
+    Name elasticsearch
+    Match *
+    Host elasticsearch.example.com
+```
+
+**Vector:**
+```toml
+[sources.ai_firewall]
+  type = "docker_logs"
+  include_labels = ["ai-firewall"]
+
+[sinks.datadog]
+  type = "datadog_logs"
+  inputs = ["ai_firewall"]
+  default_api_key = "${DATADOG_API_KEY}"
+```
+
+**Promtail (Loki):**
+```yaml
+scrape_configs:
+- job_name: ai-firewall
+  docker_sd_configs:
+    - host: unix:///var/run/docker.sock
+  relabel_configs:
+    - source_labels: [__meta_docker_container_label_service]
+      target_label: service
+```
+</details>
+
 ## Features
 
 - **Config-based routing** - Route requests to different AI providers
-- **Request/response logging** - Monitor all AI interactions
+- **Structured logging** - JSON logs compatible with any aggregation system
+- **Request/response monitoring** - Complete audit trail of all AI interactions
 - **Output data redaction** - Filter sensitive information from AI responses  
 - **Input redaction** - Screen user messages with built-in AI redaction server
 - **SSE streaming support** - Real-time streaming responses

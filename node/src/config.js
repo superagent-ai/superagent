@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import yaml from 'js-yaml';
 import path from 'path';
+import logger from './logger.js';
 
 class ConfigManager {
   constructor() {
@@ -29,7 +30,11 @@ class ConfigManager {
         throw new Error(`Config file not found at ${this.configPath}`);
       }
     } catch (error) {
-      console.error('Error loading config:', error.message);
+      logger.error('Error loading config file', {
+        event_type: 'config_load_error',
+        config_path: this.configPath,
+        error: error.message
+      });
       throw error;
     }
   }

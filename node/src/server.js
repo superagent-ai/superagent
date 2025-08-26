@@ -4,6 +4,7 @@ import net from 'net';
 import { URL } from 'url';
 import { initializeSensitivePatterns, RedactionService } from './redaction.js';
 import configManager from './config.js';
+import logger from './logger.js';
 
 const ANALYTICS_URL = 'https://ppuvnjwgke.us-east-1.awsapprunner.com/analytics';
 
@@ -27,7 +28,11 @@ class ProxyServer {
     try {
       await configManager.loadConfig(this.configPath);
     } catch (error) {
-      console.error(`Warning: Could not load ${this.configPath}, using defaults`);
+      logger.warn(`Could not load config file`, {
+        event_type: 'config_load_failed',
+        config_path: this.configPath,
+        error: error.message
+      });
     }
   }
 
@@ -138,6 +143,7 @@ class ProxyServer {
   async handleHttpRequest(req, res) {
     // Health check endpoint
     if (req.url === '/health' && req.method === 'GET') {
+      logger.logHealthCheck();
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
         status: 'healthy',
@@ -151,6 +157,7 @@ class ProxyServer {
     this.requestCount++;
     const requestId = this.requestCount;
     const startTime = Date.now();
+    const traceId = logger.generateTraceId();
     this.requestStartTimes.set(requestId, startTime);
 
     // Capture request body
@@ -160,19 +167,12 @@ class ProxyServer {
     });
 
     req.on('end', () => {
-      // Log the complete request
-      console.log(`\n=== INCOMING REQUEST #${requestId} ===`);
-      console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-      console.log(`Headers: ${JSON.stringify(req.headers, null, 2)}`);
-      console.log(`Body: ${requestBody || '(empty)'}`);
-      console.log(`=== END REQUEST #${requestId} ===\n`);
-
       // Parse request body to determine model and API base
-      this.processRequestWithConfig(requestBody, req, res, requestId, startTime);
+      this.processRequestWithConfig(requestBody, req, res, requestId, startTime, traceId);
     });
   }
 
-  async processRequestWithConfig(requestBody, req, res, requestId, startTime) {
+  async processRequestWithConfig(requestBody, req, res, requestId, startTime, traceId) {
     // Extract model name from request body and process user message redaction
     let modelName = null;
     let baseUrl = null;
@@ -190,7 +190,10 @@ class ProxyServer {
               try {
                 message.content = await this.redactContent(message.content);
               } catch (error) {
-                console.warn(`Failed to redact user message: ${error.message}`);
+                logger.warn(`Failed to redact user message`, {
+                  event_type: 'redaction_failed',
+                  error: error.message
+                });
                 // Continue with original content on redaction failure
               }
             }
@@ -215,12 +218,19 @@ class ProxyServer {
         
         const modelConfig = configManager.getModelConfig(modelName);
         baseUrl = modelConfig.apiBase.endsWith('/') ? modelConfig.apiBase.slice(0, -1) : modelConfig.apiBase;
-        console.log(`Using config-based routing: ${modelName} -> ${baseUrl}`);
+        logger.debug(`Using config-based routing`, {
+          event_type: 'model_routing',
+          model: modelName,
+          api_base: baseUrl
+        });
         
         // Properly construct the full URL
         const fullUrl = baseUrl + req.url;
         targetUrl = new URL(fullUrl);
-        console.log(`Final target URL: ${targetUrl.href}`);
+        logger.debug(`Target URL constructed`, {
+          event_type: 'url_construction',
+          target_url: targetUrl.href
+        });
       } else {
         // Absolute URL
         targetUrl = new URL(req.url);
@@ -257,6 +267,44 @@ class ProxyServer {
 
       // Log request to analytics asynchronously
       this.logRequestToAnalytics(requestId, req, targetUrl, processedRequestBody, proxyRes, responseTime);
+
+      // Extract model and redaction info for structured logging
+      let extractedModel = null;
+      let inputRedacted = false;
+      let redactionTime = 0;
+
+      try {
+        if (processedRequestBody) {
+          const parsedBody = JSON.parse(processedRequestBody);
+          extractedModel = parsedBody.model;
+          inputRedacted = processedRequestBody !== requestBody; // Check if redaction occurred
+        }
+      } catch (e) {
+        // Ignore parsing errors
+      }
+
+      // Log structured request data
+      logger.logRequest({
+        trace_id: traceId,
+        method: req.method,
+        url: req.url,
+        model: extractedModel,
+        headers: {
+          'user-agent': req.headers['user-agent'],
+          'originator': req.headers['originator'],
+          'content-type': req.headers['content-type']
+        },
+        body_size_bytes: Buffer.byteLength(requestBody || '', 'utf8'),
+        status: proxyRes.statusCode,
+        duration_ms: responseTime,
+        response_size_bytes: 0, // Will be updated when response completes
+        is_sse: proxyRes.headers['content-type']?.includes('text/event-stream') || false,
+        input_redacted: inputRedacted,
+        output_redacted: false, // Will be determined during response processing
+        redaction_time_ms: redactionTime,
+        target_url: targetUrl.href,
+        model_routing: !!extractedModel
+      });
 
       // Check if this is an SSE response
       const isSSE = proxyRes.headers['content-type']?.includes('text/event-stream');
