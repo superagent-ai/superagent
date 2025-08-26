@@ -88,11 +88,11 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            asset_name: vibekit-proxy-node-linux-amd64.tar.gz
+            asset_name: ai-proxy-node-linux-amd64.tar.gz
           - os: macos-latest
-            asset_name: vibekit-proxy-node-darwin-amd64.tar.gz
+            asset_name: ai-proxy-node-darwin-amd64.tar.gz
           - os: windows-latest
-            asset_name: vibekit-proxy-node-windows-amd64.zip
+            asset_name: ai-proxy-node-windows-amd64.zip
     
     runs-on: ${{ matrix.os }}
     
@@ -111,38 +111,38 @@ jobs:
       run: npm ci --only=production
     
     - name: Create package directory
-      run: mkdir -p package/vibekit-proxy-node
+      run: mkdir -p package/ai-proxy-node
     
     - name: Copy files (Unix)
       if: runner.os != 'Windows'
       run: |
-        cp -r node/src package/vibekit-proxy-node/
-        cp node/package.json package/vibekit-proxy-node/
-        cp node/package-lock.json package/vibekit-proxy-node/
-        cp -r node/node_modules package/vibekit-proxy-node/
-        cp vibekit.yaml package/vibekit-proxy-node/
-        chmod +x package/vibekit-proxy-node/src/cli.js
+        cp -r node/src package/ai-proxy-node/
+        cp node/package.json package/ai-proxy-node/
+        cp node/package-lock.json package/ai-proxy-node/
+        cp -r node/node_modules package/ai-proxy-node/
+        cp vibekit.yaml package/ai-proxy-node/
+        chmod +x package/ai-proxy-node/src/cli.js
     
     - name: Copy files (Windows)
       if: runner.os == 'Windows'
       run: |
-        xcopy /E /I node\src package\vibekit-proxy-node\src
-        copy node\package.json package\vibekit-proxy-node\
-        copy node\package-lock.json package\vibekit-proxy-node\
-        xcopy /E /I node\node_modules package\vibekit-proxy-node\node_modules
-        copy vibekit.yaml package\vibekit-proxy-node\
+        xcopy /E /I node\src package\ai-proxy-node\src
+        copy node\package.json package\ai-proxy-node\
+        copy node\package-lock.json package\ai-proxy-node\
+        xcopy /E /I node\node_modules package\ai-proxy-node\node_modules
+        copy vibekit.yaml package\ai-proxy-node\
     
     - name: Create tarball (Unix)
       if: runner.os != 'Windows'
       run: |
         cd package
-        tar -czf ${{ matrix.asset_name }} vibekit-proxy-node/
+        tar -czf ${{ matrix.asset_name }} ai-proxy-node/
     
     - name: Create zip (Windows)
       if: runner.os == 'Windows'
       run: |
         cd package
-        Compress-Archive -Path vibekit-proxy-node -DestinationPath ${{ matrix.asset_name }}
+        Compress-Archive -Path ai-proxy-node -DestinationPath ${{ matrix.asset_name }}
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -183,7 +183,7 @@ jobs:
           echo "Version already matches: $TARGET_VERSION"
         fi
         # Update package name for GitHub registry
-        sed -i 's/"name": "vibekit-proxy"/"name": "@${{ github.repository_owner }}\/vibekit-proxy"/' package.json
+        sed -i 's/"name": "ai-proxy"/"name": "@${{ github.repository_owner }}\/ai-proxy"/' package.json
     
     - name: Publish to GitHub Packages
       working-directory: ./node
@@ -244,12 +244,12 @@ jobs:
           
           **Via npm:**
           ```bash
-          npm install -g vibekit-proxy
+          npm install -g ai-proxy
           ```
           
           **Via GitHub Packages:**
           ```bash
-          npm install -g @${{ github.repository_owner }}/vibekit-proxy
+          npm install -g @${{ github.repository_owner }}/ai-proxy
           ```
           
           **Via Docker:**
@@ -262,7 +262,7 @@ jobs:
           
           ### Usage
           ```bash
-          vibekit-proxy start --port 8080 --config vibekit.yaml
+          ai-proxy start --port 8080 --config vibekit.yaml
           ```
           
           ### What's Changed

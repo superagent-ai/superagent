@@ -15,8 +15,8 @@ const execAsync = promisify(exec);
 const program = new Command();
 
 program
-  .name('vibekit-proxy')
-  .description('VibeKit proxy server for secure API routing')
+  .name('ai-proxy')
+  .description('AI proxy server for secure API routing')
   .version(packageJson.version)
   .option('-p, --port <number>', 'Port to run on', '8080')
   .option('-c, --config <path>', 'Path to vibekit.yaml file', 'vibekit.yaml');

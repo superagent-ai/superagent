@@ -18,20 +18,20 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            artifact_name: vibekit-proxy
-            asset_name: vibekit-proxy-linux-amd64
+            artifact_name: ai-proxy
+            asset_name: ai-proxy-linux-amd64
           - os: macos-latest
             target: x86_64-apple-darwin
-            artifact_name: vibekit-proxy
-            asset_name: vibekit-proxy-darwin-amd64
+            artifact_name: ai-proxy
+            asset_name: ai-proxy-darwin-amd64
           - os: macos-latest
             target: aarch64-apple-darwin
-            artifact_name: vibekit-proxy
-            asset_name: vibekit-proxy-darwin-arm64
+            artifact_name: ai-proxy
+            asset_name: ai-proxy-darwin-arm64
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            artifact_name: vibekit-proxy.exe
-            asset_name: vibekit-proxy-windows-amd64.exe
+            artifact_name: ai-proxy.exe
+            asset_name: ai-proxy-windows-amd64.exe
 
     runs-on: ${{ matrix.os }}
 
@@ -136,7 +136,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          **/vibekit-proxy-*
+          **/ai-proxy-*
         generate_release_notes: true
         body: |
           ## Rust Package Release
@@ -145,7 +145,7 @@ jobs:
           
           **Via crates.io:**
           ```bash
-          cargo install vibekit-proxy
+          cargo install ai-proxy
           ```
           
           **Via Docker:**

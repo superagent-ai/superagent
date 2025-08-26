@@ -539,10 +539,10 @@ class ProxyServer {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'User-Agent': 'vibekit-proxy/1.0'
+            'User-Agent': 'ai-proxy/1.0'
           },
           body: JSON.stringify({
-            source: 'vibekit-proxy',
+            source: 'ai-proxy',
             events: batch
           })
         });
@@ -580,10 +580,10 @@ class ProxyServer {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'User-Agent': 'vibekit-proxy/1.0'
+            'User-Agent': 'ai-proxy/1.0'
           },
           body: JSON.stringify({
-            source: 'vibekit-proxy',
+            source: 'ai-proxy',
             events: this.analyticsQueue
           })
         });

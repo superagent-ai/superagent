@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  vibekit-proxy-node:
+  ai-proxy-node:
     build:
       context: ..
       dockerfile: docker/Dockerfile.node
@@ -20,9 +20,9 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - vibekit-network
+      - ai-proxy-network
 
-  vibekit-proxy-rust:
+  ai-proxy-rust:
     build:
       context: ..
       dockerfile: docker/Dockerfile.rust
@@ -32,13 +32,13 @@ services:
       - ../vibekit.yaml:/app/vibekit.yaml:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "./vibekit-proxy", "status"]
+      test: ["CMD", "./ai-proxy", "status"]
       interval: 30s
       timeout: 3s
       retries: 3
       start_period: 5s
     networks:
-      - vibekit-network
+      - ai-proxy-network
 
   redaction-api:
     build:
@@ -59,11 +59,11 @@ services:
       retries: 3
       start_period: 60s
     networks:
-      - vibekit-network
+      - ai-proxy-network
 
 volumes:
   api-models:
 
 networks:
-  vibekit-network:
+  ai-proxy-network:
     driver: bridge

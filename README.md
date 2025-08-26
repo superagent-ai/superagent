@@ -1,4 +1,4 @@
-# VibeKit Proxy
+# Superagent
 
 The runtime firewall for AI, blocks LLM vulnerabilities in real time.
 
@@ -9,8 +9,8 @@ The runtime firewall for AI, blocks LLM vulnerabilities in real time.
 
 Global installation:
 ```bash
-npm i -g vibekit-proxy
-vibekit-proxy start
+npm i -g ai-proxy
+ai-proxy start
 ```
 
 Or run locally:
@@ -29,21 +29,21 @@ npm start -- --config=/path/to/vibekit.yaml
 
 Global installation:
 ```bash
-cargo install vibekit-proxy
-vibekit-proxy start
+cargo install ai-proxy
+ai-proxy start
 ```
 
 Or build locally:
 ```bash
 cd rust/
 cargo build --release
-./target/release/vibekit-proxy start
+./target/release/ai-proxy start
 
 # With custom config file
-./target/release/vibekit-proxy start --config=/path/to/vibekit.yaml
+./target/release/ai-proxy start --config=/path/to/vibekit.yaml
 
 # With redaction API for input screening
-./target/release/vibekit-proxy start --redaction-api-url=http://localhost:3000/redact
+./target/release/ai-proxy start --redaction-api-url=http://localhost:3000/redact
 ```
 </details>
 
@@ -53,12 +53,12 @@ cargo build --release
 **Single Container:**
 ```bash
 # Node.js proxy
-docker build -f docker/Dockerfile.node -t vibekit-proxy .
-docker run -p 8080:8080 -v ./vibekit.yaml:/app/vibekit.yaml vibekit-proxy
+docker build -f docker/Dockerfile.node -t ai-proxy .
+docker run -p 8080:8080 -v ./vibekit.yaml:/app/vibekit.yaml ai-proxy
 
 # Redaction API
-docker build -f docker/Dockerfile.api -t vibekit-redaction-api .
-docker run -p 3000:3000 vibekit-redaction-api
+docker build -f docker/Dockerfile.api -t ai-proxy-redaction-api .
+docker run -p 3000:3000 ai-proxy-redaction-api
 ```
 
 **Full Stack with Docker Compose:**
@@ -68,7 +68,7 @@ docker-compose -f docker/docker-compose.yml up -d
 
 # Start specific services
 docker-compose -f docker/docker-compose.yml up -d redaction-api
-docker-compose -f docker/docker-compose.yml up -d vibekit-proxy-node
+docker-compose -f docker/docker-compose.yml up -d ai-proxy-node
 
 # View logs
 docker-compose -f docker/docker-compose.yml logs -f redaction-api
@@ -87,7 +87,7 @@ By default, both implementations look for `vibekit.yaml` in the current working 
 npm start -- --config=/etc/vibekit/vibekit.yaml
 
 # Rust
-./target/release/vibekit-proxy start --config=/etc/vibekit/vibekit.yaml
+./target/release/ai-proxy start --config=/etc/vibekit/vibekit.yaml
 ```
 </details>
 
@@ -117,20 +117,20 @@ Both Node.js and Rust implementations support the following CLI options:
 
 ```bash
 # Basic usage
-vibekit-proxy start --port 8080
+ai-proxy start --port 8080
 
 # With custom config
-vibekit-proxy start --port 8080 --config=/path/to/vibekit.yaml
+ai-proxy start --port 8080 --config=/path/to/vibekit.yaml
 
 # With redaction API for input screening
-vibekit-proxy start --redaction-api-url=http://localhost:3000/redact
+ai-proxy start --redaction-api-url=http://localhost:3000/redact
 
 # Background mode (daemon)
-vibekit-proxy start --daemon
+ai-proxy start --daemon
 
 # Server management
-vibekit-proxy stop --port 8080
-vibekit-proxy status --port 8080
+ai-proxy stop --port 8080
+ai-proxy status --port 8080
 ```
 </details>
 
@@ -150,12 +150,12 @@ vibekit-proxy status --port 8080
 
 Install the package:
 ```bash
-npm install vibekit-proxy
+npm install ai-proxy
 ```
 
 Create a server programmatically:
 ```javascript
-import ProxyServer from 'vibekit-proxy';
+import ProxyServer from 'ai-proxy';
 
 const port = 8080;
 const configPath = './vibekit.yaml'; // optional, defaults to 'vibekit.yaml'
@@ -179,12 +179,12 @@ process.on('SIGINT', () => {
 Add to your `Cargo.toml`:
 ```toml
 [dependencies]
-vibekit-proxy = "0.0.1"
+ai-proxy = "0.0.1"
 ```
 
 Create a server programmatically:
 ```rust
-use vibekit_proxy::ProxyServer;
+use ai_proxy::ProxyServer;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -220,7 +220,7 @@ Health check: `GET /health`
 <details>
 <summary><strong>Overview</strong></summary>
 
-VibeKit Proxy supports optional pre-request redaction by calling an external redaction API to screen user messages before forwarding them to AI providers.
+Superagent Proxy supports optional pre-request redaction by calling an external redaction API to screen user messages before forwarding them to AI providers.
 </details>
 
 <details>
@@ -231,7 +231,7 @@ Configure the redaction API URL using either:
 **Command Line:**
 ```bash
 # Rust
-./target/release/vibekit-proxy start --redaction-api-url=http://localhost:3000/redact
+./target/release/ai-proxy start --redaction-api-url=http://localhost:3000/redact
 
 # Node.js (via environment variable)
 VIBEKIT_REDACTION_API_URL=http://localhost:3000/redact node src/index.js
@@ -240,22 +240,22 @@ VIBEKIT_REDACTION_API_URL=http://localhost:3000/redact node src/index.js
 **Environment Variable:**
 ```bash
 export VIBEKIT_REDACTION_API_URL=http://localhost:3000/redact
-vibekit-proxy start
+ai-proxy start
 ```
 </details>
 
 <details>
 <summary><strong>Built-in Redaction Server</strong></summary>
 
-VibeKit includes a built-in redaction server powered by a fine-tuned Gemma 3 270M model:
+Superagent includes a built-in redaction server powered by a fine-tuned Gemma 3 270M model:
 
 ```bash
 # Start the redaction server
 cd api/
 ./start.sh
 
-# Start VibeKit with redaction enabled
-./target/release/vibekit-proxy start --redaction-api-url=http://localhost:3000/redact
+# Start Superagent with redaction enabled
+./target/release/ai-proxy start --redaction-api-url=http://localhost:3000/redact
 ```
 
 The redaction server:

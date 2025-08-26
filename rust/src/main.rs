@@ -1,5 +1,5 @@
 use tracing_subscriber;
-use vibekit_proxy::{run_cli, Result};
+use ai_proxy::{run_cli, Result};
 
 #[tokio::main]
 async fn main() -> Result<()> {

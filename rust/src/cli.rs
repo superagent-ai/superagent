@@ -5,9 +5,9 @@ use tracing::error;
 use crate::{ProxyServer, Result};
 
 pub async fn run_cli() -> Result<()> {
-    let matches = Command::new("vibekit-proxy")
+    let matches = Command::new("ai-proxy")
         .version(env!("CARGO_PKG_VERSION"))
-        .about("VibeKit proxy server for secure API routing")
+        .about("AI proxy server for secure API routing")
         .arg(
             Arg::new("port")
                 .short('p')

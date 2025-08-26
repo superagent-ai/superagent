@@ -51,13 +51,13 @@ Health check endpoint.
 }
 ```
 
-## Integration with VibeKit Proxy
+## Integration with AI Proxy
 
-To use this redaction API with your VibeKit proxy:
+To use this redaction API with your AI proxy:
 
 ```bash
 # Rust version
-./target/release/vibekit-proxy start --redaction-api-url=http://localhost:3000/redact
+./target/release/ai-proxy start --redaction-api-url=http://localhost:3000/redact
 
 # Node.js version  
 VIBEKIT_REDACTION_API_URL=http://localhost:3000/redact node src/index.js
