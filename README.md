@@ -1,4 +1,4 @@
-# Superagent AI Firewall
+# Superagent
 
 Runtime protection for AI applications - blocks prompt injection, backdoor attacks, and sensitive data leaks in real time.
 
