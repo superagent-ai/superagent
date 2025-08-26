@@ -4,7 +4,7 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY ../node/package*.json ./
+COPY node/package*.json ./
 
 # Install dependencies
 RUN npm ci --only=production && npm cache clean --force
@@ -23,11 +23,11 @@ WORKDIR /app
 COPY --from=builder --chown=vibekit:nodejs /app/node_modules ./node_modules
 
 # Copy application code
-COPY --chown=vibekit:nodejs ../node/src ./src
-COPY --chown=vibekit:nodejs ../node/package.json ./
+COPY --chown=vibekit:nodejs node/src ./src
+COPY --chown=vibekit:nodejs node/package.json ./
 
 # Copy shared config
-COPY --chown=vibekit:nodejs ../vibekit.yaml ./
+COPY --chown=vibekit:nodejs vibekit.yaml ./
 
 # Switch to non-root user
 USER vibekit
