@@ -2,6 +2,21 @@
 node_modules/
 */node_modules/
 
+# Python virtual environments
+venv/
+.venv/
+*/venv/
+*/.venv/
+__pycache__/
+*/__pycache__/
+*.py[cod]
+*$py.class
+
+# AI models and caches
+models/
+*/models/
+*.gguf
+
 # Build outputs
 dist/
 build/

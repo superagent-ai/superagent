@@ -198,9 +198,28 @@ export VIBEKIT_REDACTION_API_URL=http://localhost:3000/redact
 vibekit-proxy start
 ```
 
-### Redaction API Interface
+### Built-in Redaction Server
 
-The redaction API should accept POST requests with this format:
+VibeKit includes a built-in redaction server powered by a fine-tuned Gemma 3 270M model:
+
+```bash
+# Start the redaction server
+cd server/
+./start.sh
+
+# Start VibeKit with redaction enabled
+./target/release/vibekit-proxy start --redaction-api-url=http://localhost:3000/redact
+```
+
+The redaction server:
+- Uses a fine-tuned Gemma 3 270M GGUF model for efficient inference
+- Automatically downloads the model on first run
+- Replaces sensitive data with `[REDACTED]`, prompt injections with `[INJECTION]`, and backdoors with `[BACKDOOR]`
+- Runs on port 3000 by default
+
+### Custom Redaction API Interface
+
+You can also implement your own redaction API that accepts POST requests with this format:
 
 **Request:**
 ```json
@@ -225,9 +244,19 @@ The redaction API should accept POST requests with this format:
 
 ## Features
 
-- Config-based routing
-- Request/response logging  
-- Output data redaction (sensitive information filtering)
-- Input redaction (optional pre-request screening via external API)
-- SSE streaming support
-- Health monitoring
+- **Config-based routing** - Route requests to different AI providers
+- **Request/response logging** - Monitor all AI interactions
+- **Output data redaction** - Filter sensitive information from AI responses  
+- **Input redaction** - Screen user messages with built-in AI redaction server
+- **SSE streaming support** - Real-time streaming responses
+- **Health monitoring** - Built-in health checks and status endpoints
+
+## Repository Structure
+
+```
+├── node/           # Node.js implementation
+├── rust/           # Rust implementation (high performance)
+├── server/         # Built-in redaction server (Python/FastAPI)
+├── docker/         # Docker configurations
+└── README.md       # This file
+```
