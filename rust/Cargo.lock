@@ -27,7 +27,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ai-proxy"
+name = "ai-firewall"
 version = "0.0.1"
 dependencies = [
  "anyhow",

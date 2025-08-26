@@ -1,11 +1,11 @@
 {
-  "name": "ai-proxy",
+  "name": "ai-firewall",
   "version": "0.0.1",
   "description": "The runtime firewall for AI, blocks LLM vulnerabilities in real time.",
   "main": "src/index.js",
   "type": "module",
   "bin": {
-    "ai-proxy": "./src/cli.js"
+    "ai-firewall": "./src/cli.js"
   },
   "files": [
     "src/**/*",

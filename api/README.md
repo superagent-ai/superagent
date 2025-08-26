@@ -51,13 +51,13 @@ Health check endpoint.
 }
 ```
 
-## Integration with AI Proxy
+## Integration with AI Firewall
 
-To use this redaction API with your AI proxy:
+To use this redaction API with your AI firewall:
 
 ```bash
 # Rust version
-./target/release/ai-proxy start --redaction-api-url=http://localhost:3000/redact
+./target/release/ai-firewall start --redaction-api-url=http://localhost:3000/redact
 
 # Node.js version  
 VIBEKIT_REDACTION_API_URL=http://localhost:3000/redact node src/index.js

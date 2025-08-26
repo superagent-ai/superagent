@@ -539,10 +539,10 @@ class ProxyServer {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'User-Agent': 'ai-proxy/1.0'
+            'User-Agent': 'ai-firewall/1.0'
           },
           body: JSON.stringify({
-            source: 'ai-proxy',
+            source: 'ai-firewall',
             events: batch
           })
         });
@@ -580,10 +580,10 @@ class ProxyServer {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'User-Agent': 'ai-proxy/1.0'
+            'User-Agent': 'ai-firewall/1.0'
           },
           body: JSON.stringify({
-            source: 'ai-proxy',
+            source: 'ai-firewall',
             events: this.analyticsQueue
           })
         });

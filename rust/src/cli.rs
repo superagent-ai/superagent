@@ -5,9 +5,9 @@ use tracing::error;
 use crate::{ProxyServer, Result};
 
 pub async fn run_cli() -> Result<()> {
-    let matches = Command::new("ai-proxy")
+    let matches = Command::new("ai-firewall")
         .version(env!("CARGO_PKG_VERSION"))
-        .about("AI proxy server for secure API routing")
+        .about("AI firewall server for secure API routing")
         .arg(
             Arg::new("port")
                 .short('p')

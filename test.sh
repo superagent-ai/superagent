@@ -15,7 +15,7 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}=== AI Proxy Implementation Tests ===${NC}"
+echo -e "${BLUE}=== AI Firewall Implementation Tests ===${NC}"
 echo -e "${YELLOW}Using config file: $(pwd)/vibekit.yaml${NC}"
 
 # Test configurations
@@ -45,7 +45,7 @@ start_rust_server() {
     cd rust
     source "$HOME/.cargo/env"
     cargo build --release > ../rust_build.log 2>&1
-    RUST_LOG=info PORT=$RUST_PORT ./target/release/ai-proxy start --port $RUST_PORT --config=../vibekit.yaml > ../rust_server.log 2>&1 &
+    RUST_LOG=info PORT=$RUST_PORT ./target/release/ai-firewall start --port $RUST_PORT --config=../vibekit.yaml > ../rust_server.log 2>&1 &
     RUST_PID=$!
     cd ..
     sleep 3

@@ -1,5 +1,5 @@
 [package]
-name = "ai-proxy"
+name = "ai-firewall"
 version = "0.0.1"
 description = "The runtime firewall for AI, blocks LLM vulnerabilities in real time."
 authors = ["VibeKit Team"]
@@ -8,7 +8,7 @@ edition = "2021"
 rust-version = "1.70"
 
 [[bin]]
-name = "ai-proxy"
+name = "ai-firewall"
 path = "src/main.rs"
 
 [dependencies]

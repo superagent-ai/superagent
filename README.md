@@ -9,8 +9,8 @@ The runtime firewall for AI, blocks LLM vulnerabilities in real time.
 
 Global installation:
 ```bash
-npm i -g ai-proxy
-ai-proxy start
+npm i -g ai-firewall
+ai-firewall start
 ```
 
 Or run locally:
@@ -29,21 +29,21 @@ npm start -- --config=/path/to/vibekit.yaml
 
 Global installation:
 ```bash
-cargo install ai-proxy
-ai-proxy start
+cargo install ai-firewall
+ai-firewall start
 ```
 
 Or build locally:
 ```bash
 cd rust/
 cargo build --release
-./target/release/ai-proxy start
+./target/release/ai-firewall start
 
 # With custom config file
-./target/release/ai-proxy start --config=/path/to/vibekit.yaml
+./target/release/ai-firewall start --config=/path/to/vibekit.yaml
 
 # With redaction API for input screening
-./target/release/ai-proxy start --redaction-api-url=http://localhost:3000/redact
+./target/release/ai-firewall start --redaction-api-url=http://localhost:3000/redact
 ```
 </details>
 
@@ -53,12 +53,12 @@ cargo build --release
 **Single Container:**
 ```bash
 # Node.js proxy
-docker build -f docker/Dockerfile.node -t ai-proxy .
-docker run -p 8080:8080 -v ./vibekit.yaml:/app/vibekit.yaml ai-proxy
+docker build -f docker/Dockerfile.node -t ai-firewall .
+docker run -p 8080:8080 -v ./vibekit.yaml:/app/vibekit.yaml ai-firewall
 
 # Redaction API
-docker build -f docker/Dockerfile.api -t ai-proxy-redaction-api .
-docker run -p 3000:3000 ai-proxy-redaction-api
+docker build -f docker/Dockerfile.api -t ai-firewall-redaction-api .
+docker run -p 3000:3000 ai-firewall-redaction-api
 ```
 
 **Full Stack with Docker Compose:**
@@ -68,7 +68,7 @@ docker-compose -f docker/docker-compose.yml up -d
 
 # Start specific services
 docker-compose -f docker/docker-compose.yml up -d redaction-api
-docker-compose -f docker/docker-compose.yml up -d ai-proxy-node
+docker-compose -f docker/docker-compose.yml up -d ai-firewall-node
 
 # View logs
 docker-compose -f docker/docker-compose.yml logs -f redaction-api
@@ -87,7 +87,7 @@ By default, both implementations look for `vibekit.yaml` in the current working 
 npm start -- --config=/etc/vibekit/vibekit.yaml
 
 # Rust
-./target/release/ai-proxy start --config=/etc/vibekit/vibekit.yaml
+./target/release/ai-firewall start --config=/etc/vibekit/vibekit.yaml
 ```
 </details>
 
@@ -117,20 +117,20 @@ Both Node.js and Rust implementations support the following CLI options:
 
 ```bash
 # Basic usage
-ai-proxy start --port 8080
+ai-firewall start --port 8080
 
 # With custom config
-ai-proxy start --port 8080 --config=/path/to/vibekit.yaml
+ai-firewall start --port 8080 --config=/path/to/vibekit.yaml
 
 # With redaction API for input screening
-ai-proxy start --redaction-api-url=http://localhost:3000/redact
+ai-firewall start --redaction-api-url=http://localhost:3000/redact
 
 # Background mode (daemon)
-ai-proxy start --daemon
+ai-firewall start --daemon
 
 # Server management
-ai-proxy stop --port 8080
-ai-proxy status --port 8080
+ai-firewall stop --port 8080
+ai-firewall status --port 8080
 ```
 </details>
 
@@ -150,12 +150,12 @@ ai-proxy status --port 8080
 
 Install the package:
 ```bash
-npm install ai-proxy
+npm install ai-firewall
 ```
 
 Create a server programmatically:
 ```javascript
-import ProxyServer from 'ai-proxy';
+import ProxyServer from 'ai-firewall';
 
 const port = 8080;
 const configPath = './vibekit.yaml'; // optional, defaults to 'vibekit.yaml'
@@ -179,12 +179,12 @@ process.on('SIGINT', () => {
 Add to your `Cargo.toml`:
 ```toml
 [dependencies]
-ai-proxy = "0.0.1"
+ai-firewall = "0.0.1"
 ```
 
 Create a server programmatically:
 ```rust
-use ai_proxy::ProxyServer;
+use ai_firewall::ProxyServer;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -231,7 +231,7 @@ Configure the redaction API URL using either:
 **Command Line:**
 ```bash
 # Rust
-./target/release/ai-proxy start --redaction-api-url=http://localhost:3000/redact
+./target/release/ai-firewall start --redaction-api-url=http://localhost:3000/redact
 
 # Node.js (via environment variable)
 VIBEKIT_REDACTION_API_URL=http://localhost:3000/redact node src/index.js
@@ -240,7 +240,7 @@ VIBEKIT_REDACTION_API_URL=http://localhost:3000/redact node src/index.js
 **Environment Variable:**
 ```bash
 export VIBEKIT_REDACTION_API_URL=http://localhost:3000/redact
-ai-proxy start
+ai-firewall start
 ```
 </details>
 
@@ -255,7 +255,7 @@ cd api/
 ./start.sh
 
 # Start Superagent with redaction enabled
-./target/release/ai-proxy start --redaction-api-url=http://localhost:3000/redact
+./target/release/ai-firewall start --redaction-api-url=http://localhost:3000/redact
 ```
 
 The redaction server:
