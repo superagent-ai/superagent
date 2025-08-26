@@ -338,6 +338,20 @@ impl ProxyServer {
                 .header("content-type", "application/json")
                 .body(Body::from(redacted_response))?);
 
+            // Log request body before processing
+            info!(
+                event_type = "request_body",
+                trace_id = %trace_id,
+                method = %parts.method,
+                url = %parts.uri,
+                model = model_name.as_deref().unwrap_or(""),
+                body_size_bytes = request_body.len(),
+                body = %request_body,
+                processed_body = %processed_request_body,
+                redaction_occurred = processed_request_body != request_body,
+                "Request body received"
+            );
+
             // Log the completed request
             let duration = start_time.elapsed();
             let input_redacted = processed_request_body != request_body;
@@ -367,6 +381,20 @@ impl ProxyServer {
 
         // For SSE responses, we'll log after the stream completes
         if is_sse {
+            // Log request body for SSE responses too
+            info!(
+                event_type = "request_body",
+                trace_id = %trace_id,
+                method = %parts.method,
+                url = %parts.uri,
+                model = model_name.as_deref().unwrap_or(""),
+                body_size_bytes = request_body.len(),
+                body = %request_body,
+                processed_body = %processed_request_body,
+                redaction_occurred = processed_request_body != request_body,
+                "Request body received (SSE)"
+            );
+
             let duration = start_time.elapsed();
             let input_redacted = processed_request_body != request_body;
             

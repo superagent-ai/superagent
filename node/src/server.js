@@ -283,6 +283,19 @@ class ProxyServer {
         // Ignore parsing errors
       }
 
+      // Log request body before structured logging
+      logger.info('Request body received', {
+        event_type: 'request_body',
+        trace_id: traceId,
+        method: req.method,
+        url: req.url,
+        model: extractedModel,
+        body_size_bytes: Buffer.byteLength(requestBody || '', 'utf8'),
+        body: requestBody || null,
+        processed_body: processedRequestBody || null,
+        redaction_occurred: inputRedacted
+      });
+
       // Log structured request data
       logger.logRequest({
         trace_id: traceId,
