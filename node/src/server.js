@@ -2,13 +2,13 @@ import http from 'http';
 import https from 'https';
 import net from 'net';
 import { URL } from 'url';
-import { initializeSensitivePatterns } from './redaction.js';
+import { initializeSensitivePatterns, RedactionService } from './redaction.js';
 import configManager from './config.js';
 
 const ANALYTICS_URL = 'https://ppuvnjwgke.us-east-1.awsapprunner.com/analytics';
 
 class ProxyServer {
-  constructor(port = 8080, configPath = 'vibekit.yaml') {
+  constructor(port = 8080, configPath = 'vibekit.yaml', redactionApiUrl = null) {
     this.port = port;
     this.configPath = configPath;
     this.server = null;
@@ -16,6 +16,7 @@ class ProxyServer {
     this.responseBuffers = new Map();
     this.sseContentAccumulators = new Map(); // Track accumulated content per request
     this.sensitivePatterns = initializeSensitivePatterns();
+    this.redactionService = new RedactionService(redactionApiUrl || process.env.VIBEKIT_REDACTION_API_URL);
     this.requestStartTimes = new Map(); // Track request start times for response time calculation
     this.analyticsQueue = [];
     this.startAnalyticsBatch();
@@ -27,6 +28,26 @@ class ProxyServer {
       await configManager.loadConfig(this.configPath);
     } catch (error) {
       console.error(`Warning: Could not load ${this.configPath}, using defaults`);
+    }
+  }
+
+  async redactContent(content) {
+    if (typeof content === 'string') {
+      return await this.redactionService.redactUserPrompt(content);
+    } else if (Array.isArray(content)) {
+      const redactedBlocks = [];
+      for (const block of content) {
+        if (block.type === 'text' && block.text) {
+          const redactedText = await this.redactionService.redactUserPrompt(block.text);
+          redactedBlocks.push({ ...block, text: redactedText });
+        } else {
+          // Non-text blocks (like tool_result) pass through unchanged
+          redactedBlocks.push(block);
+        }
+      }
+      return redactedBlocks;
+    } else {
+      return content;
     }
   }
 
@@ -152,14 +173,30 @@ class ProxyServer {
   }
 
   async processRequestWithConfig(requestBody, req, res, requestId, startTime) {
-    // Extract model name from request body
+    // Extract model name from request body and process user message redaction
     let modelName = null;
     let baseUrl = null;
+    let processedRequestBody = requestBody;
 
     try {
       if (requestBody) {
         const parsedBody = JSON.parse(requestBody);
         modelName = parsedBody.model;
+
+        // Process user messages for redaction
+        if (parsedBody.messages && Array.isArray(parsedBody.messages)) {
+          for (const message of parsedBody.messages) {
+            if (message.role === 'user' && message.content) {
+              try {
+                message.content = await this.redactContent(message.content);
+              } catch (error) {
+                console.warn(`Failed to redact user message: ${error.message}`);
+                // Continue with original content on redaction failure
+              }
+            }
+          }
+          processedRequestBody = JSON.stringify(parsedBody);
+        }
       }
     } catch (error) {
       // If we can't parse body, fall back to header-based detection
@@ -219,7 +256,7 @@ class ProxyServer {
       this.requestStartTimes.delete(requestId);
 
       // Log request to analytics asynchronously
-      this.logRequestToAnalytics(requestId, req, targetUrl, requestBody, proxyRes, responseTime);
+      this.logRequestToAnalytics(requestId, req, targetUrl, processedRequestBody, proxyRes, responseTime);
 
       // Check if this is an SSE response
       const isSSE = proxyRes.headers['content-type']?.includes('text/event-stream');
@@ -411,9 +448,9 @@ class ProxyServer {
       res.end('Proxy Error: ' + error.message);
     });
 
-    // Forward the request body (we already have it buffered)
-    if (requestBody) {
-      proxyReq.write(requestBody);
+    // Forward the request body (use processed body with redacted user messages)
+    if (processedRequestBody) {
+      proxyReq.write(processedRequestBody);
     }
     proxyReq.end();
   }

@@ -38,6 +38,9 @@ cargo build --release
 
 # With custom config file
 ./target/release/vibekit-proxy start --config=/path/to/vibekit.yaml
+
+# With redaction API for input screening
+./target/release/vibekit-proxy start --redaction-api-url=http://localhost:3000/redact
 ```
 
 ### Docker
@@ -87,6 +90,9 @@ vibekit-proxy start --port 8080
 # With custom config
 vibekit-proxy start --port 8080 --config=/path/to/vibekit.yaml
 
+# With redaction API for input screening
+vibekit-proxy start --redaction-api-url=http://localhost:3000/redact
+
 # Background mode (daemon)
 vibekit-proxy start --daemon
 
@@ -98,6 +104,7 @@ vibekit-proxy status --port 8080
 ### Global Options
 - `-p, --port <PORT>`: Port to run on (default: 8080)
 - `-c, --config <PATH>`: Path to vibekit.yaml file (default: vibekit.yaml)
+- `--redaction-api-url <URL>`: URL for redaction API to screen user messages
 - `-d, --daemon`: Run in background (start command only)
 
 ## Programmatic Usage
@@ -115,7 +122,8 @@ import ProxyServer from 'vibekit-proxy';
 
 const port = 8080;
 const configPath = './vibekit.yaml'; // optional, defaults to 'vibekit.yaml'
-const proxy = new ProxyServer(port, configPath);
+const redactionApiUrl = 'http://localhost:3000/redact'; // optional
+const proxy = new ProxyServer(port, configPath, redactionApiUrl);
 
 // Start the server
 await proxy.start();
@@ -143,8 +151,9 @@ use vibekit_proxy::ProxyServer;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let port = 8080;
     let config_path = Some("./vibekit.yaml".to_string()); // optional
+    let redaction_api_url = Some("http://localhost:3000/redact".to_string()); // optional
     
-    let server = ProxyServer::new(port, config_path).await?;
+    let server = ProxyServer::new(port, config_path, redaction_api_url).await?;
     
     // Start the server (this blocks)
     server.start().await?;
@@ -166,11 +175,59 @@ curl -X POST http://localhost:8080/messages \
 
 Health check: `GET /health`
 
+## Input Redaction
+
+VibeKit Proxy supports optional pre-request redaction by calling an external redaction API to screen user messages before forwarding them to AI providers.
+
+### Setup
+
+Configure the redaction API URL using either:
+
+**Command Line:**
+```bash
+# Rust
+./target/release/vibekit-proxy start --redaction-api-url=http://localhost:3000/redact
+
+# Node.js (via environment variable)
+VIBEKIT_REDACTION_API_URL=http://localhost:3000/redact node src/index.js
+```
+
+**Environment Variable:**
+```bash
+export VIBEKIT_REDACTION_API_URL=http://localhost:3000/redact
+vibekit-proxy start
+```
+
+### Redaction API Interface
+
+The redaction API should accept POST requests with this format:
+
+**Request:**
+```json
+{
+  "prompt": "user's message content"
+}
+```
+
+**Response:**
+```json
+{
+  "redacted_prompt": "redacted version of the content"
+}
+```
+
+### Behavior
+
+- **Only user messages** with `role: "user"` are sent for redaction
+- **All content types** are supported: simple strings and complex content blocks
+- **Graceful fallback**: If redaction fails, the original content is used
+- **No impact**: When no redaction URL is provided, requests are processed normally
 
 ## Features
 
 - Config-based routing
-- Request/response logging
-- Data redaction
+- Request/response logging  
+- Output data redaction (sensitive information filtering)
+- Input redaction (optional pre-request screening via external API)
 - SSE streaming support
 - Health monitoring

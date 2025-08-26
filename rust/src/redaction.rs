@@ -1,7 +1,24 @@
 use regex::Regex;
+use serde::{Deserialize, Serialize};
+use crate::{Error, Result};
+
+#[derive(Debug, Serialize)]
+struct RedactionRequest {
+    prompt: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct RedactionResponse {
+    redacted_prompt: String,
+}
 
 pub struct RedactionEngine {
     patterns: Vec<Regex>,
+}
+
+pub struct RedactionService {
+    api_url: Option<String>,
+    client: reqwest::Client,
 }
 
 impl RedactionEngine {
@@ -140,4 +157,53 @@ fn initialize_sensitive_patterns() -> Vec<Regex> {
     patterns.into_iter()
         .filter_map(|pattern| Regex::new(pattern).ok())
         .collect()
+}
+
+impl RedactionService {
+    pub fn new(api_url: Option<String>) -> Self {
+        Self {
+            api_url,
+            client: reqwest::Client::new(),
+        }
+    }
+
+    pub async fn redact_user_prompt(&self, prompt: &str) -> Result<String> {
+        if let Some(url) = &self.api_url {
+            let request = RedactionRequest {
+                prompt: prompt.to_string(),
+            };
+
+            let response = self
+                .client
+                .post(url)
+                .json(&request)
+                .timeout(std::time::Duration::from_secs(30))
+                .send()
+                .await
+                .map_err(|e| Error::Server(format!("Redaction API request failed: {}", e)))?;
+
+            if !response.status().is_success() {
+                return Err(Error::Server(format!(
+                    "Redaction API returned error status: {}",
+                    response.status()
+                )));
+            }
+
+            let redaction_response: RedactionResponse = response
+                .json()
+                .await
+                .map_err(|e| Error::Server(format!("Failed to parse redaction response: {}", e)))?;
+
+            Ok(redaction_response.redacted_prompt)
+        } else {
+            // No redaction URL provided, return original prompt
+            Ok(prompt.to_string())
+        }
+    }
+}
+
+impl Clone for RedactionService {
+    fn clone(&self) -> Self {
+        Self::new(self.api_url.clone())
+    }
 }

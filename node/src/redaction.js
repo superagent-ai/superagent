@@ -1,3 +1,38 @@
+class RedactionService {
+  constructor(apiUrl) {
+    this.apiUrl = apiUrl;
+  }
+
+  async redactUserPrompt(prompt) {
+    if (this.apiUrl) {
+      try {
+        const response = await fetch(this.apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ prompt }),
+          timeout: 30000,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Redaction API returned error status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.redacted_prompt;
+      } catch (error) {
+        throw new Error(`Redaction API request failed: ${error.message}`);
+      }
+    } else {
+      // No redaction URL provided, return original prompt
+      return prompt;
+    }
+  }
+}
+
+export { RedactionService };
+
 export function initializeSensitivePatterns() {
   return [
     // ==== OPENAI & AI PROVIDERS - Keep specific API key patterns ====
