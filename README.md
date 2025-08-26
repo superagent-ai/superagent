@@ -50,9 +50,28 @@ cargo build --release
 <details>
 <summary><strong>Docker</strong></summary>
 
+**Single Container:**
 ```bash
+# Node.js proxy
 docker build -f docker/Dockerfile.node -t vibekit-proxy .
 docker run -p 8080:8080 -v ./vibekit.yaml:/app/vibekit.yaml vibekit-proxy
+
+# Redaction API
+docker build -f docker/Dockerfile.api -t vibekit-redaction-api .
+docker run -p 3000:3000 vibekit-redaction-api
+```
+
+**Full Stack with Docker Compose:**
+```bash
+# Start all services (proxy + redaction API)
+docker-compose -f docker/docker-compose.yml up -d
+
+# Start specific services
+docker-compose -f docker/docker-compose.yml up -d redaction-api
+docker-compose -f docker/docker-compose.yml up -d vibekit-proxy-node
+
+# View logs
+docker-compose -f docker/docker-compose.yml logs -f redaction-api
 ```
 </details>
 

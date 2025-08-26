@@ -40,6 +40,30 @@ services:
     networks:
       - vibekit-network
 
+  redaction-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    ports:
+      - "3000:3000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HF_HOME=/app/models
+    volumes:
+      - api-models:/app/models
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - vibekit-network
+
+volumes:
+  api-models:
+
 networks:
   vibekit-network:
     driver: bridge
