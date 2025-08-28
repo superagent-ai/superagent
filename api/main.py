@@ -27,7 +27,7 @@ async def load_model():
     
     try:
         # Download the GGUF model file
-        model_repo = "superagent-ai/redact-lm-gemma-3-270M-gguf"
+        model_repo = "superagent-ai/ninja-lm-270m-gguf"
         model_filename = "gemma-3-finetune.Q8_0.gguf"
         
         logger.info("Downloading GGUF model...")
