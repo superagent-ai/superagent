@@ -2,6 +2,7 @@ import http from 'http';
 import https from 'https';
 import net from 'net';
 import { URL } from 'url';
+import { createClient } from 'redis';
 import { initializeSensitivePatterns, RedactionService } from './redaction.js';
 import configManager from './config.js';
 import logger from './logger.js';
@@ -20,8 +21,10 @@ class ProxyServer {
     this.redactionService = new RedactionService(redactionApiUrl || process.env.VIBEKIT_REDACTION_API_URL);
     this.requestStartTimes = new Map(); // Track request start times for response time calculation
     this.analyticsQueue = [];
+    this.redisClient = null;
     this.startAnalyticsBatch();
     this.initializeConfig();
+    this.initializeRedis();
   }
 
   async initializeConfig() {
@@ -48,8 +51,50 @@ class ProxyServer {
     }
   }
 
+  async initializeRedis() {
+    const isMultitenant = process.env.MULTITENANT === 'true';
+    
+    if (isMultitenant) {
+      try {
+        const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+        this.redisClient = createClient({ url: redisUrl });
+        
+        this.redisClient.on('error', (err) => {
+          console.error('[REDIS] Connection error:', err);
+        });
+        
+        this.redisClient.on('connect', () => {
+          console.log('[REDIS] Connected successfully');
+        });
+        
+        await this.redisClient.connect();
+        console.log('[REDIS] Client initialized and connected');
+      } catch (error) {
+        console.error('[REDIS] Failed to initialize Redis client:', error);
+        this.redisClient = null; // Fallback to no caching
+      }
+    }
+  }
+
   async getConfigForMultitenant(configId) {
     console.log(`[MULTITENANT] Config ID: ${configId}`);
+    
+    const cacheKey = `config:${configId}`;
+    const cacheTTL = parseInt(process.env.CONFIG_CACHE_TTL) || 3600; // Default 1 hour
+    
+    // Try Redis cache first
+    if (this.redisClient) {
+      try {
+        const cachedConfig = await this.redisClient.get(cacheKey);
+        if (cachedConfig) {
+          console.log(`[MULTITENANT] Cache HIT for config ID: ${configId}`);
+          return JSON.parse(cachedConfig);
+        }
+        console.log(`[MULTITENANT] Cache MISS for config ID: ${configId}`);
+      } catch (error) {
+        console.error(`[REDIS] Cache lookup failed:`, error);
+      }
+    }
     
     const configApiUrl = process.env.MULTITENANT_CONFIG_API_URL;
     
@@ -80,13 +125,24 @@ class ProxyServer {
       
       // Use the first configuration as default
       const config = configs[0];
-      
-      return {
+      const processedConfig = {
         provider: config.provider || 'openai',
         apiBase: config.api_base || config.apiBase || 'https://api.openai.com/',
         modelName: config.model_name || config.modelName || 'gpt-3.5-turbo',
         allConfigs: configs // Store all configs for potential future use
       };
+      
+      // Cache the config in Redis
+      if (this.redisClient) {
+        try {
+          await this.redisClient.setEx(cacheKey, cacheTTL, JSON.stringify(processedConfig));
+          console.log(`[MULTITENANT] Config cached for ${cacheTTL} seconds`);
+        } catch (error) {
+          console.error(`[REDIS] Failed to cache config:`, error);
+        }
+      }
+      
+      return processedConfig;
       
     } catch (error) {
       console.error(`[MULTITENANT] Failed to fetch config for ${configId}:`, error.message);
@@ -715,6 +771,16 @@ class ProxyServer {
     // Clean up SSE content accumulators
     if (this.sseContentAccumulators) {
       this.sseContentAccumulators.clear();
+    }
+    
+    // Close Redis connection
+    if (this.redisClient) {
+      try {
+        await this.redisClient.disconnect();
+        console.log('[REDIS] Connection closed');
+      } catch (error) {
+        console.error('[REDIS] Error closing connection:', error);
+      }
     }
 
     // Final flush of analytics queue

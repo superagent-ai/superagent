@@ -11,6 +11,7 @@ use serde_json::Value;
 use tokio::sync::{Mutex, RwLock};
 use tracing::{info, warn};
 use uuid::Uuid;
+use redis::AsyncCommands;
 
 use crate::config::ConfigManager;
 use crate::redaction::{RedactionEngine, RedactionService};
@@ -29,6 +30,7 @@ pub struct ProxyServer {
     config_manager: Arc<RwLock<ConfigManager>>,
     client: Client<HttpsConnector<hyper::client::HttpConnector>>,
     sse_content_accumulators: Arc<RwLock<HashMap<u64, SseAccumulator>>>,
+    redis_client: Option<redis::Client>,
 }
 
 impl ProxyServer {
@@ -46,6 +48,23 @@ impl ProxyServer {
             );
         }
 
+        // Initialize Redis client if in multitenant mode
+        let redis_client = if std::env::var("MULTITENANT").unwrap_or_default() == "true" {
+            let redis_url = std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".to_string());
+            match redis::Client::open(redis_url.as_str()) {
+                Ok(client) => {
+                    println!("[REDIS] Client initialized successfully");
+                    Some(client)
+                },
+                Err(e) => {
+                    eprintln!("[REDIS] Failed to initialize Redis client: {}", e);
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
         Ok(Self {
             port,
             request_count: Arc::new(Mutex::new(0)),
@@ -54,6 +73,7 @@ impl ProxyServer {
             config_manager: Arc::new(RwLock::new(config_manager)),
             client,
             sse_content_accumulators: Arc::new(RwLock::new(HashMap::new())),
+            redis_client,
         })
     }
 
@@ -114,6 +134,31 @@ impl ProxyServer {
     async fn get_config_for_multitenant(&self, config_id: &str) -> Result<crate::config::ResolvedModelConfig> {
         println!("[MULTITENANT] Config ID: {}", config_id);
         
+        let cache_key = format!("config:{}", config_id);
+        let cache_ttl: u64 = std::env::var("CONFIG_CACHE_TTL")
+            .unwrap_or_else(|_| "3600".to_string())
+            .parse()
+            .unwrap_or(3600);
+        
+        // Try Redis cache first
+        if let Some(redis_client) = &self.redis_client {
+            if let Ok(mut conn) = redis_client.get_async_connection().await {
+                match conn.get::<_, String>(&cache_key).await {
+                    Ok(cached_config) => {
+                        println!("[MULTITENANT] Cache HIT for config ID: {}", config_id);
+                        if let Ok(config) = serde_json::from_str::<crate::config::ResolvedModelConfig>(&cached_config) {
+                            return Ok(config);
+                        }
+                    },
+                    Err(_) => {
+                        println!("[MULTITENANT] Cache MISS for config ID: {}", config_id);
+                    }
+                }
+            } else {
+                eprintln!("[REDIS] Failed to get connection");
+            }
+        }
+        
         let config_api_url = std::env::var("MULTITENANT_CONFIG_API_URL")
             .map_err(|_| Error::Server("MULTITENANT_CONFIG_API_URL environment variable is required when MULTITENANT=true".to_string()))?;
         
@@ -138,11 +183,25 @@ impl ProxyServer {
                         
                         if let Some(configs_array) = configs.as_array() {
                             if let Some(first_config) = configs_array.first() {
-                                return Ok(crate::config::ResolvedModelConfig {
+                                let processed_config = crate::config::ResolvedModelConfig {
                                     provider: first_config.get("provider").and_then(|v| v.as_str()).unwrap_or("openai").to_string(),
                                     api_base: first_config.get("api_base").and_then(|v| v.as_str()).unwrap_or("https://api.openai.com/").to_string(),
                                     model_name: first_config.get("model_name").and_then(|v| v.as_str()).unwrap_or("gpt-3.5-turbo").to_string(),
-                                });
+                                };
+                                
+                                // Cache the config in Redis
+                                if let Some(redis_client) = &self.redis_client {
+                                    if let Ok(mut conn) = redis_client.get_async_connection().await {
+                                        if let Ok(config_json) = serde_json::to_string(&processed_config) {
+                                            match conn.set_ex::<_, _, ()>(&cache_key, &config_json, cache_ttl as usize).await {
+                                                Ok(_) => println!("[MULTITENANT] Config cached for {} seconds", cache_ttl),
+                                                Err(e) => eprintln!("[REDIS] Failed to cache config: {}", e),
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                return Ok(processed_config);
                             }
                         }
                         
@@ -779,6 +838,7 @@ impl Clone for ProxyServer {
             config_manager: Arc::clone(&self.config_manager),
             client,
             sse_content_accumulators: Arc::clone(&self.sse_content_accumulators),
+            redis_client: self.redis_client.clone(),
         }
     }
 }
