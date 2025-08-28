@@ -24,6 +24,13 @@ pub async fn run_cli() -> Result<()> {
                 .help("Path to vibekit.yaml file")
                 .default_value("vibekit.yaml"),
         )
+        .arg(
+            Arg::new("redaction_api_url")
+                .long("redaction-api-url")
+                .value_name("URL")
+                .help("URL for redaction API to screen user messages")
+                .required(false),
+        )
         .subcommand(
             Command::new("start")
                 .about("Start the proxy server")

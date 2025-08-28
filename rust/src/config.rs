@@ -22,7 +22,7 @@ pub struct Config {
     pub default: Option<DefaultConfig>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResolvedModelConfig {
     pub provider: String,
     pub api_base: String,

@@ -2,6 +2,7 @@ import http from 'http';
 import https from 'https';
 import net from 'net';
 import { URL } from 'url';
+import { createClient } from 'redis';
 import { initializeSensitivePatterns, RedactionService } from './redaction.js';
 import configManager from './config.js';
 import logger from './logger.js';
@@ -20,11 +21,25 @@ class ProxyServer {
     this.redactionService = new RedactionService(redactionApiUrl || process.env.VIBEKIT_REDACTION_API_URL);
     this.requestStartTimes = new Map(); // Track request start times for response time calculation
     this.analyticsQueue = [];
+    this.redisClient = null;
     this.startAnalyticsBatch();
     this.initializeConfig();
+    this.initializeRedis();
   }
 
   async initializeConfig() {
+    const isMultitenant = process.env.MULTITENANT === 'true';
+    
+    if (isMultitenant) {
+      // In multitenant mode, we don't load a local config file
+      // Configuration will be fetched per request from the API
+      logger.info('Multitenant mode enabled - skipping local config file loading', {
+        event_type: 'config_multitenant_mode',
+        multitenant: true
+      });
+      return;
+    }
+    
     try {
       await configManager.loadConfig(this.configPath);
     } catch (error) {
@@ -33,6 +48,189 @@ class ProxyServer {
         config_path: this.configPath,
         error: error.message
       });
+    }
+  }
+
+  async initializeRedis() {
+    const isMultitenant = process.env.MULTITENANT === 'true';
+    
+    if (isMultitenant) {
+      try {
+        const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+        this.redisClient = createClient({ url: redisUrl });
+        
+        this.redisClient.on('error', (err) => {
+          console.error('[REDIS] Connection error:', err);
+        });
+        
+        this.redisClient.on('connect', () => {
+          console.log('[REDIS] Connected successfully');
+        });
+        
+        await this.redisClient.connect();
+        console.log('[REDIS] Client initialized and connected');
+      } catch (error) {
+        console.error('[REDIS] Failed to initialize Redis client:', error);
+        this.redisClient = null; // Fallback to no caching
+      }
+    }
+  }
+
+  async getConfigForMultitenant(configId, modelName = null) {
+    console.log(`[MULTITENANT] Config ID: ${configId}, Model: ${modelName}`);
+    
+    const cacheKey = `config:${configId}`;
+    const cacheTTL = parseInt(process.env.CONFIG_CACHE_TTL) || 3600; // Default 1 hour
+    
+    let allConfigs = null;
+    
+    // Try Redis cache first
+    if (this.redisClient) {
+      try {
+        const cachedData = await this.redisClient.get(cacheKey);
+        if (cachedData) {
+          console.log(`[MULTITENANT] Cache HIT for config ID: ${configId}`);
+          allConfigs = JSON.parse(cachedData);
+        } else {
+          console.log(`[MULTITENANT] Cache MISS for config ID: ${configId}`);
+        }
+      } catch (error) {
+        console.error(`[REDIS] Cache lookup failed:`, error);
+      }
+    }
+    
+    // Fetch from API if not in cache
+    if (!allConfigs) {
+      const configApiUrl = process.env.MULTITENANT_CONFIG_API_URL;
+      
+      if (!configApiUrl) {
+        throw new Error('MULTITENANT_CONFIG_API_URL environment variable is required when MULTITENANT=true');
+      }
+      
+      try {
+        const fullUrl = `${configApiUrl}${configId}`;
+        console.log(`[MULTITENANT] Fetching config from: ${fullUrl}`);
+        
+        const response = await fetch(fullUrl, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Config API returned ${response.status}: ${response.statusText}`);
+        }
+        
+        allConfigs = await response.json();
+        console.log(`[MULTITENANT] Received configs:`, JSON.stringify(allConfigs, null, 2));
+        
+        if (!Array.isArray(allConfigs) || allConfigs.length === 0) {
+          throw new Error('Config API returned empty or invalid configuration array');
+        }
+        
+        // Cache the configuration in Redis
+        if (this.redisClient) {
+          try {
+            await this.redisClient.setEx(cacheKey, cacheTTL, JSON.stringify(allConfigs));
+            console.log(`[MULTITENANT] Cached config for ${configId} with TTL ${cacheTTL} seconds`);
+          } catch (error) {
+            console.error(`[REDIS] Failed to cache config:`, error);
+          }
+        }
+        
+      } catch (error) {
+        console.error(`[MULTITENANT] Failed to fetch config for ${configId}:`, error.message);
+        
+        // Fallback to default configuration
+        return {
+          provider: 'openai',
+          apiBase: 'https://api.openai.com/',
+          modelName: modelName || 'gpt-3.5-turbo'
+        };
+      }
+    }
+    
+    // Find model-specific configuration
+    if (modelName && allConfigs) {
+      const modelConfig = allConfigs.find(config => config.model_name === modelName);
+      if (modelConfig) {
+        console.log(`[MULTITENANT] Found specific config for model: ${modelName}`);
+        return {
+          provider: modelConfig.provider || 'openai',
+          apiBase: modelConfig.api_base || 'https://api.openai.com/',
+          modelName: modelConfig.model_name || modelName
+        };
+      }
+    }
+    
+    // Throw error if model not found and no model specified
+    if (!modelName) {
+      throw new Error('Model must be specified in request body for multitenant configuration');
+    }
+    
+    throw new Error(`Model '${modelName}' not found in configuration for config_id: ${configId}`);
+  }
+
+  async handleConfigCacheUpdate(req, res, configId) {
+    try {
+      // Capture request body
+      let requestBody = '';
+      req.on('data', (chunk) => {
+        requestBody += chunk.toString();
+      });
+
+      req.on('end', async () => {
+        try {
+          if (!configId) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Config ID is required' }));
+            return;
+          }
+
+          if (!requestBody) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Request body with config array is required' }));
+            return;
+          }
+
+          const newConfig = JSON.parse(requestBody);
+          
+          // Validate that it's an array
+          if (!Array.isArray(newConfig)) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Config must be an array' }));
+            return;
+          }
+
+          const cacheKey = `config:${configId}`;
+          const cacheTTL = parseInt(process.env.CONFIG_CACHE_TTL) || 3600;
+
+          // Update cache in Redis
+          if (this.redisClient) {
+            await this.redisClient.setEx(cacheKey, cacheTTL, JSON.stringify(newConfig));
+            console.log(`[CONFIG-CACHE] Updated cache for ${configId} with TTL ${cacheTTL} seconds`);
+            
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ 
+              success: true, 
+              message: `Config cache updated for ${configId}`,
+              models: newConfig.length
+            }));
+          } else {
+            res.writeHead(503, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Redis client not available' }));
+          }
+        } catch (error) {
+          console.error(`[CONFIG-CACHE] Error updating cache for ${configId}:`, error);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Internal server error', details: error.message }));
+        }
+      });
+
+    } catch (error) {
+      console.error(`[CONFIG-CACHE] Error handling cache update for ${configId}:`, error);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal server error', details: error.message }));
     }
   }
 
@@ -154,6 +352,13 @@ class ProxyServer {
       return;
     }
 
+    // Config cache update endpoint
+    if (req.url.startsWith('/config/') && req.method === 'POST') {
+      const configId = req.url.split('/config/')[1];
+      await this.handleConfigCacheUpdate(req, res, configId);
+      return;
+    }
+
     this.requestCount++;
     const requestId = this.requestCount;
     const startTime = Date.now();
@@ -207,29 +412,61 @@ class ProxyServer {
 
     // Parse the target URL - handle relative URLs by prepending API base
     let targetUrl;
+    let configId = null;
+    let actualPath = req.url;
+    
+    // Check for multitenant mode
+    const isMultitenant = process.env.MULTITENANT === 'true';
+    
     try {
       if (req.url.startsWith('/')) {
-        // Use model from config - always require model to be specified
-        if (!modelName) {
-          res.writeHead(400, { 'Content-Type': 'text/plain' });
-          res.end('Bad Request: Model must be specified in request body');
-          return;
+        // Handle multitenant URL pattern: /{config_id}/path
+        if (isMultitenant) {
+          const pathSegments = req.url.split('/').filter(segment => segment !== '');
+          if (pathSegments.length > 0) {
+            configId = pathSegments[0];
+            actualPath = '/' + pathSegments.slice(1).join('/');
+            
+            logger.debug(`Multitenant routing detected`, {
+              event_type: 'multitenant_routing',
+              config_id: configId,
+              original_url: req.url,
+              rewritten_path: actualPath
+            });
+          }
         }
         
-        const modelConfig = configManager.getModelConfig(modelName);
+        let modelConfig;
+        
+        // Use multitenant config if config_id is present, otherwise use traditional model-based config
+        if (configId) {
+          modelConfig = await this.getConfigForMultitenant(configId, modelName);
+        } else {
+          // Use model from config - always require model to be specified
+          if (!modelName) {
+            res.writeHead(400, { 'Content-Type': 'text/plain' });
+            res.end('Bad Request: Model must be specified in request body');
+            return;
+          }
+          
+          modelConfig = configManager.getModelConfig(modelName);
+        }
+        
         baseUrl = modelConfig.apiBase.endsWith('/') ? modelConfig.apiBase.slice(0, -1) : modelConfig.apiBase;
         logger.debug(`Using config-based routing`, {
           event_type: 'model_routing',
           model: modelName,
-          api_base: baseUrl
+          api_base: baseUrl,
+          config_id: configId
         });
         
-        // Properly construct the full URL
-        const fullUrl = baseUrl + req.url;
+        // Properly construct the full URL using the rewritten path
+        const fullUrl = baseUrl + actualPath;
         targetUrl = new URL(fullUrl);
         logger.debug(`Target URL constructed`, {
           event_type: 'url_construction',
-          target_url: targetUrl.href
+          target_url: targetUrl.href,
+          config_id: configId
         });
       } else {
         // Absolute URL
@@ -632,6 +869,16 @@ class ProxyServer {
     // Clean up SSE content accumulators
     if (this.sseContentAccumulators) {
       this.sseContentAccumulators.clear();
+    }
+    
+    // Close Redis connection
+    if (this.redisClient) {
+      try {
+        await this.redisClient.disconnect();
+        console.log('[REDIS] Connection closed');
+      } catch (error) {
+        console.error('[REDIS] Error closing connection:', error);
+      }
     }
 
     // Final flush of analytics queue

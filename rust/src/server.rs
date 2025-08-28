@@ -11,6 +11,7 @@ use serde_json::Value;
 use tokio::sync::{Mutex, RwLock};
 use tracing::{info, warn};
 use uuid::Uuid;
+use redis::AsyncCommands;
 
 use crate::config::ConfigManager;
 use crate::redaction::{RedactionEngine, RedactionService};
@@ -29,6 +30,7 @@ pub struct ProxyServer {
     config_manager: Arc<RwLock<ConfigManager>>,
     client: Client<HttpsConnector<hyper::client::HttpConnector>>,
     sse_content_accumulators: Arc<RwLock<HashMap<u64, SseAccumulator>>>,
+    redis_client: Option<redis::Client>,
 }
 
 impl ProxyServer {
@@ -46,6 +48,23 @@ impl ProxyServer {
             );
         }
 
+        // Initialize Redis client if in multitenant mode
+        let redis_client = if std::env::var("MULTITENANT").unwrap_or_default() == "true" {
+            let redis_url = std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".to_string());
+            match redis::Client::open(redis_url.as_str()) {
+                Ok(client) => {
+                    println!("[REDIS] Client initialized successfully");
+                    Some(client)
+                },
+                Err(e) => {
+                    eprintln!("[REDIS] Failed to initialize Redis client: {}", e);
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
         Ok(Self {
             port,
             request_count: Arc::new(Mutex::new(0)),
@@ -54,6 +73,7 @@ impl ProxyServer {
             config_manager: Arc::new(RwLock::new(config_manager)),
             client,
             sse_content_accumulators: Arc::new(RwLock::new(HashMap::new())),
+            redis_client,
         })
     }
 
@@ -109,6 +129,186 @@ impl ProxyServer {
                 .body(Body::from(format!("Internal Server Error: {}", e)))
                 .unwrap()
         }))
+    }
+
+    async fn get_config_for_multitenant(&self, config_id: &str, model_name: Option<&str>) -> Result<crate::config::ResolvedModelConfig> {
+        println!("[MULTITENANT] Config ID: {}, Model: {:?}", config_id, model_name);
+        
+        let cache_key = format!("config:{}", config_id);
+        let cache_ttl: u64 = std::env::var("CONFIG_CACHE_TTL")
+            .unwrap_or_else(|_| "3600".to_string())
+            .parse()
+            .unwrap_or(3600);
+        
+        let mut all_configs: Option<Vec<serde_json::Value>> = None;
+        
+        // Try Redis cache first
+        if let Some(redis_client) = &self.redis_client {
+            if let Ok(mut conn) = redis_client.get_async_connection().await {
+                match conn.get::<_, String>(&cache_key).await {
+                    Ok(cached_data) => {
+                        println!("[MULTITENANT] Cache HIT for config ID: {}", config_id);
+                        if let Ok(configs) = serde_json::from_str::<Vec<serde_json::Value>>(&cached_data) {
+                            all_configs = Some(configs);
+                        }
+                    },
+                    Err(_) => {
+                        println!("[MULTITENANT] Cache MISS for config ID: {}", config_id);
+                    }
+                }
+            } else {
+                eprintln!("[REDIS] Failed to get connection");
+            }
+        }
+        
+        // Fetch from API if not in cache
+        if all_configs.is_none() {
+            let config_api_url = std::env::var("MULTITENANT_CONFIG_API_URL")
+                .map_err(|_| Error::Server("MULTITENANT_CONFIG_API_URL environment variable is required when MULTITENANT=true".to_string()))?;
+            
+            let full_url = format!("{}{}", config_api_url, config_id);
+            println!("[MULTITENANT] Fetching config from: {}", full_url);
+            
+            let response = reqwest::Client::new().get(&full_url).send().await
+                .map_err(|e| Error::Server(format!("Failed to fetch config for {}: {}", config_id, e)))?;
+            
+            if !response.status().is_success() {
+                return Err(Error::Server(format!("Config API returned {}: {}", response.status(), response.status().canonical_reason().unwrap_or("Unknown"))));
+            }
+            
+            let configs = response.json::<serde_json::Value>().await
+                .map_err(|e| Error::Server(format!("Failed to parse config response for {}: {}", config_id, e)))?;
+            
+            println!("[MULTITENANT] Received configs: {}", serde_json::to_string_pretty(&configs).unwrap_or_default());
+            
+            let configs_array = configs.as_array()
+                .ok_or_else(|| Error::Server("Config API returned invalid configuration format".to_string()))?;
+            
+            if configs_array.is_empty() {
+                return Err(Error::Server("Config API returned empty configuration array".to_string()));
+            }
+            
+            all_configs = Some(configs_array.clone());
+            
+            // Cache the configuration in Redis
+            if let Some(redis_client) = &self.redis_client {
+                if let Ok(mut conn) = redis_client.get_async_connection().await {
+                    if let Ok(configs_json) = serde_json::to_string(&configs_array) {
+                        match conn.set_ex::<_, _, ()>(&cache_key, &configs_json, cache_ttl as usize).await {
+                            Ok(_) => println!("[MULTITENANT] Cached config for {} with TTL {} seconds", config_id, cache_ttl),
+                            Err(e) => eprintln!("[REDIS] Failed to cache config: {}", e),
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Find model-specific configuration
+        if let (Some(model_name), Some(all_configs)) = (model_name, &all_configs) {
+            for config in all_configs {
+                if let Some(config_model_name) = config.get("model_name").and_then(|v| v.as_str()) {
+                    if config_model_name == model_name {
+                        println!("[MULTITENANT] Found specific config for model: {}", model_name);
+                        return Ok(crate::config::ResolvedModelConfig {
+                            provider: config.get("provider").and_then(|v| v.as_str()).unwrap_or("openai").to_string(),
+                            api_base: config.get("api_base").and_then(|v| v.as_str()).unwrap_or("https://api.openai.com/").to_string(),
+                            model_name: config.get("model_name").and_then(|v| v.as_str()).unwrap_or(model_name).to_string(),
+                        });
+                    }
+                }
+            }
+            
+            // If model specified but not found, throw error
+            return Err(Error::Server(format!("Model '{}' not found in configuration for config_id: {}", model_name, config_id)));
+        }
+        
+        // If no model specified, throw error
+        Err(Error::Server("Model must be specified in request body for multitenant configuration".to_string()))
+    }
+
+    async fn handle_config_cache_update(&self, req: Request<Body>, config_id: &str) -> Result<Response<Body>> {
+        if config_id.is_empty() {
+            return Ok(Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .header("content-type", "application/json")
+                .body(Body::from(r#"{"error": "Config ID is required"}"#))?);
+        }
+
+        // Capture request body
+        let body_bytes = hyper::body::to_bytes(req.into_body()).await?;
+        let request_body = String::from_utf8_lossy(&body_bytes);
+
+        if request_body.is_empty() {
+            return Ok(Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .header("content-type", "application/json")
+                .body(Body::from(r#"{"error": "Request body with config array is required"}"#))?);
+        }
+
+        // Parse and validate the new config
+        let new_config: serde_json::Value = match serde_json::from_str(&request_body) {
+            Ok(config) => config,
+            Err(e) => {
+                eprintln!("[CONFIG-CACHE] Error parsing config for {}: {}", config_id, e);
+                return Ok(Response::builder()
+                    .status(StatusCode::BAD_REQUEST)
+                    .header("content-type", "application/json")
+                    .body(Body::from(format!(r#"{{"error": "Invalid JSON", "details": "{}"}}"#, e)))?);
+            }
+        };
+
+        // Validate that it's an array
+        if !new_config.is_array() {
+            return Ok(Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .header("content-type", "application/json")
+                .body(Body::from(r#"{"error": "Config must be an array"}"#))?);
+        }
+
+        let cache_key = format!("config:{}", config_id);
+        let cache_ttl: u64 = std::env::var("CONFIG_CACHE_TTL")
+            .unwrap_or_else(|_| "3600".to_string())
+            .parse()
+            .unwrap_or(3600);
+
+        // Update cache in Redis
+        if let Some(redis_client) = &self.redis_client {
+            if let Ok(mut conn) = redis_client.get_async_connection().await {
+                let config_json = serde_json::to_string(&new_config).unwrap();
+                match conn.set_ex::<_, _, ()>(&cache_key, &config_json, cache_ttl as usize).await {
+                    Ok(_) => {
+                        println!("[CONFIG-CACHE] Updated cache for {} with TTL {} seconds", config_id, cache_ttl);
+                        let models_count = new_config.as_array().unwrap().len();
+                        let response = serde_json::json!({
+                            "success": true,
+                            "message": format!("Config cache updated for {}", config_id),
+                            "models": models_count
+                        });
+                        return Ok(Response::builder()
+                            .status(StatusCode::OK)
+                            .header("content-type", "application/json")
+                            .body(Body::from(response.to_string()))?);
+                    },
+                    Err(e) => {
+                        eprintln!("[CONFIG-CACHE] Redis error updating cache for {}: {}", config_id, e);
+                        return Ok(Response::builder()
+                            .status(StatusCode::INTERNAL_SERVER_ERROR)
+                            .header("content-type", "application/json")
+                            .body(Body::from(format!(r#"{{"error": "Redis error", "details": "{}"}}"#, e)))?);
+                    }
+                }
+            } else {
+                return Ok(Response::builder()
+                    .status(StatusCode::SERVICE_UNAVAILABLE)
+                    .header("content-type", "application/json")
+                    .body(Body::from(r#"{"error": "Redis connection failed"}"#))?);
+            }
+        } else {
+            return Ok(Response::builder()
+                .status(StatusCode::SERVICE_UNAVAILABLE)
+                .header("content-type", "application/json")
+                .body(Body::from(r#"{"error": "Redis client not available"}"#))?);
+        }
     }
 
     async fn redact_content(&self, content: &mut Value) -> Result<Value> {
@@ -179,6 +379,12 @@ impl ProxyServer {
                 .header("content-type", "application/json")
                 .body(Body::from(health_data.to_string()))?);
         }
+        
+        // Config cache update endpoint
+        if req.uri().path().starts_with("/config/") && req.method() == Method::POST {
+            let config_id = req.uri().path().strip_prefix("/config/").unwrap_or("").to_string();
+            return self.handle_config_cache_update(req, &config_id).await;
+        }
 
         let mut request_count = self.request_count.lock().await;
         *request_count += 1;
@@ -246,24 +452,53 @@ impl ProxyServer {
 
         // Parse the target URL - handle relative URLs by prepending API base
         let target_url = if parts.uri.path().starts_with('/') {
-            // Use model from config - always require model to be specified
-            let model = model_name.as_ref().ok_or_else(|| {
-                Error::Server("Bad Request: Model must be specified in request body".to_string())
-            })?;
+            // Check for multitenant mode
+            let is_multitenant = std::env::var("MULTITENANT").unwrap_or_default() == "true";
+            let mut config_id: Option<String> = None;
+            let actual_path = if is_multitenant {
+                let path_segments: Vec<&str> = parts.uri.path().split('/').filter(|s| !s.is_empty()).collect();
+                if !path_segments.is_empty() {
+                    config_id = Some(path_segments[0].to_string());
+                    let rewritten_path = format!("/{}", path_segments[1..].join("/"));
+                    
+                    println!("[MULTITENANT] Config ID: {}", config_id.as_ref().unwrap());
+                    println!("[MULTITENANT] Rewritten path: {}", rewritten_path);
+                    
+                    rewritten_path
+                } else {
+                    parts.uri.path().to_string()
+                }
+            } else {
+                parts.uri.path().to_string()
+            };
             
-            let config_manager = self.config_manager.read().await;
-            let model_config = config_manager.get_model_config(&model);
+            let model_config = if let Some(ref config_id) = config_id {
+                self.get_config_for_multitenant(config_id, model_name.as_deref()).await?
+            } else {
+                // Use model from config - always require model to be specified
+                let model = model_name.as_ref().ok_or_else(|| {
+                    Error::Server("Bad Request: Model must be specified in request body".to_string())
+                })?;
+                
+                let config_manager = self.config_manager.read().await;
+                let model_config = config_manager.get_model_config(&model);
+                crate::config::ResolvedModelConfig {
+                    provider: model_config.provider,
+                    api_base: model_config.api_base,
+                    model_name: model_config.model_name,
+                }
+            };
+            
             let base_url = if model_config.api_base.ends_with('/') {
                 model_config.api_base
             } else {
                 format!("{}/", model_config.api_base)
             };
             
-            
-            let path = if parts.uri.path().starts_with('/') {
-                &parts.uri.path()[1..]
+            let path = if actual_path.starts_with('/') {
+                &actual_path[1..]
             } else {
-                parts.uri.path()
+                &actual_path
             };
             
             let final_url = format!("{}{}{}", base_url, path, 
@@ -720,6 +955,7 @@ impl Clone for ProxyServer {
             config_manager: Arc::clone(&self.config_manager),
             client,
             sse_content_accumulators: Arc::clone(&self.sse_content_accumulators),
+            redis_client: self.redis_client.clone(),
         }
     }
 }
