@@ -76,84 +76,99 @@ class ProxyServer {
     }
   }
 
-  async getConfigForMultitenant(configId) {
-    console.log(`[MULTITENANT] Config ID: ${configId}`);
+  async getConfigForMultitenant(configId, modelName = null) {
+    console.log(`[MULTITENANT] Config ID: ${configId}, Model: ${modelName}`);
     
     const cacheKey = `config:${configId}`;
     const cacheTTL = parseInt(process.env.CONFIG_CACHE_TTL) || 3600; // Default 1 hour
     
+    let allConfigs = null;
+    
     // Try Redis cache first
     if (this.redisClient) {
       try {
-        const cachedConfig = await this.redisClient.get(cacheKey);
-        if (cachedConfig) {
+        const cachedData = await this.redisClient.get(cacheKey);
+        if (cachedData) {
           console.log(`[MULTITENANT] Cache HIT for config ID: ${configId}`);
-          return JSON.parse(cachedConfig);
+          allConfigs = JSON.parse(cachedData);
+        } else {
+          console.log(`[MULTITENANT] Cache MISS for config ID: ${configId}`);
         }
-        console.log(`[MULTITENANT] Cache MISS for config ID: ${configId}`);
       } catch (error) {
         console.error(`[REDIS] Cache lookup failed:`, error);
       }
     }
     
-    const configApiUrl = process.env.MULTITENANT_CONFIG_API_URL;
-    
-    if (!configApiUrl) {
-      throw new Error('MULTITENANT_CONFIG_API_URL environment variable is required when MULTITENANT=true');
+    // Fetch from API if not in cache
+    if (!allConfigs) {
+      const configApiUrl = process.env.MULTITENANT_CONFIG_API_URL;
+      
+      if (!configApiUrl) {
+        throw new Error('MULTITENANT_CONFIG_API_URL environment variable is required when MULTITENANT=true');
+      }
+      
+      try {
+        const fullUrl = `${configApiUrl}${configId}`;
+        console.log(`[MULTITENANT] Fetching config from: ${fullUrl}`);
+        
+        const response = await fetch(fullUrl, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Config API returned ${response.status}: ${response.statusText}`);
+        }
+        
+        allConfigs = await response.json();
+        console.log(`[MULTITENANT] Received configs:`, JSON.stringify(allConfigs, null, 2));
+        
+        if (!Array.isArray(allConfigs) || allConfigs.length === 0) {
+          throw new Error('Config API returned empty or invalid configuration array');
+        }
+        
+        // Cache the configuration in Redis
+        if (this.redisClient) {
+          try {
+            await this.redisClient.setEx(cacheKey, cacheTTL, JSON.stringify(allConfigs));
+            console.log(`[MULTITENANT] Cached config for ${configId} with TTL ${cacheTTL} seconds`);
+          } catch (error) {
+            console.error(`[REDIS] Failed to cache config:`, error);
+          }
+        }
+        
+      } catch (error) {
+        console.error(`[MULTITENANT] Failed to fetch config for ${configId}:`, error.message);
+        
+        // Fallback to default configuration
+        return {
+          provider: 'openai',
+          apiBase: 'https://api.openai.com/',
+          modelName: modelName || 'gpt-3.5-turbo'
+        };
+      }
     }
     
-    try {
-      const fullUrl = `${configApiUrl}${configId}`;
-      console.log(`[MULTITENANT] Fetching config from: ${fullUrl}`);
-      
-      const response = await fetch(fullUrl, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Config API returned ${response.status}: ${response.statusText}`);
+    // Find model-specific configuration
+    if (modelName && allConfigs) {
+      const modelConfig = allConfigs.find(config => config.model_name === modelName);
+      if (modelConfig) {
+        console.log(`[MULTITENANT] Found specific config for model: ${modelName}`);
+        return {
+          provider: modelConfig.provider || 'openai',
+          apiBase: modelConfig.api_base || 'https://api.openai.com/',
+          modelName: modelConfig.model_name || modelName
+        };
       }
-      
-      const configs = await response.json();
-      console.log(`[MULTITENANT] Received configs:`, JSON.stringify(configs, null, 2));
-      
-      if (!Array.isArray(configs) || configs.length === 0) {
-        throw new Error('Config API returned empty or invalid configuration array');
-      }
-      
-      // Use the first configuration as default
-      const config = configs[0];
-      const processedConfig = {
-        provider: config.provider || 'openai',
-        apiBase: config.api_base || config.apiBase || 'https://api.openai.com/',
-        modelName: config.model_name || config.modelName || 'gpt-3.5-turbo',
-        allConfigs: configs // Store all configs for potential future use
-      };
-      
-      // Cache the config in Redis
-      if (this.redisClient) {
-        try {
-          await this.redisClient.setEx(cacheKey, cacheTTL, JSON.stringify(processedConfig));
-          console.log(`[MULTITENANT] Config cached for ${cacheTTL} seconds`);
-        } catch (error) {
-          console.error(`[REDIS] Failed to cache config:`, error);
-        }
-      }
-      
-      return processedConfig;
-      
-    } catch (error) {
-      console.error(`[MULTITENANT] Failed to fetch config for ${configId}:`, error.message);
-      
-      // Fallback to default configuration
-      return {
-        provider: 'openai',
-        apiBase: 'https://api.openai.com/',
-        modelName: 'gpt-3.5-turbo'
-      };
     }
+    
+    // Throw error if model not found and no model specified
+    if (!modelName) {
+      throw new Error('Model must be specified in request body for multitenant configuration');
+    }
+    
+    throw new Error(`Model '${modelName}' not found in configuration for config_id: ${configId}`);
   }
 
   async redactContent(content) {
@@ -355,7 +370,7 @@ class ProxyServer {
         
         // Use multitenant config if config_id is present, otherwise use traditional model-based config
         if (configId) {
-          modelConfig = await this.getConfigForMultitenant(configId);
+          modelConfig = await this.getConfigForMultitenant(configId, modelName);
         } else {
           // Use model from config - always require model to be specified
           if (!modelName) {

@@ -131,8 +131,8 @@ impl ProxyServer {
         }))
     }
 
-    async fn get_config_for_multitenant(&self, config_id: &str) -> Result<crate::config::ResolvedModelConfig> {
-        println!("[MULTITENANT] Config ID: {}", config_id);
+    async fn get_config_for_multitenant(&self, config_id: &str, model_name: Option<&str>) -> Result<crate::config::ResolvedModelConfig> {
+        println!("[MULTITENANT] Config ID: {}, Model: {:?}", config_id, model_name);
         
         let cache_key = format!("config:{}", config_id);
         let cache_ttl: u64 = std::env::var("CONFIG_CACHE_TTL")
@@ -140,14 +140,16 @@ impl ProxyServer {
             .parse()
             .unwrap_or(3600);
         
+        let mut all_configs: Option<Vec<serde_json::Value>> = None;
+        
         // Try Redis cache first
         if let Some(redis_client) = &self.redis_client {
             if let Ok(mut conn) = redis_client.get_async_connection().await {
                 match conn.get::<_, String>(&cache_key).await {
-                    Ok(cached_config) => {
+                    Ok(cached_data) => {
                         println!("[MULTITENANT] Cache HIT for config ID: {}", config_id);
-                        if let Ok(config) = serde_json::from_str::<crate::config::ResolvedModelConfig>(&cached_config) {
-                            return Ok(config);
+                        if let Ok(configs) = serde_json::from_str::<Vec<serde_json::Value>>(&cached_data) {
+                            all_configs = Some(configs);
                         }
                     },
                     Err(_) => {
@@ -159,73 +161,69 @@ impl ProxyServer {
             }
         }
         
-        let config_api_url = std::env::var("MULTITENANT_CONFIG_API_URL")
-            .map_err(|_| Error::Server("MULTITENANT_CONFIG_API_URL environment variable is required when MULTITENANT=true".to_string()))?;
-        
-        let full_url = format!("{}{}", config_api_url, config_id);
-        println!("[MULTITENANT] Fetching config from: {}", full_url);
-        
-        match reqwest::Client::new().get(&full_url).send().await {
-            Ok(response) => {
-                if !response.status().is_success() {
-                    let error_msg = format!("Config API returned {}: {}", response.status(), response.status().canonical_reason().unwrap_or("Unknown"));
-                    eprintln!("[MULTITENANT] Failed to fetch config for {}: {}", config_id, error_msg);
-                    return Ok(crate::config::ResolvedModelConfig {
-                        provider: "openai".to_string(),
-                        api_base: "https://api.openai.com/".to_string(),
-                        model_name: "gpt-3.5-turbo".to_string(),
-                    });
-                }
-                
-                match response.json::<serde_json::Value>().await {
-                    Ok(configs) => {
-                        println!("[MULTITENANT] Received configs: {}", serde_json::to_string_pretty(&configs).unwrap_or_default());
-                        
-                        if let Some(configs_array) = configs.as_array() {
-                            if let Some(first_config) = configs_array.first() {
-                                let processed_config = crate::config::ResolvedModelConfig {
-                                    provider: first_config.get("provider").and_then(|v| v.as_str()).unwrap_or("openai").to_string(),
-                                    api_base: first_config.get("api_base").and_then(|v| v.as_str()).unwrap_or("https://api.openai.com/").to_string(),
-                                    model_name: first_config.get("model_name").and_then(|v| v.as_str()).unwrap_or("gpt-3.5-turbo").to_string(),
-                                };
-                                
-                                // Cache the config in Redis
-                                if let Some(redis_client) = &self.redis_client {
-                                    if let Ok(mut conn) = redis_client.get_async_connection().await {
-                                        if let Ok(config_json) = serde_json::to_string(&processed_config) {
-                                            match conn.set_ex::<_, _, ()>(&cache_key, &config_json, cache_ttl as usize).await {
-                                                Ok(_) => println!("[MULTITENANT] Config cached for {} seconds", cache_ttl),
-                                                Err(e) => eprintln!("[REDIS] Failed to cache config: {}", e),
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                return Ok(processed_config);
-                            }
-                        }
-                        
-                        Err(Error::Server("Config API returned empty or invalid configuration array".to_string()))
-                    }
-                    Err(e) => {
-                        eprintln!("[MULTITENANT] Failed to parse config response for {}: {}", config_id, e);
-                        Ok(crate::config::ResolvedModelConfig {
-                            provider: "openai".to_string(),
-                            api_base: "https://api.openai.com/".to_string(),
-                            model_name: "gpt-3.5-turbo".to_string(),
-                        })
-                    }
-                }
+        // Fetch from API if not in cache
+        if all_configs.is_none() {
+            let config_api_url = std::env::var("MULTITENANT_CONFIG_API_URL")
+                .map_err(|_| Error::Server("MULTITENANT_CONFIG_API_URL environment variable is required when MULTITENANT=true".to_string()))?;
+            
+            let full_url = format!("{}{}", config_api_url, config_id);
+            println!("[MULTITENANT] Fetching config from: {}", full_url);
+            
+            let response = reqwest::Client::new().get(&full_url).send().await
+                .map_err(|e| Error::Server(format!("Failed to fetch config for {}: {}", config_id, e)))?;
+            
+            if !response.status().is_success() {
+                return Err(Error::Server(format!("Config API returned {}: {}", response.status(), response.status().canonical_reason().unwrap_or("Unknown"))));
             }
-            Err(e) => {
-                eprintln!("[MULTITENANT] Failed to fetch config for {}: {}", config_id, e);
-                Ok(crate::config::ResolvedModelConfig {
-                    provider: "openai".to_string(),
-                    api_base: "https://api.openai.com/".to_string(),
-                    model_name: "gpt-3.5-turbo".to_string(),
-                })
+            
+            let configs = response.json::<serde_json::Value>().await
+                .map_err(|e| Error::Server(format!("Failed to parse config response for {}: {}", config_id, e)))?;
+            
+            println!("[MULTITENANT] Received configs: {}", serde_json::to_string_pretty(&configs).unwrap_or_default());
+            
+            let configs_array = configs.as_array()
+                .ok_or_else(|| Error::Server("Config API returned invalid configuration format".to_string()))?;
+            
+            if configs_array.is_empty() {
+                return Err(Error::Server("Config API returned empty configuration array".to_string()));
+            }
+            
+            all_configs = Some(configs_array.clone());
+            
+            // Cache the configuration in Redis
+            if let Some(redis_client) = &self.redis_client {
+                if let Ok(mut conn) = redis_client.get_async_connection().await {
+                    if let Ok(configs_json) = serde_json::to_string(&configs_array) {
+                        match conn.set_ex::<_, _, ()>(&cache_key, &configs_json, cache_ttl as usize).await {
+                            Ok(_) => println!("[MULTITENANT] Cached config for {} with TTL {} seconds", config_id, cache_ttl),
+                            Err(e) => eprintln!("[REDIS] Failed to cache config: {}", e),
+                        }
+                    }
+                }
             }
         }
+        
+        // Find model-specific configuration
+        if let (Some(model_name), Some(all_configs)) = (model_name, &all_configs) {
+            for config in all_configs {
+                if let Some(config_model_name) = config.get("model_name").and_then(|v| v.as_str()) {
+                    if config_model_name == model_name {
+                        println!("[MULTITENANT] Found specific config for model: {}", model_name);
+                        return Ok(crate::config::ResolvedModelConfig {
+                            provider: config.get("provider").and_then(|v| v.as_str()).unwrap_or("openai").to_string(),
+                            api_base: config.get("api_base").and_then(|v| v.as_str()).unwrap_or("https://api.openai.com/").to_string(),
+                            model_name: config.get("model_name").and_then(|v| v.as_str()).unwrap_or(model_name).to_string(),
+                        });
+                    }
+                }
+            }
+            
+            // If model specified but not found, throw error
+            return Err(Error::Server(format!("Model '{}' not found in configuration for config_id: {}", model_name, config_id)));
+        }
+        
+        // If no model specified, throw error
+        Err(Error::Server("Model must be specified in request body for multitenant configuration".to_string()))
     }
 
     async fn redact_content(&self, content: &mut Value) -> Result<Value> {
@@ -384,7 +382,7 @@ impl ProxyServer {
             };
             
             let model_config = if let Some(ref config_id) = config_id {
-                self.get_config_for_multitenant(config_id).await?
+                self.get_config_for_multitenant(config_id, model_name.as_deref()).await?
             } else {
                 // Use model from config - always require model to be specified
                 let model = model_name.as_ref().ok_or_else(|| {
