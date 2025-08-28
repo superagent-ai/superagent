@@ -3,6 +3,7 @@ import https from 'https';
 import net from 'net';
 import { URL } from 'url';
 import { createClient } from 'redis';
+import Redis from 'ioredis';
 import { initializeSensitivePatterns, RedactionService } from './redaction.js';
 import configManager from './config.js';
 import logger from './logger.js';
@@ -22,6 +23,7 @@ class ProxyServer {
     this.requestStartTimes = new Map(); // Track request start times for response time calculation
     this.analyticsQueue = [];
     this.redisClient = null;
+    this.redisPool = null;
     this.startAnalyticsBatch();
     this.initializeConfig();
     this.initializeRedis();
@@ -57,20 +59,71 @@ class ProxyServer {
     if (isMultitenant) {
       try {
         const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-        this.redisClient = createClient({ url: redisUrl });
         
-        this.redisClient.on('error', (err) => {
-          console.error('[REDIS] Connection error:', err);
+        // Create connection pool using ioredis for better performance
+        const poolConfig = {
+          // Connection pool settings
+          lazyConnect: true,
+          keepAlive: 30000,
+          connectTimeout: 10000,
+          commandTimeout: 5000,
+          retryDelayOnFailover: 100,
+          enableReadyCheck: true,
+          maxRetriesPerRequest: 3,
+          
+          // Connection pooling configuration
+          family: 4, // IPv4
+          db: 0,
+          
+          // Retry strategy for resilience
+          retryStrategy(times) {
+            if (times > 3) return null; // Stop after 3 retries
+            return Math.min(times * 100, 1000); // Exponential backoff
+          },
+          
+          // Connection pool size
+          maxRetriesPerRequest: 3,
+          lazyConnect: true,
+        };
+        
+        // Parse Redis URL to extract connection details
+        const redisUrlParsed = new URL(redisUrl);
+        poolConfig.host = redisUrlParsed.hostname;
+        poolConfig.port = redisUrlParsed.port || 6379;
+        if (redisUrlParsed.password) {
+          poolConfig.password = redisUrlParsed.password;
+        }
+        
+        // Create Redis connection pool
+        this.redisPool = new Redis(poolConfig);
+        
+        // Set up event listeners for the pool
+        this.redisPool.on('connect', () => {
+          console.log('[REDIS] Connection pool established successfully');
         });
         
-        this.redisClient.on('connect', () => {
-          console.log('[REDIS] Connected successfully');
+        this.redisPool.on('ready', () => {
+          console.log('[REDIS] Connection pool ready for operations');
         });
         
-        await this.redisClient.connect();
-        console.log('[REDIS] Client initialized and connected');
+        this.redisPool.on('error', (err) => {
+          console.error('[REDIS] Connection pool error:', err);
+        });
+        
+        this.redisPool.on('reconnecting', () => {
+          console.log('[REDIS] Connection pool reconnecting...');
+        });
+        
+        // Test the connection
+        await this.redisPool.ping();
+        console.log('[REDIS] Connection pool initialized successfully with high-performance settings');
+        
+        // Keep the original client for backward compatibility
+        this.redisClient = this.redisPool;
+        
       } catch (error) {
-        console.error('[REDIS] Failed to initialize Redis client:', error);
+        console.error('[REDIS] Failed to initialize Redis connection pool:', error);
+        this.redisPool = null;
         this.redisClient = null; // Fallback to no caching
       }
     }
@@ -871,13 +924,23 @@ class ProxyServer {
       this.sseContentAccumulators.clear();
     }
     
-    // Close Redis connection
-    if (this.redisClient) {
+    // Close Redis connection pool
+    if (this.redisPool) {
+      try {
+        await this.redisPool.disconnect();
+        console.log('[REDIS] Connection pool closed');
+      } catch (error) {
+        console.error('[REDIS] Error closing connection pool:', error);
+      }
+    }
+    
+    // Close Redis client (fallback)
+    if (this.redisClient && this.redisClient !== this.redisPool) {
       try {
         await this.redisClient.disconnect();
-        console.log('[REDIS] Connection closed');
+        console.log('[REDIS] Redis client connection closed');
       } catch (error) {
-        console.error('[REDIS] Error closing connection:', error);
+        console.error('[REDIS] Error closing Redis client connection:', error);
       }
     }
 

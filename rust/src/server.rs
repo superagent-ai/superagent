@@ -11,7 +11,7 @@ use serde_json::Value;
 use tokio::sync::{Mutex, RwLock};
 use tracing::{info, warn};
 use uuid::Uuid;
-use redis::AsyncCommands;
+use redis::{AsyncCommands, ConnectionManager};
 
 use crate::config::ConfigManager;
 use crate::redaction::{RedactionEngine, RedactionService};
@@ -30,7 +30,7 @@ pub struct ProxyServer {
     config_manager: Arc<RwLock<ConfigManager>>,
     client: Client<HttpsConnector<hyper::client::HttpConnector>>,
     sse_content_accumulators: Arc<RwLock<HashMap<u64, SseAccumulator>>>,
-    redis_client: Option<redis::Client>,
+    redis_client: Option<ConnectionManager>,
 }
 
 impl ProxyServer {
@@ -48,13 +48,21 @@ impl ProxyServer {
             );
         }
 
-        // Initialize Redis client if in multitenant mode
+        // Initialize Redis connection pool if in multitenant mode
         let redis_client = if std::env::var("MULTITENANT").unwrap_or_default() == "true" {
             let redis_url = std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".to_string());
             match redis::Client::open(redis_url.as_str()) {
                 Ok(client) => {
-                    println!("[REDIS] Client initialized successfully");
-                    Some(client)
+                    match ConnectionManager::new(client).await {
+                        Ok(manager) => {
+                            println!("[REDIS] Connection pool initialized successfully");
+                            Some(manager)
+                        },
+                        Err(e) => {
+                            eprintln!("[REDIS] Failed to initialize Redis connection pool: {}", e);
+                            None
+                        }
+                    }
                 },
                 Err(e) => {
                     eprintln!("[REDIS] Failed to initialize Redis client: {}", e);
@@ -144,20 +152,17 @@ impl ProxyServer {
         
         // Try Redis cache first
         if let Some(redis_client) = &self.redis_client {
-            if let Ok(mut conn) = redis_client.get_async_connection().await {
-                match conn.get::<_, String>(&cache_key).await {
-                    Ok(cached_data) => {
-                        println!("[MULTITENANT] Cache HIT for config ID: {}", config_id);
-                        if let Ok(configs) = serde_json::from_str::<Vec<serde_json::Value>>(&cached_data) {
-                            all_configs = Some(configs);
-                        }
-                    },
-                    Err(_) => {
-                        println!("[MULTITENANT] Cache MISS for config ID: {}", config_id);
+            let mut conn = redis_client.clone();
+            match conn.get::<_, String>(&cache_key).await {
+                Ok(cached_data) => {
+                    println!("[MULTITENANT] Cache HIT for config ID: {}", config_id);
+                    if let Ok(configs) = serde_json::from_str::<Vec<serde_json::Value>>(&cached_data) {
+                        all_configs = Some(configs);
                     }
+                },
+                Err(_) => {
+                    println!("[MULTITENANT] Cache MISS for config ID: {}", config_id);
                 }
-            } else {
-                eprintln!("[REDIS] Failed to get connection");
             }
         }
         
@@ -192,12 +197,11 @@ impl ProxyServer {
             
             // Cache the configuration in Redis
             if let Some(redis_client) = &self.redis_client {
-                if let Ok(mut conn) = redis_client.get_async_connection().await {
-                    if let Ok(configs_json) = serde_json::to_string(&configs_array) {
-                        match conn.set_ex::<_, _, ()>(&cache_key, &configs_json, cache_ttl as usize).await {
-                            Ok(_) => println!("[MULTITENANT] Cached config for {} with TTL {} seconds", config_id, cache_ttl),
-                            Err(e) => eprintln!("[REDIS] Failed to cache config: {}", e),
-                        }
+                let mut conn = redis_client.clone();
+                if let Ok(configs_json) = serde_json::to_string(&configs_array) {
+                    match conn.set_ex::<_, _, ()>(&cache_key, &configs_json, cache_ttl as usize).await {
+                        Ok(_) => println!("[MULTITENANT] Cached config for {} with TTL {} seconds", config_id, cache_ttl),
+                        Err(e) => eprintln!("[REDIS] Failed to cache config: {}", e),
                     }
                 }
             }
@@ -273,35 +277,29 @@ impl ProxyServer {
 
         // Update cache in Redis
         if let Some(redis_client) = &self.redis_client {
-            if let Ok(mut conn) = redis_client.get_async_connection().await {
-                let config_json = serde_json::to_string(&new_config).unwrap();
-                match conn.set_ex::<_, _, ()>(&cache_key, &config_json, cache_ttl as usize).await {
-                    Ok(_) => {
-                        println!("[CONFIG-CACHE] Updated cache for {} with TTL {} seconds", config_id, cache_ttl);
-                        let models_count = new_config.as_array().unwrap().len();
-                        let response = serde_json::json!({
-                            "success": true,
-                            "message": format!("Config cache updated for {}", config_id),
-                            "models": models_count
-                        });
-                        return Ok(Response::builder()
-                            .status(StatusCode::OK)
-                            .header("content-type", "application/json")
-                            .body(Body::from(response.to_string()))?);
-                    },
-                    Err(e) => {
-                        eprintln!("[CONFIG-CACHE] Redis error updating cache for {}: {}", config_id, e);
-                        return Ok(Response::builder()
-                            .status(StatusCode::INTERNAL_SERVER_ERROR)
-                            .header("content-type", "application/json")
-                            .body(Body::from(format!(r#"{{"error": "Redis error", "details": "{}"}}"#, e)))?);
-                    }
+            let mut conn = redis_client.clone();
+            let config_json = serde_json::to_string(&new_config).unwrap();
+            match conn.set_ex::<_, _, ()>(&cache_key, &config_json, cache_ttl as usize).await {
+                Ok(_) => {
+                    println!("[CONFIG-CACHE] Updated cache for {} with TTL {} seconds", config_id, cache_ttl);
+                    let models_count = new_config.as_array().unwrap().len();
+                    let response = serde_json::json!({
+                        "success": true,
+                        "message": format!("Config cache updated for {}", config_id),
+                        "models": models_count
+                    });
+                    return Ok(Response::builder()
+                        .status(StatusCode::OK)
+                        .header("content-type", "application/json")
+                        .body(Body::from(response.to_string()))?);
+                },
+                Err(e) => {
+                    eprintln!("[CONFIG-CACHE] Redis error updating cache for {}: {}", config_id, e);
+                    return Ok(Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .header("content-type", "application/json")
+                        .body(Body::from(format!(r#"{{"error": "Redis error", "details": "{}"}}"#, e)))?);
                 }
-            } else {
-                return Ok(Response::builder()
-                    .status(StatusCode::SERVICE_UNAVAILABLE)
-                    .header("content-type", "application/json")
-                    .body(Body::from(r#"{"error": "Redis connection failed"}"#))?);
             }
         } else {
             return Ok(Response::builder()
