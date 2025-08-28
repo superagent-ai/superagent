@@ -25,6 +25,18 @@ class ProxyServer {
   }
 
   async initializeConfig() {
+    const isMultitenant = process.env.MULTITENANT === 'true';
+    
+    if (isMultitenant) {
+      // In multitenant mode, we don't load a local config file
+      // Configuration will be fetched per request from the API
+      logger.info('Multitenant mode enabled - skipping local config file loading', {
+        event_type: 'config_multitenant_mode',
+        multitenant: true
+      });
+      return;
+    }
+    
     try {
       await configManager.loadConfig(this.configPath);
     } catch (error) {
@@ -33,6 +45,58 @@ class ProxyServer {
         config_path: this.configPath,
         error: error.message
       });
+    }
+  }
+
+  async getConfigForMultitenant(configId) {
+    console.log(`[MULTITENANT] Config ID: ${configId}`);
+    
+    const configApiUrl = process.env.MULTITENANT_CONFIG_API_URL;
+    
+    if (!configApiUrl) {
+      throw new Error('MULTITENANT_CONFIG_API_URL environment variable is required when MULTITENANT=true');
+    }
+    
+    try {
+      const fullUrl = `${configApiUrl}${configId}`;
+      console.log(`[MULTITENANT] Fetching config from: ${fullUrl}`);
+      
+      const response = await fetch(fullUrl, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Config API returned ${response.status}: ${response.statusText}`);
+      }
+      
+      const configs = await response.json();
+      console.log(`[MULTITENANT] Received configs:`, JSON.stringify(configs, null, 2));
+      
+      if (!Array.isArray(configs) || configs.length === 0) {
+        throw new Error('Config API returned empty or invalid configuration array');
+      }
+      
+      // Use the first configuration as default
+      const config = configs[0];
+      
+      return {
+        provider: config.provider || 'openai',
+        apiBase: config.api_base || config.apiBase || 'https://api.openai.com/',
+        modelName: config.model_name || config.modelName || 'gpt-3.5-turbo',
+        allConfigs: configs // Store all configs for potential future use
+      };
+      
+    } catch (error) {
+      console.error(`[MULTITENANT] Failed to fetch config for ${configId}:`, error.message);
+      
+      // Fallback to default configuration
+      return {
+        provider: 'openai',
+        apiBase: 'https://api.openai.com/',
+        modelName: 'gpt-3.5-turbo'
+      };
     }
   }
 
@@ -207,29 +271,61 @@ class ProxyServer {
 
     // Parse the target URL - handle relative URLs by prepending API base
     let targetUrl;
+    let configId = null;
+    let actualPath = req.url;
+    
+    // Check for multitenant mode
+    const isMultitenant = process.env.MULTITENANT === 'true';
+    
     try {
       if (req.url.startsWith('/')) {
-        // Use model from config - always require model to be specified
-        if (!modelName) {
-          res.writeHead(400, { 'Content-Type': 'text/plain' });
-          res.end('Bad Request: Model must be specified in request body');
-          return;
+        // Handle multitenant URL pattern: /{config_id}/path
+        if (isMultitenant) {
+          const pathSegments = req.url.split('/').filter(segment => segment !== '');
+          if (pathSegments.length > 0) {
+            configId = pathSegments[0];
+            actualPath = '/' + pathSegments.slice(1).join('/');
+            
+            logger.debug(`Multitenant routing detected`, {
+              event_type: 'multitenant_routing',
+              config_id: configId,
+              original_url: req.url,
+              rewritten_path: actualPath
+            });
+          }
         }
         
-        const modelConfig = configManager.getModelConfig(modelName);
+        let modelConfig;
+        
+        // Use multitenant config if config_id is present, otherwise use traditional model-based config
+        if (configId) {
+          modelConfig = await this.getConfigForMultitenant(configId);
+        } else {
+          // Use model from config - always require model to be specified
+          if (!modelName) {
+            res.writeHead(400, { 'Content-Type': 'text/plain' });
+            res.end('Bad Request: Model must be specified in request body');
+            return;
+          }
+          
+          modelConfig = configManager.getModelConfig(modelName);
+        }
+        
         baseUrl = modelConfig.apiBase.endsWith('/') ? modelConfig.apiBase.slice(0, -1) : modelConfig.apiBase;
         logger.debug(`Using config-based routing`, {
           event_type: 'model_routing',
           model: modelName,
-          api_base: baseUrl
+          api_base: baseUrl,
+          config_id: configId
         });
         
-        // Properly construct the full URL
-        const fullUrl = baseUrl + req.url;
+        // Properly construct the full URL using the rewritten path
+        const fullUrl = baseUrl + actualPath;
         targetUrl = new URL(fullUrl);
         logger.debug(`Target URL constructed`, {
           event_type: 'url_construction',
-          target_url: targetUrl.href
+          target_url: targetUrl.href,
+          config_id: configId
         });
       } else {
         // Absolute URL

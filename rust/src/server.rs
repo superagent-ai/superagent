@@ -111,6 +111,64 @@ impl ProxyServer {
         }))
     }
 
+    async fn get_config_for_multitenant(&self, config_id: &str) -> Result<crate::config::ResolvedModelConfig> {
+        println!("[MULTITENANT] Config ID: {}", config_id);
+        
+        let config_api_url = std::env::var("MULTITENANT_CONFIG_API_URL")
+            .map_err(|_| Error::Server("MULTITENANT_CONFIG_API_URL environment variable is required when MULTITENANT=true".to_string()))?;
+        
+        let full_url = format!("{}{}", config_api_url, config_id);
+        println!("[MULTITENANT] Fetching config from: {}", full_url);
+        
+        match reqwest::Client::new().get(&full_url).send().await {
+            Ok(response) => {
+                if !response.status().is_success() {
+                    let error_msg = format!("Config API returned {}: {}", response.status(), response.status().canonical_reason().unwrap_or("Unknown"));
+                    eprintln!("[MULTITENANT] Failed to fetch config for {}: {}", config_id, error_msg);
+                    return Ok(crate::config::ResolvedModelConfig {
+                        provider: "openai".to_string(),
+                        api_base: "https://api.openai.com/".to_string(),
+                        model_name: "gpt-3.5-turbo".to_string(),
+                    });
+                }
+                
+                match response.json::<serde_json::Value>().await {
+                    Ok(configs) => {
+                        println!("[MULTITENANT] Received configs: {}", serde_json::to_string_pretty(&configs).unwrap_or_default());
+                        
+                        if let Some(configs_array) = configs.as_array() {
+                            if let Some(first_config) = configs_array.first() {
+                                return Ok(crate::config::ResolvedModelConfig {
+                                    provider: first_config.get("provider").and_then(|v| v.as_str()).unwrap_or("openai").to_string(),
+                                    api_base: first_config.get("api_base").and_then(|v| v.as_str()).unwrap_or("https://api.openai.com/").to_string(),
+                                    model_name: first_config.get("model_name").and_then(|v| v.as_str()).unwrap_or("gpt-3.5-turbo").to_string(),
+                                });
+                            }
+                        }
+                        
+                        Err(Error::Server("Config API returned empty or invalid configuration array".to_string()))
+                    }
+                    Err(e) => {
+                        eprintln!("[MULTITENANT] Failed to parse config response for {}: {}", config_id, e);
+                        Ok(crate::config::ResolvedModelConfig {
+                            provider: "openai".to_string(),
+                            api_base: "https://api.openai.com/".to_string(),
+                            model_name: "gpt-3.5-turbo".to_string(),
+                        })
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("[MULTITENANT] Failed to fetch config for {}: {}", config_id, e);
+                Ok(crate::config::ResolvedModelConfig {
+                    provider: "openai".to_string(),
+                    api_base: "https://api.openai.com/".to_string(),
+                    model_name: "gpt-3.5-turbo".to_string(),
+                })
+            }
+        }
+    }
+
     async fn redact_content(&self, content: &mut Value) -> Result<Value> {
         match content {
             Value::String(text) => {
@@ -246,24 +304,53 @@ impl ProxyServer {
 
         // Parse the target URL - handle relative URLs by prepending API base
         let target_url = if parts.uri.path().starts_with('/') {
-            // Use model from config - always require model to be specified
-            let model = model_name.as_ref().ok_or_else(|| {
-                Error::Server("Bad Request: Model must be specified in request body".to_string())
-            })?;
+            // Check for multitenant mode
+            let is_multitenant = std::env::var("MULTITENANT").unwrap_or_default() == "true";
+            let mut config_id: Option<String> = None;
+            let actual_path = if is_multitenant {
+                let path_segments: Vec<&str> = parts.uri.path().split('/').filter(|s| !s.is_empty()).collect();
+                if !path_segments.is_empty() {
+                    config_id = Some(path_segments[0].to_string());
+                    let rewritten_path = format!("/{}", path_segments[1..].join("/"));
+                    
+                    println!("[MULTITENANT] Config ID: {}", config_id.as_ref().unwrap());
+                    println!("[MULTITENANT] Rewritten path: {}", rewritten_path);
+                    
+                    rewritten_path
+                } else {
+                    parts.uri.path().to_string()
+                }
+            } else {
+                parts.uri.path().to_string()
+            };
             
-            let config_manager = self.config_manager.read().await;
-            let model_config = config_manager.get_model_config(&model);
+            let model_config = if let Some(ref config_id) = config_id {
+                self.get_config_for_multitenant(config_id).await?
+            } else {
+                // Use model from config - always require model to be specified
+                let model = model_name.as_ref().ok_or_else(|| {
+                    Error::Server("Bad Request: Model must be specified in request body".to_string())
+                })?;
+                
+                let config_manager = self.config_manager.read().await;
+                let model_config = config_manager.get_model_config(&model);
+                crate::config::ResolvedModelConfig {
+                    provider: model_config.provider,
+                    api_base: model_config.api_base,
+                    model_name: model_config.model_name,
+                }
+            };
+            
             let base_url = if model_config.api_base.ends_with('/') {
                 model_config.api_base
             } else {
                 format!("{}/", model_config.api_base)
             };
             
-            
-            let path = if parts.uri.path().starts_with('/') {
-                &parts.uri.path()[1..]
+            let path = if actual_path.starts_with('/') {
+                &actual_path[1..]
             } else {
-                parts.uri.path()
+                &actual_path
             };
             
             let final_url = format!("{}{}{}", base_url, path, 
