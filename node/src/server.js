@@ -171,6 +171,69 @@ class ProxyServer {
     throw new Error(`Model '${modelName}' not found in configuration for config_id: ${configId}`);
   }
 
+  async handleConfigCacheUpdate(req, res, configId) {
+    try {
+      // Capture request body
+      let requestBody = '';
+      req.on('data', (chunk) => {
+        requestBody += chunk.toString();
+      });
+
+      req.on('end', async () => {
+        try {
+          if (!configId) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Config ID is required' }));
+            return;
+          }
+
+          if (!requestBody) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Request body with config array is required' }));
+            return;
+          }
+
+          const newConfig = JSON.parse(requestBody);
+          
+          // Validate that it's an array
+          if (!Array.isArray(newConfig)) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Config must be an array' }));
+            return;
+          }
+
+          const cacheKey = `config:${configId}`;
+          const cacheTTL = parseInt(process.env.CONFIG_CACHE_TTL) || 3600;
+
+          // Update cache in Redis
+          if (this.redisClient) {
+            await this.redisClient.setEx(cacheKey, cacheTTL, JSON.stringify(newConfig));
+            console.log(`[CONFIG-CACHE] Updated cache for ${configId} with TTL ${cacheTTL} seconds`);
+            
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ 
+              success: true, 
+              message: `Config cache updated for ${configId}`,
+              models: newConfig.length
+            }));
+          } else {
+            res.writeHead(503, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Redis client not available' }));
+          }
+        } catch (error) {
+          console.error(`[CONFIG-CACHE] Error updating cache for ${configId}:`, error);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Internal server error', details: error.message }));
+        }
+      });
+
+    } catch (error) {
+      console.error(`[CONFIG-CACHE] Error handling cache update for ${configId}:`, error);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Internal server error', details: error.message }));
+    }
+  }
+
   async redactContent(content) {
     if (typeof content === 'string') {
       return await this.redactionService.redactUserPrompt(content);
@@ -286,6 +349,13 @@ class ProxyServer {
         timestamp: new Date().toISOString(),
         requestCount: this.requestCount
       }));
+      return;
+    }
+
+    // Config cache update endpoint
+    if (req.url.startsWith('/config/') && req.method === 'POST') {
+      const configId = req.url.split('/config/')[1];
+      await this.handleConfigCacheUpdate(req, res, configId);
       return;
     }
 

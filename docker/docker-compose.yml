@@ -10,9 +10,19 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=8080
+      # Traditional mode (set MULTITENANT=true to enable multitenant mode)
+      - MULTITENANT=false
+      # Multitenant environment variables (uncomment to enable)
+      # - MULTITENANT=true
+      # - MULTITENANT_CONFIG_API_URL=http://api:3000/api/proxy/
+      # - REDIS_URL=redis://redis:6379
+      # - CONFIG_CACHE_TTL=3600
+      # - VIBEKIT_REDACTION_API_URL=http://redaction-api:3000/redact
     volumes:
       - ../vibekit.yaml:/app/vibekit.yaml:ro
     restart: unless-stopped
+    depends_on:
+      - redis
     healthcheck:
       test: ["CMD", "node", "-e", "http.get('http://localhost:8080/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
       interval: 30s
@@ -28,15 +38,41 @@ services:
       dockerfile: docker/Dockerfile.rust
     ports:
       - "8081:8080"
+    environment:
+      # Traditional mode (set MULTITENANT=true to enable multitenant mode)
+      - MULTITENANT=false
+      # Multitenant environment variables (uncomment to enable)
+      # - MULTITENANT=true
+      # - MULTITENANT_CONFIG_API_URL=http://api:3000/api/proxy/
+      # - REDIS_URL=redis://redis:6379
+      # - CONFIG_CACHE_TTL=3600
+      # - VIBEKIT_REDACTION_API_URL=http://redaction-api:3000/redact
     volumes:
       - ../vibekit.yaml:/app/vibekit.yaml:ro
     restart: unless-stopped
+    depends_on:
+      - redis
     healthcheck:
       test: ["CMD", "./ai-firewall", "status"]
       interval: 30s
       timeout: 3s
       retries: 3
       start_period: 5s
+    networks:
+      - ai-firewall-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
     networks:
       - ai-firewall-network
 
@@ -63,6 +99,7 @@ services:
 
 volumes:
   api-models:
+  redis-data:
 
 networks:
   ai-firewall-network:

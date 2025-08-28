@@ -226,6 +226,91 @@ impl ProxyServer {
         Err(Error::Server("Model must be specified in request body for multitenant configuration".to_string()))
     }
 
+    async fn handle_config_cache_update(&self, req: Request<Body>, config_id: &str) -> Result<Response<Body>> {
+        if config_id.is_empty() {
+            return Ok(Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .header("content-type", "application/json")
+                .body(Body::from(r#"{"error": "Config ID is required"}"#))?);
+        }
+
+        // Capture request body
+        let body_bytes = hyper::body::to_bytes(req.into_body()).await?;
+        let request_body = String::from_utf8_lossy(&body_bytes);
+
+        if request_body.is_empty() {
+            return Ok(Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .header("content-type", "application/json")
+                .body(Body::from(r#"{"error": "Request body with config array is required"}"#))?);
+        }
+
+        // Parse and validate the new config
+        let new_config: serde_json::Value = match serde_json::from_str(&request_body) {
+            Ok(config) => config,
+            Err(e) => {
+                eprintln!("[CONFIG-CACHE] Error parsing config for {}: {}", config_id, e);
+                return Ok(Response::builder()
+                    .status(StatusCode::BAD_REQUEST)
+                    .header("content-type", "application/json")
+                    .body(Body::from(format!(r#"{{"error": "Invalid JSON", "details": "{}"}}"#, e)))?);
+            }
+        };
+
+        // Validate that it's an array
+        if !new_config.is_array() {
+            return Ok(Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .header("content-type", "application/json")
+                .body(Body::from(r#"{"error": "Config must be an array"}"#))?);
+        }
+
+        let cache_key = format!("config:{}", config_id);
+        let cache_ttl: u64 = std::env::var("CONFIG_CACHE_TTL")
+            .unwrap_or_else(|_| "3600".to_string())
+            .parse()
+            .unwrap_or(3600);
+
+        // Update cache in Redis
+        if let Some(redis_client) = &self.redis_client {
+            if let Ok(mut conn) = redis_client.get_async_connection().await {
+                let config_json = serde_json::to_string(&new_config).unwrap();
+                match conn.set_ex::<_, _, ()>(&cache_key, &config_json, cache_ttl as usize).await {
+                    Ok(_) => {
+                        println!("[CONFIG-CACHE] Updated cache for {} with TTL {} seconds", config_id, cache_ttl);
+                        let models_count = new_config.as_array().unwrap().len();
+                        let response = serde_json::json!({
+                            "success": true,
+                            "message": format!("Config cache updated for {}", config_id),
+                            "models": models_count
+                        });
+                        return Ok(Response::builder()
+                            .status(StatusCode::OK)
+                            .header("content-type", "application/json")
+                            .body(Body::from(response.to_string()))?);
+                    },
+                    Err(e) => {
+                        eprintln!("[CONFIG-CACHE] Redis error updating cache for {}: {}", config_id, e);
+                        return Ok(Response::builder()
+                            .status(StatusCode::INTERNAL_SERVER_ERROR)
+                            .header("content-type", "application/json")
+                            .body(Body::from(format!(r#"{{"error": "Redis error", "details": "{}"}}"#, e)))?);
+                    }
+                }
+            } else {
+                return Ok(Response::builder()
+                    .status(StatusCode::SERVICE_UNAVAILABLE)
+                    .header("content-type", "application/json")
+                    .body(Body::from(r#"{"error": "Redis connection failed"}"#))?);
+            }
+        } else {
+            return Ok(Response::builder()
+                .status(StatusCode::SERVICE_UNAVAILABLE)
+                .header("content-type", "application/json")
+                .body(Body::from(r#"{"error": "Redis client not available"}"#))?);
+        }
+    }
+
     async fn redact_content(&self, content: &mut Value) -> Result<Value> {
         match content {
             Value::String(text) => {
@@ -293,6 +378,12 @@ impl ProxyServer {
                 .status(StatusCode::OK)
                 .header("content-type", "application/json")
                 .body(Body::from(health_data.to_string()))?);
+        }
+        
+        // Config cache update endpoint
+        if req.uri().path().starts_with("/config/") && req.method() == Method::POST {
+            let config_id = req.uri().path().strip_prefix("/config/").unwrap_or("").to_string();
+            return self.handle_config_cache_update(req, &config_id).await;
         }
 
         let mut request_count = self.request_count.lock().await;
