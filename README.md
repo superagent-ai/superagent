@@ -59,6 +59,13 @@ models:
   - model_name: "claude-3-7-sonnet-20250219"
     provider: "anthropic"
     api_base: "https://api.anthropic.com/v1"
+
+# Optional: Send telemetry data to external webhook
+telemetry_webhook:
+  url: "https://your-webhook-endpoint.com/api/telemetry"
+  headers:
+    x-api-key: "your-api-key"
+    x-team-id: "your-team-id"
 ```
 </details>
 
@@ -221,7 +228,7 @@ LOG_LEVEL=info    # debug|info|warn|error (default: info)
   "request": {
     "method": "POST",
     "url": "/v1/messages",
-    "model": "claude-3-5-sonnet",
+    "model": "claude-3-7-sonnet-20250219",
     "headers": {
       "user-agent": "curl/7.68.0",
       "originator": "my-app"

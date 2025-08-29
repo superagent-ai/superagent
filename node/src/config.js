@@ -72,6 +72,15 @@ class ConfigManager {
     };
   }
 
+  // Get telemetry webhook configuration
+  getTelemetryWebhookConfig() {
+    if (!this.config) {
+      return null;
+    }
+    
+    return this.config.telemetry_webhook || null;
+  }
+
   // Get API base for a model name
   getApiBaseForModel(modelName) {
     const config = this.getModelConfig(modelName);

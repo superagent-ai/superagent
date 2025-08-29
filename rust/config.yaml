@@ -1,8 +1,0 @@
-models:
-  - model_name: "gpt-4o"
-    provider: "openai"
-    api_base: "https://api.openai.com"
-  
-  - model_name: "claude-3-7-sonnet-20250219"
-    provider: "anthropic"
-    api_base: "https://api.anthropic.com/v1"

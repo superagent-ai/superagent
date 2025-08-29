@@ -76,6 +76,18 @@ class ProxyServer {
     }
   }
 
+  // Get telemetry webhook configuration for multitenant or YAML config
+  getTelemetryWebhookConfig() {
+    const isMultitenant = process.env.MULTITENANT === 'true';
+    
+    if (isMultitenant && this.telemetryWebhookConfig) {
+      return this.telemetryWebhookConfig;
+    }
+    
+    // Fallback to YAML config
+    return configManager.getTelemetryWebhookConfig();
+  }
+
   async getConfigForMultitenant(configId, modelName = null) {
     console.log(`[MULTITENANT] Config ID: ${configId}, Model: ${modelName}`);
     
@@ -90,7 +102,9 @@ class ProxyServer {
         const cachedData = await this.redisClient.get(cacheKey);
         if (cachedData) {
           console.log(`[MULTITENANT] Cache HIT for config ID: ${configId}`);
-          allConfigs = JSON.parse(cachedData);
+          const cachedConfig = JSON.parse(cachedData);
+          allConfigs = cachedConfig.models;
+          this.telemetryWebhookConfig = cachedConfig.telemetry_webhook;
         } else {
           console.log(`[MULTITENANT] Cache MISS for config ID: ${configId}`);
         }
@@ -121,18 +135,22 @@ class ProxyServer {
           throw new Error(`Config API returned ${response.status}: ${response.statusText}`);
         }
         
-        allConfigs = await response.json();
-        console.log(`[MULTITENANT] Received configs:`, JSON.stringify(allConfigs, null, 2));
+        const configResponse = await response.json();
+        console.log(`[MULTITENANT] Received config response:`, JSON.stringify(configResponse, null, 2));
+        
+        // Extract models and telemetry webhook from config response
+        allConfigs = configResponse.models;
+        this.telemetryWebhookConfig = configResponse.telemetry_webhook;
         
         if (!Array.isArray(allConfigs) || allConfigs.length === 0) {
-          throw new Error('Config API returned empty or invalid configuration array');
+          throw new Error('Config API returned empty or invalid models array');
         }
         
-        // Cache the configuration in Redis
+        // Cache the complete configuration in Redis (both models and telemetry webhook)
         if (this.redisClient) {
           try {
-            await this.redisClient.setEx(cacheKey, cacheTTL, JSON.stringify(allConfigs));
-            console.log(`[MULTITENANT] Cached config for ${configId} with TTL ${cacheTTL} seconds`);
+            await this.redisClient.setEx(cacheKey, cacheTTL, JSON.stringify(configResponse));
+            console.log(`[MULTITENANT] Cached complete config for ${configId} with TTL ${cacheTTL} seconds`);
           } catch (error) {
             console.error(`[REDIS] Failed to cache config:`, error);
           }
@@ -820,8 +838,44 @@ class ProxyServer {
       };
 
       this.analyticsQueue.push(requestData);
+      
+      // Also send to telemetry webhook if configured
+      this.sendToTelemetryWebhook(requestData);
     } catch (error) {
     }
+  }
+
+  sendToTelemetryWebhook(requestData) {
+    // Fire-and-forget async telemetry request
+    setImmediate(() => {
+      try {
+        const telemetryConfig = this.getTelemetryWebhookConfig();
+        
+        if (!telemetryConfig || !telemetryConfig.url) {
+          return; // No telemetry webhook configured
+        }
+
+        const headers = {
+          'Content-Type': 'application/json',
+          ...telemetryConfig.headers
+        };
+
+        // Send telemetry data asynchronously (completely non-blocking)
+        fetch(telemetryConfig.url, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            source: 'superagent-proxy',
+            event: requestData
+          })
+        }).catch(error => {
+          console.error('[TELEMETRY] Failed to send webhook:', error.message);
+        });
+        
+      } catch (error) {
+        console.error('[TELEMETRY] Error preparing telemetry webhook:', error);
+      }
+    });
   }
 
   startAnalyticsBatch() {

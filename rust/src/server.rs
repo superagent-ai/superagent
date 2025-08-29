@@ -31,6 +31,7 @@ pub struct ProxyServer {
     client: Client<HttpsConnector<hyper::client::HttpConnector>>,
     sse_content_accumulators: Arc<RwLock<HashMap<u64, SseAccumulator>>>,
     redis_client: Option<redis::Client>,
+    telemetry_webhook_config: Arc<RwLock<Option<crate::config::TelemetryWebhookConfig>>>,
 }
 
 impl ProxyServer {
@@ -74,6 +75,7 @@ impl ProxyServer {
             client,
             sse_content_accumulators: Arc::new(RwLock::new(HashMap::new())),
             redis_client,
+            telemetry_webhook_config: Arc::new(RwLock::new(None)),
         })
     }
 
@@ -148,8 +150,18 @@ impl ProxyServer {
                 match conn.get::<_, String>(&cache_key).await {
                     Ok(cached_data) => {
                         println!("[MULTITENANT] Cache HIT for config ID: {}", config_id);
-                        if let Ok(configs) = serde_json::from_str::<Vec<serde_json::Value>>(&cached_data) {
-                            all_configs = Some(configs);
+                        if let Ok(cached_config) = serde_json::from_str::<serde_json::Value>(&cached_data) {
+                            // Extract models and telemetry webhook from cached config
+                            if let Some(models) = cached_config.get("models").and_then(|m| m.as_array()) {
+                                all_configs = Some(models.clone());
+                            }
+                            
+                            // Parse and store telemetry webhook config from cache
+                            if let Some(telemetry_webhook) = cached_config.get("telemetry_webhook") {
+                                if let Ok(webhook_config) = serde_json::from_value::<crate::config::TelemetryWebhookConfig>(telemetry_webhook.clone()) {
+                                    *self.telemetry_webhook_config.write().await = Some(webhook_config);
+                                }
+                            }
                         }
                     },
                     Err(_) => {
@@ -176,26 +188,39 @@ impl ProxyServer {
                 return Err(Error::Server(format!("Config API returned {}: {}", response.status(), response.status().canonical_reason().unwrap_or("Unknown"))));
             }
             
-            let configs = response.json::<serde_json::Value>().await
+            let config_response = response.json::<serde_json::Value>().await
                 .map_err(|e| Error::Server(format!("Failed to parse config response for {}: {}", config_id, e)))?;
             
-            println!("[MULTITENANT] Received configs: {}", serde_json::to_string_pretty(&configs).unwrap_or_default());
+            println!("[MULTITENANT] Received config response: {}", serde_json::to_string_pretty(&config_response).unwrap_or_default());
             
-            let configs_array = configs.as_array()
-                .ok_or_else(|| Error::Server("Config API returned invalid configuration format".to_string()))?;
+            // Extract models and telemetry webhook from config response
+            let configs_array = config_response.get("models")
+                .and_then(|m| m.as_array())
+                .ok_or_else(|| Error::Server("Config API returned invalid models array".to_string()))?
+                .clone();
             
-            if configs_array.is_empty() {
-                return Err(Error::Server("Config API returned empty configuration array".to_string()));
+            // Parse and store telemetry webhook config
+            if let Some(telemetry_webhook) = config_response.get("telemetry_webhook") {
+                if let Ok(webhook_config) = serde_json::from_value::<crate::config::TelemetryWebhookConfig>(telemetry_webhook.clone()) {
+                    *self.telemetry_webhook_config.write().await = Some(webhook_config);
+                    println!("[MULTITENANT] Stored telemetry webhook config");
+                } else {
+                    eprintln!("[MULTITENANT] Failed to parse telemetry webhook config");
+                }
             }
             
-            all_configs = Some(configs_array.clone());
+            if configs_array.is_empty() {
+                return Err(Error::Server("Config API returned empty models array".to_string()));
+            }
             
-            // Cache the configuration in Redis
+            all_configs = Some(configs_array);
+            
+            // Cache the complete configuration in Redis
             if let Some(redis_client) = &self.redis_client {
                 if let Ok(mut conn) = redis_client.get_async_connection().await {
-                    if let Ok(configs_json) = serde_json::to_string(&configs_array) {
-                        match conn.set_ex::<_, _, ()>(&cache_key, &configs_json, cache_ttl as usize).await {
-                            Ok(_) => println!("[MULTITENANT] Cached config for {} with TTL {} seconds", config_id, cache_ttl),
+                    if let Ok(config_json) = serde_json::to_string(&config_response) {
+                        match conn.set_ex::<_, _, ()>(&cache_key, &config_json, cache_ttl as usize).await {
+                            Ok(_) => println!("[MULTITENANT] Cached complete config for {} with TTL {} seconds", config_id, cache_ttl),
                             Err(e) => eprintln!("[REDIS] Failed to cache config: {}", e),
                         }
                     }
@@ -224,6 +249,50 @@ impl ProxyServer {
         
         // If no model specified, throw error
         Err(Error::Server("Model must be specified in request body for multitenant configuration".to_string()))
+    }
+
+    // Send telemetry data to webhook asynchronously
+    fn send_to_telemetry_webhook(&self, request_data: serde_json::Value) {
+        let webhook_config = Arc::clone(&self.telemetry_webhook_config);
+        let config_manager = Arc::clone(&self.config_manager);
+        
+        tokio::spawn(async move {
+            // Get telemetry config
+            let telemetry_config = {
+                let is_multitenant = std::env::var("MULTITENANT").unwrap_or_default() == "true";
+                
+                if is_multitenant {
+                    // For multitenant mode, use stored webhook config
+                    let config = webhook_config.read().await;
+                    config.clone()
+                } else {
+                    // Fallback to YAML config
+                    let config_manager = config_manager.read().await;
+                    config_manager.get_telemetry_webhook_config().cloned()
+                }
+            };
+            
+            if let Some(config) = telemetry_config {
+                let payload = serde_json::json!({
+                    "source": "superagent-proxy",
+                    "event": request_data
+                });
+                
+                // Build request
+                let mut req_builder = reqwest::Client::new()
+                    .post(&config.url)
+                    .header("content-type", "application/json");
+                
+                for (key, value) in &config.headers {
+                    req_builder = req_builder.header(key, value);
+                }
+                
+                match req_builder.json(&payload).send().await {
+                    Ok(_) => {}, // Success - no logging needed
+                    Err(e) => eprintln!("[TELEMETRY] Failed to send webhook: {}", e),
+                }
+            }
+        });
     }
 
     async fn handle_config_cache_update(&self, req: Request<Body>, config_id: &str) -> Result<Response<Body>> {
@@ -611,6 +680,29 @@ impl ProxyServer {
                 "Request processed"
             );
 
+            // Send telemetry webhook data
+            let telemetry_data = serde_json::json!({
+                "requestId": request_id,
+                "timestamp": chrono::Utc::now().to_rfc3339(),
+                "method": parts.method.as_str(),
+                "originalUrl": parts.uri.to_string(),
+                "targetUrl": target_url.to_string(),
+                "headers": parts.headers.iter()
+                    .map(|(k, v)| format!("{}: {}", k.as_str(), v.to_str().unwrap_or("")))
+                    .collect::<Vec<_>>()
+                    .join(", "),
+                "body": request_body.chars().take(10000).collect::<String>(),
+                "userAgent": user_agent,
+                "originator": originator,
+                "contentType": parts.headers.get("content-type")
+                    .and_then(|v| v.to_str().ok())
+                    .unwrap_or(""),
+                "responseStatus": response_status.as_u16(),
+                "responseTime": duration.as_millis() as u64,
+                "isSSE": false
+            });
+            self.send_to_telemetry_webhook(telemetry_data);
+
             result
         };
 
@@ -652,6 +744,29 @@ impl ProxyServer {
                 model_routing = model_name.is_some(),
                 "SSE request processed"
             );
+
+            // Send telemetry webhook data for SSE requests
+            let telemetry_data = serde_json::json!({
+                "requestId": request_id,
+                "timestamp": chrono::Utc::now().to_rfc3339(),
+                "method": parts.method.as_str(),
+                "originalUrl": parts.uri.to_string(),
+                "targetUrl": target_url.to_string(),
+                "headers": parts.headers.iter()
+                    .map(|(k, v)| format!("{}: {}", k.as_str(), v.to_str().unwrap_or("")))
+                    .collect::<Vec<_>>()
+                    .join(", "),
+                "body": request_body.chars().take(10000).collect::<String>(),
+                "userAgent": user_agent,
+                "originator": originator,
+                "contentType": parts.headers.get("content-type")
+                    .and_then(|v| v.to_str().ok())
+                    .unwrap_or(""),
+                "responseStatus": response_status.as_u16(),
+                "responseTime": duration.as_millis() as u64,
+                "isSSE": true
+            });
+            self.send_to_telemetry_webhook(telemetry_data);
         }
 
         response
@@ -956,6 +1071,7 @@ impl Clone for ProxyServer {
             client,
             sse_content_accumulators: Arc::clone(&self.sse_content_accumulators),
             redis_client: self.redis_client.clone(),
+            telemetry_webhook_config: Arc::clone(&self.telemetry_webhook_config),
         }
     }
 }
