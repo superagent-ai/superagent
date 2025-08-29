@@ -246,7 +246,7 @@ default:
   api_base: "https://api.anthropic.com"
 
 # Telemetry webhook configuration
-telemetry_webhook:
-  url: "http://localhost:3000/api/webhook/telemetry"
-  headers:
-    x-superagent-team-id: "kh7exbtd3nw2nbykr495ef3kf97pg7x1"
+# telemetry_webhook:
+#   url: "http://localhost:3000/api/webhook/telemetry"
+#   headers:
+#     x-superagent-team-id: "kh7exbtd3nw2nbykr495ef3kf97pg7x1"

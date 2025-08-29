@@ -5,13 +5,12 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use hyper::service::{make_service_fn, service_fn};
-use hyper::{Body, Client, Method, Request, Response, Server, StatusCode};
-use hyper_tls::HttpsConnector;
+use hyper::{Body, Method, Request, Response, Server, StatusCode};
 use serde_json::Value;
 use tokio::sync::{Mutex, RwLock};
 use tracing::{info, warn};
 use uuid::Uuid;
-use redis::AsyncCommands;
+use redis::{AsyncCommands, aio::ConnectionManager};
 
 use crate::config::ConfigManager;
 use crate::redaction::{RedactionEngine, RedactionService};
@@ -28,16 +27,13 @@ pub struct ProxyServer {
     redaction_engine: RedactionEngine,
     redaction_service: RedactionService,
     config_manager: Arc<RwLock<ConfigManager>>,
-    client: Client<HttpsConnector<hyper::client::HttpConnector>>,
     sse_content_accumulators: Arc<RwLock<HashMap<u64, SseAccumulator>>>,
-    redis_client: Option<redis::Client>,
+    redis_manager: Option<ConnectionManager>,
     telemetry_webhook_config: Arc<RwLock<Option<crate::config::TelemetryWebhookConfig>>>,
 }
 
 impl ProxyServer {
     pub async fn new(port: u16, config_path: Option<String>, redaction_api_url: Option<String>) -> Result<Self> {
-        let https = HttpsConnector::new();
-        let client = Client::builder().build::<_, hyper::Body>(https);
         
         let mut config_manager = ConfigManager::new_with_path(config_path.clone());
         if let Err(e) = config_manager.load_config().await {
@@ -49,13 +45,21 @@ impl ProxyServer {
             );
         }
 
-        // Initialize Redis client if in multitenant mode
-        let redis_client = if std::env::var("MULTITENANT").unwrap_or_default() == "true" {
+        // Initialize Redis connection manager if in multitenant mode
+        let redis_manager = if std::env::var("MULTITENANT").unwrap_or_default() == "true" {
             let redis_url = std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".to_string());
             match redis::Client::open(redis_url.as_str()) {
                 Ok(client) => {
-                    println!("[REDIS] Client initialized successfully");
-                    Some(client)
+                    match ConnectionManager::new(client).await {
+                        Ok(manager) => {
+                            println!("[REDIS] Connection manager initialized successfully");
+                            Some(manager)
+                        },
+                        Err(e) => {
+                            eprintln!("[REDIS] Failed to create connection manager: {}", e);
+                            None
+                        }
+                    }
                 },
                 Err(e) => {
                     eprintln!("[REDIS] Failed to initialize Redis client: {}", e);
@@ -72,9 +76,8 @@ impl ProxyServer {
             redaction_engine: RedactionEngine::new(),
             redaction_service: RedactionService::new(redaction_api_url),
             config_manager: Arc::new(RwLock::new(config_manager)),
-            client,
             sse_content_accumulators: Arc::new(RwLock::new(HashMap::new())),
-            redis_client,
+            redis_manager,
             telemetry_webhook_config: Arc::new(RwLock::new(None)),
         })
     }
@@ -145,9 +148,9 @@ impl ProxyServer {
         let mut all_configs: Option<Vec<serde_json::Value>> = None;
         
         // Try Redis cache first
-        if let Some(redis_client) = &self.redis_client {
-            if let Ok(mut conn) = redis_client.get_async_connection().await {
-                match conn.get::<_, String>(&cache_key).await {
+        if let Some(redis_manager) = &self.redis_manager {
+            let mut conn = redis_manager.clone();
+            match conn.get::<_, String>(&cache_key).await {
                     Ok(cached_data) => {
                         println!("[MULTITENANT] Cache HIT for config ID: {}", config_id);
                         if let Ok(cached_config) = serde_json::from_str::<serde_json::Value>(&cached_data) {
@@ -164,12 +167,9 @@ impl ProxyServer {
                             }
                         }
                     },
-                    Err(_) => {
-                        println!("[MULTITENANT] Cache MISS for config ID: {}", config_id);
-                    }
+                Err(_) => {
+                    println!("[MULTITENANT] Cache MISS for config ID: {}", config_id);
                 }
-            } else {
-                eprintln!("[REDIS] Failed to get connection");
             }
         }
         
@@ -216,13 +216,12 @@ impl ProxyServer {
             all_configs = Some(configs_array);
             
             // Cache the complete configuration in Redis
-            if let Some(redis_client) = &self.redis_client {
-                if let Ok(mut conn) = redis_client.get_async_connection().await {
-                    if let Ok(config_json) = serde_json::to_string(&config_response) {
-                        match conn.set_ex::<_, _, ()>(&cache_key, &config_json, cache_ttl as usize).await {
-                            Ok(_) => println!("[MULTITENANT] Cached complete config for {} with TTL {} seconds", config_id, cache_ttl),
-                            Err(e) => eprintln!("[REDIS] Failed to cache config: {}", e),
-                        }
+            if let Some(redis_manager) = &self.redis_manager {
+                let mut conn = redis_manager.clone();
+                if let Ok(config_json) = serde_json::to_string(&config_response) {
+                    match conn.set_ex::<_, _, ()>(&cache_key, &config_json, cache_ttl as usize).await {
+                        Ok(_) => println!("[MULTITENANT] Cached complete config for {} with TTL {} seconds", config_id, cache_ttl),
+                        Err(e) => eprintln!("[REDIS] Failed to cache config: {}", e),
                     }
                 }
             }
@@ -341,10 +340,10 @@ impl ProxyServer {
             .unwrap_or(3600);
 
         // Update cache in Redis
-        if let Some(redis_client) = &self.redis_client {
-            if let Ok(mut conn) = redis_client.get_async_connection().await {
-                let config_json = serde_json::to_string(&new_config).unwrap();
-                match conn.set_ex::<_, _, ()>(&cache_key, &config_json, cache_ttl as usize).await {
+        if let Some(redis_manager) = &self.redis_manager {
+            let mut conn = redis_manager.clone();
+            let config_json = serde_json::to_string(&new_config).unwrap();
+            match conn.set_ex::<_, _, ()>(&cache_key, &config_json, cache_ttl as usize).await {
                     Ok(_) => {
                         println!("[CONFIG-CACHE] Updated cache for {} with TTL {} seconds", config_id, cache_ttl);
                         let models_count = new_config.as_array().unwrap().len();
@@ -358,19 +357,13 @@ impl ProxyServer {
                             .header("content-type", "application/json")
                             .body(Body::from(response.to_string()))?);
                     },
-                    Err(e) => {
-                        eprintln!("[CONFIG-CACHE] Redis error updating cache for {}: {}", config_id, e);
-                        return Ok(Response::builder()
-                            .status(StatusCode::INTERNAL_SERVER_ERROR)
-                            .header("content-type", "application/json")
-                            .body(Body::from(format!(r#"{{"error": "Redis error", "details": "{}"}}"#, e)))?);
-                    }
+                Err(e) => {
+                    eprintln!("[CONFIG-CACHE] Redis error updating cache for {}: {}", config_id, e);
+                    return Ok(Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .header("content-type", "application/json")
+                        .body(Body::from(format!(r#"{{"error": "Redis error", "details": "{}"}}"#, e)))?);
                 }
-            } else {
-                return Ok(Response::builder()
-                    .status(StatusCode::SERVICE_UNAVAILABLE)
-                    .header("content-type", "application/json")
-                    .body(Body::from(r#"{"error": "Redis connection failed"}"#))?);
             }
         } else {
             return Ok(Response::builder()
@@ -1059,8 +1052,6 @@ impl ProxyServer {
 
 impl Clone for ProxyServer {
     fn clone(&self) -> Self {
-        let https = HttpsConnector::new();
-        let client = Client::builder().build::<_, hyper::Body>(https);
         
         Self {
             port: self.port,
@@ -1068,9 +1059,8 @@ impl Clone for ProxyServer {
             redaction_engine: self.redaction_engine.clone(),
             redaction_service: self.redaction_service.clone(),
             config_manager: Arc::clone(&self.config_manager),
-            client,
             sse_content_accumulators: Arc::clone(&self.sse_content_accumulators),
-            redis_client: self.redis_client.clone(),
+            redis_manager: self.redis_manager.clone(),
             telemetry_webhook_config: Arc::clone(&self.telemetry_webhook_config),
         }
     }

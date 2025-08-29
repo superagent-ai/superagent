@@ -57,7 +57,18 @@ class ProxyServer {
     if (isMultitenant) {
       try {
         const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-        this.redisClient = createClient({ url: redisUrl });
+        
+        // Simple connection pool configuration
+        const redisConfig = {
+          url: redisUrl,
+          socket: {
+            connectTimeout: 5000,
+            commandTimeout: 5000,
+            keepAlive: 30000
+          }
+        };
+
+        this.redisClient = createClient(redisConfig);
         
         this.redisClient.on('error', (err) => {
           console.error('[REDIS] Connection error:', err);
