@@ -17,9 +17,16 @@ pub struct DefaultConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TelemetryWebhookConfig {
+    pub url: String,
+    pub headers: std::collections::HashMap<String, String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Config {
     pub models: Option<Vec<ModelConfig>>,
     pub default: Option<DefaultConfig>,
+    pub telemetry_webhook: Option<TelemetryWebhookConfig>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -127,6 +134,13 @@ impl ConfigManager {
     pub fn is_provider(&self, model_name: &str, provider: &str) -> bool {
         let config = self.get_model_config(model_name);
         config.provider == provider
+    }
+
+    pub fn get_telemetry_webhook_config(&self) -> Option<&TelemetryWebhookConfig> {
+        if let Some(config) = &self.config {
+            return config.telemetry_webhook.as_ref();
+        }
+        None
     }
 }
 

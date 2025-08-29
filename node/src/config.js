@@ -78,7 +78,7 @@ class ConfigManager {
       return null;
     }
     
-    return this.config.telemetry_webhook_url || null;
+    return this.config.telemetry_webhook || null;
   }
 
   // Get API base for a model name

@@ -102,7 +102,9 @@ class ProxyServer {
         const cachedData = await this.redisClient.get(cacheKey);
         if (cachedData) {
           console.log(`[MULTITENANT] Cache HIT for config ID: ${configId}`);
-          allConfigs = JSON.parse(cachedData);
+          const cachedConfig = JSON.parse(cachedData);
+          allConfigs = cachedConfig.models;
+          this.telemetryWebhookConfig = cachedConfig.telemetry_webhook;
         } else {
           console.log(`[MULTITENANT] Cache MISS for config ID: ${configId}`);
         }
@@ -136,26 +138,19 @@ class ProxyServer {
         const configResponse = await response.json();
         console.log(`[MULTITENANT] Received config response:`, JSON.stringify(configResponse, null, 2));
         
-        // Handle new format with models and telemetry_webhook
-        if (configResponse.models) {
-          allConfigs = configResponse.models;
-          this.telemetryWebhookConfig = configResponse.telemetry_webhook;
-        } else if (Array.isArray(configResponse)) {
-          // Fallback for old format
-          allConfigs = configResponse;
-        } else {
-          throw new Error('Config API returned invalid configuration format');
-        }
+        // Extract models and telemetry webhook from config response
+        allConfigs = configResponse.models;
+        this.telemetryWebhookConfig = configResponse.telemetry_webhook;
         
         if (!Array.isArray(allConfigs) || allConfigs.length === 0) {
           throw new Error('Config API returned empty or invalid models array');
         }
         
-        // Cache the configuration in Redis
+        // Cache the complete configuration in Redis (both models and telemetry webhook)
         if (this.redisClient) {
           try {
-            await this.redisClient.setEx(cacheKey, cacheTTL, JSON.stringify(allConfigs));
-            console.log(`[MULTITENANT] Cached config for ${configId} with TTL ${cacheTTL} seconds`);
+            await this.redisClient.setEx(cacheKey, cacheTTL, JSON.stringify(configResponse));
+            console.log(`[MULTITENANT] Cached complete config for ${configId} with TTL ${cacheTTL} seconds`);
           } catch (error) {
             console.error(`[REDIS] Failed to cache config:`, error);
           }
