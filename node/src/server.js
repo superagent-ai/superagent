@@ -76,6 +76,18 @@ class ProxyServer {
     }
   }
 
+  // Get telemetry webhook configuration for multitenant or YAML config
+  getTelemetryWebhookConfig() {
+    const isMultitenant = process.env.MULTITENANT === 'true';
+    
+    if (isMultitenant && this.telemetryWebhookConfig) {
+      return this.telemetryWebhookConfig;
+    }
+    
+    // Fallback to YAML config
+    return configManager.getTelemetryWebhookConfig();
+  }
+
   async getConfigForMultitenant(configId, modelName = null) {
     console.log(`[MULTITENANT] Config ID: ${configId}, Model: ${modelName}`);
     
@@ -121,11 +133,22 @@ class ProxyServer {
           throw new Error(`Config API returned ${response.status}: ${response.statusText}`);
         }
         
-        allConfigs = await response.json();
-        console.log(`[MULTITENANT] Received configs:`, JSON.stringify(allConfigs, null, 2));
+        const configResponse = await response.json();
+        console.log(`[MULTITENANT] Received config response:`, JSON.stringify(configResponse, null, 2));
+        
+        // Handle new format with models and telemetry_webhook
+        if (configResponse.models) {
+          allConfigs = configResponse.models;
+          this.telemetryWebhookConfig = configResponse.telemetry_webhook;
+        } else if (Array.isArray(configResponse)) {
+          // Fallback for old format
+          allConfigs = configResponse;
+        } else {
+          throw new Error('Config API returned invalid configuration format');
+        }
         
         if (!Array.isArray(allConfigs) || allConfigs.length === 0) {
-          throw new Error('Config API returned empty or invalid configuration array');
+          throw new Error('Config API returned empty or invalid models array');
         }
         
         // Cache the configuration in Redis
@@ -820,8 +843,44 @@ class ProxyServer {
       };
 
       this.analyticsQueue.push(requestData);
+      
+      // Also send to telemetry webhook if configured
+      this.sendToTelemetryWebhook(requestData);
     } catch (error) {
     }
+  }
+
+  sendToTelemetryWebhook(requestData) {
+    // Fire-and-forget async telemetry request
+    setImmediate(() => {
+      try {
+        const telemetryConfig = this.getTelemetryWebhookConfig();
+        
+        if (!telemetryConfig || !telemetryConfig.url) {
+          return; // No telemetry webhook configured
+        }
+
+        const headers = {
+          'Content-Type': 'application/json',
+          ...telemetryConfig.headers
+        };
+
+        // Send telemetry data asynchronously (completely non-blocking)
+        fetch(telemetryConfig.url, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            source: 'superagent-proxy',
+            event: requestData
+          })
+        }).catch(error => {
+          console.error('[TELEMETRY] Failed to send webhook:', error.message);
+        });
+        
+      } catch (error) {
+        console.error('[TELEMETRY] Error preparing telemetry webhook:', error);
+      }
+    });
   }
 
   startAnalyticsBatch() {

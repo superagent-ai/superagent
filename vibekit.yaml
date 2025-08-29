@@ -64,6 +64,10 @@ models:
     api_base: "https://api.openai.com"
 
   # Claude Models - Latest (2025)
+  - model_name: "claude-sonnet-4-20250514"
+    provider: "anthropic"
+    api_base: "https://api.anthropic.com"
+
   - model_name: "claude-opus-4-1-20250805"
     provider: "anthropic"
     api_base: "https://api.anthropic.com"
@@ -110,3 +114,9 @@ models:
 default:
   provider: "anthropic"
   api_base: "https://api.anthropic.com"
+
+# Telemetry webhook configuration
+telemetry_webhook_url:
+  url: "http://localhost:3000/api/webhook/telemetry"
+  headers:
+    x-superagent-team-id: "kh7exbtd3nw2nbykr495ef3kf97pg7x1"
