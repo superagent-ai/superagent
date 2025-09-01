@@ -838,7 +838,7 @@ class ProxyServer {
         originalUrl: req.url,
         targetUrl: targetUrl.href,
         headers: this.redactSensitiveContent(JSON.stringify(req.headers)),
-        body: requestBody ? this.redactSensitiveContent(requestBody.substring(0, 10000)) : null,
+        body: requestBody ? this.redactSensitiveContent(requestBody) : null,
         userAgent: req.headers['user-agent'],
         originator: req.headers['originator'],
         contentType: req.headers['content-type'],

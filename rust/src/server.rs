@@ -680,11 +680,12 @@ impl ProxyServer {
                 "method": parts.method.as_str(),
                 "originalUrl": parts.uri.to_string(),
                 "targetUrl": target_url.to_string(),
-                "headers": parts.headers.iter()
-                    .map(|(k, v)| format!("{}: {}", k.as_str(), v.to_str().unwrap_or("")))
-                    .collect::<Vec<_>>()
-                    .join(", "),
-                "body": request_body.chars().take(10000).collect::<String>(),
+                "headers": serde_json::json!(parts.headers.iter()
+                    .filter_map(|(k, v)| {
+                        v.to_str().ok().map(|val| (k.as_str(), val))
+                    })
+                    .collect::<std::collections::HashMap<&str, &str>>()),
+                "body": request_body,
                 "userAgent": user_agent,
                 "originator": originator,
                 "contentType": parts.headers.get("content-type")
@@ -745,11 +746,12 @@ impl ProxyServer {
                 "method": parts.method.as_str(),
                 "originalUrl": parts.uri.to_string(),
                 "targetUrl": target_url.to_string(),
-                "headers": parts.headers.iter()
-                    .map(|(k, v)| format!("{}: {}", k.as_str(), v.to_str().unwrap_or("")))
-                    .collect::<Vec<_>>()
-                    .join(", "),
-                "body": request_body.chars().take(10000).collect::<String>(),
+                "headers": serde_json::json!(parts.headers.iter()
+                    .filter_map(|(k, v)| {
+                        v.to_str().ok().map(|val| (k.as_str(), val))
+                    })
+                    .collect::<std::collections::HashMap<&str, &str>>()),
+                "body": request_body,
                 "userAgent": user_agent,
                 "originator": originator,
                 "contentType": parts.headers.get("content-type")
