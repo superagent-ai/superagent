@@ -19,7 +19,7 @@ class RedactionRequest(BaseModel):
     prompt: str
 
 class RedactionResponse(BaseModel):
-    redacted_prompt: str
+    label: str
 
 @app.on_event("startup")
 async def load_model():
@@ -81,12 +81,12 @@ async def redact_prompt(request: RedactionRequest):
         # Extract the generated text
         redacted_content = output['choices'][0]['text'].strip()
         
-        return RedactionResponse(redacted_prompt=redacted_content)
+        return RedactionResponse(label=redacted_content)
         
     except Exception as e:
         logger.error(f"Error during redaction: {e}")
         # Return original prompt as fallback
-        return RedactionResponse(redacted_prompt=request.prompt)
+        return RedactionResponse(label=request.prompt)
 
 @app.get("/health")
 async def health_check():

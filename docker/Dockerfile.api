@@ -14,8 +14,9 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements first for better Docker layer caching
 COPY api/requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies with precompiled llama-cpp-python wheel
+RUN pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu --no-cache-dir && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy API source code
 COPY api/ .
