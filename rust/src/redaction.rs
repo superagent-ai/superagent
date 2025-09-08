@@ -1,15 +1,17 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use tracing::info;
 use crate::{Error, Result};
 
 #[derive(Debug, Serialize)]
 struct RedactionRequest {
-    prompt: String,
+    inputs: String,
+    parameters: serde_json::Value,
 }
 
 #[derive(Debug, Deserialize)]
 struct RedactionResponse {
-    redacted_prompt: String,
+    label: String,
 }
 
 pub struct RedactionEngine {
@@ -170,8 +172,12 @@ impl RedactionService {
     pub async fn redact_user_prompt(&self, prompt: &str) -> Result<String> {
         if let Some(url) = &self.api_url {
             let request = RedactionRequest {
-                prompt: prompt.to_string(),
+                inputs: prompt.to_string(),
+                parameters: serde_json::json!({}),
             };
+
+            info!("Sending redaction request to: {}", url);
+            info!("Request payload: {:?}", request);
 
             let response = self
                 .client
@@ -181,6 +187,8 @@ impl RedactionService {
                 .send()
                 .await
                 .map_err(|e| Error::Server(format!("Redaction API request failed: {}", e)))?;
+
+            info!("Redaction API response status: {}", response.status());
 
             if !response.status().is_success() {
                 return Err(Error::Server(format!(
@@ -194,8 +202,18 @@ impl RedactionService {
                 .await
                 .map_err(|e| Error::Server(format!("Failed to parse redaction response: {}", e)))?;
 
-            Ok(redaction_response.redacted_prompt)
+            info!("Redaction response: {:?}", redaction_response);
+
+            // Handle new API response format with label-based classification
+            if redaction_response.label == "jailbreak" {
+                info!("Jailbreak detected, blocking content");
+                Ok("The user prompt was blocked due to containing potentially harmful content.".to_string())
+            } else {
+                info!("Content approved, returning original prompt");
+                Ok(prompt.to_string()) // Return original prompt for benign content
+            }
         } else {
+            info!("No redaction URL configured, returning original prompt");
             // No redaction URL provided, return original prompt
             Ok(prompt.to_string())
         }

@@ -28,6 +28,7 @@ RUN mkdir -p /app/models
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 ENV HF_HOME=/app/models
+# HF_TOKEN should be passed at runtime via docker run -e HF_TOKEN=your_token
 
 # Expose the API port
 EXPOSE 3000

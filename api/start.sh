@@ -9,13 +9,13 @@ fi
 
 # Create virtual environment if it doesn't exist
 if [ ! -d ".venv" ]; then
-    echo "Creating virtual environment with uv..."
-    uv venv
+    echo "Creating virtual environment with uv using Python 3.12..."
+    uv venv --python python3.12
 fi
 
 # Install dependencies
 echo "Installing dependencies with uv..."
-uv pip install -r requirements.txt
+uv pip install -r requirements.txt --index-strategy unsafe-best-match
 
 # Start the server
 echo "Starting redaction API server on port 3000..."

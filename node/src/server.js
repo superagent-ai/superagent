@@ -521,6 +521,11 @@ class ProxyServer {
     delete options.headers['host']; // Will be set to target host
     delete options.headers['proxy-connection'];
     delete options.headers['proxy-authorization'];
+    
+    // Update Content-Length if we have a processed body
+    if (processedRequestBody) {
+      options.headers['content-length'] = Buffer.byteLength(processedRequestBody, 'utf8');
+    }
 
     // Choose http or https module
     const httpModule = targetUrl.protocol === 'https:' ? https : http;
