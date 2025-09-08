@@ -2,7 +2,7 @@
 name = "ai-firewall"
 version = "0.0.1"
 description = "The runtime firewall for AI, blocks LLM vulnerabilities in real time."
-authors = ["VibeKit Team"]
+authors = ["Superagent Technologies Inc."]
 license = "MIT"
 edition = "2021"
 rust-version = "1.70"

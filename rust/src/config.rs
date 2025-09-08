@@ -68,9 +68,9 @@ impl ConfigManager {
             // 3. Parent directory (for rust/ subdirectory setup)
             Some("../superagent.yaml".to_string()),
             // 4. Home directory
-            dirs::home_dir().map(|home| home.join(".vibekit").join("superagent.yaml").to_string_lossy().to_string()),
+            dirs::home_dir().map(|home| home.join(".superagent").join("superagent.yaml").to_string_lossy().to_string()),
             // 5. System config directory
-            Some("/etc/vibekit/superagent.yaml".to_string()),
+            Some("/etc/superagent/superagent.yaml".to_string()),
         ];
 
         for path_option in possible_paths {

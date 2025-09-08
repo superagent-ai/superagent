@@ -38,10 +38,10 @@ By default, both implementations look for `superagent.yaml` in the current worki
 
 ```bash
 # Node.js
-npm start -- --config=/etc/vibekit/superagent.yaml
+npm start -- --config=/etc/superagent/superagent.yaml
 
 # Rust
-./target/release/ai-firewall start --config=/etc/vibekit/superagent.yaml
+./target/release/ai-firewall start --config=/etc/superagent/superagent.yaml
 ```
 </details>
 
