@@ -34,21 +34,21 @@ docker-compose up -d
 <details>
 <summary><strong>Config File Location</strong></summary>
 
-By default, both implementations look for `vibekit.yaml` in the current working directory. You can specify a custom config file path using the `--config` parameter:
+By default, both implementations look for `superagent.yaml` in the current working directory. You can specify a custom config file path using the `--config` parameter:
 
 ```bash
 # Node.js
-npm start -- --config=/etc/vibekit/vibekit.yaml
+npm start -- --config=/etc/vibekit/superagent.yaml
 
 # Rust
-./target/release/ai-firewall start --config=/etc/vibekit/vibekit.yaml
+./target/release/ai-firewall start --config=/etc/vibekit/superagent.yaml
 ```
 </details>
 
 <details>
 <summary><strong>Config File Format</strong></summary>
 
-Edit `vibekit.yaml` to add models and API endpoints:
+Edit `superagent.yaml` to add models and API endpoints:
 
 ```yaml
 models:
@@ -81,7 +81,7 @@ Both Node.js and Rust implementations support the following CLI options:
 ai-firewall start --port 8080
 
 # With custom config
-ai-firewall start --port 8080 --config=/path/to/vibekit.yaml
+ai-firewall start --port 8080 --config=/path/to/superagent.yaml
 
 # With redaction API for input screening
 ai-firewall start --redaction-api-url=http://localhost:3000/redact
@@ -99,7 +99,7 @@ ai-firewall status --port 8080
 <summary><strong>Global Options</strong></summary>
 
 - `-p, --port <PORT>`: Port to run on (default: 8080)
-- `-c, --config <PATH>`: Path to vibekit.yaml file (default: vibekit.yaml)
+- `-c, --config <PATH>`: Path to superagent.yaml file (default: superagent.yaml)
 - `--redaction-api-url <URL>`: URL for redaction API to screen user messages
 - `-d, --daemon`: Run in background (start command only)
 </details>
@@ -119,7 +119,7 @@ Create a server programmatically:
 import ProxyServer from 'ai-firewall';
 
 const port = 8080;
-const configPath = './vibekit.yaml'; // optional, defaults to 'vibekit.yaml'
+const configPath = './superagent.yaml'; // optional, defaults to 'superagent.yaml'
 const redactionApiUrl = 'http://localhost:3000/redact'; // optional
 const proxy = new ProxyServer(port, configPath, redactionApiUrl);
 
@@ -150,7 +150,7 @@ use ai_firewall::ProxyServer;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let port = 8080;
-    let config_path = Some("./vibekit.yaml".to_string()); // optional
+    let config_path = Some("./superagent.yaml".to_string()); // optional
     let redaction_api_url = Some("http://localhost:3000/redact".to_string()); // optional
     
     let server = ProxyServer::new(port, config_path, redaction_api_url).await?;

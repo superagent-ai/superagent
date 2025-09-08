@@ -31,7 +31,7 @@ WORKDIR /app
 COPY --from=builder /app/target/release/ai-firewall ./ai-firewall
 
 # Copy config file
-COPY vibekit.yaml ./vibekit.yaml
+COPY superagent.yaml ./superagent.yaml
 
 # Create non-root user
 RUN useradd -r -s /bin/false aifirewall
@@ -46,4 +46,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD ./ai-firewall status || exit 1
 
 # Default command
-CMD ["./ai-firewall", "start", "--port", "8080", "--config", "vibekit.yaml"]
+CMD ["./ai-firewall", "start", "--port", "8080", "--config", "superagent.yaml"]

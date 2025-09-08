@@ -21,8 +21,8 @@ pub async fn run_cli() -> Result<()> {
                 .short('c')
                 .long("config")
                 .value_name("PATH")
-                .help("Path to vibekit.yaml file")
-                .default_value("vibekit.yaml"),
+                .help("Path to superagent.yaml file")
+                .default_value("superagent.yaml"),
         )
         .arg(
             Arg::new("redaction_api_url")
@@ -47,8 +47,8 @@ pub async fn run_cli() -> Result<()> {
                         .short('c')
                         .long("config")
                         .value_name("PATH")
-                        .help("Path to vibekit.yaml file")
-                        .default_value("vibekit.yaml"),
+                        .help("Path to superagent.yaml file")
+                        .default_value("superagent.yaml"),
                 )
                 .arg(
                     Arg::new("daemon")
@@ -113,7 +113,7 @@ pub async fn run_cli() -> Result<()> {
             let redaction_api_url = sub_matches
                 .get_one::<String>("redaction_api_url")
                 .cloned()
-                .or_else(|| std::env::var("VIBEKIT_REDACTION_API_URL").ok());
+                .or_else(|| std::env::var("SUPERAGENT_REDACTION_API_URL").ok());
 
             let _daemon = sub_matches.get_flag("daemon");
 
@@ -155,7 +155,7 @@ pub async fn run_cli() -> Result<()> {
             let redaction_api_url = matches
                 .get_one::<String>("redaction_api_url")
                 .cloned()
-                .or_else(|| std::env::var("VIBEKIT_REDACTION_API_URL").ok());
+                .or_else(|| std::env::var("SUPERAGENT_REDACTION_API_URL").ok());
 
             start_proxy_with_check(port, Some(config_path), redaction_api_url).await?;
         }

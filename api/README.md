@@ -60,7 +60,7 @@ To use this redaction API with your AI firewall:
 ./target/release/ai-firewall start --redaction-api-url=http://localhost:3000/redact
 
 # Node.js version  
-VIBEKIT_REDACTION_API_URL=http://localhost:3000/redact node src/index.js
+SUPERAGENT_REDACTION_API_URL=http://localhost:3000/redact node src/index.js
 ```
 
 ## Model

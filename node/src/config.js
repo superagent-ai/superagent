@@ -7,7 +7,7 @@ class ConfigManager {
   constructor() {
     this.config = null;
     // Default to looking in the current working directory
-    this.configPath = path.resolve(process.cwd(), 'vibekit.yaml');
+    this.configPath = path.resolve(process.cwd(), 'superagent.yaml');
   }
 
   async loadConfig(configPath = null) {
