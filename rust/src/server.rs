@@ -481,14 +481,17 @@ impl ProxyServer {
 
                 // Process user messages for redaction
                 if let Some(messages) = parsed_body.get_mut("messages") {
+                    info!("Found messages in request body, checking for user messages to redact");
                     if let Some(messages_array) = messages.as_array_mut() {
                         for message in messages_array.iter_mut() {
                             if let Some(message_obj) = message.as_object_mut() {
                                 if let Some(role) = message_obj.get("role") {
                                     if role == "user" {
+                                        info!("Found user message, attempting redaction");
                                         if let Some(content) = message_obj.get_mut("content") {
                                             match self.redact_content(content).await {
                                                 Ok(redacted_content) => {
+                                                    info!("Successfully redacted user message content");
                                                     *content = redacted_content;
                                                 }
                                                 Err(e) => {
@@ -496,12 +499,16 @@ impl ProxyServer {
                                                     // Continue with original content on redaction failure
                                                 }
                                             }
+                                        } else {
+                                            info!("User message has no content field");
                                         }
                                     }
                                 }
                             }
                         }
                     }
+                } else {
+                    info!("No messages found in request body");
                 }
 
                 serde_json::to_string(&parsed_body).unwrap_or_else(|_| request_body.clone())

@@ -163,6 +163,7 @@ fn initialize_sensitive_patterns() -> Vec<Regex> {
 
 impl RedactionService {
     pub fn new(api_url: Option<String>) -> Self {
+        info!("RedactionService initialized with API URL: {:?}", api_url);
         Self {
             api_url,
             client: reqwest::Client::new(),
