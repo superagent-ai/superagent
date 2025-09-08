@@ -589,7 +589,7 @@ impl ProxyServer {
 
         // Copy headers (clean up proxy-specific ones)
         for (name, value) in parts.headers.iter() {
-            if !matches!(name.as_str(), "host" | "proxy-connection" | "proxy-authorization") {
+            if !matches!(name.as_str(), "host" | "proxy-connection" | "proxy-authorization" | "content-length") {
                 if let Ok(header_value) = value.to_str() {
                     req_builder = req_builder.header(name.as_str(), header_value);
                 }
@@ -598,7 +598,10 @@ impl ProxyServer {
 
         // Add request body (using processed body with redacted user messages)
         if !processed_request_body.is_empty() {
-            req_builder = req_builder.body(processed_request_body.clone());
+            // Set correct Content-Length for the processed body
+            req_builder = req_builder
+                .header("content-length", processed_request_body.len().to_string())
+                .body(processed_request_body.clone());
         }
 
         // Make the proxied request

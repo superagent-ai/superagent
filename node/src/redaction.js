@@ -11,8 +11,7 @@ class RedactionService {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ prompt }),
-          timeout: 30000,
+          body: JSON.stringify({ inputs: prompt, parameters: {} }),
         });
 
         if (!response.ok) {
@@ -20,7 +19,13 @@ class RedactionService {
         }
 
         const data = await response.json();
-        return data.redacted_prompt;
+        
+        // Handle new API response format with label-based classification
+        if (data.label === 'jailbreak') {
+          return 'The user prompt was blocked due to containing potentially harmful content.';
+        } else {
+          return prompt; // Return original prompt for benign content
+        }
       } catch (error) {
         throw new Error(`Redaction API request failed: ${error.message}`);
       }
