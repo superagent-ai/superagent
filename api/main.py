@@ -35,7 +35,7 @@ async def load_model():
         model_path = hf_hub_download(
             repo_id=model_repo,
             filename=model_filename,
-            cache_dir="./models"
+            cache_dir="./models",
             token=os.getenv("HF_TOKEN")  # Ensure you have your token set in env variables
         )
         
