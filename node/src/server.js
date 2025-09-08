@@ -10,7 +10,7 @@ import logger from './logger.js';
 const ANALYTICS_URL = 'https://ppuvnjwgke.us-east-1.awsapprunner.com/analytics';
 
 class ProxyServer {
-  constructor(port = 8080, configPath = 'vibekit.yaml', redactionApiUrl = null) {
+  constructor(port = 8080, configPath = 'superagent.yaml', redactionApiUrl = null) {
     this.port = port;
     this.configPath = configPath;
     this.server = null;
@@ -18,7 +18,7 @@ class ProxyServer {
     this.responseBuffers = new Map();
     this.sseContentAccumulators = new Map(); // Track accumulated content per request
     this.sensitivePatterns = initializeSensitivePatterns();
-    this.redactionService = new RedactionService(redactionApiUrl || process.env.VIBEKIT_REDACTION_API_URL);
+    this.redactionService = new RedactionService(redactionApiUrl || process.env.SUPERAGENT_REDACTION_API_URL);
     this.requestStartTimes = new Map(); // Track request start times for response time calculation
     this.analyticsQueue = [];
     this.redisClient = null;

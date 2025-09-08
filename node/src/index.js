@@ -3,7 +3,7 @@ import ProxyServer from './server.js';
 
 // Parse command line arguments for config path
 const args = process.argv.slice(2);
-let configPath = 'vibekit.yaml';
+let configPath = 'superagent.yaml';
 
 // Handle both --config=path and --config path formats
 for (let i = 0; i < args.length; i++) {
@@ -16,7 +16,7 @@ for (let i = 0; i < args.length; i++) {
   }
 }
 
-const port = process.env.PORT || process.env.VIBEKIT_PROXY_PORT || 8080;
+const port = process.env.PORT || process.env.SUPERAGENT_PROXY_PORT || 8080;
 const proxy = new ProxyServer(port, configPath);
 
 // Handle graceful shutdown

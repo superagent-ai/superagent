@@ -120,7 +120,7 @@ jobs:
         cp node/package.json package/ai-firewall-node/
         cp node/package-lock.json package/ai-firewall-node/
         cp -r node/node_modules package/ai-firewall-node/
-        cp vibekit.yaml package/ai-firewall-node/
+        cp superagent.yaml package/ai-firewall-node/
         chmod +x package/ai-firewall-node/src/cli.js
     
     - name: Copy files (Windows)
@@ -130,7 +130,7 @@ jobs:
         copy node\package.json package\ai-firewall-node\
         copy node\package-lock.json package\ai-firewall-node\
         xcopy /E /I node\node_modules package\ai-firewall-node\node_modules
-        copy vibekit.yaml package\ai-firewall-node\
+        copy superagent.yaml package\ai-firewall-node\
     
     - name: Create tarball (Unix)
       if: runner.os != 'Windows'
@@ -262,7 +262,7 @@ jobs:
           
           ### Usage
           ```bash
-          ai-firewall start --port 8080 --config vibekit.yaml
+          ai-firewall start --port 8080 --config superagent.yaml
           ```
           
           ### What's Changed

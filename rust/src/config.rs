@@ -62,15 +62,15 @@ impl ConfigManager {
         // Try multiple locations in order of preference
         let possible_paths = vec![
             // 1. Environment variable
-            std::env::var("VIBEKIT_CONFIG").ok(),
+            std::env::var("SUPERAGENT_CONFIG").ok(),
             // 2. Current working directory
-            Some("vibekit.yaml".to_string()),
+            Some("superagent.yaml".to_string()),
             // 3. Parent directory (for rust/ subdirectory setup)
-            Some("../vibekit.yaml".to_string()),
+            Some("../superagent.yaml".to_string()),
             // 4. Home directory
-            dirs::home_dir().map(|home| home.join(".vibekit").join("vibekit.yaml").to_string_lossy().to_string()),
+            dirs::home_dir().map(|home| home.join(".superagent").join("superagent.yaml").to_string_lossy().to_string()),
             // 5. System config directory
-            Some("/etc/vibekit/vibekit.yaml".to_string()),
+            Some("/etc/superagent/superagent.yaml".to_string()),
         ];
 
         for path_option in possible_paths {
@@ -82,7 +82,7 @@ impl ConfigManager {
         }
 
         // Default fallback
-        "vibekit.yaml".to_string()
+        "superagent.yaml".to_string()
     }
 
     pub async fn load_config(&mut self) -> Result<()> {

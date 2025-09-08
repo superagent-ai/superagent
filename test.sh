@@ -16,7 +16,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}=== AI Firewall Implementation Tests ===${NC}"
-echo -e "${YELLOW}Using config file: $(pwd)/vibekit.yaml${NC}"
+echo -e "${YELLOW}Using config file: $(pwd)/superagent.yaml${NC}"
 
 # Test configurations
 NODE_PORT=8080
@@ -30,9 +30,9 @@ NORMAL_STREAM_REQUEST='{"model": "gpt-4o", "stream": true, "input": "Count to 3"
 
 # Function to start Node.js server
 start_node_server() {
-    echo -e "${YELLOW}Starting Node.js server on port $NODE_PORT with config=../vibekit.yaml...${NC}"
+    echo -e "${YELLOW}Starting Node.js server on port $NODE_PORT with config=../superagent.yaml...${NC}"
     cd node
-    PORT=$NODE_PORT npm start -- --config=../vibekit.yaml > ../node_server.log 2>&1 &
+    PORT=$NODE_PORT npm start -- --config=../superagent.yaml > ../node_server.log 2>&1 &
     NODE_PID=$!
     cd ..
     sleep 3
@@ -41,11 +41,11 @@ start_node_server() {
 
 # Function to start Rust server
 start_rust_server() {
-    echo -e "${YELLOW}Starting Rust server on port $RUST_PORT with config=../vibekit.yaml...${NC}"
+    echo -e "${YELLOW}Starting Rust server on port $RUST_PORT with config=../superagent.yaml...${NC}"
     cd rust
     source "$HOME/.cargo/env"
     cargo build --release > ../rust_build.log 2>&1
-    RUST_LOG=info PORT=$RUST_PORT ./target/release/ai-firewall start --port $RUST_PORT --config=../vibekit.yaml > ../rust_server.log 2>&1 &
+    RUST_LOG=info PORT=$RUST_PORT ./target/release/ai-firewall start --port $RUST_PORT --config=../superagent.yaml > ../rust_server.log 2>&1 &
     RUST_PID=$!
     cd ..
     sleep 3

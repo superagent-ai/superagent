@@ -19,13 +19,13 @@ program
   .description('AI firewall server for secure API routing')
   .version(packageJson.version)
   .option('-p, --port <number>', 'Port to run on', '8080')
-  .option('-c, --config <path>', 'Path to vibekit.yaml file', 'vibekit.yaml');
+  .option('-c, --config <path>', 'Path to superagent.yaml file', 'superagent.yaml');
 
 program
   .command('start')
   .description('Start the proxy server')
   .option('-p, --port <number>', 'Port to run on', '8080')
-  .option('-c, --config <path>', 'Path to vibekit.yaml file', 'vibekit.yaml')
+  .option('-c, --config <path>', 'Path to superagent.yaml file', 'superagent.yaml')
   .option('-d, --daemon', 'Run in background')
   .action(async (options) => {
     const port = parseInt(options.port) || 8080;
@@ -36,7 +36,7 @@ program
         process.exit(1);
       }
       const args = ['--port', port.toString()];
-      if (options.config && options.config !== 'vibekit.yaml') {
+      if (options.config && options.config !== 'superagent.yaml') {
         args.push('--config', options.config);
       }
       const child = spawn(process.argv[0], [process.argv[1], ...args], {
@@ -115,7 +115,7 @@ program
     }
   });
 
-async function startProxyWithCheck(port, configPath = 'vibekit.yaml') {
+async function startProxyWithCheck(port, configPath = 'superagent.yaml') {
   const proxy = new ProxyServer(port, configPath);
   
   // Handle graceful shutdown
