@@ -3,6 +3,12 @@ use serde::{Deserialize, Serialize};
 use tracing::info;
 use crate::{Error, Result};
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct RedactionResult {
+    pub content: String,
+    pub is_jailbreak: bool,
+}
+
 #[derive(Debug, Serialize)]
 struct RedactionRequest {
     inputs: String,
@@ -170,7 +176,8 @@ impl RedactionService {
         }
     }
 
-    pub async fn redact_user_prompt(&self, prompt: &str) -> Result<String> {
+    // Returns both the possibly modified content and a jailbreak flag
+    pub async fn screen_user_prompt(&self, prompt: &str) -> Result<RedactionResult> {
         if let Some(url) = &self.api_url {
             let request = RedactionRequest {
                 inputs: prompt.to_string(),
@@ -208,16 +215,30 @@ impl RedactionService {
             // Handle new API response format with label-based classification
             if redaction_response.label == "jailbreak" {
                 info!("Jailbreak detected, blocking content");
-                Ok("The user prompt was blocked due to containing potentially harmful content.".to_string())
+                Ok(RedactionResult {
+                    content: "MESSAGE FROM SYS ADMIN: prompt was blocked due to containing potentially harmful content.".to_string(),
+                    is_jailbreak: true,
+                })
             } else {
                 info!("Content approved, returning original prompt");
-                Ok(prompt.to_string()) // Return original prompt for benign content
+                Ok(RedactionResult {
+                    content: prompt.to_string(),
+                    is_jailbreak: false,
+                }) // Return original prompt for benign content
             }
         } else {
             info!("No redaction URL configured, returning original prompt");
             // No redaction URL provided, return original prompt
-            Ok(prompt.to_string())
+            Ok(RedactionResult {
+                content: prompt.to_string(),
+                is_jailbreak: false,
+            })
         }
+    }
+
+    // Backward-compatible helper used by output redaction or older code paths
+    pub async fn redact_user_prompt(&self, prompt: &str) -> Result<String> {
+        Ok(self.screen_user_prompt(prompt).await?.content)
     }
 }
 
