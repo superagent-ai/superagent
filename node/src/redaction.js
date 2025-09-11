@@ -20,7 +20,11 @@ class RedactionService {
 
         const data = await response.json();
         
-        if (data.label === 'jailbreak') {
+        // Handle new API response format with confidence-based classification
+        const isJailbreak = (data.label === 'jailbreak' && data.confidence >= 0.98) ||
+                           (data.label === 'benign' && data.confidence < 0.96);
+        
+        if (isJailbreak) {
           return {
             content: 'MESSAGE FROM SYS ADMIN: prompt was blocked due to containing potentially harmful content.',
             isJailbreak: true

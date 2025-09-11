@@ -18,7 +18,7 @@ class ProxyServer {
     this.responseBuffers = new Map();
     this.sseContentAccumulators = new Map(); // Track accumulated content per request
     this.sensitivePatterns = initializeSensitivePatterns();
-    this.redactionService = new RedactionService(redactionApiUrl || process.env.SUPERAGENT_REDACTION_API_URL);
+    this.redactionService = new RedactionService(redactionApiUrl || process.env.NINJA_LM_API_URL);
     this.requestStartTimes = new Map(); // Track request start times for response time calculation
     this.analyticsQueue = [];
     this.redisClient = null;

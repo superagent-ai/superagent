@@ -17,7 +17,7 @@ services:
       # - MULTITENANT_CONFIG_API_URL=http://api:3000/api/proxy/
       # - REDIS_URL=redis://redis:6379
       # - CONFIG_CACHE_TTL=3600
-      # - SUPERAGENT_REDACTION_API_URL=http://redaction-api:3000/redact
+      # - NINJA_LM_API_URL=http://redaction-api:3000/redact
     volumes:
       - ../superagent.yaml:/app/superagent.yaml:ro
     restart: unless-stopped
@@ -46,7 +46,7 @@ services:
       # - MULTITENANT_CONFIG_API_URL=http://api:3000/api/proxy/
       # - REDIS_URL=redis://redis:6379
       # - CONFIG_CACHE_TTL=3600
-      # - SUPERAGENT_REDACTION_API_URL=http://redaction-api:3000/redact
+      # - NINJA_LM_API_URL=http://redaction-api:3000/redact
     volumes:
       - ../superagent.yaml:/app/superagent.yaml:ro
     restart: unless-stopped

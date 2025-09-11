@@ -18,6 +18,7 @@ struct RedactionRequest {
 #[derive(Debug, Deserialize)]
 struct RedactionResponse {
     label: String,
+    confidence: f64,
 }
 
 pub struct RedactionEngine {
@@ -212,19 +213,26 @@ impl RedactionService {
 
             info!("Redaction response: {:?}", redaction_response);
 
-            // Handle new API response format with label-based classification
-            if redaction_response.label == "jailbreak" {
-                info!("Jailbreak detected, blocking content");
+            // Handle new API response format with confidence-based classification
+            let is_jailbreak = match redaction_response.label.as_str() {
+                "jailbreak" => redaction_response.confidence >= 0.98,
+                "benign" => redaction_response.confidence < 0.96,
+                _ => false, // Default to safe for unknown labels
+            };
+
+            if is_jailbreak {
+                info!("Jailbreak detected (confidence: {}), blocking content", redaction_response.confidence);
                 Ok(RedactionResult {
                     content: "MESSAGE FROM SYS ADMIN: prompt was blocked due to containing potentially harmful content.".to_string(),
                     is_jailbreak: true,
                 })
             } else {
-                info!("Content approved, returning original prompt");
+                info!("Content approved (label: {}, confidence: {}), returning original prompt", 
+                      redaction_response.label, redaction_response.confidence);
                 Ok(RedactionResult {
                     content: prompt.to_string(),
                     is_jailbreak: false,
-                }) // Return original prompt for benign content
+                })
             }
         } else {
             info!("No redaction URL configured, returning original prompt");
