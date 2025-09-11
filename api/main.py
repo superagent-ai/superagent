@@ -4,6 +4,7 @@ from llama_cpp import Llama
 from huggingface_hub import hf_hub_download
 import os
 import logging
+import math
 from typing import Optional
 
 # Configure logging
@@ -21,6 +22,7 @@ class RedactionRequest(BaseModel):
 
 class RedactionResponse(BaseModel):
     label: str
+    confidence: float
 
 @app.on_event("startup")
 async def load_model():
@@ -45,7 +47,8 @@ async def load_model():
             model_path=model_path,
             n_ctx=2048,  # Context window
             n_threads=4,  # Number of CPU threads
-            verbose=False
+            verbose=False,
+            logits_all=True
         )
         
         logger.info("Model loaded successfully!")
@@ -77,18 +80,33 @@ async def redact_prompt(request: RedactionRequest):
             top_p=0.95,
             top_k=64,
             stop=["<end_of_turn>"],  # Stop at end of turn
-            echo=False
+            echo=False,
+            logprobs=True
         )
         
         # Extract the generated text
-        redacted_content = output['choices'][0]['text'].strip()
+        choice = output['choices'][0]
+        redacted_content = choice['text'].strip()
         
-        return RedactionResponse(label=redacted_content)
+        # Extract confidence from logprobs
+        confidence = 0.5  # Default fallback
+        try:
+            logprobs = choice.get('logprobs', {})
+            if logprobs and 'token_logprobs' in logprobs and logprobs['token_logprobs']:
+                # Get the log probability of the first token (classification result)
+                first_token_logprob = logprobs['token_logprobs'][0]
+                if first_token_logprob is not None:
+                    # Convert log probability to probability (0-1 scale)
+                    confidence = math.exp(first_token_logprob)
+        except (KeyError, IndexError, TypeError, ValueError):
+            logger.warning("Could not extract confidence from logprobs")
+        
+        return RedactionResponse(label=redacted_content, confidence=confidence)
         
     except Exception as e:
         logger.error(f"Error during redaction: {e}")
         # Return original prompt as fallback
-        return RedactionResponse(label=request.inputs)
+        return RedactionResponse(label=request.inputs, confidence=0.5)
 
 @app.get("/health")
 async def health_check():

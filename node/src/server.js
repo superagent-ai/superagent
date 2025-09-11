@@ -18,7 +18,7 @@ class ProxyServer {
     this.responseBuffers = new Map();
     this.sseContentAccumulators = new Map(); // Track accumulated content per request
     this.sensitivePatterns = initializeSensitivePatterns();
-    this.redactionService = new RedactionService(redactionApiUrl || process.env.SUPERAGENT_REDACTION_API_URL);
+    this.redactionService = new RedactionService(redactionApiUrl || process.env.NINJA_LM_API_URL);
     this.requestStartTimes = new Map(); // Track request start times for response time calculation
     this.analyticsQueue = [];
     this.redisClient = null;
@@ -265,21 +265,24 @@ class ProxyServer {
 
   async redactContent(content) {
     if (typeof content === 'string') {
-      return await this.redactionService.redactUserPrompt(content);
+      const result = await this.redactionService.screenUserPrompt(content);
+      return { content: result.content, isJailbreak: result.isJailbreak };
     } else if (Array.isArray(content)) {
       const redactedBlocks = [];
+      let jailbreakDetected = false;
       for (const block of content) {
         if (block.type === 'text' && block.text) {
-          const redactedText = await this.redactionService.redactUserPrompt(block.text);
-          redactedBlocks.push({ ...block, text: redactedText });
+          const result = await this.redactionService.screenUserPrompt(block.text);
+          if (result.isJailbreak) jailbreakDetected = true;
+          redactedBlocks.push({ ...block, text: result.content });
         } else {
           // Non-text blocks (like tool_result) pass through unchanged
           redactedBlocks.push(block);
         }
       }
-      return redactedBlocks;
+      return { content: redactedBlocks, isJailbreak: jailbreakDetected };
     } else {
-      return content;
+      return { content, isJailbreak: false };
     }
   }
 
@@ -410,6 +413,7 @@ class ProxyServer {
     // Extract model name from request body and process user message redaction
     let modelName = null;
     let baseUrl = null;
+    let jailbreakDetected = false;
     let processedRequestBody = requestBody;
 
     try {
@@ -422,7 +426,11 @@ class ProxyServer {
           for (const message of parsedBody.messages) {
             if (message.role === 'user' && message.content) {
               try {
-                message.content = await this.redactContent(message.content);
+                const result = await this.redactContent(message.content);
+                message.content = result.content;
+                if (result.isJailbreak) {
+                  jailbreakDetected = true;
+                }
               } catch (error) {
                 logger.warn(`Failed to redact user message`, {
                   event_type: 'redaction_failed',
@@ -536,8 +544,9 @@ class ProxyServer {
       const responseTime = endTime - this.requestStartTimes.get(requestId);
       this.requestStartTimes.delete(requestId);
 
-      // Log request to analytics asynchronously
-      this.logRequestToAnalytics(requestId, req, targetUrl, processedRequestBody, proxyRes, responseTime);
+      // Log request to analytics asynchronously (include jailbreak flag)
+      const isJailbreak = !!jailbreakDetected;
+      this.logRequestToAnalytics(requestId, req, targetUrl, processedRequestBody, proxyRes, responseTime, isJailbreak);
 
       // Extract model and redaction info for structured logging
       let extractedModel = null;
@@ -834,7 +843,7 @@ class ProxyServer {
   }
 
 
-  logRequestToAnalytics(requestId, req, targetUrl, requestBody, proxyRes, responseTime) {
+  logRequestToAnalytics(requestId, req, targetUrl, requestBody, proxyRes, responseTime, isJailbreak) {
     try {
       const requestData = {
         requestId,
@@ -850,7 +859,8 @@ class ProxyServer {
         responseStatus: proxyRes.statusCode,
         responseHeaders: JSON.stringify(proxyRes.headers),
         responseTime,
-        isSSE: proxyRes.headers['content-type']?.includes('text/event-stream') || false
+        isSSE: proxyRes.headers['content-type']?.includes('text/event-stream') || false,
+        isJailbreak: !!isJailbreak
       };
 
       this.analyticsQueue.push(requestData);

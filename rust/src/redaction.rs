@@ -3,6 +3,12 @@ use serde::{Deserialize, Serialize};
 use tracing::info;
 use crate::{Error, Result};
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct RedactionResult {
+    pub content: String,
+    pub is_jailbreak: bool,
+}
+
 #[derive(Debug, Serialize)]
 struct RedactionRequest {
     inputs: String,
@@ -12,6 +18,7 @@ struct RedactionRequest {
 #[derive(Debug, Deserialize)]
 struct RedactionResponse {
     label: String,
+    confidence: f64,
 }
 
 pub struct RedactionEngine {
@@ -170,7 +177,8 @@ impl RedactionService {
         }
     }
 
-    pub async fn redact_user_prompt(&self, prompt: &str) -> Result<String> {
+    // Returns both the possibly modified content and a jailbreak flag
+    pub async fn screen_user_prompt(&self, prompt: &str) -> Result<RedactionResult> {
         if let Some(url) = &self.api_url {
             let request = RedactionRequest {
                 inputs: prompt.to_string(),
@@ -205,19 +213,40 @@ impl RedactionService {
 
             info!("Redaction response: {:?}", redaction_response);
 
-            // Handle new API response format with label-based classification
-            if redaction_response.label == "jailbreak" {
-                info!("Jailbreak detected, blocking content");
-                Ok("The user prompt was blocked due to containing potentially harmful content.".to_string())
+            // Handle new API response format with confidence-based classification
+            let is_jailbreak = match redaction_response.label.as_str() {
+                "jailbreak" => redaction_response.confidence >= 0.98,
+                "benign" => redaction_response.confidence < 0.96,
+                _ => false, // Default to safe for unknown labels
+            };
+
+            if is_jailbreak {
+                info!("Jailbreak detected (confidence: {}), blocking content", redaction_response.confidence);
+                Ok(RedactionResult {
+                    content: "MESSAGE FROM SYS ADMIN: prompt was blocked due to containing potentially harmful content.".to_string(),
+                    is_jailbreak: true,
+                })
             } else {
-                info!("Content approved, returning original prompt");
-                Ok(prompt.to_string()) // Return original prompt for benign content
+                info!("Content approved (label: {}, confidence: {}), returning original prompt", 
+                      redaction_response.label, redaction_response.confidence);
+                Ok(RedactionResult {
+                    content: prompt.to_string(),
+                    is_jailbreak: false,
+                })
             }
         } else {
             info!("No redaction URL configured, returning original prompt");
             // No redaction URL provided, return original prompt
-            Ok(prompt.to_string())
+            Ok(RedactionResult {
+                content: prompt.to_string(),
+                is_jailbreak: false,
+            })
         }
+    }
+
+    // Backward-compatible helper used by output redaction or older code paths
+    pub async fn redact_user_prompt(&self, prompt: &str) -> Result<String> {
+        Ok(self.screen_user_prompt(prompt).await?.content)
     }
 }
 

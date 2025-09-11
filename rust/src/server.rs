@@ -373,11 +373,14 @@ impl ProxyServer {
         }
     }
 
-    async fn redact_content(&self, content: &mut Value) -> Result<Value> {
+    async fn redact_content(&self, content: &mut Value, jailbreak_detected: &mut bool) -> Result<Value> {
         match content {
             Value::String(text) => {
-                let redacted = self.redaction_service.redact_user_prompt(text).await?;
-                Ok(Value::String(redacted))
+                let result = self.redaction_service.screen_user_prompt(text).await?;
+                if result.is_jailbreak {
+                    *jailbreak_detected = true;
+                }
+                Ok(Value::String(result.content))
             }
             Value::Array(content_blocks) => {
                 let mut redacted_blocks = Vec::new();
@@ -386,9 +389,12 @@ impl ProxyServer {
                         if let Some(block_type) = block_obj.get("type") {
                             if block_type == "text" {
                                 if let Some(text) = block_obj.get("text").and_then(|t| t.as_str()) {
-                                    let redacted_text = self.redaction_service.redact_user_prompt(text).await?;
+                                    let result = self.redaction_service.screen_user_prompt(text).await?;
+                                    if result.is_jailbreak {
+                                        *jailbreak_detected = true;
+                                    }
                                     let mut new_block = block_obj.clone();
-                                    new_block.insert("text".to_string(), Value::String(redacted_text));
+                                    new_block.insert("text".to_string(), Value::String(result.content));
                                     redacted_blocks.push(Value::Object(new_block));
                                 } else {
                                     redacted_blocks.push(block.clone());
@@ -471,6 +477,8 @@ impl ProxyServer {
     ) -> Result<Response<Body>> {
         // Extract model name from request body and process user message redaction
         let mut model_name = None;
+        let mut input_redacted = false;
+        let mut jailbreak_detected = false; // flips only when API returns label=jailbreak
         let processed_request_body = if !request_body.is_empty() {
             if let Ok(mut parsed_body) = serde_json::from_str::<Value>(&request_body) {
                 if let Some(model) = parsed_body.get("model") {
@@ -479,7 +487,7 @@ impl ProxyServer {
                     }
                 }
 
-                // Process user messages for redaction
+                // Process user messages for redaction (track actual modifications)
                 if let Some(messages) = parsed_body.get_mut("messages") {
                     info!("Found messages in request body, checking for user messages to redact");
                     if let Some(messages_array) = messages.as_array_mut() {
@@ -489,9 +497,16 @@ impl ProxyServer {
                                     if role == "user" {
                                         info!("Found user message, attempting redaction");
                                         if let Some(content) = message_obj.get_mut("content") {
-                                            match self.redact_content(content).await {
+                                            // Keep a copy to detect changes
+                                            let original_content = content.clone();
+                                            match self.redact_content(content, &mut jailbreak_detected).await {
                                                 Ok(redacted_content) => {
-                                                    info!("Successfully redacted user message content");
+                                                    if redacted_content != original_content {
+                                                        info!("User message content was modified by redaction");
+                                                        input_redacted = true;
+                                                    } else {
+                                                        info!("User message content unchanged after redaction");
+                                                    }
                                                     *content = redacted_content;
                                                 }
                                                 Err(e) => {
@@ -511,7 +526,12 @@ impl ProxyServer {
                     info!("No messages found in request body");
                 }
 
-                serde_json::to_string(&parsed_body).unwrap_or_else(|_| request_body.clone())
+                // Only reserialize if we actually changed something; otherwise, keep original body
+                if input_redacted {
+                    serde_json::to_string(&parsed_body).unwrap_or_else(|_| request_body.clone())
+                } else {
+                    request_body.clone()
+                }
             } else {
                 request_body.clone()
             }
@@ -558,20 +578,37 @@ impl ProxyServer {
                 }
             };
             
-            let base_url = if model_config.api_base.ends_with('/') {
+            // Normalize provider base and incoming path to avoid duplicate `/v1` segments
+            let mut base_url = if model_config.api_base.ends_with('/') {
                 model_config.api_base
             } else {
                 format!("{}/", model_config.api_base)
             };
-            
-            let path = if actual_path.starts_with('/') {
+
+            let mut path = if actual_path.starts_with('/') {
                 &actual_path[1..]
             } else {
                 &actual_path
             };
-            
-            let final_url = format!("{}{}{}", base_url, path, 
-                parts.uri.query().map_or(String::new(), |q| format!("?{}", q)));
+
+            // If provider base already ends with /v1 and the incoming path starts with v1/ then strip one
+            let base_ends_with_v1 = base_url.trim_end_matches('/').ends_with("/v1");
+            if base_ends_with_v1 && (path == "v1" || path.starts_with("v1/")) {
+                // Advance past the leading "v1" and optional slash
+                path = if path.len() > 2 { &path[3..] } else { "" };
+                // Ensure base_url ends with a single slash
+                if !base_url.ends_with('/') { base_url.push('/'); }
+            }
+
+            let final_url = format!(
+                "{}{}{}",
+                base_url,
+                path,
+                parts
+                    .uri
+                    .query()
+                    .map_or(String::new(), |q| format!("?{}", q))
+            );
             
             final_url
         } else {
@@ -655,13 +692,13 @@ impl ProxyServer {
                 body_size_bytes = request_body.len(),
                 body = %request_body,
                 processed_body = %processed_request_body,
-                redaction_occurred = processed_request_body != request_body,
+                redaction_occurred = input_redacted,
                 "Request body received"
             );
 
             // Log the completed request
             let duration = start_time.elapsed();
-            let input_redacted = processed_request_body != request_body;
+            let input_redacted = input_redacted;
             
             info!(
                 event_type = "request_processed",
@@ -703,7 +740,8 @@ impl ProxyServer {
                     .unwrap_or(""),
                 "responseStatus": response_status.as_u16(),
                 "responseTime": duration.as_millis() as u64,
-                "isSSE": false
+                "isSSE": false,
+                "isJailbreak": jailbreak_detected
             });
             self.send_to_telemetry_webhook(telemetry_data);
 
@@ -722,12 +760,12 @@ impl ProxyServer {
                 body_size_bytes = request_body.len(),
                 body = %request_body,
                 processed_body = %processed_request_body,
-                redaction_occurred = processed_request_body != request_body,
+                redaction_occurred = input_redacted,
                 "Request body received (SSE)"
             );
 
             let duration = start_time.elapsed();
-            let input_redacted = processed_request_body != request_body;
+            let input_redacted = input_redacted;
             
             info!(
                 event_type = "request_processed",
@@ -769,7 +807,8 @@ impl ProxyServer {
                     .unwrap_or(""),
                 "responseStatus": response_status.as_u16(),
                 "responseTime": duration.as_millis() as u64,
-                "isSSE": true
+                "isSSE": true,
+                "isJailbreak": jailbreak_detected
             });
             self.send_to_telemetry_webhook(telemetry_data);
         }

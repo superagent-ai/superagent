@@ -3,7 +3,7 @@ class RedactionService {
     this.apiUrl = apiUrl;
   }
 
-  async redactUserPrompt(prompt) {
+  async screenUserPrompt(prompt) {
     if (this.apiUrl) {
       try {
         const response = await fetch(this.apiUrl, {
@@ -20,19 +20,29 @@ class RedactionService {
 
         const data = await response.json();
         
-        // Handle new API response format with label-based classification
-        if (data.label === 'jailbreak') {
-          return 'The user prompt was blocked due to containing potentially harmful content.';
+        // Handle new API response format with confidence-based classification
+        const isJailbreak = (data.label === 'jailbreak' && data.confidence >= 0.98) ||
+                           (data.label === 'benign' && data.confidence < 0.96);
+        
+        if (isJailbreak) {
+          return {
+            content: 'MESSAGE FROM SYS ADMIN: prompt was blocked due to containing potentially harmful content.',
+            isJailbreak: true
+          };
         } else {
-          return prompt; // Return original prompt for benign content
+          return { content: prompt, isJailbreak: false };
         }
       } catch (error) {
         throw new Error(`Redaction API request failed: ${error.message}`);
       }
     } else {
-      // No redaction URL provided, return original prompt
-      return prompt;
+      return { content: prompt, isJailbreak: false };
     }
+  }
+
+  async redactUserPrompt(prompt) {
+    const result = await this.screenUserPrompt(prompt);
+    return result.content;
   }
 }
 
