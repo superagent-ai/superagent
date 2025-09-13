@@ -30,8 +30,8 @@ async def load_model():
     
     try:
         # Download the GGUF model file
-        model_repo = "superagent-ai/ninja-lm-270m-gguf"
-        model_filename = "ninja-lm-270m-finetune.Q8_0.gguf"
+        model_repo = "superagent-ai/superagent-lm-270m-gguf"
+        model_filename = "superagent-lm-270m-finetune.Q8_0.gguf"
 
         logger.info("Downloading GGUF model...")
         model_path = hf_hub_download(
