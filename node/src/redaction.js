@@ -26,7 +26,7 @@ class RedactionService {
         
         if (isJailbreak) {
           return {
-            content: 'MESSAGE FROM SYS ADMIN: prompt was blocked due to containing potentially harmful content.',
+            content: '<firewall>User message blocked by firewall</firewall>',
             isJailbreak: true
           };
         } else {

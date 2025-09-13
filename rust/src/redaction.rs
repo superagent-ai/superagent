@@ -214,16 +214,13 @@ impl RedactionService {
             info!("Redaction response: {:?}", redaction_response);
 
             // Handle new API response format with confidence-based classification
-            let is_jailbreak = match redaction_response.label.as_str() {
-                "jailbreak" => redaction_response.confidence >= 0.98,
-                "benign" => redaction_response.confidence < 0.96,
-                _ => false, // Default to safe for unknown labels
-            };
+            let is_jailbreak = (redaction_response.label.as_str() == "jailbreak" && redaction_response.confidence >= 0.98) ||
+                              (redaction_response.label.as_str() == "benign" && redaction_response.confidence < 0.96);
 
             if is_jailbreak {
                 info!("Jailbreak detected (confidence: {}), blocking content", redaction_response.confidence);
                 Ok(RedactionResult {
-                    content: "MESSAGE FROM SYS ADMIN: prompt was blocked due to containing potentially harmful content.".to_string(),
+                    content: "<firewall>User message blocked by firewall</firewall>".to_string(),
                     is_jailbreak: true,
                 })
             } else {
