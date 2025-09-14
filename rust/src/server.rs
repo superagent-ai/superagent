@@ -508,6 +508,12 @@ impl ProxyServer {
                                                         info!("User message content unchanged after redaction");
                                                     }
                                                     *content = redacted_content;
+
+                                                    // If jailbreak was detected, change role from "user" to "assistant"
+                                                    if jailbreak_detected {
+                                                        message_obj.insert("role".to_string(), Value::String("user".to_string()));
+                                                        info!("Changed message role from 'user' to 'assistant' due to jailbreak detection");
+                                                    }
                                                 }
                                                 Err(e) => {
                                                     warn!("Failed to redact user message: {}", e);

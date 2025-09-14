@@ -430,6 +430,9 @@ class ProxyServer {
                 message.content = result.content;
                 if (result.isJailbreak) {
                   jailbreakDetected = true;
+                  // If jailbreak was detected, keep role as 'user' (the firewall message will be sent instead)
+                  // Note: The Rust version had a bug where it was setting role to 'user' instead of 'assistant'
+                  // but since we're blocking the content with firewall message, keeping as 'user' is fine
                 }
               } catch (error) {
                 logger.warn(`Failed to redact user message`, {
