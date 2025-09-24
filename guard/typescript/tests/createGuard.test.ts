@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { createGuard } from "../src/index";
 
 const apiKey = env.SUPERAGENT_API_KEY ?? "test-key";
-let serverUrl = env.SUPERAGENT_GUARD_URL ?? "http://127.0.0.1";
+let serverUrl = env.SUPERAGENT_GUARD_URL ?? "https://app.superagent.sh/api/guard";
 
 function respond(
   res: ServerResponse,

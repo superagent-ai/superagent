@@ -107,7 +107,7 @@ class GuardClient:
         timeout: Optional[float] = 10.0,
     ) -> None:
         if not api_base_url:
-            raise GuardError("api_base_url must be provided")
+            api_base_url = "https://app.superagent.sh/api/guard"
         if not api_key:
             raise GuardError("api_key must be provided")
 
@@ -179,7 +179,7 @@ class GuardClient:
 
 def create_guard(
     *,
-    api_base_url: str,
+    api_base_url: Optional[str] = None,
     api_key: str,
     client: Optional[httpx.AsyncClient] = None,
     timeout: Optional[float] = 10.0,
@@ -187,7 +187,7 @@ def create_guard(
     """Configure and return a Guard client."""
 
     return GuardClient(
-        api_base_url=api_base_url,
+        api_base_url=api_base_url or "https://app.superagent.sh/api/guard",
         api_key=api_key,
         client=client,
         timeout=timeout,

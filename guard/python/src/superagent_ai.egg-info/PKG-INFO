@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: superagent-ai
-Version: 0.0.1
+Version: 0.0.2
 Summary: Python SDK for the Superagent Guard service.
 Author: Superagent
 License: MIT
@@ -24,7 +24,7 @@ Python client for sending commands to the Superagent Guard endpoint.
 ## Installation
 
 ```bash
-pip install superagent-guard
+pip install superagent-ai
 ```
 
 ## Local development with uv

@@ -2,7 +2,7 @@ export interface CreateGuardOptions {
   /**
    * Full URL to the guard endpoint (e.g. https://example.com/api/guard).
    */
-  apiBaseUrl: string;
+  apiBaseUrl?: string;
   /**
    * API key used to authenticate the guard request.
    */
@@ -136,7 +136,9 @@ function normalizeReason(
 export function createGuard(options: CreateGuardOptions): GuardFunction {
   const { apiBaseUrl, apiKey, fetch: fetchImpl, timeoutMs } = options;
 
-  if (!apiBaseUrl || typeof apiBaseUrl !== "string") {
+  const resolvedBaseUrl = apiBaseUrl ?? "https://app.superagent.sh/api/guard";
+
+  if (!resolvedBaseUrl || typeof resolvedBaseUrl !== "string") {
     throw new GuardError("apiBaseUrl must be a non-empty string.");
   }
 
@@ -145,7 +147,7 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
   }
 
   const fetcher = ensureFetch(fetchImpl);
-  const endpoint = sanitizeUrl(apiBaseUrl);
+  const endpoint = sanitizeUrl(resolvedBaseUrl);
 
   return async function guard(
     command: string,
