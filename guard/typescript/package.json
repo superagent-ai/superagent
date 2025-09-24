@@ -1,0 +1,32 @@
+{
+  "name": "superagent-ai",
+  "version": "0.0.1",
+  "description": "TypeScript SDK for the Superagent Guard service.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "keywords": [
+    "superagent",
+    "guard",
+    "sdk",
+    "safety"
+  ],
+  "author": "Superagent",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "dotenv": "^16.4.5",
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
