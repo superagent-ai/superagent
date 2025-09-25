@@ -34,23 +34,18 @@ class AnalysisResponse(TypedDict, total=False):
     choices: list[GuardChoice]
 
 
-class GuardClassification(TypedDict, total=False):
-    classification: str
+class GuardDecision(TypedDict, total=False):
+    status: str
     violation_types: list[str]
     cwe_codes: list[str]
 
-
-@dataclass(slots=True)
-class GuardData:
-    analysis: AnalysisResponse
-    classification: Optional[GuardClassification] = None
-
-
 @dataclass(slots=True)
 class GuardResult:
-    data: GuardData
     rejected: bool
-    reasoning: Optional[str] = None
+    reasoning: str
+    raw: AnalysisResponse
+    decision: Optional[GuardDecision] = None
+    usage: Optional[GuardUsage] = None
 
 
 BlockCallback = Callable[[str], Union[Awaitable[None], None]]
@@ -61,7 +56,7 @@ def _sanitize_url(url: str) -> str:
     return url[:-1] if url.endswith("/") else url
 
 
-def _parse_classification(content: Optional[str]) -> Optional[GuardClassification]:
+def _parse_decision(content: Optional[str]) -> Optional[GuardDecision]:
     if not content:
         return None
     try:
@@ -69,24 +64,43 @@ def _parse_classification(content: Optional[str]) -> Optional[GuardClassificatio
     except ValueError:
         return None
 
-    if isinstance(parsed, dict) and "classification" in parsed:
-        classification: GuardClassification = parsed  # type: ignore[assignment]
-        return classification
+    if not isinstance(parsed, dict):
+        return None
+
+    status = parsed.get("status") or parsed.get("classification")
+    if status not in {"pass", "block"}:
+        return None
+
+    decision: GuardDecision = {"status": status}  # type: ignore[assignment]
+
+    if isinstance(parsed.get("violation_types"), list):
+        decision["violation_types"] = parsed["violation_types"]  # type: ignore[index]
+    if isinstance(parsed.get("cwe_codes"), list):
+        decision["cwe_codes"] = parsed["cwe_codes"]  # type: ignore[index]
+
+    for key, value in parsed.items():
+        if key in {"status", "classification", "violation_types", "cwe_codes"}:
+            continue
+        decision[key] = value  # type: ignore[index]
+
+    return decision
     return None
 
 
 def _reason_from(
-    classification: Optional[GuardClassification],
+    decision: Optional[GuardDecision],
     reasoning: Optional[str],
     rejected: bool,
 ) -> str:
-    if rejected and classification:
-        violations = classification.get("violation_types")
+    if decision:
+        violations = decision.get("violation_types")
         if violations:
             return ", ".join(violations)
     if reasoning:
         return reasoning
-    return "Guard rejected the command." if rejected else "Guard allowed the command."
+    if rejected:
+        return "Guard classified the command as malicious."
+    return "Command approved by guard."
 
 
 async def _maybe_call(callback: Optional[Callable[..., Union[Awaitable[None], None]]], *args: Any) -> None:
@@ -159,18 +173,19 @@ class GuardClient:
         message = (analysis.get("choices") or [{}])[0].get("message", {})
         content = message.get("content")
         reasoning = message.get("reasoning_content")
-        classification = _parse_classification(content)
-        rejected = bool(classification and classification.get("classification") == "block")
+        decision = _parse_decision(content)
+        rejected = bool(decision and decision.get("status") == "block")
 
+        normalized_reason = _reason_from(decision, reasoning, rejected)
         result = GuardResult(
-            data=GuardData(analysis=analysis, classification=classification),
             rejected=rejected,
-            reasoning=reasoning,
+            reasoning=reasoning or normalized_reason,
+            raw=analysis,
+            decision=decision,
+            usage=analysis.get("usage"),
         )
-
-        reason = _reason_from(classification, reasoning, rejected)
         if rejected:
-            await _maybe_call(on_block, reason)
+            await _maybe_call(on_block, normalized_reason)
         else:
             await _maybe_call(on_pass)
 

@@ -51,22 +51,19 @@ export interface AnalysisResponse {
   [key: string]: unknown;
 }
 
-export interface GuardClassification {
-  classification: "pass" | "block";
+export interface GuardDecision {
+  status: "pass" | "block";
   violation_types?: string[];
   cwe_codes?: string[];
   [key: string]: unknown;
 }
 
-export interface GuardData {
-  analysis: AnalysisResponse;
-  classification?: GuardClassification;
-}
-
 export interface GuardResult {
-  data: GuardData;
   rejected: boolean;
-  reasoning?: string;
+  decision?: GuardDecision;
+  usage?: GuardUsage;
+  reasoning: string;
+  raw: AnalysisResponse;
 }
 
 export type GuardFunction = (
@@ -95,19 +92,48 @@ function ensureFetch(fetchImpl: typeof fetch | undefined): typeof fetch {
   return resolved.bind(globalThis);
 }
 
-function parseClassification(
+function parseDecision(
   content: string | undefined
-): GuardClassification | undefined {
+): GuardDecision | undefined {
   if (!content) {
     return undefined;
   }
 
   try {
-    const payload = JSON.parse(content) as GuardClassification;
-    if (payload && payload.classification) {
-      return payload;
+    const payload = JSON.parse(content) as Record<string, unknown>;
+    if (!payload || typeof payload !== "object") {
+      return undefined;
     }
-    return undefined;
+
+    const statusSource = payload.status ?? payload.classification;
+    if (statusSource !== "pass" && statusSource !== "block") {
+      return undefined;
+    }
+
+    const decision: GuardDecision = { status: statusSource };
+
+    if (Array.isArray(payload.violation_types)) {
+      decision.violation_types = payload.violation_types as string[];
+    }
+
+    if (Array.isArray(payload.cwe_codes)) {
+      decision.cwe_codes = payload.cwe_codes as string[];
+    }
+
+    for (const [key, value] of Object.entries(payload)) {
+      if (
+        key === "status" ||
+        key === "classification" ||
+        key === "violation_types" ||
+        key === "cwe_codes"
+      ) {
+        continue;
+      }
+
+      decision[key] = value;
+    }
+
+    return decision;
   } catch (error) {
     // The guard may occasionally return non-JSON text; treat that as undefined.
     return undefined;
@@ -115,18 +141,18 @@ function parseClassification(
 }
 
 function normalizeReason(
-  classification: GuardClassification | undefined,
+  decision: GuardDecision | undefined,
   reasoning: string | undefined
 ): string {
-  if (classification?.violation_types?.length) {
-    return classification.violation_types.join(", ");
+  if (decision?.violation_types?.length) {
+    return decision.violation_types.join(", ");
   }
 
   if (reasoning) {
     return reasoning;
   }
 
-  if (classification?.classification === "block") {
+  if (decision?.status === "block") {
     return "Guard classified the command as malicious.";
   }
 
@@ -196,25 +222,24 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
     }
 
     const analysis = (await response.json()) as AnalysisResponse;
-    const classification = parseClassification(
+    const decision = parseDecision(
       analysis?.choices?.[0]?.message?.content
     );
-    const reasoning = analysis?.choices?.[0]?.message?.reasoning_content;
-    const rejected = classification?.classification === "block";
+    const rawReasoning = analysis?.choices?.[0]?.message?.reasoning_content;
+    const rejected = decision?.status === "block";
+
+    const normalizedReason = normalizeReason(decision, rawReasoning);
 
     const result: GuardResult = {
-      data: {
-        analysis,
-        classification,
-      },
       rejected,
-      reasoning,
+      decision,
+      usage: analysis?.usage,
+      reasoning: rawReasoning ?? normalizedReason,
+      raw: analysis,
     };
 
-    const reason = normalizeReason(classification, reasoning);
-
     if (rejected) {
-      await callbacks.onBlock?.(reason);
+      await callbacks.onBlock?.(normalizedReason);
     } else {
       await callbacks.onPass?.();
     }

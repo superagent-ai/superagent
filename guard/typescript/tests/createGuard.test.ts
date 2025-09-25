@@ -54,7 +54,7 @@ beforeAll(async () => {
         choices: [
           {
             message: {
-              content: JSON.stringify({ classification: "pass" }),
+              content: JSON.stringify({ status: "pass" }),
               reasoning_content: "Looks safe",
             },
           },
@@ -70,7 +70,7 @@ beforeAll(async () => {
         {
           message: {
             content: JSON.stringify({
-              classification: "block",
+              status: "block",
               violation_types: ["prompt_injection"],
               cwe_codes: ["CWE-20"],
             }),
@@ -96,14 +96,14 @@ beforeAll(async () => {
 });
 
 describe("createGuard", () => {
-  it("returns a pass classification and triggers onPass", async () => {
+  it("returns a pass decision and triggers onPass", async () => {
     const analysisPayload = {
       usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
       id: "analysis-pass",
       choices: [
         {
           message: {
-            content: JSON.stringify({ classification: "pass" }),
+            content: JSON.stringify({ status: "pass" }),
             reasoning_content: "Looks safe",
           },
         },
@@ -119,12 +119,18 @@ describe("createGuard", () => {
     const result = await guard("hello world", { onPass });
 
     expect(result.rejected).toBe(false);
-    expect(result.data.classification?.classification).toBe("pass");
+    expect(result.decision?.status).toBe("pass");
     expect(result.reasoning).toBe("Looks safe");
+    expect(result.usage).toEqual({
+      prompt_tokens: 1,
+      completion_tokens: 1,
+      total_tokens: 2,
+    });
+    expect(result.raw.id).toBe("analysis-pass");
     expect(onPass).toHaveBeenCalledTimes(1);
   });
 
-  it("returns a block classification and triggers onBlock with violation", async () => {
+  it("returns a block decision and triggers onBlock with violation", async () => {
     const analysisPayload = {
       usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
       id: "analysis-block",
@@ -132,7 +138,7 @@ describe("createGuard", () => {
         {
           message: {
             content: JSON.stringify({
-              classification: "block",
+              status: "block",
               violation_types: ["prompt_injection"],
               cwe_codes: ["CWE-20"],
             }),
@@ -147,10 +153,17 @@ describe("createGuard", () => {
     const result = await guard("steal secrets", { onBlock });
 
     expect(result.rejected).toBe(true);
-    expect(result.data.classification?.classification).toBe("block");
-    expect(result.data.classification?.violation_types).toEqual([
+    expect(result.decision?.status).toBe("block");
+    expect(result.decision?.violation_types).toEqual([
       "prompt_injection",
     ]);
+    expect(result.reasoning).toBe("Unsafe request");
+    expect(result.usage).toEqual({
+      prompt_tokens: 10,
+      completion_tokens: 5,
+      total_tokens: 15,
+    });
+    expect(result.raw.id).toBe("analysis-block");
     expect(onBlock).toHaveBeenCalledWith("prompt_injection");
   });
 });

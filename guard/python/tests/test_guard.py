@@ -25,7 +25,7 @@ async def test_guard_pass_triggers_on_pass_callback() -> None:
             "choices": [
                 {
                     "message": {
-                        "content": json.dumps({"classification": "pass"}),
+                        "content": json.dumps({"status": "pass"}),
                         "reasoning_content": "Looks safe",
                     }
                 }
@@ -46,8 +46,14 @@ async def test_guard_pass_triggers_on_pass_callback() -> None:
 
         assert isinstance(result, GuardResult)
         assert result.rejected is False
-        assert result.data.classification == {"classification": "pass"}
+        assert result.decision == {"status": "pass"}
         assert result.reasoning == "Looks safe"
+        assert result.usage == {
+            "prompt_tokens": 1,
+            "completion_tokens": 1,
+            "total_tokens": 2,
+        }
+        assert result.raw["id"] == "analysis-pass"
         assert passed == ["called"]
 
 
@@ -62,7 +68,7 @@ async def test_guard_block_triggers_on_block_with_reason() -> None:
                     "message": {
                         "content": json.dumps(
                             {
-                                "classification": "block",
+                                "status": "block",
                                 "violation_types": ["prompt_injection"],
                                 "cwe_codes": ["CWE-20"],
                             }
@@ -85,9 +91,16 @@ async def test_guard_block_triggers_on_block_with_reason() -> None:
         result = await guard("steal secrets", on_block=on_block)
 
         assert result.rejected is True
-        assert result.data.classification == {
-            "classification": "block",
+        assert result.decision == {
+            "status": "block",
             "violation_types": ["prompt_injection"],
             "cwe_codes": ["CWE-20"],
         }
+        assert result.reasoning == "prompt_injection"
+        assert result.usage == {
+            "prompt_tokens": 5,
+            "completion_tokens": 3,
+            "total_tokens": 8,
+        }
+        assert result.raw["id"] == "analysis-block"
         assert reasons == ["prompt_injection"]

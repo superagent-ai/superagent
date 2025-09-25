@@ -47,4 +47,4 @@ if (rejected) {
 - `fetch` – optional custom fetch implementation (defaults to global `fetch`).
 - `timeoutMs` – optional timeout for the outbound request.
 
-The guard response includes both the raw analysis payload and the parsed classification, enabling you to plug into custom workflows or audit logs.
+The guard response includes both the raw analysis payload and the parsed decision, enabling you to plug into custom workflows or audit logs.

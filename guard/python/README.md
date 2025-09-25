@@ -44,7 +44,7 @@ async def main() -> None:
     if result.rejected:
         print("Rejected with:", result.reasoning)
     else:
-        print("Approved", result.data.classification)
+        print("Approved", result.decision)
 
     await guard.aclose()
 
@@ -58,4 +58,4 @@ asyncio.run(main())
 - `timeout` – optional request timeout (defaults to 10 seconds).
 - `client` – optionally provide your own configured `httpx.AsyncClient`.
 
-The returned `GuardResult` includes both the raw analysis payload from the Guard endpoint and the parsed classification for straightforward policy enforcement.
+The returned `GuardResult` includes both the raw analysis payload from the Guard endpoint and the parsed decision for straightforward policy enforcement.

@@ -3,8 +3,7 @@
 from .client import (
     AnalysisResponse,
     GuardClient,
-    GuardClassification,
-    GuardData,
+    GuardDecision,
     GuardError,
     GuardResult,
     create_guard,
@@ -13,8 +12,7 @@ from .client import (
 __all__ = [
     "AnalysisResponse",
     "GuardClient",
-    "GuardClassification",
-    "GuardData",
+    "GuardDecision",
     "GuardError",
     "GuardResult",
     "create_guard",
