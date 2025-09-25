@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 import json
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Optional, TypedDict, Union
+from typing import Any, Awaitable, Callable, Literal, Optional, TypedDict, Union
 
 import httpx
 
@@ -35,7 +35,7 @@ class AnalysisResponse(TypedDict, total=False):
 
 
 class GuardDecision(TypedDict, total=False):
-    status: str
+    status: Literal["pass", "block"]
     violation_types: list[str]
     cwe_codes: list[str]
 
@@ -68,23 +68,25 @@ def _parse_decision(content: Optional[str]) -> Optional[GuardDecision]:
         return None
 
     status = parsed.get("status") or parsed.get("classification")
-    if status not in {"pass", "block"}:
+    if not isinstance(status, str) or status not in {"pass", "block"}:
         return None
+    decision: GuardDecision = GuardDecision(status=status)
 
-    decision: GuardDecision = {"status": status}  # type: ignore[assignment]
+    violation_types = parsed.get("violation_types")
+    if isinstance(violation_types, list):
+        filtered_violations: list[str] = [
+            violation for violation in violation_types if isinstance(violation, str)
+        ]
+        if filtered_violations:
+            decision["violation_types"] = filtered_violations
 
-    if isinstance(parsed.get("violation_types"), list):
-        decision["violation_types"] = parsed["violation_types"]  # type: ignore[index]
-    if isinstance(parsed.get("cwe_codes"), list):
-        decision["cwe_codes"] = parsed["cwe_codes"]  # type: ignore[index]
-
-    for key, value in parsed.items():
-        if key in {"status", "classification", "violation_types", "cwe_codes"}:
-            continue
-        decision[key] = value  # type: ignore[index]
+    cwe_codes = parsed.get("cwe_codes")
+    if isinstance(cwe_codes, list):
+        filtered_codes: list[str] = [code for code in cwe_codes if isinstance(code, str)]
+        if filtered_codes:
+            decision["cwe_codes"] = filtered_codes
 
     return decision
-    return None
 
 
 def _reason_from(
