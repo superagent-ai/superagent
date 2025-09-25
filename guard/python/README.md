@@ -27,7 +27,7 @@ uv run pytest tests
 
 ```python
 import asyncio
-from superagent_guard import create_guard
+from superagent_ai import create_guard
 
 async def main() -> None:
     guard = create_guard(

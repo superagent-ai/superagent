@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "superagent-ai"
-version = "0.0.5"
+version = "0.0.6"
 description = "Python SDK for the Superagent Guard service."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -32,4 +32,5 @@ tests = [
 where = ["src"]
 
 [tool.setuptools.package-data]
+"superagent_ai" = ["py.typed"]
 "superagent_guard" = ["py.typed"]

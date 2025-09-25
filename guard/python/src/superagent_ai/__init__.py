@@ -1,6 +1,6 @@
-"""Compatibility layer for legacy superagent_guard imports."""
+"""Superagent AI Guard Python SDK."""
 
-from superagent_ai import (
+from .client import (
     AnalysisResponse,
     GuardClient,
     GuardDecision,

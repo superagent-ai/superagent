@@ -4,7 +4,7 @@ from typing import List
 import httpx
 import pytest
 
-from superagent_guard import GuardResult, create_guard
+from superagent_ai import GuardResult, create_guard
 
 API_BASE_URL = "https://example.com/guard"
 API_KEY = "test-key"
