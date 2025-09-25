@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 */node_modules/
+guard/typescript/package-lock.json
 
 # Python virtual environments
 venv/
@@ -11,6 +12,8 @@ __pycache__/
 */__pycache__/
 *.py[cod]
 *$py.class
+guard/python/src/superagent_*.egg-info/
+guard/python/uv.lock
 
 # AI models and caches
 models/

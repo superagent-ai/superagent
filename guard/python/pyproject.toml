@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "superagent-ai"
+version = "0.0.7"
+description = "Python SDK for the Superagent Guard service."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "Superagent"}]
+keywords = ["superagent", "guard", "sdk", "safety"]
+dependencies = [
+  "httpx>=0.25,<0.28"
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12"
+]
+
+[project.optional-dependencies]
+tests = [
+  "pytest>=7.4",
+  "pytest-asyncio>=0.23"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"superagent_ai" = ["py.typed"]
+"superagent_guard" = ["py.typed"]
