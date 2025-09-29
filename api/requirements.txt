@@ -1,8 +1,0 @@
---prefer-binary
---extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
---only-binary=llama-cpp-python
-fastapi>=0.104.1
-uvicorn[standard]>=0.24.0
-llama-cpp-python>=0.2.0
-pydantic>=2.5.0
-huggingface-hub>=0.16.0
