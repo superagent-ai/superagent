@@ -97,7 +97,8 @@ telemetry_webhook:
 
 ## Documentation
 
-Full documentation available at [docs.superagent.sh](https://docs.superagent.sh)
+- **Docs**: [docs.superagent.sh](https://docs.superagent.sh)
+- **Models**: [huggingface.co/superagent-ai](https://huggingface.co/superagent-ai)
 
 ## License
 
