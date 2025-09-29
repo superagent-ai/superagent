@@ -49,11 +49,11 @@ jobs:
         path: |
           ~/.cargo/registry
           ~/.cargo/git
-          rust/target
+          proxy/rust/target
         key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
     - name: Build
-      working-directory: ./rust
+      working-directory: ./proxy/rust
       env:
         CARGO_BUILD_JOBS: 4
       run: cargo build --release --target ${{ matrix.target }} --jobs 4
@@ -63,11 +63,11 @@ jobs:
 
     - name: Copy artifact (Unix)
       if: runner.os != 'Windows'
-      run: cp rust/target/${{ matrix.target }}/release/${{ matrix.artifact_name }} artifacts/${{ matrix.asset_name }}
+      run: cp proxy/rust/target/${{ matrix.target }}/release/${{ matrix.artifact_name }} artifacts/${{ matrix.asset_name }}
 
     - name: Copy artifact (Windows)
       if: runner.os == 'Windows'
-      run: copy rust\target\${{ matrix.target }}\release\${{ matrix.artifact_name }} artifacts\${{ matrix.asset_name }}
+      run: copy proxy\rust\target\${{ matrix.target }}\release\${{ matrix.artifact_name }} artifacts\${{ matrix.asset_name }}
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -89,13 +89,13 @@ jobs:
       run: echo "VERSION=${GITHUB_REF#refs/tags/rust-v}" >> $GITHUB_OUTPUT
 
     - name: Update Cargo.toml version
-      working-directory: ./rust
+      working-directory: ./proxy/rust
       run: |
         sed -i 's/^version = ".*"/version = "${{ steps.get_version.outputs.VERSION }}"/' Cargo.toml
         cat Cargo.toml | head -10  # Show first 10 lines to verify
 
     - name: Publish to crates.io
-      working-directory: ./rust
+      working-directory: ./proxy/rust
       run: cargo publish --allow-dirty --token ${{ secrets.CARGO_TOKEN }}
 
   publish-docker:

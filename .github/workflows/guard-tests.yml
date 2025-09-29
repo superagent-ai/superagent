@@ -1,15 +1,15 @@
-name: Guard SDK Tests
+name: SDK Tests
 
 on:
   push:
     branches:
       - main
     paths:
-      - "guard/**"
+      - "sdk/**"
       - ".github/workflows/guard-tests.yml"
   pull_request:
     paths:
-      - "guard/**"
+      - "sdk/**"
       - ".github/workflows/guard-tests.yml"
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: guard/typescript
+        working-directory: sdk/typescript
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,7 +50,7 @@ jobs:
         uses: astral-sh/setup-uv@v1
 
       - name: Install package with test extras
-        run: uv pip install --system -e guard/python[tests]
+        run: uv pip install --system -e sdk/python[tests]
 
       - name: Run pytest
-        run: pytest guard/python/tests
+        run: pytest sdk/python/tests

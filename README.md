@@ -22,7 +22,7 @@ This repository contains:
 
 ### SDKs
 
-Install and use Guard to enforce runtime protections directly in your application:
+Install and use the SDK to enforce runtime protections directly in your application:
 
 **Python:**
 ```bash
@@ -34,7 +34,7 @@ pip install superagent-ai
 npm install superagent-ai
 ```
 
-See [guard/python/README.md](guard/python/README.md) and [guard/typescript/README.md](guard/typescript/README.md) for usage examples and API documentation.
+See [sdk/python/README.md](sdk/python/README.md) and [sdk/typescript/README.md](sdk/typescript/README.md) for usage examples and API documentation.
 
 ### Proxy
 
@@ -42,14 +42,14 @@ Run Superagent as a reverse proxy to protect all AI API traffic:
 
 **Node.js:**
 ```bash
-cd node/
+cd proxy/node/
 npm install
 npm start
 ```
 
 **Rust (High Performance):**
 ```bash
-cd rust/
+cd proxy/rust/
 cargo build --release
 ./target/release/ai-firewall start
 ```
@@ -59,7 +59,7 @@ cargo build --release
 docker-compose up -d
 ```
 
-See [node/README.md](node/README.md) and [rust/README.md](rust/README.md) for configuration, CLI options, and programmatic usage.
+See [proxy/node/README.md](proxy/node/README.md) and [proxy/rust/README.md](proxy/rust/README.md) for configuration, CLI options, and programmatic usage.
 
 ## Configuration
 
@@ -67,11 +67,11 @@ Edit `superagent.yaml` to configure models and providers:
 
 ```yaml
 models:
-  - model_name: "gpt-4o"
+  - model_name: "gpt-5"
     provider: "openai"
     api_base: "https://api.openai.com"
 
-  - model_name: "claude-3-7-sonnet-20250219"
+  - model_name: "claude-sonnet-4-5"
     provider: "anthropic"
     api_base: "https://api.anthropic.com/v1"
 
@@ -85,11 +85,12 @@ telemetry_webhook:
 ## Repository Structure
 
 ```
-├── node/           # Node.js proxy implementation
-├── rust/           # Rust proxy implementation (high performance)
-├── guard/
-│   ├── python/     # Python Guard SDK
-│   └── typescript/ # TypeScript Guard SDK
+├── proxy/
+│   ├── node/       # Node.js proxy implementation
+│   └── rust/       # Rust proxy implementation (high performance)
+├── sdk/
+│   ├── python/     # Python SDK
+│   └── typescript/ # TypeScript SDK
 ├── docker/         # Docker configurations
 └── README.md       # This file
 ```

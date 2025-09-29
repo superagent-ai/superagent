@@ -26,19 +26,19 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-        cache-dependency-path: node/package-lock.json
-    
+        cache-dependency-path: proxy/node/package-lock.json
+
     - name: Install dependencies
-      working-directory: ./node
+      working-directory: ./proxy/node
       run: npm ci
-    
+
     - name: Run tests
-      working-directory: ./node
+      working-directory: ./proxy/node
       run: npm test
       continue-on-error: true  # Since there might not be tests yet
-    
+
     - name: Check package can be packaged
-      working-directory: ./node
+      working-directory: ./proxy/node
       run: npm pack --dry-run
 
   publish-npm:
@@ -54,18 +54,18 @@ jobs:
         node-version: '20.x'
         registry-url: 'https://registry.npmjs.org'
         cache: 'npm'
-        cache-dependency-path: node/package-lock.json
-    
+        cache-dependency-path: proxy/node/package-lock.json
+
     - name: Install dependencies
-      working-directory: ./node
+      working-directory: ./proxy/node
       run: npm ci
-    
+
     - name: Extract version from tag
       id: get_version
       run: echo "VERSION=${GITHUB_REF#refs/tags/node-v}" >> $GITHUB_OUTPUT
-    
+
     - name: Update package version
-      working-directory: ./node
+      working-directory: ./proxy/node
       run: |
         CURRENT_VERSION=$(node -p "require('./package.json').version")
         TARGET_VERSION="${{ steps.get_version.outputs.VERSION }}"
@@ -74,9 +74,9 @@ jobs:
         else
           echo "Version already matches: $TARGET_VERSION"
         fi
-    
+
     - name: Publish to npm
-      working-directory: ./node
+      working-directory: ./proxy/node
       run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -104,32 +104,32 @@ jobs:
       with:
         node-version: '20.x'
         cache: 'npm'
-        cache-dependency-path: node/package-lock.json
-    
+        cache-dependency-path: proxy/node/package-lock.json
+
     - name: Install dependencies
-      working-directory: ./node
+      working-directory: ./proxy/node
       run: npm ci --only=production
-    
+
     - name: Create package directory
       run: mkdir -p package/ai-firewall-node
-    
+
     - name: Copy files (Unix)
       if: runner.os != 'Windows'
       run: |
-        cp -r node/src package/ai-firewall-node/
-        cp node/package.json package/ai-firewall-node/
-        cp node/package-lock.json package/ai-firewall-node/
-        cp -r node/node_modules package/ai-firewall-node/
+        cp -r proxy/node/src package/ai-firewall-node/
+        cp proxy/node/package.json package/ai-firewall-node/
+        cp proxy/node/package-lock.json package/ai-firewall-node/
+        cp -r proxy/node/node_modules package/ai-firewall-node/
         cp superagent.yaml package/ai-firewall-node/
         chmod +x package/ai-firewall-node/src/cli.js
-    
+
     - name: Copy files (Windows)
       if: runner.os == 'Windows'
       run: |
-        xcopy /E /I node\src package\ai-firewall-node\src
-        copy node\package.json package\ai-firewall-node\
-        copy node\package-lock.json package\ai-firewall-node\
-        xcopy /E /I node\node_modules package\ai-firewall-node\node_modules
+        xcopy /E /I proxy\node\src package\ai-firewall-node\src
+        copy proxy\node\package.json package\ai-firewall-node\
+        copy proxy\node\package-lock.json package\ai-firewall-node\
+        xcopy /E /I proxy\node\node_modules package\ai-firewall-node\node_modules
         copy superagent.yaml package\ai-firewall-node\
     
     - name: Create tarball (Unix)
@@ -162,18 +162,18 @@ jobs:
         node-version: '20.x'
         registry-url: 'https://npm.pkg.github.com'
         cache: 'npm'
-        cache-dependency-path: node/package-lock.json
-    
+        cache-dependency-path: proxy/node/package-lock.json
+
     - name: Install dependencies
-      working-directory: ./node
+      working-directory: ./proxy/node
       run: npm ci
-    
+
     - name: Extract version from tag
       id: get_version
       run: echo "VERSION=${GITHUB_REF#refs/tags/node-v}" >> $GITHUB_OUTPUT
-    
+
     - name: Update package version for GitHub
-      working-directory: ./node
+      working-directory: ./proxy/node
       run: |
         CURRENT_VERSION=$(node -p "require('./package.json').version")
         TARGET_VERSION="${{ steps.get_version.outputs.VERSION }}"
@@ -184,9 +184,9 @@ jobs:
         fi
         # Update package name for GitHub registry
         sed -i 's/"name": "ai-firewall"/"name": "@${{ github.repository_owner }}\/ai-firewall"/' package.json
-    
+
     - name: Publish to GitHub Packages
-      working-directory: ./node
+      working-directory: ./proxy/node
       run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
