@@ -1,0 +1,160 @@
+name: Release TypeScript SDK
+
+on:
+  push:
+    tags:
+      - 'typescript-sdk-v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: sdk/typescript/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./sdk/typescript
+      run: npm ci
+
+    - name: Run tests
+      working-directory: ./sdk/typescript
+      run: npm test
+
+    - name: Build package
+      working-directory: ./sdk/typescript
+      run: npm run build
+
+  publish-npm:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        registry-url: 'https://registry.npmjs.org'
+        cache: 'npm'
+        cache-dependency-path: sdk/typescript/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./sdk/typescript
+      run: npm ci
+
+    - name: Extract version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/typescript-sdk-v}" >> $GITHUB_OUTPUT
+
+    - name: Update package version
+      working-directory: ./sdk/typescript
+      run: |
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        TARGET_VERSION="${{ steps.get_version.outputs.VERSION }}"
+        if [ "$CURRENT_VERSION" != "$TARGET_VERSION" ]; then
+          npm version $TARGET_VERSION --no-git-tag-version
+        else
+          echo "Version already matches: $TARGET_VERSION"
+        fi
+
+    - name: Build package
+      working-directory: ./sdk/typescript
+      run: npm run build
+
+    - name: Publish to npm
+      working-directory: ./sdk/typescript
+      run: npm publish --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-github-package:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        registry-url: 'https://npm.pkg.github.com'
+        cache: 'npm'
+        cache-dependency-path: sdk/typescript/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./sdk/typescript
+      run: npm ci
+
+    - name: Extract version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/typescript-sdk-v}" >> $GITHUB_OUTPUT
+
+    - name: Update package version for GitHub
+      working-directory: ./sdk/typescript
+      run: |
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        TARGET_VERSION="${{ steps.get_version.outputs.VERSION }}"
+        if [ "$CURRENT_VERSION" != "$TARGET_VERSION" ]; then
+          npm version $TARGET_VERSION --no-git-tag-version
+        else
+          echo "Version already matches: $TARGET_VERSION"
+        fi
+        # Update package name for GitHub registry
+        sed -i 's/"name": "superagent-ai"/"name": "@${{ github.repository_owner }}\/superagent-ai"/' package.json
+
+    - name: Build package
+      working-directory: ./sdk/typescript
+      run: npm run build
+
+    - name: Publish to GitHub Packages
+      working-directory: ./sdk/typescript
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  create-release:
+    needs: [publish-npm, publish-github-package]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Extract version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/typescript-sdk-v}" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        generate_release_notes: true
+        body: |
+          ## TypeScript SDK Release
+
+          ### Installation Options
+
+          **Via npm:**
+          ```bash
+          npm install superagent-ai@${{ steps.get_version.outputs.VERSION }}
+          ```
+
+          **Via GitHub Packages:**
+          ```bash
+          npm install @${{ github.repository_owner }}/superagent-ai@${{ steps.get_version.outputs.VERSION }}
+          ```
+
+          ### What's Changed
+          See the auto-generated release notes below.
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
