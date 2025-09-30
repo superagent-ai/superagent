@@ -1,6 +1,6 @@
 # Superagent CLI
 
-Command-line interface for [Superagent Guard](https://superagent.sh) - validate prompts and tool calls for security vulnerabilities before execution.
+Command-line interface for [Superagent](https://superagent.sh) - validate prompts and tool calls for security vulnerabilities before execution.
 
 ## Installation
 
@@ -20,7 +20,7 @@ superagent guard "Write a hello world script"
 
 Output:
 ```
-✅ Prompt approved by Superagent Guard
+✅ Prompt approved by Superagent
 ```
 
 Block malicious prompts:
@@ -74,7 +74,7 @@ Get your API key at [app.superagent.sh](https://app.superagent.sh)
 
 ## How It Works
 
-The CLI uses the [Superagent Guard API](https://superagent.sh) to analyze prompts for:
+The CLI uses [Superagent](https://superagent.sh) to analyze prompts for:
 
 - **Security vulnerabilities** (SQL injection, command injection, etc.)
 - **Malicious intent** (data destruction, unauthorized access)
@@ -83,7 +83,7 @@ The CLI uses the [Superagent Guard API](https://superagent.sh) to analyze prompt
 
 When used as a Claude Code hook, it automatically:
 1. Receives the user's prompt via stdin
-2. Sends it to Superagent Guard for analysis
+2. Sends it to Superagent for analysis
 3. Returns a structured response to block or allow the prompt
 4. Shows detailed violation information when blocking
 
