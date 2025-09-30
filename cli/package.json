@@ -1,0 +1,44 @@
+{
+  "name": "@superagent-ai/cli",
+  "version": "0.0.2",
+  "description": "CLI for Superagent - validate prompts and tool calls for security",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "superagent": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "superagent",
+    "guard",
+    "cli",
+    "security",
+    "claude-code",
+    "hooks",
+    "ai-safety"
+  ],
+  "author": "Superagent",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/superagent-ai/superagent"
+  },
+  "dependencies": {
+    "superagent-ai": "^0.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
