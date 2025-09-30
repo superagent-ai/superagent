@@ -17,6 +17,7 @@ This repository contains:
 
 1. **SDKs** (Python & TypeScript) - Validate actions directly in your app without running the proxy
 2. **Proxy** (Node.js & Rust) - Route requests through a secure reverse proxy with runtime protection
+3. **CLI** - Command-line interface for managing and interacting with Superagent
 
 ## Quick Start
 
@@ -35,6 +36,14 @@ npm install superagent-ai
 ```
 
 See [sdk/python/README.md](sdk/python/README.md) and [sdk/typescript/README.md](sdk/typescript/README.md) for usage examples and API documentation.
+
+### CLI
+
+Install the CLI tool for managing Superagent:
+
+```bash
+npm install -g @superagent-ai/cli
+```
 
 ### Proxy
 
@@ -91,6 +100,7 @@ telemetry_webhook:
 ├── sdk/
 │   ├── python/     # Python SDK
 │   └── typescript/ # TypeScript SDK
+├── cli/            # Command-line interface
 ├── docker/         # Docker configurations
 └── README.md       # This file
 ```
