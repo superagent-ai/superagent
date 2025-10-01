@@ -1,6 +1,15 @@
-import { createGuard } from 'superagent-ai';
+import { createGuard, redactSensitiveData } from 'superagent-ai';
 
 export async function guardCommand(args: string[]) {
+  // Check for --redact flag
+  const redactIndex = args.indexOf('--redact');
+  const shouldRedact = redactIndex !== -1;
+
+  // Remove --redact flag from args if present
+  if (shouldRedact) {
+    args = [...args.slice(0, redactIndex), ...args.slice(redactIndex + 1)];
+  }
+
   // Check if we have command line arguments first
   const hasArgs = args.length > 0;
 
@@ -33,9 +42,21 @@ export async function guardCommand(args: string[]) {
     prompt = args.join(' ');
 
     if (!prompt) {
-      console.error('Usage: superagent guard <prompt>');
+      console.error('Usage: superagent guard <prompt> [--redact]');
       console.error('   or: echo \'{"prompt": "text"}\' | superagent guard');
       process.exit(1);
+    }
+  }
+
+  // If redact flag is set, redact and exit
+  if (shouldRedact) {
+    try {
+      const redacted = redactSensitiveData(prompt);
+      console.log(redacted);
+      process.exit(0);
+    } catch (error: any) {
+      console.error(`⚠️ Redaction failed: ${error.message}`);
+      process.exit(2);
     }
   }
 

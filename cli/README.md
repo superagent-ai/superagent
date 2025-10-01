@@ -38,28 +38,15 @@ Violations: unlawful_behavior
 CWE Codes: CWE-77
 ```
 
-#### Redact Command
-
-Redact sensitive information from text:
+Redact sensitive information from text using the `--redact` flag:
 
 ```bash
-superagent redact "My email is john@example.com and my credit card is 4532-1234-5678-9010"
+superagent guard "My email is john@example.com and my credit card is 4532-1234-5678-9010" --redact
 ```
 
 Output:
 ```
 My email is <REDACTED_EMAIL> and my credit card is <REDACTED_CC>
-```
-
-Or pipe text through stdin:
-
-```bash
-echo "Contact me at john@example.com" | superagent redact
-```
-
-Output:
-```
-Contact me at <REDACTED_EMAIL>
 ```
 
 ### Claude Code Hook
@@ -115,9 +102,9 @@ When used as a Claude Code hook, it automatically:
 3. Returns a structured response to block or allow the prompt
 4. Shows detailed violation information when blocking
 
-### Redact Command
+### Redaction (--redact flag)
 
-The redact command uses pattern matching to detect and replace sensitive information:
+The `--redact` flag uses pattern matching to detect and replace sensitive information:
 
 - **PII** (emails, phone numbers, SSN, addresses)
 - **Payment data** (credit cards, IBAN)
@@ -139,7 +126,7 @@ npm run build
 
 # Test locally
 node dist/index.js guard "test prompt"
-node dist/index.js redact "test@email.com"
+node dist/index.js guard "test@email.com" --redact
 ```
 
 ## License
