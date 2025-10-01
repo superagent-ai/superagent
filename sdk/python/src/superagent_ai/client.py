@@ -7,6 +7,8 @@ from typing import Any, Awaitable, Callable, Literal, Optional, TypedDict, Union
 
 import httpx
 
+from .redact import redact_sensitive_data
+
 
 class GuardError(RuntimeError):
     """Raised when the guard request fails or is misconfigured."""
@@ -46,6 +48,7 @@ class GuardResult:
     raw: AnalysisResponse
     decision: Optional[GuardDecision] = None
     usage: Optional[GuardUsage] = None
+    redacted: Optional[str] = None
 
 
 BlockCallback = Callable[[str], Union[Awaitable[None], None]]
@@ -121,6 +124,7 @@ class GuardClient:
         *,
         client: Optional[httpx.AsyncClient] = None,
         timeout: Optional[float] = 10.0,
+        redacted: bool = False,
     ) -> None:
         if not api_base_url:
             api_base_url = "https://app.superagent.sh/api/guard"
@@ -130,6 +134,7 @@ class GuardClient:
         self._api_key = api_key
         self._endpoint = _sanitize_url(api_base_url)
         self._timeout = timeout
+        self._redacted = redacted
         self._client = client or httpx.AsyncClient(timeout=timeout)
         self._owns_client = client is None
 
@@ -152,6 +157,14 @@ class GuardClient:
     ) -> GuardResult:
         if not command:
             raise GuardError("command must be a non-empty string")
+
+        # Start redaction in parallel if enabled (non-blocking)
+        import asyncio
+        redacted_task = (
+            asyncio.create_task(asyncio.to_thread(redact_sensitive_data, command))
+            if self._redacted
+            else None
+        )
 
         try:
             response = await self._client.post(
@@ -179,12 +192,17 @@ class GuardClient:
         rejected = bool(decision and decision.get("status") == "block")
 
         normalized_reason = _reason_from(decision, reasoning, rejected)
+
+        # Wait for redaction to complete (should already be done)
+        redacted_text = await redacted_task if redacted_task else None
+
         result = GuardResult(
             rejected=rejected,
             reasoning=reasoning or normalized_reason,
             raw=analysis,
             decision=decision,
             usage=analysis.get("usage"),
+            redacted=redacted_text,
         )
         if rejected:
             await _maybe_call(on_block, normalized_reason)
@@ -200,12 +218,22 @@ def create_guard(
     api_key: str,
     client: Optional[httpx.AsyncClient] = None,
     timeout: Optional[float] = 10.0,
+    redacted: bool = False,
 ) -> GuardClient:
-    """Configure and return a Guard client."""
+    """Configure and return a Guard client.
+
+    Args:
+        api_base_url: Full URL to the guard endpoint
+        api_key: API key used to authenticate the guard request
+        client: Optional custom httpx.AsyncClient instance
+        timeout: Optional timeout in seconds for the guard request
+        redacted: When True, returns a redacted version of the command in the result
+    """
 
     return GuardClient(
         api_base_url=api_base_url or "https://app.superagent.sh/api/guard",
         api_key=api_key,
         client=client,
         timeout=timeout,
+        redacted=redacted,
     )

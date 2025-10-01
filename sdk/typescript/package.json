@@ -1,7 +1,7 @@
 {
   "name": "superagent-ai",
-  "version": "0.0.5",
-  "description": "TypeScript SDK for the Superagent Guard service.",
+  "version": "0.0.6",
+  "description": "TypeScript SDK for Superagent.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
