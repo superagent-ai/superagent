@@ -1,3 +1,5 @@
+import { redactSensitiveData } from "./redact.js";
+
 export interface CreateGuardOptions {
   /**
    * Full URL to the guard endpoint (e.g. https://example.com/api/guard).
@@ -15,6 +17,12 @@ export interface CreateGuardOptions {
    * Optional timeout in milliseconds for the guard request.
    */
   timeoutMs?: number;
+  /**
+   * When true, redacts sensitive PII/PHI data from the command string.
+   * Detects and replaces emails, SSNs, credit cards, phone numbers, API keys, and more.
+   * Default is false.
+   */
+  redacted?: boolean;
 }
 
 export interface GuardCallbacks {
@@ -64,6 +72,7 @@ export interface GuardResult {
   usage?: GuardUsage;
   reasoning: string;
   raw: AnalysisResponse;
+  redacted?: string;
 }
 
 export type GuardFunction = (
@@ -160,7 +169,7 @@ function normalizeReason(
 }
 
 export function createGuard(options: CreateGuardOptions): GuardFunction {
-  const { apiBaseUrl, apiKey, fetch: fetchImpl, timeoutMs } = options;
+  const { apiBaseUrl, apiKey, fetch: fetchImpl, timeoutMs, redacted } = options;
 
   const resolvedBaseUrl = apiBaseUrl ?? "https://app.superagent.sh/api/guard";
 
@@ -189,6 +198,11 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
       controller && timeoutMs
         ? setTimeout(() => controller.abort(), timeoutMs)
         : undefined;
+
+    // Start redaction in parallel if enabled (non-blocking)
+    const redactedPromise = redacted
+      ? Promise.resolve(redactSensitiveData(command))
+      : Promise.resolve(undefined);
 
     let response: Response;
     try {
@@ -230,12 +244,16 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
 
     const normalizedReason = normalizeReason(decision, rawReasoning);
 
+    // Wait for redaction to complete (should already be done)
+    const redactedText = await redactedPromise;
+
     const result: GuardResult = {
       rejected,
       decision,
       usage: analysis?.usage,
       reasoning: rawReasoning ?? normalizedReason,
       raw: analysis,
+      ...(redactedText && { redacted: redactedText }),
     };
 
     if (rejected) {

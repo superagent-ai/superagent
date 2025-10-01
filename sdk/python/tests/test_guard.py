@@ -17,7 +17,9 @@ async def test_guard_pass_triggers_on_pass_callback() -> None:
         assert request.headers["x-superagent-api-key"] == API_KEY
         assert request.method == "POST"
         assert request.url == httpx.URL(API_BASE_URL)
-        assert request.content == b'{"prompt": "hello"}'
+        # Compare JSON content, not raw bytes (different Python versions format differently)
+        import json
+        assert json.loads(request.content) == {"prompt": "hello"}
 
         analysis = {
             "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
