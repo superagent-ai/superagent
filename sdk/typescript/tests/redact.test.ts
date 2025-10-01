@@ -5,50 +5,50 @@ describe("redactSensitiveData", () => {
   it("should redact email addresses", () => {
     const input = "Contact me at john.doe@example.com for details";
     const result = redactSensitiveData(input);
-    expect(result).toBe("Contact me at <REDACTED_EMAIL] for details");
+    expect(result).toBe("Contact me at <REDACTED_EMAIL> for details");
   });
 
   it("should redact phone numbers (US format)", () => {
     const input = "Call me at 555-123-4567";
     const result = redactSensitiveData(input);
-    expect(result).toBe("Call me at <REDACTED_PHONE]");
+    expect(result).toBe("Call me at <REDACTED_PHONE>");
   });
 
   it("should redact phone numbers with parentheses", () => {
     const input = "Phone: (555) 123-4567";
     const result = redactSensitiveData(input);
     // The opening parenthesis is not part of the phone number pattern
-    expect(result).toBe("Phone: (<REDACTED_PHONE]");
+    expect(result).toBe("Phone: (<REDACTED_PHONE>");
   });
 
   it("should redact Social Security Numbers", () => {
     const input = "My SSN is 123-45-6789";
     const result = redactSensitiveData(input);
-    expect(result).toBe("My SSN is <REDACTED_SSN]");
+    expect(result).toBe("My SSN is <REDACTED_SSN>");
   });
 
   it("should redact credit card numbers (Visa)", () => {
     const input = "Card: 4532-1234-5678-9010";
     const result = redactSensitiveData(input);
-    expect(result).toBe("Card: <REDACTED_CC]");
+    expect(result).toBe("Card: <REDACTED_CC>");
   });
 
   it("should redact credit card numbers (Mastercard)", () => {
     const input = "Card: 5500000000000004";
     const result = redactSensitiveData(input);
-    expect(result).toBe("Card: <REDACTED_CC]");
+    expect(result).toBe("Card: <REDACTED_CC>");
   });
 
   it("should redact IPv4 addresses", () => {
     const input = "Server IP is 192.168.1.1";
     const result = redactSensitiveData(input);
-    expect(result).toBe("Server IP is <REDACTED_IP]");
+    expect(result).toBe("Server IP is <REDACTED_IP>");
   });
 
   it("should redact API keys", () => {
     const input = "Use key sk_test_4eC39HqLyjWDarjtT1zdp7dc";
     const result = redactSensitiveData(input);
-    expect(result).toBe("Use key <REDACTED_API_KEY]");
+    expect(result).toBe("Use key <REDACTED_API_KEY>");
   });
 
   it("should redact Bearer tokens", () => {
@@ -60,40 +60,40 @@ describe("redactSensitiveData", () => {
   it("should redact AWS access keys", () => {
     const input = "AWS Key: AKIAIOSFODNN7EXAMPLE";
     const result = redactSensitiveData(input);
-    expect(result).toBe("AWS Key: <REDACTED_AWS_KEY]");
+    expect(result).toBe("AWS Key: <REDACTED_AWS_KEY>");
   });
 
   it("should redact MAC addresses", () => {
     const input = "MAC: 00:1B:44:11:3A:B7";
     const result = redactSensitiveData(input);
-    expect(result).toBe("MAC: <REDACTED_MAC]");
+    expect(result).toBe("MAC: <REDACTED_MAC>");
   });
 
   it("should redact medical record numbers", () => {
     const input = "Patient MRN: 1234567";
     const result = redactSensitiveData(input);
-    expect(result).toBe("Patient <REDACTED_MRN]");
+    expect(result).toBe("Patient <REDACTED_MRN>");
   });
 
   it("should redact IBAN numbers", () => {
     const input = "Account: GB82WEST12345698765432";
     const result = redactSensitiveData(input);
-    expect(result).toBe("Account: <REDACTED_IBAN]");
+    expect(result).toBe("Account: <REDACTED_IBAN>");
   });
 
   it("should redact US ZIP codes", () => {
     const input = "Address: 12345 or 12345-6789";
     const result = redactSensitiveData(input);
     // ZIP+4 format matches SSN pattern, which is more specific and runs first
-    expect(result).toBe("Address: <REDACTED_ZIP] or <REDACTED_SSN]");
+    expect(result).toBe("Address: <REDACTED_ZIP> or <REDACTED_SSN>");
   });
 
   it("should redact multiple PII types in one string", () => {
     const input = "Email john@test.com, phone (555) 123-4567, SSN 123-45-6789";
     const result = redactSensitiveData(input);
-    expect(result).toContain("<REDACTED_EMAIL]");
-    expect(result).toContain("<REDACTED_PHONE]");
-    expect(result).toContain("<REDACTED_SSN]");
+    expect(result).toContain("<REDACTED_EMAIL>");
+    expect(result).toContain("<REDACTED_PHONE>");
+    expect(result).toContain("<REDACTED_SSN>");
   });
 
   it("should handle text with no PII", () => {
@@ -113,7 +113,7 @@ describe("redactSensitiveData", () => {
       const input = "Order number: 123456789";
       const result = redactSensitiveData(input);
       // 9 consecutive digits match SSN pattern - expected behavior
-      expect(result).toBe("Order number: <REDACTED_SSN]");
+      expect(result).toBe("Order number: <REDACTED_SSN>");
     });
 
     it("should not redact ISO dates", () => {
@@ -132,7 +132,7 @@ describe("redactSensitiveData", () => {
       const input = "Version 1.2.3.4";
       const result = redactSensitiveData(input);
       // Will match IPv4 pattern - acceptable tradeoff
-      expect(result).toBe("Version <REDACTED_IP]");
+      expect(result).toBe("Version <REDACTED_IP>");
     });
 
     it("should not redact simple arithmetic", () => {
@@ -169,7 +169,7 @@ describe("redactSensitiveData", () => {
       const input = "Connect to 127.0.0.1";
       const result = redactSensitiveData(input);
       // Localhost IPs will be redacted - acceptable for security
-      expect(result).toBe("Connect to <REDACTED_IP]");
+      expect(result).toBe("Connect to <REDACTED_IP>");
     });
 
     it("should not redact product codes", () => {
