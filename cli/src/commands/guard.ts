@@ -1,6 +1,15 @@
 import { createGuard } from 'superagent-ai';
 
 export async function guardCommand(args: string[]) {
+  // Check for --redacted flag
+  const redactedFlagIndex = args.indexOf('--redacted');
+  const enableRedaction = redactedFlagIndex !== -1;
+
+  // Remove --redacted flag from args
+  if (enableRedaction) {
+    args.splice(redactedFlagIndex, 1);
+  }
+
   // Check if we have command line arguments first
   const hasArgs = args.length > 0;
 
@@ -48,10 +57,11 @@ export async function guardCommand(args: string[]) {
   // Create guard instance
   const guard = createGuard({
     apiKey: process.env.SUPERAGENT_API_KEY,
+    redacted: enableRedaction,
   });
 
   try {
-    const { decision, reasoning, rejected } = await guard(prompt);
+    const { decision, reasoning, rejected, redacted: redactedPrompt } = await guard(prompt);
 
     if (rejected) {
       if (isStdin) {
@@ -74,19 +84,26 @@ export async function guardCommand(args: string[]) {
 
         console.log(JSON.stringify(response));
       } else {
-        // CLI output
-        console.error(`🛡️ BLOCKED: ${reasoning}`);
-        if (decision?.violation_types?.length) {
-          console.error(`Violations: ${decision.violation_types.join(', ')}`);
-        }
-        if (decision?.cwe_codes?.length) {
-          console.error(`CWE Codes: ${decision.cwe_codes.join(', ')}`);
-        }
+        // CLI output - JSON format matching SDK
+        const output = {
+          rejected: true,
+          decision,
+          reasoning,
+          ...(redactedPrompt && { redacted: redactedPrompt }),
+        };
+        console.log(JSON.stringify(output, null, 2));
         process.exit(1);
       }
     } else {
       if (!isStdin) {
-        console.log('✅ Prompt approved by Superagent Guard');
+        // CLI output - JSON format matching SDK
+        const output = {
+          rejected: false,
+          decision,
+          reasoning,
+          ...(redactedPrompt && { redacted: redactedPrompt }),
+        };
+        console.log(JSON.stringify(output, null, 2));
       }
     }
 
