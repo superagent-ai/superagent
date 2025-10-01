@@ -1,6 +1,6 @@
 {
   "name": "@superagent-ai/cli",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "CLI for Superagent - validate prompts and tool calls for security",
   "type": "module",
   "main": "./dist/index.js",
@@ -32,7 +32,7 @@
     "url": "https://github.com/superagent-ai/superagent"
   },
   "dependencies": {
-    "superagent-ai": "^0.0.5"
+    "superagent-ai": "^0.0.7"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
