@@ -125,6 +125,7 @@ class GuardClient:
         client: Optional[httpx.AsyncClient] = None,
         timeout: Optional[float] = 10.0,
         mode: Literal["analyze", "redact", "full"] = "analyze",
+        url_whitelist: Optional[list[str]] = None,
     ) -> None:
         if not api_base_url:
             api_base_url = "https://app.superagent.sh/api/guard"
@@ -135,6 +136,7 @@ class GuardClient:
         self._endpoint = _sanitize_url(api_base_url)
         self._timeout = timeout
         self._mode = mode
+        self._url_whitelist = url_whitelist
         self._client = client or httpx.AsyncClient(timeout=timeout)
         self._owns_client = client is None
 
@@ -161,7 +163,7 @@ class GuardClient:
         # Redact-only mode: skip API call
         if self._mode == "redact":
             import asyncio
-            redacted_text = await asyncio.to_thread(redact_sensitive_data, command)
+            redacted_text = await asyncio.to_thread(redact_sensitive_data, command, self._url_whitelist)
             return GuardResult(
                 rejected=False,
                 reasoning="Redaction only mode - no guard analysis performed",
@@ -172,7 +174,7 @@ class GuardClient:
         # Start redaction in parallel if mode is 'full' (non-blocking)
         import asyncio
         redacted_task = (
-            asyncio.create_task(asyncio.to_thread(redact_sensitive_data, command))
+            asyncio.create_task(asyncio.to_thread(redact_sensitive_data, command, self._url_whitelist))
             if self._mode == "full"
             else None
         )
@@ -230,6 +232,7 @@ def create_guard(
     client: Optional[httpx.AsyncClient] = None,
     timeout: Optional[float] = 10.0,
     mode: Literal["analyze", "redact", "full"] = "analyze",
+    url_whitelist: Optional[list[str]] = None,
 ) -> GuardClient:
     """Configure and return a Guard client.
 
@@ -240,6 +243,9 @@ def create_guard(
         timeout: Optional timeout in seconds for the guard request
         mode: Operation mode - 'analyze' (default): API analysis only,
               'redact': redaction only (no API call), 'full': both analysis and redaction
+        url_whitelist: Optional list of whitelisted URLs that should not be redacted.
+                      URLs not in this list will be replaced with <REDACTED_URL>.
+                      Only applies when mode is 'redact' or 'full'.
     """
 
     return GuardClient(
@@ -248,4 +254,5 @@ def create_guard(
         client=client,
         timeout=timeout,
         mode=mode,
+        url_whitelist=url_whitelist,
     )

@@ -110,13 +110,26 @@ const REDACTION_PATTERNS: RedactionPattern[] = [
 /**
  * Redacts sensitive information from a string based on SOC2, HIPAA, and GDPR patterns
  * @param text The text to redact
+ * @param urlWhitelist Optional array of whitelisted URLs that should not be redacted
  * @returns The redacted text with sensitive data replaced
  */
-export function redactSensitiveData(text: string): string {
+export function redactSensitiveData(text: string, urlWhitelist?: string[]): string {
   let redacted = text;
 
   for (const { pattern, replacement } of REDACTION_PATTERNS) {
     redacted = redacted.replace(pattern, replacement);
+  }
+
+  // Redact URLs that are not in the whitelist
+  if (urlWhitelist !== undefined) {
+    const urlPattern = /https?:\/\/[^\s]+/gi;
+    redacted = redacted.replace(urlPattern, (url) => {
+      // Check if URL is in whitelist (case-insensitive comparison)
+      const isWhitelisted = urlWhitelist.some(
+        (whitelistedUrl) => url.toLowerCase().startsWith(whitelistedUrl.toLowerCase())
+      );
+      return isWhitelisted ? url : "<REDACTED_URL>";
+    });
   }
 
   return redacted;

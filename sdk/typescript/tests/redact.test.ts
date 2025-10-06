@@ -190,4 +190,57 @@ describe("redactSensitiveData", () => {
       expect(result).toBe("Period: 2020-2024");
     });
   });
+
+  describe("URL whitelist", () => {
+    it("should redact URLs when whitelist is provided but URL not in list", () => {
+      const input = "Visit https://malicious.com and https://example.com";
+      const result = redactSensitiveData(input, ["https://example.com"]);
+      expect(result).toBe("Visit <REDACTED_URL> and https://example.com");
+    });
+
+    it("should not redact URLs when no whitelist is provided", () => {
+      const input = "Visit https://example.com";
+      const result = redactSensitiveData(input);
+      expect(result).toBe("Visit https://example.com");
+    });
+
+    it("should handle multiple whitelisted URLs", () => {
+      const input = "Visit https://example.com and https://safe.com and https://bad.com";
+      const result = redactSensitiveData(input, [
+        "https://example.com",
+        "https://safe.com",
+      ]);
+      expect(result).toBe("Visit https://example.com and https://safe.com and <REDACTED_URL>");
+    });
+
+    it("should match URL prefixes (case-insensitive)", () => {
+      const input = "Visit https://example.com/path/to/page";
+      const result = redactSensitiveData(input, ["https://example.com"]);
+      expect(result).toBe("Visit https://example.com/path/to/page");
+    });
+
+    it("should handle case-insensitive whitelist matching", () => {
+      const input = "Visit HTTPS://EXAMPLE.COM/page";
+      const result = redactSensitiveData(input, ["https://example.com"]);
+      expect(result).toBe("Visit HTTPS://EXAMPLE.COM/page");
+    });
+
+    it("should redact http URLs as well", () => {
+      const input = "Visit http://insecure.com and http://safe.com";
+      const result = redactSensitiveData(input, ["http://safe.com"]);
+      expect(result).toBe("Visit <REDACTED_URL> and http://safe.com");
+    });
+
+    it("should not redact URLs when whitelist is empty array", () => {
+      const input = "Visit https://example.com";
+      const result = redactSensitiveData(input, []);
+      expect(result).toBe("Visit <REDACTED_URL>");
+    });
+
+    it("should work with other redaction patterns", () => {
+      const input = "Email me@test.com at https://example.com or call 555-123-4567";
+      const result = redactSensitiveData(input, ["https://example.com"]);
+      expect(result).toBe("Email <REDACTED_EMAIL> at https://example.com or call <REDACTED_PHONE>");
+    });
+  });
 });

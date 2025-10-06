@@ -167,3 +167,50 @@ class TestFalsePositivePrevention:
         input_text = "Period: 2020-2024"
         result = redact_sensitive_data(input_text)
         assert result == "Period: 2020-2024"
+
+
+class TestURLWhitelist:
+    """Test suite for URL whitelist functionality"""
+
+    def test_redact_urls_when_whitelist_provided_but_url_not_in_list(self):
+        input_text = "Visit https://malicious.com and https://example.com"
+        result = redact_sensitive_data(input_text, ["https://example.com"])
+        assert result == "Visit <REDACTED_URL> and https://example.com"
+
+    def test_not_redact_urls_when_no_whitelist_provided(self):
+        input_text = "Visit https://example.com"
+        result = redact_sensitive_data(input_text)
+        assert result == "Visit https://example.com"
+
+    def test_handle_multiple_whitelisted_urls(self):
+        input_text = "Visit https://example.com and https://safe.com and https://bad.com"
+        result = redact_sensitive_data(input_text, [
+            "https://example.com",
+            "https://safe.com",
+        ])
+        assert result == "Visit https://example.com and https://safe.com and <REDACTED_URL>"
+
+    def test_match_url_prefixes_case_insensitive(self):
+        input_text = "Visit https://example.com/path/to/page"
+        result = redact_sensitive_data(input_text, ["https://example.com"])
+        assert result == "Visit https://example.com/path/to/page"
+
+    def test_handle_case_insensitive_whitelist_matching(self):
+        input_text = "Visit HTTPS://EXAMPLE.COM/page"
+        result = redact_sensitive_data(input_text, ["https://example.com"])
+        assert result == "Visit HTTPS://EXAMPLE.COM/page"
+
+    def test_redact_http_urls_as_well(self):
+        input_text = "Visit http://insecure.com and http://safe.com"
+        result = redact_sensitive_data(input_text, ["http://safe.com"])
+        assert result == "Visit <REDACTED_URL> and http://safe.com"
+
+    def test_not_redact_urls_when_whitelist_is_empty_array(self):
+        input_text = "Visit https://example.com"
+        result = redact_sensitive_data(input_text, [])
+        assert result == "Visit <REDACTED_URL>"
+
+    def test_work_with_other_redaction_patterns(self):
+        input_text = "Email me@test.com at https://example.com or call 555-123-4567"
+        result = redact_sensitive_data(input_text, ["https://example.com"])
+        assert result == "Email <REDACTED_EMAIL> at https://example.com or call <REDACTED_PHONE>"

@@ -4,7 +4,7 @@ Uses comprehensive regex patterns to detect and redact PII/PHI
 """
 
 import re
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 
 # Pattern definitions: (regex_pattern, replacement_string)
@@ -93,12 +93,13 @@ REDACTION_PATTERNS: List[Tuple[re.Pattern, str]] = [
 ]
 
 
-def redact_sensitive_data(text: str) -> str:
+def redact_sensitive_data(text: str, url_whitelist: Optional[List[str]] = None) -> str:
     """
     Redacts sensitive information from a string based on SOC2, HIPAA, and GDPR patterns
 
     Args:
         text: The text to redact
+        url_whitelist: Optional list of whitelisted URLs that should not be redacted
 
     Returns:
         The redacted text with sensitive data replaced
@@ -107,5 +108,20 @@ def redact_sensitive_data(text: str) -> str:
 
     for pattern, replacement in REDACTION_PATTERNS:
         redacted = pattern.sub(replacement, redacted)
+
+    # Redact URLs that are not in the whitelist
+    if url_whitelist is not None:
+        url_pattern = re.compile(r"https?://[^\s]+", re.IGNORECASE)
+
+        def replace_url(match):
+            url = match.group(0)
+            # Check if URL is in whitelist (case-insensitive comparison)
+            is_whitelisted = any(
+                url.lower().startswith(whitelisted_url.lower())
+                for whitelisted_url in url_whitelist
+            )
+            return url if is_whitelisted else "<REDACTED_URL>"
+
+        redacted = url_pattern.sub(replace_url, redacted)
 
     return redacted

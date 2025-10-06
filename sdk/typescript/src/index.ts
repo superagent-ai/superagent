@@ -24,6 +24,12 @@ export interface CreateGuardOptions {
    * - 'full': Perform guard analysis and include redacted text
    */
   mode?: "analyze" | "redact" | "full";
+  /**
+   * Optional whitelist of URLs that should not be redacted.
+   * URLs not in this list will be replaced with <REDACTED_URL>.
+   * Only applies when mode is 'redact' or 'full'.
+   */
+  urlWhitelist?: string[];
 }
 
 export interface GuardCallbacks {
@@ -170,7 +176,7 @@ function normalizeReason(
 }
 
 export function createGuard(options: CreateGuardOptions): GuardFunction {
-  const { apiBaseUrl, apiKey, fetch: fetchImpl, timeoutMs, mode = "analyze" } = options;
+  const { apiBaseUrl, apiKey, fetch: fetchImpl, timeoutMs, mode = "analyze", urlWhitelist } = options;
 
   const resolvedBaseUrl = apiBaseUrl ?? "https://app.superagent.sh/api/guard";
 
@@ -195,7 +201,7 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
 
     // Redact-only mode: skip API call
     if (mode === "redact") {
-      const redactedText = redactSensitiveData(command);
+      const redactedText = redactSensitiveData(command, urlWhitelist);
       return {
         rejected: false,
         reasoning: "Redaction only mode - no guard analysis performed",
@@ -213,7 +219,7 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
 
     // Start redaction in parallel if mode is 'full' (non-blocking)
     const redactedPromise = mode === "full"
-      ? Promise.resolve(redactSensitiveData(command))
+      ? Promise.resolve(redactSensitiveData(command, urlWhitelist))
       : Promise.resolve(undefined);
 
     let response: Response;
