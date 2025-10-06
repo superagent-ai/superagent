@@ -2,6 +2,31 @@
 
 All notable changes to Superagent will be documented in this file.
 
+## [superagent-ai@0.0.9] - 2025-10-06
+
+### Breaking Changes
+- **BREAKING**: Replaced `redacted` boolean option with `mode` parameter in both TypeScript and Python SDKs
+  - `redacted: false` → `mode: "analyze"` (default)
+  - `redacted: true` → `mode: "full"`
+  - New: `mode: "redact"` for redaction-only operation (no API call)
+
+### Enhancements
+- Added `mode` parameter with three operation modes: `"analyze"`, `"redact"`, and `"full"`
+- `"redact"` mode allows PII/PHI redaction without making API calls to guard endpoint
+- `"analyze"` mode (default) performs guard analysis without redaction (backward compatible behavior)
+- `"full"` mode combines guard analysis with redaction (replaces `redacted: true`)
+
+### Migration Guide
+```typescript
+// Before (v0.0.7)
+createGuard({ redacted: false })  // or omit redacted
+createGuard({ redacted: true })
+
+// After (v0.0.8)
+createGuard({ mode: "analyze" })  // or omit mode (default)
+createGuard({ mode: "full" })
+```
+
 ## [@superagent-ai/cli@0.0.5] - 2025-10-01
 
 ### Enhancements

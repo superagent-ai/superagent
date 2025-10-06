@@ -124,7 +124,7 @@ class GuardClient:
         *,
         client: Optional[httpx.AsyncClient] = None,
         timeout: Optional[float] = 10.0,
-        redacted: bool = False,
+        mode: Literal["analyze", "redact", "full"] = "analyze",
     ) -> None:
         if not api_base_url:
             api_base_url = "https://app.superagent.sh/api/guard"
@@ -134,7 +134,7 @@ class GuardClient:
         self._api_key = api_key
         self._endpoint = _sanitize_url(api_base_url)
         self._timeout = timeout
-        self._redacted = redacted
+        self._mode = mode
         self._client = client or httpx.AsyncClient(timeout=timeout)
         self._owns_client = client is None
 
@@ -158,11 +158,22 @@ class GuardClient:
         if not command:
             raise GuardError("command must be a non-empty string")
 
-        # Start redaction in parallel if enabled (non-blocking)
+        # Redact-only mode: skip API call
+        if self._mode == "redact":
+            import asyncio
+            redacted_text = await asyncio.to_thread(redact_sensitive_data, command)
+            return GuardResult(
+                rejected=False,
+                reasoning="Redaction only mode - no guard analysis performed",
+                raw={},
+                redacted=redacted_text,
+            )
+
+        # Start redaction in parallel if mode is 'full' (non-blocking)
         import asyncio
         redacted_task = (
             asyncio.create_task(asyncio.to_thread(redact_sensitive_data, command))
-            if self._redacted
+            if self._mode == "full"
             else None
         )
 
@@ -218,7 +229,7 @@ def create_guard(
     api_key: str,
     client: Optional[httpx.AsyncClient] = None,
     timeout: Optional[float] = 10.0,
-    redacted: bool = False,
+    mode: Literal["analyze", "redact", "full"] = "analyze",
 ) -> GuardClient:
     """Configure and return a Guard client.
 
@@ -227,7 +238,8 @@ def create_guard(
         api_key: API key used to authenticate the guard request
         client: Optional custom httpx.AsyncClient instance
         timeout: Optional timeout in seconds for the guard request
-        redacted: When True, returns a redacted version of the command in the result
+        mode: Operation mode - 'analyze' (default): API analysis only,
+              'redact': redaction only (no API call), 'full': both analysis and redaction
     """
 
     return GuardClient(
@@ -235,5 +247,5 @@ def create_guard(
         api_key=api_key,
         client=client,
         timeout=timeout,
-        redacted=redacted,
+        mode=mode,
     )

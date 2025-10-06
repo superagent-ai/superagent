@@ -18,11 +18,12 @@ export interface CreateGuardOptions {
    */
   timeoutMs?: number;
   /**
-   * When true, redacts sensitive PII/PHI data from the command string.
-   * Detects and replaces emails, SSNs, credit cards, phone numbers, API keys, and more.
-   * Default is false.
+   * Operation mode:
+   * - 'analyze': Perform guard analysis via API (default)
+   * - 'redact': Only redact sensitive data, no API call
+   * - 'full': Perform guard analysis and include redacted text
    */
-  redacted?: boolean;
+  mode?: "analyze" | "redact" | "full";
 }
 
 export interface GuardCallbacks {
@@ -169,7 +170,7 @@ function normalizeReason(
 }
 
 export function createGuard(options: CreateGuardOptions): GuardFunction {
-  const { apiBaseUrl, apiKey, fetch: fetchImpl, timeoutMs, redacted } = options;
+  const { apiBaseUrl, apiKey, fetch: fetchImpl, timeoutMs, mode = "analyze" } = options;
 
   const resolvedBaseUrl = apiBaseUrl ?? "https://app.superagent.sh/api/guard";
 
@@ -192,6 +193,17 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
       throw new GuardError("command must be a non-empty string.");
     }
 
+    // Redact-only mode: skip API call
+    if (mode === "redact") {
+      const redactedText = redactSensitiveData(command);
+      return {
+        rejected: false,
+        reasoning: "Redaction only mode - no guard analysis performed",
+        raw: {} as AnalysisResponse,
+        redacted: redactedText,
+      };
+    }
+
     const controller =
       typeof AbortController !== "undefined" ? new AbortController() : null;
     const timeoutHandle =
@@ -199,8 +211,8 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
         ? setTimeout(() => controller.abort(), timeoutMs)
         : undefined;
 
-    // Start redaction in parallel if enabled (non-blocking)
-    const redactedPromise = redacted
+    // Start redaction in parallel if mode is 'full' (non-blocking)
+    const redactedPromise = mode === "full"
       ? Promise.resolve(redactSensitiveData(command))
       : Promise.resolve(undefined);
 

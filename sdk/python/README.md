@@ -57,25 +57,81 @@ asyncio.run(main())
 - `api_key` – API key provisioned in Superagent.
 - `timeout` – optional request timeout (defaults to 10 seconds).
 - `client` – optionally provide your own configured `httpx.AsyncClient`.
-- `redacted` – when `True`, redacts PII/PHI data from commands (defaults to `False`).
+- `mode` – operation mode: `"analyze"` (default), `"redact"`, or `"full"`.
 
 The returned `GuardResult` includes both the raw analysis payload from the Guard endpoint and the parsed decision for straightforward policy enforcement.
 
-## PII/PHI Redaction
+## Operation Modes
 
-Enable automatic redaction of sensitive data to comply with SOC2, HIPAA, and GDPR:
+### Analyze Mode (Default)
+
+Performs guard security analysis via API without redaction:
 
 ```python
-guard = create_guard(
-    api_base_url="https://example.com/api/guard",
-    api_key="sk-...",
-    redacted=True,  # Enable PII/PHI redaction
-)
+import asyncio
+from superagent_ai import create_guard
 
-result = await guard("My email is john@example.com and SSN is 123-45-6789")
+async def main() -> None:
+    guard = create_guard(
+        api_base_url="https://example.com/api/guard",
+        api_key="sk-...",
+        mode="analyze",  # Default mode
+    )
 
-print(result.redacted)
-# Output: "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>"
+    result = await guard("Write a hello world script")
+    # Returns: GuardResult(rejected=False, decision={...}, usage={...})
+
+    await guard.aclose()
+
+asyncio.run(main())
+```
+
+### Redact Mode
+
+Redacts sensitive PII/PHI data only, without making an API call:
+
+```python
+import asyncio
+from superagent_ai import create_guard
+
+async def main() -> None:
+    guard = create_guard(
+        api_base_url="https://example.com/api/guard",
+        api_key="sk-...",
+        mode="redact",  # No API call, redaction only
+    )
+
+    result = await guard("My email is john@example.com and SSN is 123-45-6789")
+
+    print(result.redacted)
+    # Output: "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>"
+
+    await guard.aclose()
+
+asyncio.run(main())
+```
+
+### Full Mode
+
+Performs guard analysis AND includes redacted text in the result:
+
+```python
+import asyncio
+from superagent_ai import create_guard
+
+async def main() -> None:
+    guard = create_guard(
+        api_base_url="https://example.com/api/guard",
+        api_key="sk-...",
+        mode="full",  # Both analysis and redaction
+    )
+
+    result = await guard("My email is john@example.com")
+    # Returns: GuardResult with both decision and redacted fields
+
+    await guard.aclose()
+
+asyncio.run(main())
 ```
 
 ### Detected PII/PHI Types
