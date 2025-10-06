@@ -25,7 +25,8 @@ classifiers = [
 [project.optional-dependencies]
 tests = [
   "pytest>=7.4",
-  "pytest-asyncio>=0.23"
+  "pytest-asyncio>=0.23",
+  "python-dotenv>=1.0"
 ]
 
 [tool.setuptools.packages.find]

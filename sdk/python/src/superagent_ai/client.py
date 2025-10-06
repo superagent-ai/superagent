@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import inspect
 import json
+import os
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, Literal, Optional, TypedDict, Union
 
 import httpx
-
-from .redact import redact_sensitive_data
 
 
 class GuardError(RuntimeError):
@@ -128,12 +127,14 @@ class GuardClient:
         url_whitelist: Optional[list[str]] = None,
     ) -> None:
         if not api_base_url:
-            api_base_url = "https://app.superagent.sh/api/guard"
+            api_base_url = "https://app.superagent.sh/api"
         if not api_key:
             raise GuardError("api_key must be provided")
 
         self._api_key = api_key
-        self._endpoint = _sanitize_url(api_base_url)
+        base = _sanitize_url(api_base_url)
+        self._guard_endpoint = f"{base}/guard"
+        self._redact_endpoint = f"{base}/redact"
         self._timeout = timeout
         self._mode = mode
         self._url_whitelist = url_whitelist
@@ -160,28 +161,81 @@ class GuardClient:
         if not command:
             raise GuardError("command must be a non-empty string")
 
-        # Redact-only mode: skip API call
+        # Redact-only mode: make API call to /api/redact
         if self._mode == "redact":
-            import asyncio
-            redacted_text = await asyncio.to_thread(redact_sensitive_data, command, self._url_whitelist)
+            try:
+                payload = {"prompt": command}
+                if self._url_whitelist:
+                    payload["urlWhitelist"] = self._url_whitelist
+
+                response = await self._client.post(
+                    self._redact_endpoint,
+                    json=payload,
+                    headers={
+                        "Authorization": f"Bearer {self._api_key}",
+                        "x-superagent-api-key": self._api_key,
+                    },
+                    timeout=self._timeout,
+                )
+            except httpx.RequestError as error:
+                raise GuardError(f"Failed to reach redact endpoint: {error}") from error
+
+            if response.status_code >= httpx.codes.BAD_REQUEST:
+                raise GuardError(
+                    f"Redact request failed with status {response.status_code}: {response.text}"
+                )
+
+            result = response.json()
+            content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+            reasoning_content = result.get("choices", [{}])[0].get("message", {}).get("reasoning_content", "")
+
             return GuardResult(
                 rejected=False,
-                reasoning="Redaction only mode - no guard analysis performed",
-                raw={},
-                redacted=redacted_text,
+                reasoning=reasoning_content,
+                raw=result,
+                usage=result.get("usage"),
+                redacted=content,
             )
 
         # Start redaction in parallel if mode is 'full' (non-blocking)
         import asyncio
+
+        async def fetch_redaction() -> str:
+            try:
+                payload = {"prompt": command}
+                if self._url_whitelist:
+                    payload["urlWhitelist"] = self._url_whitelist
+
+                redact_response = await self._client.post(
+                    self._redact_endpoint,
+                    json=payload,
+                    headers={
+                        "Authorization": f"Bearer {self._api_key}",
+                        "x-superagent-api-key": self._api_key,
+                    },
+                    timeout=self._timeout,
+                )
+
+                if redact_response.status_code >= httpx.codes.BAD_REQUEST:
+                    raise GuardError(
+                        f"Redact request failed with status {redact_response.status_code}: {redact_response.text}"
+                    )
+
+                result = redact_response.json()
+                content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+                return content
+            except httpx.RequestError as error:
+                raise GuardError(f"Failed to redact via API: {error}") from error
+
         redacted_task = (
-            asyncio.create_task(asyncio.to_thread(redact_sensitive_data, command, self._url_whitelist))
+            asyncio.create_task(fetch_redaction())
             if self._mode == "full"
             else None
         )
 
         try:
             response = await self._client.post(
-                self._endpoint,
+                self._guard_endpoint,
                 json={"prompt": command},
                 headers={
                     "Authorization": f"Bearer {self._api_key}",
@@ -237,19 +291,19 @@ def create_guard(
     """Configure and return a Guard client.
 
     Args:
-        api_base_url: Full URL to the guard endpoint
+        api_base_url: Base URL for the API (e.g. https://app.superagent.sh/api)
         api_key: API key used to authenticate the guard request
         client: Optional custom httpx.AsyncClient instance
         timeout: Optional timeout in seconds for the guard request
         mode: Operation mode - 'analyze' (default): API analysis only,
-              'redact': redaction only (no API call), 'full': both analysis and redaction
+              'redact': redaction via API, 'full': both analysis and redaction
         url_whitelist: Optional list of whitelisted URLs that should not be redacted.
                       URLs not in this list will be replaced with <REDACTED_URL>.
                       Only applies when mode is 'redact' or 'full'.
     """
 
     return GuardClient(
-        api_base_url=api_base_url or "https://app.superagent.sh/api/guard",
+        api_base_url=api_base_url or "https://app.superagent.sh/api",
         api_key=api_key,
         client=client,
         timeout=timeout,

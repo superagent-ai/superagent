@@ -1,4 +1,9 @@
-import { redactSensitiveData } from "./redact.js";
+const GUARD_ENDPOINT = process.env.SUPERAGENT_LM_API_BASE_URL
+  ? `${process.env.SUPERAGENT_LM_API_BASE_URL}/guard`
+  : "https://app.superagent.sh/api/guard";
+const REDACT_ENDPOINT = process.env.SUPERAGENT_LM_API_BASE_URL
+  ? `${process.env.SUPERAGENT_LM_API_BASE_URL}/redact`
+  : "https://app.superagent.sh/api/redact";
 
 export interface CreateGuardOptions {
   /**
@@ -66,6 +71,13 @@ export interface AnalysisResponse {
   [key: string]: unknown;
 }
 
+export interface RedactionResponse {
+  usage: GuardUsage;
+  id: string;
+  choices: GuardChoice[];
+  [key: string]: unknown;
+}
+
 export interface GuardDecision {
   status: "pass" | "block";
   violation_types?: string[];
@@ -92,10 +104,6 @@ export class GuardError extends Error {
     super(message);
     this.name = "GuardError";
   }
-}
-
-function sanitizeUrl(url: string): string {
-  return url.endsWith("/") ? url.slice(0, -1) : url;
 }
 
 function ensureFetch(fetchImpl: typeof fetch | undefined): typeof fetch {
@@ -183,9 +191,7 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
     urlWhitelist,
   } = options;
 
-  const resolvedBaseUrl = apiBaseUrl ?? "https://app.superagent.sh/api/guard";
-
-  if (!resolvedBaseUrl || typeof resolvedBaseUrl !== "string") {
+  if (apiBaseUrl && typeof apiBaseUrl !== "string") {
     throw new GuardError("apiBaseUrl must be a non-empty string.");
   }
 
@@ -194,7 +200,6 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
   }
 
   const fetcher = ensureFetch(fetchImpl);
-  const endpoint = sanitizeUrl(resolvedBaseUrl);
 
   return async function guard(
     command: string,
@@ -204,14 +209,58 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
       throw new GuardError("command must be a non-empty string.");
     }
 
-    // Redact-only mode: skip API call
+    // Redact-only mode: make API call to /api/redact
     if (mode === "redact") {
-      const redactedText = redactSensitiveData(command, urlWhitelist);
+      const controller =
+        typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timeoutHandle =
+        controller && timeoutMs
+          ? setTimeout(() => controller.abort(), timeoutMs)
+          : undefined;
+
+      let response: Response;
+      try {
+        response = await fetcher(REDACT_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+            "x-superagent-api-key": apiKey,
+          },
+          body: JSON.stringify({
+            prompt: command,
+            ...(urlWhitelist && { urlWhitelist }),
+          }),
+          signal: controller?.signal,
+        } satisfies RequestInit);
+      } catch (error) {
+        if (timeoutHandle) {
+          clearTimeout(timeoutHandle);
+        }
+        const message =
+          error instanceof Error ? error.message : "Unknown fetch error";
+        throw new GuardError(`Failed to reach redact endpoint: ${message}`);
+      }
+
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
+
+      if (!response.ok) {
+        throw new GuardError(
+          `Redact request failed with status ${response.status}: ${response.statusText}`
+        );
+      }
+
+      const result = (await response.json()) as RedactionResponse;
+      const content = result.choices[0].message.content;
+
       return {
         rejected: false,
-        reasoning: "Redaction only mode - no guard analysis performed",
-        raw: {} as AnalysisResponse,
-        redacted: redactedText,
+        reasoning: result.choices[0].message.reasoning_content || "",
+        raw: result,
+        usage: result.usage,
+        redacted: content as string,
       };
     }
 
@@ -225,12 +274,43 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
     // Start redaction in parallel if mode is 'full' (non-blocking)
     const redactedPromise =
       mode === "full"
-        ? Promise.resolve(redactSensitiveData(command, urlWhitelist))
+        ? (async () => {
+            try {
+              const redactResponse = await fetcher(REDACT_ENDPOINT, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${apiKey}`,
+                  "x-superagent-api-key": apiKey,
+                },
+                body: JSON.stringify({
+                  prompt: command,
+                  ...(urlWhitelist && { urlWhitelist }),
+                }),
+              } satisfies RequestInit);
+
+              if (!redactResponse.ok) {
+                throw new GuardError(
+                  `Redact request failed with status ${redactResponse.status}: ${redactResponse.statusText}`
+                );
+              }
+
+              const result = (await redactResponse.json()) as RedactionResponse;
+              const content = result.choices[0].message.content;
+              return content as string;
+            } catch (error) {
+              const message =
+                error instanceof Error
+                  ? error.message
+                  : "Unknown redaction error";
+              throw new GuardError(`Failed to redact via API: ${message}`);
+            }
+          })()
         : Promise.resolve(undefined);
 
     let response: Response;
     try {
-      response = await fetcher(endpoint, {
+      response = await fetcher(GUARD_ENDPOINT, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
