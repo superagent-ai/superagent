@@ -108,9 +108,7 @@ function ensureFetch(fetchImpl: typeof fetch | undefined): typeof fetch {
   return resolved.bind(globalThis);
 }
 
-function parseDecision(
-  content: string | undefined
-): GuardDecision | undefined {
+function parseDecision(content: string | undefined): GuardDecision | undefined {
   if (!content) {
     return undefined;
   }
@@ -176,7 +174,14 @@ function normalizeReason(
 }
 
 export function createGuard(options: CreateGuardOptions): GuardFunction {
-  const { apiBaseUrl, apiKey, fetch: fetchImpl, timeoutMs, mode = "analyze", urlWhitelist } = options;
+  const {
+    apiBaseUrl,
+    apiKey,
+    fetch: fetchImpl,
+    timeoutMs,
+    mode = "analyze",
+    urlWhitelist,
+  } = options;
 
   const resolvedBaseUrl = apiBaseUrl ?? "https://app.superagent.sh/api/guard";
 
@@ -218,9 +223,10 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
         : undefined;
 
     // Start redaction in parallel if mode is 'full' (non-blocking)
-    const redactedPromise = mode === "full"
-      ? Promise.resolve(redactSensitiveData(command, urlWhitelist))
-      : Promise.resolve(undefined);
+    const redactedPromise =
+      mode === "full"
+        ? Promise.resolve(redactSensitiveData(command, urlWhitelist))
+        : Promise.resolve(undefined);
 
     let response: Response;
     try {
@@ -254,9 +260,7 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
     }
 
     const analysis = (await response.json()) as AnalysisResponse;
-    const decision = parseDecision(
-      analysis?.choices?.[0]?.message?.content
-    );
+    const decision = parseDecision(analysis?.choices?.[0]?.message?.content);
     const rawReasoning = analysis?.choices?.[0]?.message?.reasoning_content;
     const rejected = decision?.status === "block";
 
