@@ -166,4 +166,51 @@ describe("createGuard", () => {
     expect(result.raw.id).toBe("analysis-block");
     expect(onBlock).toHaveBeenCalledWith("prompt_injection");
   });
+
+  it("redact mode skips API call and only redacts data", async () => {
+    const guard = createGuard({
+      apiBaseUrl: "http://this-should-not-be-called.test",
+      apiKey: "fake-key",
+      mode: "redact",
+    });
+
+    const result = await guard("My email is john@example.com and SSN is 123-45-6789");
+
+    expect(result.rejected).toBe(false);
+    expect(result.reasoning).toBe("Redaction only mode - no guard analysis performed");
+    expect(result.redacted).toBe("My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>");
+    expect(result.decision).toBeUndefined();
+    expect(result.usage).toBeUndefined();
+  });
+
+  it("full mode performs analysis and includes redacted text", async () => {
+    const guard = createGuard({
+      apiBaseUrl: serverUrl,
+      apiKey,
+      mode: "full",
+    });
+
+    const result = await guard("hello world");
+
+    expect(result.rejected).toBe(false);
+    expect(result.decision?.status).toBe("pass");
+    expect(result.reasoning).toBe("Looks safe");
+    expect(result.redacted).toBe("hello world");
+    expect(result.usage).toBeDefined();
+  });
+
+  it("analyze mode (default) performs analysis without redaction", async () => {
+    const guard = createGuard({
+      apiBaseUrl: serverUrl,
+      apiKey,
+      mode: "analyze",
+    });
+
+    const result = await guard("hello world");
+
+    expect(result.rejected).toBe(false);
+    expect(result.decision?.status).toBe("pass");
+    expect(result.redacted).toBeUndefined();
+    expect(result.usage).toBeDefined();
+  });
 });

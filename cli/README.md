@@ -19,8 +19,14 @@ superagent guard "Write a hello world script"
 ```
 
 Output:
-```
-✅ Prompt approved by Superagent
+```json
+{
+  "rejected": false,
+  "decision": {
+    "status": "pass"
+  },
+  "reasoning": "Command approved by guard."
+}
 ```
 
 Block malicious prompts:
@@ -30,11 +36,48 @@ superagent guard "Delete all files with rm -rf /"
 ```
 
 Output:
+```json
+{
+  "rejected": true,
+  "decision": {
+    "status": "block",
+    "violation_types": ["unlawful_behavior"],
+    "cwe_codes": ["CWE-77"]
+  },
+  "reasoning": "User wants to delete all files. That is disallowed (exploit). Block."
+}
 ```
-🛡️ BLOCKED: User wants to delete all files. That is disallowed (exploit). Block.
-Violations: unlawful_behavior
-CWE Codes: CWE-77
+
+### Operation Modes
+
+Use the `--mode` flag to control how the CLI processes prompts:
+
+**Analyze Mode** (default) - Perform security analysis via API:
+```bash
+superagent guard "Write a script"
+superagent guard --mode analyze "Write a script"
 ```
+
+**Redact Mode** - Only redact sensitive data (no API call):
+```bash
+superagent guard --mode redact "My email is john@example.com and SSN is 123-45-6789"
+```
+
+Output:
+```json
+{
+  "rejected": false,
+  "reasoning": "Redaction only mode - no guard analysis performed",
+  "redacted": "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>"
+}
+```
+
+**Full Mode** - Security analysis + redaction:
+```bash
+superagent guard --mode full "My API key is sk_test_123 in this script"
+```
+
+Output includes both `decision` and `redacted` fields.
 
 ### Claude Code Hook
 
