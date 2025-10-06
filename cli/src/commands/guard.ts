@@ -1,13 +1,21 @@
 import { createGuard } from 'superagent-ai';
 
 export async function guardCommand(args: string[]) {
-  // Check for --redacted flag
-  const redactedFlagIndex = args.indexOf('--redacted');
-  const enableRedaction = redactedFlagIndex !== -1;
+  // Check for --mode flag
+  const modeFlagIndex = args.indexOf('--mode');
+  let mode: "analyze" | "redact" | "full" = "analyze";
 
-  // Remove --redacted flag from args
-  if (enableRedaction) {
-    args.splice(redactedFlagIndex, 1);
+  if (modeFlagIndex !== -1) {
+    // Get the value after --mode
+    const modeValue = args[modeFlagIndex + 1];
+    if (modeValue && ['analyze', 'redact', 'full'].includes(modeValue)) {
+      mode = modeValue as "analyze" | "redact" | "full";
+      // Remove --mode and its value from args
+      args.splice(modeFlagIndex, 2);
+    } else {
+      console.error('❌ ERROR: Invalid --mode value. Must be one of: analyze, redact, full');
+      process.exit(1);
+    }
   }
 
   // Check if we have command line arguments first
@@ -42,8 +50,8 @@ export async function guardCommand(args: string[]) {
     prompt = args.join(' ');
 
     if (!prompt) {
-      console.error('Usage: superagent guard <prompt>');
-      console.error('   or: echo \'{"prompt": "text"}\' | superagent guard');
+      console.error('Usage: superagent guard [--mode <analyze|redact|full>] <prompt>');
+      console.error('   or: echo \'{"prompt": "text"}\' | superagent guard [--mode <analyze|redact|full>]');
       process.exit(1);
     }
   }
@@ -57,7 +65,7 @@ export async function guardCommand(args: string[]) {
   // Create guard instance
   const guard = createGuard({
     apiKey: process.env.SUPERAGENT_API_KEY,
-    redacted: enableRedaction,
+    mode,
   });
 
   try {

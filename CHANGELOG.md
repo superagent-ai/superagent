@@ -2,6 +2,29 @@
 
 All notable changes to Superagent will be documented in this file.
 
+## [@superagent-ai/cli@0.0.6] - 2025-10-06
+
+### Breaking Changes
+- **BREAKING**: Replaced `--redacted` flag with `--mode` flag
+  - `--redacted` → `--mode full`
+  - New: `--mode analyze` (default) for analysis only
+  - New: `--mode redact` for redaction only (no API call)
+
+### Enhancements
+- Added `--mode` flag with three options: `analyze`, `redact`, `full`
+- `--mode redact` allows PII/PHI redaction without API calls
+- `--mode analyze` (default) performs guard analysis only
+- `--mode full` combines guard analysis with redaction
+
+### Migration Guide
+```bash
+# Before (v0.0.5)
+superagent guard --redacted "prompt"
+
+# After (v0.0.6)
+superagent guard --mode full "prompt"
+```
+
 ## [superagent-ai@0.0.9] - 2025-10-06
 
 ### Breaking Changes
