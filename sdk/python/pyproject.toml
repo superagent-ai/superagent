@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "superagent-ai"
-version = "0.0.9"
+version = "0.0.11"
 description = "Python SDK for Superagent."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -25,7 +25,8 @@ classifiers = [
 [project.optional-dependencies]
 tests = [
   "pytest>=7.4",
-  "pytest-asyncio>=0.23"
+  "pytest-asyncio>=0.23",
+  "python-dotenv>=1.0"
 ]
 
 [tool.setuptools.packages.find]

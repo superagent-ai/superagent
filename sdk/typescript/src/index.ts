@@ -1,12 +1,17 @@
-import { redactSensitiveData } from "./redact.js";
+const GUARD_ENDPOINT = process.env.SUPERAGENT_LM_API_BASE_URL
+  ? `${process.env.SUPERAGENT_LM_API_BASE_URL}/guard`
+  : "https://app.superagent.sh/api/guard";
+const REDACT_ENDPOINT = process.env.SUPERAGENT_LM_API_BASE_URL
+  ? `${process.env.SUPERAGENT_LM_API_BASE_URL}/redact`
+  : "https://app.superagent.sh/api/redact";
 
-export interface CreateGuardOptions {
+export interface CreateClientOptions {
   /**
-   * Full URL to the guard endpoint (e.g. https://example.com/api/guard).
+   * Base URL for the API (e.g. https://app.superagent.sh/api).
    */
   apiBaseUrl?: string;
   /**
-   * API key used to authenticate the guard request.
+   * API key used to authenticate requests.
    */
   apiKey: string;
   /**
@@ -14,16 +19,9 @@ export interface CreateGuardOptions {
    */
   fetch?: typeof fetch;
   /**
-   * Optional timeout in milliseconds for the guard request.
+   * Optional timeout in milliseconds for requests.
    */
   timeoutMs?: number;
-  /**
-   * Operation mode:
-   * - 'analyze': Perform guard analysis via API (default)
-   * - 'redact': Only redact sensitive data, no API call
-   * - 'full': Perform guard analysis and include redacted text
-   */
-  mode?: "analyze" | "redact" | "full";
 }
 
 export interface GuardCallbacks {
@@ -60,6 +58,13 @@ export interface AnalysisResponse {
   [key: string]: unknown;
 }
 
+export interface RedactionResponse {
+  usage: GuardUsage;
+  id: string;
+  choices: GuardChoice[];
+  [key: string]: unknown;
+}
+
 export interface GuardDecision {
   status: "pass" | "block";
   violation_types?: string[];
@@ -73,23 +78,25 @@ export interface GuardResult {
   usage?: GuardUsage;
   reasoning: string;
   raw: AnalysisResponse;
-  redacted?: string;
 }
 
-export type GuardFunction = (
-  command: string,
-  callbacks?: GuardCallbacks
-) => Promise<GuardResult>;
+export interface RedactResult {
+  redacted: string;
+  reasoning: string;
+  usage?: GuardUsage;
+  raw: RedactionResponse;
+}
+
+export interface Client {
+  guard(command: string, callbacks?: GuardCallbacks): Promise<GuardResult>;
+  redact(text: string, options?: { urlWhitelist?: string[] }): Promise<RedactResult>;
+}
 
 export class GuardError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "GuardError";
   }
-}
-
-function sanitizeUrl(url: string): string {
-  return url.endsWith("/") ? url.slice(0, -1) : url;
 }
 
 function ensureFetch(fetchImpl: typeof fetch | undefined): typeof fetch {
@@ -102,9 +109,7 @@ function ensureFetch(fetchImpl: typeof fetch | undefined): typeof fetch {
   return resolved.bind(globalThis);
 }
 
-function parseDecision(
-  content: string | undefined
-): GuardDecision | undefined {
+function parseDecision(content: string | undefined): GuardDecision | undefined {
   if (!content) {
     return undefined;
   }
@@ -169,39 +174,29 @@ function normalizeReason(
   return "Command approved by guard.";
 }
 
-export function createGuard(options: CreateGuardOptions): GuardFunction {
-  const { apiBaseUrl, apiKey, fetch: fetchImpl, timeoutMs, mode = "analyze" } = options;
-
-  const resolvedBaseUrl = apiBaseUrl ?? "https://app.superagent.sh/api/guard";
-
-  if (!resolvedBaseUrl || typeof resolvedBaseUrl !== "string") {
-    throw new GuardError("apiBaseUrl must be a non-empty string.");
-  }
+export function createClient(options: CreateClientOptions): Client {
+  const {
+    apiBaseUrl = "https://app.superagent.sh/api",
+    apiKey,
+    fetch: fetchImpl,
+    timeoutMs,
+  } = options;
 
   if (!apiKey || typeof apiKey !== "string") {
     throw new GuardError("apiKey must be a non-empty string.");
   }
 
   const fetcher = ensureFetch(fetchImpl);
-  const endpoint = sanitizeUrl(resolvedBaseUrl);
+  const guardEndpoint = `${apiBaseUrl}/guard`;
+  const redactEndpoint = `${apiBaseUrl}/redact`;
 
-  return async function guard(
-    command: string,
-    callbacks: GuardCallbacks = {}
-  ): Promise<GuardResult> {
+  return {
+    async guard(
+      command: string,
+      callbacks: GuardCallbacks = {}
+    ): Promise<GuardResult> {
     if (!command || typeof command !== "string") {
       throw new GuardError("command must be a non-empty string.");
-    }
-
-    // Redact-only mode: skip API call
-    if (mode === "redact") {
-      const redactedText = redactSensitiveData(command);
-      return {
-        rejected: false,
-        reasoning: "Redaction only mode - no guard analysis performed",
-        raw: {} as AnalysisResponse,
-        redacted: redactedText,
-      };
     }
 
     const controller =
@@ -211,14 +206,9 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
         ? setTimeout(() => controller.abort(), timeoutMs)
         : undefined;
 
-    // Start redaction in parallel if mode is 'full' (non-blocking)
-    const redactedPromise = mode === "full"
-      ? Promise.resolve(redactSensitiveData(command))
-      : Promise.resolve(undefined);
-
     let response: Response;
     try {
-      response = await fetcher(endpoint, {
+      response = await fetcher(guardEndpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -248,16 +238,11 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
     }
 
     const analysis = (await response.json()) as AnalysisResponse;
-    const decision = parseDecision(
-      analysis?.choices?.[0]?.message?.content
-    );
+    const decision = parseDecision(analysis?.choices?.[0]?.message?.content);
     const rawReasoning = analysis?.choices?.[0]?.message?.reasoning_content;
     const rejected = decision?.status === "block";
 
     const normalizedReason = normalizeReason(decision, rawReasoning);
-
-    // Wait for redaction to complete (should already be done)
-    const redactedText = await redactedPromise;
 
     const result: GuardResult = {
       rejected,
@@ -265,7 +250,6 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
       usage: analysis?.usage,
       reasoning: rawReasoning ?? normalizedReason,
       raw: analysis,
-      ...(redactedText && { redacted: redactedText }),
     };
 
     if (rejected) {
@@ -275,5 +259,90 @@ export function createGuard(options: CreateGuardOptions): GuardFunction {
     }
 
     return result;
+  },
+
+    async redact(
+      text: string,
+      options?: { urlWhitelist?: string[] }
+    ): Promise<RedactResult> {
+      if (!text || typeof text !== "string") {
+        throw new GuardError("text must be a non-empty string.");
+      }
+
+      const controller =
+        typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timeoutHandle =
+        controller && timeoutMs
+          ? setTimeout(() => controller.abort(), timeoutMs)
+          : undefined;
+
+      let response: Response;
+      try {
+        response = await fetcher(redactEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+            "x-superagent-api-key": apiKey,
+          },
+          body: JSON.stringify({
+            prompt: text,
+          }),
+          signal: controller?.signal,
+        } satisfies RequestInit);
+      } catch (error) {
+        if (timeoutHandle) {
+          clearTimeout(timeoutHandle);
+        }
+        const message =
+          error instanceof Error ? error.message : "Unknown fetch error";
+        throw new GuardError(`Failed to reach redact endpoint: ${message}`);
+      }
+
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
+
+      if (!response.ok) {
+        throw new GuardError(
+          `Redact request failed with status ${response.status}: ${response.statusText}`
+        );
+      }
+
+      const result = (await response.json()) as RedactionResponse;
+      let content = result.choices[0].message.content as string;
+
+      // Apply URL whitelist locally if provided
+      if (options?.urlWhitelist) {
+        content = applyUrlWhitelist(text, content, options.urlWhitelist);
+      }
+
+      return {
+        redacted: content,
+        reasoning: result.choices[0].message.reasoning_content || "",
+        usage: result.usage,
+        raw: result,
+      };
+    },
   };
+}
+
+function applyUrlWhitelist(
+  original: string,
+  redacted: string,
+  whitelist: string[]
+): string {
+  // Extract all URLs from the redacted text
+  const urlPattern = /https?:\/\/[^\s<>"']+/g;
+
+  // Replace URLs in the redacted text
+  return redacted.replace(urlPattern, (url) => {
+    // Check if URL matches any whitelist entry (prefix match)
+    const isWhitelisted = whitelist.some((whitelisted) =>
+      url.startsWith(whitelisted)
+    );
+
+    // Keep whitelisted URLs, redact others
+    return isWhitelisted ? url : '<URL_REDACTED>';
+  });
 }

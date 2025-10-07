@@ -19,6 +19,9 @@ jobs:
     defaults:
       run:
         working-directory: sdk/typescript
+    env:
+      SUPERAGENT_LM_API_BASE_URL: ${{ secrets.SUPERAGENT_LM_API_BASE_URL }}
+      SUPERAGENT_LM_API_KEY: ${{ secrets.SUPERAGENT_LM_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,6 +40,9 @@ jobs:
   python:
     name: Python Tests
     runs-on: ubuntu-latest
+    env:
+      SUPERAGENT_LM_API_BASE_URL: ${{ secrets.SUPERAGENT_LM_API_BASE_URL }}
+      SUPERAGENT_LM_API_KEY: ${{ secrets.SUPERAGENT_LM_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

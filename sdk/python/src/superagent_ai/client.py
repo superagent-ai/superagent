@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import inspect
 import json
+import os
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, Literal, Optional, TypedDict, Union
 
 import httpx
-
-from .redact import redact_sensitive_data
 
 
 class GuardError(RuntimeError):
@@ -48,7 +47,14 @@ class GuardResult:
     raw: AnalysisResponse
     decision: Optional[GuardDecision] = None
     usage: Optional[GuardUsage] = None
-    redacted: Optional[str] = None
+
+
+@dataclass(slots=True)
+class RedactResult:
+    redacted: str
+    reasoning: str
+    raw: dict
+    usage: Optional[GuardUsage] = None
 
 
 BlockCallback = Callable[[str], Union[Awaitable[None], None]]
@@ -116,7 +122,7 @@ async def _maybe_call(callback: Optional[Callable[..., Union[Awaitable[None], No
         await result
 
 
-class GuardClient:
+class Client:
     def __init__(
         self,
         api_base_url: str,
@@ -124,21 +130,21 @@ class GuardClient:
         *,
         client: Optional[httpx.AsyncClient] = None,
         timeout: Optional[float] = 10.0,
-        mode: Literal["analyze", "redact", "full"] = "analyze",
     ) -> None:
         if not api_base_url:
-            api_base_url = "https://app.superagent.sh/api/guard"
+            api_base_url = "https://app.superagent.sh/api"
         if not api_key:
             raise GuardError("api_key must be provided")
 
         self._api_key = api_key
-        self._endpoint = _sanitize_url(api_base_url)
+        base = _sanitize_url(api_base_url)
+        self._guard_endpoint = f"{base}/guard"
+        self._redact_endpoint = f"{base}/redact"
         self._timeout = timeout
-        self._mode = mode
         self._client = client or httpx.AsyncClient(timeout=timeout)
         self._owns_client = client is None
 
-    async def __aenter__(self) -> "GuardClient":
+    async def __aenter__(self) -> "Client":
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:
@@ -148,7 +154,7 @@ class GuardClient:
         if self._owns_client:
             await self._client.aclose()
 
-    async def __call__(
+    async def guard(
         self,
         command: str,
         *,
@@ -158,28 +164,9 @@ class GuardClient:
         if not command:
             raise GuardError("command must be a non-empty string")
 
-        # Redact-only mode: skip API call
-        if self._mode == "redact":
-            import asyncio
-            redacted_text = await asyncio.to_thread(redact_sensitive_data, command)
-            return GuardResult(
-                rejected=False,
-                reasoning="Redaction only mode - no guard analysis performed",
-                raw={},
-                redacted=redacted_text,
-            )
-
-        # Start redaction in parallel if mode is 'full' (non-blocking)
-        import asyncio
-        redacted_task = (
-            asyncio.create_task(asyncio.to_thread(redact_sensitive_data, command))
-            if self._mode == "full"
-            else None
-        )
-
         try:
             response = await self._client.post(
-                self._endpoint,
+                self._guard_endpoint,
                 json={"prompt": command},
                 headers={
                     "Authorization": f"Bearer {self._api_key}",
@@ -204,16 +191,12 @@ class GuardClient:
 
         normalized_reason = _reason_from(decision, reasoning, rejected)
 
-        # Wait for redaction to complete (should already be done)
-        redacted_text = await redacted_task if redacted_task else None
-
         result = GuardResult(
             rejected=rejected,
             reasoning=reasoning or normalized_reason,
             raw=analysis,
             decision=decision,
             usage=analysis.get("usage"),
-            redacted=redacted_text,
         )
         if rejected:
             await _maybe_call(on_block, normalized_reason)
@@ -222,30 +205,79 @@ class GuardClient:
 
         return result
 
+    async def redact(self, text: str, *, url_whitelist: Optional[list[str]] = None) -> RedactResult:
+        if not text:
+            raise GuardError("text must be a non-empty string")
 
-def create_guard(
+        try:
+            response = await self._client.post(
+                self._redact_endpoint,
+                json={"prompt": text},
+                headers={
+                    "Authorization": f"Bearer {self._api_key}",
+                    "x-superagent-api-key": self._api_key,
+                },
+                timeout=self._timeout,
+            )
+        except httpx.RequestError as error:
+            raise GuardError(f"Failed to reach redact endpoint: {error}") from error
+
+        if response.status_code >= httpx.codes.BAD_REQUEST:
+            raise GuardError(
+                f"Redact request failed with status {response.status_code}: {response.text}"
+            )
+
+        result = response.json()
+        content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+        reasoning_content = result.get("choices", [{}])[0].get("message", {}).get("reasoning_content", "")
+
+        # Apply URL whitelist locally if provided
+        if url_whitelist:
+            content = self._apply_url_whitelist(text, content, url_whitelist)
+
+        return RedactResult(
+            redacted=content,
+            reasoning=reasoning_content,
+            raw=result,
+            usage=result.get("usage"),
+        )
+
+    def _apply_url_whitelist(self, original: str, redacted: str, whitelist: list[str]) -> str:
+        """Redact URLs that don't match the whitelist."""
+        import re
+
+        # Extract all URLs from the redacted text
+        url_pattern = r'https?://[^\s<>"\']+'
+
+        def replace_url(match):
+            url = match.group(0)
+            # Check if URL matches any whitelist entry (prefix match)
+            is_whitelisted = any(url.startswith(whitelisted) for whitelisted in whitelist)
+            # Keep whitelisted URLs, redact others
+            return url if is_whitelisted else '<URL_REDACTED>'
+
+        return re.sub(url_pattern, replace_url, redacted)
+
+
+def create_client(
     *,
     api_base_url: Optional[str] = None,
     api_key: str,
     client: Optional[httpx.AsyncClient] = None,
     timeout: Optional[float] = 10.0,
-    mode: Literal["analyze", "redact", "full"] = "analyze",
-) -> GuardClient:
-    """Configure and return a Guard client.
+) -> Client:
+    """Configure and return a Client.
 
     Args:
-        api_base_url: Full URL to the guard endpoint
-        api_key: API key used to authenticate the guard request
+        api_base_url: Base URL for the API (e.g. https://app.superagent.sh/api)
+        api_key: API key used to authenticate requests
         client: Optional custom httpx.AsyncClient instance
-        timeout: Optional timeout in seconds for the guard request
-        mode: Operation mode - 'analyze' (default): API analysis only,
-              'redact': redaction only (no API call), 'full': both analysis and redaction
+        timeout: Optional timeout in seconds for requests
     """
 
-    return GuardClient(
-        api_base_url=api_base_url or "https://app.superagent.sh/api/guard",
+    return Client(
+        api_base_url=api_base_url or "https://app.superagent.sh/api",
         api_key=api_key,
         client=client,
         timeout=timeout,
-        mode=mode,
     )
