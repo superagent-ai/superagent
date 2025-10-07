@@ -2,6 +2,14 @@
 
 All notable changes to Superagent will be documented in this file.
 
+## [superagent-ai@0.0.11] - 2025-10-07
+
+### Added
+- Added `urlWhitelist` option to `redact()` method for preserving specific URLs during redaction
+
+### Deprecated
+- `createGuard()` is deprecated in favor of `createClient()`
+
 ## [@superagent-ai/cli@0.0.6] - 2025-10-06
 
 ### Breaking Changes
