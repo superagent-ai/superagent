@@ -2,18 +2,20 @@
 
 from superagent_ai import (
     AnalysisResponse,
-    GuardClient,
+    Client,
     GuardDecision,
     GuardError,
     GuardResult,
-    create_guard,
+    RedactResult,
+    create_client,
 )
 
 __all__ = [
     "AnalysisResponse",
-    "GuardClient",
+    "Client",
     "GuardDecision",
     "GuardError",
     "GuardResult",
-    "create_guard",
+    "RedactResult",
+    "create_client",
 ]

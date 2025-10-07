@@ -1,6 +1,6 @@
-# Superagent Guard TypeScript SDK
+# Superagent TypeScript SDK
 
-A lightweight client for calling the Superagent Guard endpoint from TypeScript or JavaScript projects.
+A lightweight client for calling the Superagent Guard and Redact endpoints from TypeScript or JavaScript projects.
 
 ## Installation
 
@@ -15,97 +15,96 @@ yarn add superagent-ai
 ## Usage
 
 ```ts
-import { createGuard } from "superagent-ai";
+import { createClient } from "superagent-ai";
 
-const guard = createGuard({
-  apiBaseUrl: process.env.SUPERAGENT_GUARD_URL!,
+const client = createClient({
+  apiBaseUrl: process.env.SUPERAGENT_API_BASE_URL, // Optional, defaults to https://app.superagent.sh/api
   apiKey: process.env.SUPERAGENT_API_KEY!,
 });
 
-const command = "Write a benign hello world script";
-
-const { data, rejected, reasoning } = await guard(command, {
+// Guard: Analyze commands for security threats
+const guardResult = await client.guard("Write a hello world script", {
   onBlock: (reason) => {
     console.warn("Guard blocked command:", reason);
   },
   onPass: () => {
-    console.log("Guard approved command, continue!");
+    console.log("Guard approved command!");
   },
 });
 
-if (rejected) {
-  // handle rejection logic
+if (guardResult.rejected) {
+  console.log("Blocked:", guardResult.reasoning);
 } else {
-  // proceed with the approved command
+  console.log("Approved");
 }
-```
 
-### Options
+// Redact: Remove sensitive data from text
+const redactResult = await client.redact(
+  "My email is john@example.com and SSN is 123-45-6789"
+);
 
-- `apiBaseUrl` – fully qualified URL for your Guard endpoint.
-- `apiKey` – API key provisioned in Superagent.
-- `fetch` – optional custom fetch implementation (defaults to global `fetch`).
-- `timeoutMs` – optional timeout for the outbound request.
-- `mode` – operation mode: `"analyze"` (default), `"redact"`, or `"full"`.
-
-The guard response includes both the raw analysis payload and the parsed decision, enabling you to plug into custom workflows or audit logs.
-
-## Operation Modes
-
-### Analyze Mode (Default)
-
-Performs guard security analysis via API without redaction:
-
-```ts
-import { createGuard } from "superagent-ai";
-
-const guard = createGuard({
-  apiBaseUrl: process.env.SUPERAGENT_GUARD_URL!,
-  apiKey: process.env.SUPERAGENT_API_KEY!,
-  mode: "analyze", // Default mode
-});
-
-const result = await guard("Write a hello world script");
-// Returns: { rejected: false, decision: {...}, usage: {...} }
-```
-
-### Redact Mode
-
-Redacts sensitive PII/PHI data only, without making an API call:
-
-```ts
-import { createGuard } from "superagent-ai";
-
-const guard = createGuard({
-  apiBaseUrl: process.env.SUPERAGENT_GUARD_URL!,
-  apiKey: process.env.SUPERAGENT_API_KEY!,
-  mode: "redact", // No API call, redaction only
-});
-
-const result = await guard("My email is john@example.com and SSN is 123-45-6789");
-
-console.log(result.redacted);
+console.log(redactResult.redacted);
 // Output: "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>"
 ```
 
-### Full Mode
+## API Reference
 
-Performs guard analysis AND includes redacted text in the result:
+### `createClient(options)`
+
+Creates a new Superagent client.
+
+**Options:**
+- `apiKey` (required) – API key provisioned in Superagent
+- `apiBaseUrl` (optional) – Base URL for the API (defaults to `https://app.superagent.sh/api`)
+- `fetch` (optional) – Custom fetch implementation (defaults to global `fetch`)
+- `timeoutMs` (optional) – Request timeout in milliseconds
+- `urlWhitelist` (optional) – Array of URLs that should not be redacted
+
+### `client.guard(command, callbacks?)`
+
+Analyzes a command for security threats.
+
+**Parameters:**
+- `command` – The text to analyze
+- `callbacks` (optional) – Object with `onPass` and `onBlock` callbacks
+
+**Returns:** `Promise<GuardResult>`
 
 ```ts
-import { createGuard } from "superagent-ai";
+interface GuardResult {
+  rejected: boolean;        // True if guard blocked the command
+  decision?: GuardDecision; // Parsed decision details
+  usage?: GuardUsage;       // Token usage statistics
+  reasoning: string;        // Explanation from the guard
+  raw: AnalysisResponse;    // Full API response
+}
 
-const guard = createGuard({
-  apiBaseUrl: process.env.SUPERAGENT_GUARD_URL!,
-  apiKey: process.env.SUPERAGENT_API_KEY!,
-  mode: "full", // Both analysis and redaction
-});
-
-const result = await guard("My email is john@example.com");
-// Returns: { rejected: false, decision: {...}, redacted: "My email is <REDACTED_EMAIL>" }
+interface GuardDecision {
+  status: "pass" | "block";
+  violation_types?: string[];
+  cwe_codes?: string[];
+}
 ```
 
-### Detected PII/PHI Types
+### `client.redact(text)`
+
+Redacts sensitive data from text.
+
+**Parameters:**
+- `text` – The text to redact
+
+**Returns:** `Promise<RedactResult>`
+
+```ts
+interface RedactResult {
+  redacted: string;      // Text with sensitive data redacted
+  reasoning: string;     // Explanation of what was redacted
+  usage?: GuardUsage;    // Token usage statistics
+  raw: RedactionResponse; // Full API response
+}
+```
+
+## Detected PII/PHI Types
 
 The redaction feature detects and replaces:
 
@@ -123,15 +122,32 @@ The redaction feature detects and replaces:
 - **IBAN** → `<REDACTED_IBAN>`
 - **ZIP codes** → `<REDACTED_ZIP>`
 
-### GuardResult Interface
+## URL Whitelisting
+
+You can specify URLs that should not be redacted:
 
 ```ts
-interface GuardResult {
-  rejected: boolean;           // True if guard blocked the command
-  decision?: GuardDecision;    // Parsed decision details
-  usage?: GuardUsage;          // Token usage statistics
-  reasoning: string;           // Explanation from the guard
-  raw: AnalysisResponse;       // Full API response
-  redacted?: string;           // Redacted command (if redacted=true)
+const client = createClient({
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+  urlWhitelist: ["https://github.com", "https://example.com"],
+});
+
+const result = await client.redact(
+  "Check out https://github.com/user/repo and https://secret.com/data"
+);
+// Output: "Check out https://github.com/user/repo and <REDACTED_URL>"
+```
+
+## Error Handling
+
+```ts
+import { GuardError } from "superagent-ai";
+
+try {
+  const result = await client.guard("command");
+} catch (error) {
+  if (error instanceof GuardError) {
+    console.error("Guard error:", error.message);
+  }
 }
 ```

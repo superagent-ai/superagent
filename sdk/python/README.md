@@ -1,6 +1,6 @@
-# Superagent Guard Python SDK
+# Superagent Python SDK
 
-Python client for sending commands to the Superagent Guard endpoint.
+Python client for calling the Superagent Guard and Redact endpoints.
 
 ## Installation
 
@@ -13,7 +13,7 @@ pip install superagent-ai
 From the repository root, install the package (including test extras) and create a managed virtual environment:
 
 ```bash
-cd guard/python
+cd sdk/python
 uv sync --extra tests
 ```
 
@@ -23,118 +23,118 @@ This will provision `.venv`, install the SDK in editable mode, and pull in the t
 uv run pytest tests
 ```
 
-## Quick start
+## Usage
 
 ```python
 import asyncio
-from superagent_ai import create_guard
+from superagent_ai import create_client
 
 async def main() -> None:
-    guard = create_guard(
-        api_base_url="https://example.com/api/guard",
+    client = create_client(
+        api_base_url="https://app.superagent.sh/api",  # Optional, this is the default
         api_key="sk-...",
     )
 
-    result = await guard(
-        "Generate a friendly greeting",
+    # Guard: Analyze commands for security threats
+    guard_result = await client.guard(
+        "Write a hello world script",
         on_block=lambda reason: print("Guard blocked:", reason),
-        on_pass=lambda: print("Guard passed"),
+        on_pass=lambda: print("Guard approved!"),
     )
 
-    if result.rejected:
-        print("Rejected with:", result.reasoning)
+    if guard_result.rejected:
+        print("Rejected:", guard_result.reasoning)
     else:
-        print("Approved", result.decision)
+        print("Approved:", guard_result.decision)
 
-    await guard.aclose()
-
-asyncio.run(main())
-```
-
-### Options
-
-- `api_base_url` – fully qualified URL for your Guard endpoint.
-- `api_key` – API key provisioned in Superagent.
-- `timeout` – optional request timeout (defaults to 10 seconds).
-- `client` – optionally provide your own configured `httpx.AsyncClient`.
-- `mode` – operation mode: `"analyze"` (default), `"redact"`, or `"full"`.
-
-The returned `GuardResult` includes both the raw analysis payload from the Guard endpoint and the parsed decision for straightforward policy enforcement.
-
-## Operation Modes
-
-### Analyze Mode (Default)
-
-Performs guard security analysis via API without redaction:
-
-```python
-import asyncio
-from superagent_ai import create_guard
-
-async def main() -> None:
-    guard = create_guard(
-        api_base_url="https://example.com/api/guard",
-        api_key="sk-...",
-        mode="analyze",  # Default mode
+    # Redact: Remove sensitive data from text
+    redact_result = await client.redact(
+        "My email is john@example.com and SSN is 123-45-6789"
     )
 
-    result = await guard("Write a hello world script")
-    # Returns: GuardResult(rejected=False, decision={...}, usage={...})
-
-    await guard.aclose()
-
-asyncio.run(main())
-```
-
-### Redact Mode
-
-Redacts sensitive PII/PHI data only, without making an API call:
-
-```python
-import asyncio
-from superagent_ai import create_guard
-
-async def main() -> None:
-    guard = create_guard(
-        api_base_url="https://example.com/api/guard",
-        api_key="sk-...",
-        mode="redact",  # No API call, redaction only
-    )
-
-    result = await guard("My email is john@example.com and SSN is 123-45-6789")
-
-    print(result.redacted)
+    print(redact_result.redacted)
     # Output: "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>"
 
-    await guard.aclose()
+    await client.aclose()
 
 asyncio.run(main())
 ```
 
-### Full Mode
-
-Performs guard analysis AND includes redacted text in the result:
+### Using as a context manager
 
 ```python
 import asyncio
-from superagent_ai import create_guard
+from superagent_ai import create_client
 
 async def main() -> None:
-    guard = create_guard(
-        api_base_url="https://example.com/api/guard",
-        api_key="sk-...",
-        mode="full",  # Both analysis and redaction
-    )
-
-    result = await guard("My email is john@example.com")
-    # Returns: GuardResult with both decision and redacted fields
-
-    await guard.aclose()
+    async with create_client(api_key="sk-...") as client:
+        result = await client.guard("command")
+        redacted = await client.redact("text")
 
 asyncio.run(main())
 ```
 
-### Detected PII/PHI Types
+## API Reference
+
+### `create_client(**kwargs)`
+
+Creates a new Superagent client.
+
+**Parameters:**
+- `api_key` (required) – API key provisioned in Superagent
+- `api_base_url` (optional) – Base URL for the API (defaults to `https://app.superagent.sh/api`)
+- `client` (optional) – Custom `httpx.AsyncClient` instance
+- `timeout` (optional) – Request timeout in seconds (defaults to 10.0)
+- `url_whitelist` (optional) – List of URLs that should not be redacted
+
+**Returns:** `Client`
+
+### `client.guard(command, *, on_block=None, on_pass=None)`
+
+Analyzes a command for security threats.
+
+**Parameters:**
+- `command` – The text to analyze
+- `on_block` (optional) – Callback function called when command is blocked
+- `on_pass` (optional) – Callback function called when command is approved
+
+**Returns:** `GuardResult`
+
+```python
+@dataclass
+class GuardResult:
+    rejected: bool              # True if guard blocked the command
+    reasoning: str              # Explanation from the guard
+    raw: AnalysisResponse       # Full API response
+    decision: Optional[GuardDecision]  # Parsed decision details
+    usage: Optional[GuardUsage]        # Token usage statistics
+
+@dataclass
+class GuardDecision:
+    status: Literal["pass", "block"]
+    violation_types: list[str]
+    cwe_codes: list[str]
+```
+
+### `client.redact(text)`
+
+Redacts sensitive data from text.
+
+**Parameters:**
+- `text` – The text to redact
+
+**Returns:** `RedactResult`
+
+```python
+@dataclass
+class RedactResult:
+    redacted: str               # Text with sensitive data redacted
+    reasoning: str              # Explanation of what was redacted
+    raw: dict                   # Full API response
+    usage: Optional[GuardUsage] # Token usage statistics
+```
+
+## Detected PII/PHI Types
 
 The redaction feature detects and replaces:
 
@@ -152,15 +152,29 @@ The redaction feature detects and replaces:
 - **IBAN** → `<REDACTED_IBAN>`
 - **ZIP codes** → `<REDACTED_ZIP>`
 
-### GuardResult Fields
+## URL Whitelisting
+
+You can specify URLs that should not be redacted:
 
 ```python
-@dataclass
-class GuardResult:
-    rejected: bool              # True if guard blocked the command
-    reasoning: str              # Explanation from the guard
-    raw: AnalysisResponse       # Full API response
-    decision: Optional[GuardDecision]  # Parsed decision details
-    usage: Optional[GuardUsage]        # Token usage stats
-    redacted: Optional[str]     # Redacted command (if redacted=True)
+client = create_client(
+    api_key="sk-...",
+    url_whitelist=["https://github.com", "https://example.com"],
+)
+
+result = await client.redact(
+    "Check out https://github.com/user/repo and https://secret.com/data"
+)
+# Output: "Check out https://github.com/user/repo and <REDACTED_URL>"
+```
+
+## Error Handling
+
+```python
+from superagent_ai import GuardError
+
+try:
+    result = await client.guard("command")
+except GuardError as error:
+    print(f"Guard error: {error}")
 ```

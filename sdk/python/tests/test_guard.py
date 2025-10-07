@@ -6,7 +6,7 @@ import httpx
 import pytest
 from dotenv import load_dotenv
 
-from superagent_ai import GuardResult, create_guard
+from superagent_ai import GuardResult, RedactResult, create_client
 
 load_dotenv()
 
@@ -16,14 +16,14 @@ API_BASE_URL = os.environ.get("SUPERAGENT_LM_API_BASE_URL", "https://app.superag
 
 @pytest.mark.asyncio
 async def test_guard_pass_triggers_on_pass_callback() -> None:
-    guard = create_guard(api_base_url=API_BASE_URL, api_key=API_KEY)
+    client = create_client(api_base_url=API_BASE_URL, api_key=API_KEY)
 
     passed: List[str] = []
 
     def on_pass() -> None:
         passed.append("called")
 
-    result = await guard("hello world", on_pass=on_pass)
+    result = await client.guard("hello world", on_pass=on_pass)
 
     assert isinstance(result, GuardResult)
     assert result.rejected is False
@@ -39,14 +39,14 @@ async def test_guard_pass_triggers_on_pass_callback() -> None:
 
 @pytest.mark.asyncio
 async def test_guard_block_triggers_on_block_with_reason() -> None:
-    guard = create_guard(api_base_url=API_BASE_URL, api_key=API_KEY)
+    client = create_client(api_base_url=API_BASE_URL, api_key=API_KEY)
 
     reasons: List[str] = []
 
     def on_block(reason: str) -> None:
         reasons.append(reason)
 
-    result = await guard("steal secrets", on_block=on_block)
+    result = await client.guard("steal secrets", on_block=on_block)
 
     assert result.rejected is True
     assert result.decision is not None
@@ -62,33 +62,31 @@ async def test_guard_block_triggers_on_block_with_reason() -> None:
 
 
 @pytest.mark.asyncio
-async def test_redact_mode_only_redacts_data() -> None:
-    """Test that redact mode only redacts data via API"""
-    guard = create_guard(
+async def test_redact_method_redacts_data() -> None:
+    """Test that redact method redacts data via API"""
+    client = create_client(
         api_base_url=API_BASE_URL,
         api_key=API_KEY,
-        mode="redact"
     )
 
-    result = await guard("My email is john@example.com and SSN is 123-45-6789")
+    result = await client.redact("My email is john@example.com and SSN is 123-45-6789")
 
-    assert result.rejected is False
-    assert result.reasoning is not None
-    assert isinstance(result.reasoning, str)
+    assert isinstance(result, RedactResult)
     assert result.redacted is not None
     assert isinstance(result.redacted, str)
+    assert result.reasoning is not None
+    assert isinstance(result.reasoning, str)
 
 
 @pytest.mark.asyncio
-async def test_redact_mode_can_handle_stringified_json() -> None:
-    """Test that redact mode can handle stringified JSON"""
-    guard = create_guard(
+async def test_redact_method_can_handle_stringified_json() -> None:
+    """Test that redact method can handle stringified JSON"""
+    client = create_client(
         api_base_url=API_BASE_URL,
         api_key=API_KEY,
-        mode="redact"
     )
 
-    result = await guard(
+    result = await client.redact(
         json.dumps({
             "prs": {
                 "items": [
@@ -112,47 +110,8 @@ async def test_redact_mode_can_handle_stringified_json() -> None:
         })
     )
 
-    assert result.rejected is False
-    assert result.reasoning is not None
-    assert isinstance(result.reasoning, str)
+    assert isinstance(result, RedactResult)
     assert result.redacted is not None
     assert isinstance(result.redacted, str)
-
-
-@pytest.mark.asyncio
-async def test_full_mode_includes_redaction() -> None:
-    """Test that full mode performs analysis and includes redacted text"""
-    guard = create_guard(
-        api_base_url=API_BASE_URL,
-        api_key=API_KEY,
-        mode="full"
-    )
-
-    result = await guard("hello world")
-
-    assert result.rejected is False
-    assert result.decision is not None
-    assert result.decision["status"] == "pass"
     assert result.reasoning is not None
     assert isinstance(result.reasoning, str)
-    assert result.redacted is not None
-    assert isinstance(result.redacted, str)
-    assert result.usage is not None
-
-
-@pytest.mark.asyncio
-async def test_analyze_mode_default_no_redaction() -> None:
-    """Test that analyze mode (default) performs analysis without redaction"""
-    guard = create_guard(
-        api_base_url=API_BASE_URL,
-        api_key=API_KEY,
-        mode="analyze"
-    )
-
-    result = await guard("hello world")
-
-    assert result.rejected is False
-    assert result.decision is not None
-    assert result.decision["status"] == "pass"
-    assert result.redacted is None
-    assert result.usage is not None

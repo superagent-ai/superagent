@@ -1,19 +1,21 @@
-"""Superagent AI Guard Python SDK."""
+"""Superagent AI Python SDK."""
 
 from .client import (
     AnalysisResponse,
-    GuardClient,
+    Client,
     GuardDecision,
     GuardError,
     GuardResult,
-    create_guard,
+    RedactResult,
+    create_client,
 )
 
 __all__ = [
     "AnalysisResponse",
-    "GuardClient",
+    "Client",
     "GuardDecision",
     "GuardError",
     "GuardResult",
-    "create_guard",
+    "RedactResult",
+    "create_client",
 ]
