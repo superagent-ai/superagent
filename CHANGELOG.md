@@ -2,6 +2,29 @@
 
 All notable changes to Superagent will be documented in this file.
 
+## [@superagent-ai/cli@0.0.7] - 2025-10-07
+
+### Added
+- Added `redact` command for removing sensitive data from text
+- Added `--url-whitelist` option to `redact` command for preserving specific URLs
+- Added `--help` flag to all commands for better developer experience
+
+### Changed
+- Updated `guard` command to use `createClient()` instead of deprecated `createGuard()`
+- Removed `--mode` flag from `guard` command (use separate `redact` command instead)
+- Improved help text and command-line interface
+
+### Migration Guide
+```bash
+# Before (v0.0.6)
+superagent guard --mode redact "My email is john@example.com"
+superagent guard --mode full "prompt"
+
+# After (v0.0.7)
+superagent redact "My email is john@example.com"
+superagent guard "prompt"  # guard no longer supports redaction
+```
+
 ## [superagent-ai@0.0.11] - 2025-10-07
 
 ### Added
