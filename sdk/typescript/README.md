@@ -58,7 +58,6 @@ Creates a new Superagent client.
 - `apiBaseUrl` (optional) – Base URL for the API (defaults to `https://app.superagent.sh/api`)
 - `fetch` (optional) – Custom fetch implementation (defaults to global `fetch`)
 - `timeoutMs` (optional) – Request timeout in milliseconds
-- `urlWhitelist` (optional) – Array of URLs that should not be redacted
 
 ### `client.guard(command, callbacks?)`
 
@@ -86,12 +85,13 @@ interface GuardDecision {
 }
 ```
 
-### `client.redact(text)`
+### `client.redact(text, options?)`
 
 Redacts sensitive data from text.
 
 **Parameters:**
 - `text` – The text to redact
+- `options` (optional) – Options object with `urlWhitelist` array of URL prefixes to preserve
 
 **Returns:** `Promise<RedactResult>`
 
@@ -124,19 +124,21 @@ The redaction feature detects and replaces:
 
 ## URL Whitelisting
 
-You can specify URLs that should not be redacted:
+You can specify URLs that should not be redacted by passing the `urlWhitelist` option:
 
 ```ts
 const client = createClient({
   apiKey: process.env.SUPERAGENT_API_KEY!,
-  urlWhitelist: ["https://github.com", "https://example.com"],
 });
 
 const result = await client.redact(
-  "Check out https://github.com/user/repo and https://secret.com/data"
+  "Check out https://github.com/user/repo and https://secret.com/data",
+  { urlWhitelist: ["https://github.com", "https://example.com"] }
 );
-// Output: "Check out https://github.com/user/repo and <REDACTED_URL>"
+// Output: "Check out https://github.com/user/repo and <URL_REDACTED>"
 ```
+
+The whitelist is applied locally after redaction - URLs matching the prefixes are preserved, while non-whitelisted URLs are replaced with `<URL_REDACTED>`.
 
 ## Error Handling
 

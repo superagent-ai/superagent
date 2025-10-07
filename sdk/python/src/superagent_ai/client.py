@@ -130,7 +130,6 @@ class Client:
         *,
         client: Optional[httpx.AsyncClient] = None,
         timeout: Optional[float] = 10.0,
-        url_whitelist: Optional[list[str]] = None,
     ) -> None:
         if not api_base_url:
             api_base_url = "https://app.superagent.sh/api"
@@ -142,7 +141,6 @@ class Client:
         self._guard_endpoint = f"{base}/guard"
         self._redact_endpoint = f"{base}/redact"
         self._timeout = timeout
-        self._url_whitelist = url_whitelist
         self._client = client or httpx.AsyncClient(timeout=timeout)
         self._owns_client = client is None
 
@@ -207,18 +205,14 @@ class Client:
 
         return result
 
-    async def redact(self, text: str) -> RedactResult:
+    async def redact(self, text: str, *, url_whitelist: Optional[list[str]] = None) -> RedactResult:
         if not text:
             raise GuardError("text must be a non-empty string")
 
         try:
-            payload = {"prompt": text}
-            if self._url_whitelist:
-                payload["urlWhitelist"] = self._url_whitelist
-
             response = await self._client.post(
                 self._redact_endpoint,
-                json=payload,
+                json={"prompt": text},
                 headers={
                     "Authorization": f"Bearer {self._api_key}",
                     "x-superagent-api-key": self._api_key,
@@ -237,12 +231,32 @@ class Client:
         content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
         reasoning_content = result.get("choices", [{}])[0].get("message", {}).get("reasoning_content", "")
 
+        # Apply URL whitelist locally if provided
+        if url_whitelist:
+            content = self._apply_url_whitelist(text, content, url_whitelist)
+
         return RedactResult(
             redacted=content,
             reasoning=reasoning_content,
             raw=result,
             usage=result.get("usage"),
         )
+
+    def _apply_url_whitelist(self, original: str, redacted: str, whitelist: list[str]) -> str:
+        """Redact URLs that don't match the whitelist."""
+        import re
+
+        # Extract all URLs from the redacted text
+        url_pattern = r'https?://[^\s<>"\']+'
+
+        def replace_url(match):
+            url = match.group(0)
+            # Check if URL matches any whitelist entry (prefix match)
+            is_whitelisted = any(url.startswith(whitelisted) for whitelisted in whitelist)
+            # Keep whitelisted URLs, redact others
+            return url if is_whitelisted else '<URL_REDACTED>'
+
+        return re.sub(url_pattern, replace_url, redacted)
 
 
 def create_client(
@@ -251,7 +265,6 @@ def create_client(
     api_key: str,
     client: Optional[httpx.AsyncClient] = None,
     timeout: Optional[float] = 10.0,
-    url_whitelist: Optional[list[str]] = None,
 ) -> Client:
     """Configure and return a Client.
 
@@ -260,8 +273,6 @@ def create_client(
         api_key: API key used to authenticate requests
         client: Optional custom httpx.AsyncClient instance
         timeout: Optional timeout in seconds for requests
-        url_whitelist: Optional list of whitelisted URLs that should not be redacted.
-                      URLs not in this list will be replaced with <REDACTED_URL>.
     """
 
     return Client(
@@ -269,5 +280,4 @@ def create_client(
         api_key=api_key,
         client=client,
         timeout=timeout,
-        url_whitelist=url_whitelist,
     )

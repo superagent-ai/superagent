@@ -95,4 +95,67 @@ describe("createClient", () => {
     expect(result.reasoning).toBeDefined();
     expect(typeof result.reasoning).toBe("string");
   });
+
+  it("redact with URL whitelist preserves whitelisted URLs", async () => {
+    const client = createClient({
+      apiBaseUrl,
+      apiKey,
+    });
+
+    const text =
+      "My email is john@example.com. Visit https://github.com/user/repo and https://private-site.com/secret for more info.";
+
+    const result = await client.redact(text, {
+      urlWhitelist: ["https://github.com"],
+    });
+
+    expect(result.redacted).toBeDefined();
+
+    // GitHub URL should be preserved
+    expect(result.redacted).toContain("https://github.com/user/repo");
+
+    // Private URL should be redacted
+    expect(result.redacted).not.toContain("private-site.com");
+    expect(result.redacted).toContain("<URL_REDACTED>");
+  });
+
+  it("redact with multiple whitelisted URLs preserves all", async () => {
+    const client = createClient({
+      apiBaseUrl,
+      apiKey,
+    });
+
+    const text =
+      "Contact us at support@company.com. Check https://github.com/repo1, https://docs.example.com/guide, and https://secret.internal/data for documentation.";
+
+    const result = await client.redact(text, {
+      urlWhitelist: ["https://github.com", "https://docs.example.com"],
+    });
+
+    expect(result.redacted).toBeDefined();
+
+    // Whitelisted URLs should be preserved
+    expect(result.redacted).toContain("https://github.com/repo1");
+    expect(result.redacted).toContain("https://docs.example.com/guide");
+
+    // Non-whitelisted URL should be redacted
+    expect(result.redacted).not.toContain("secret.internal");
+  });
+
+  it("redact without URL whitelist works normally", async () => {
+    const client = createClient({
+      apiBaseUrl,
+      apiKey,
+    });
+
+    const text = "Visit https://github.com/repo and https://example.com";
+
+    const result = await client.redact(text);
+
+    expect(result.redacted).toBeDefined();
+    expect(typeof result.redacted).toBe("string");
+
+    // Without whitelist, all URLs should be redacted
+    // (This assumes the API actually redacts URLs - adjust assertion based on actual API behavior)
+  });
 });

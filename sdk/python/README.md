@@ -85,7 +85,6 @@ Creates a new Superagent client.
 - `api_base_url` (optional) – Base URL for the API (defaults to `https://app.superagent.sh/api`)
 - `client` (optional) – Custom `httpx.AsyncClient` instance
 - `timeout` (optional) – Request timeout in seconds (defaults to 10.0)
-- `url_whitelist` (optional) – List of URLs that should not be redacted
 
 **Returns:** `Client`
 
@@ -116,12 +115,13 @@ class GuardDecision:
     cwe_codes: list[str]
 ```
 
-### `client.redact(text)`
+### `client.redact(text, *, url_whitelist=None)`
 
 Redacts sensitive data from text.
 
 **Parameters:**
 - `text` – The text to redact
+- `url_whitelist` (optional) – List of URL prefixes that should not be redacted
 
 **Returns:** `RedactResult`
 
@@ -154,19 +154,19 @@ The redaction feature detects and replaces:
 
 ## URL Whitelisting
 
-You can specify URLs that should not be redacted:
+You can specify URLs that should not be redacted by passing the `url_whitelist` parameter:
 
 ```python
-client = create_client(
-    api_key="sk-...",
-    url_whitelist=["https://github.com", "https://example.com"],
-)
+client = create_client(api_key="sk-...")
 
 result = await client.redact(
-    "Check out https://github.com/user/repo and https://secret.com/data"
+    "Check out https://github.com/user/repo and https://secret.com/data",
+    url_whitelist=["https://github.com", "https://example.com"]
 )
-# Output: "Check out https://github.com/user/repo and <REDACTED_URL>"
+# Output: "Check out https://github.com/user/repo and <URL_REDACTED>"
 ```
+
+The whitelist is applied locally after redaction - URLs matching the prefixes are preserved, while non-whitelisted URLs are replaced with `<URL_REDACTED>`.
 
 ## Error Handling
 

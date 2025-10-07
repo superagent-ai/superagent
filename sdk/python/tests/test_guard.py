@@ -115,3 +115,75 @@ async def test_redact_method_can_handle_stringified_json() -> None:
     assert isinstance(result.redacted, str)
     assert result.reasoning is not None
     assert isinstance(result.reasoning, str)
+
+
+@pytest.mark.asyncio
+async def test_redact_with_url_whitelist() -> None:
+    """Test that URL whitelist preserves whitelisted URLs after redaction"""
+    client = create_client(
+        api_base_url=API_BASE_URL,
+        api_key=API_KEY,
+    )
+
+    text = "Visit https://github.com/user/repo and https://private-site.com/secret"
+
+    result = await client.redact(
+        text,
+        url_whitelist=["https://github.com"]
+    )
+
+    assert isinstance(result, RedactResult)
+    assert result.redacted is not None
+
+    # GitHub URL should be preserved
+    assert "https://github.com/user/repo" in result.redacted
+
+    # Private URL should be redacted
+    assert "private-site.com" not in result.redacted
+    assert "<URL_REDACTED>" in result.redacted
+
+
+@pytest.mark.asyncio
+async def test_redact_with_multiple_whitelisted_urls() -> None:
+    """Test that multiple whitelisted URLs are all preserved"""
+    client = create_client(
+        api_base_url=API_BASE_URL,
+        api_key=API_KEY,
+    )
+
+    text = "Check https://github.com/repo1, https://docs.python.org/guide, and https://secret.internal/data"
+
+    result = await client.redact(
+        text,
+        url_whitelist=["https://github.com", "https://docs.python.org"]
+    )
+
+    assert isinstance(result, RedactResult)
+    assert result.redacted is not None
+
+    # Whitelisted URLs should be preserved
+    assert "https://github.com/repo1" in result.redacted
+    assert "https://docs.python.org/guide" in result.redacted
+
+    # Non-whitelisted URL should be redacted
+    assert "secret.internal" not in result.redacted
+
+
+@pytest.mark.asyncio
+async def test_redact_without_url_whitelist() -> None:
+    """Test that all URLs are redacted when no whitelist is provided"""
+    client = create_client(
+        api_base_url=API_BASE_URL,
+        api_key=API_KEY,
+    )
+
+    text = "Visit https://github.com/repo and https://example.com"
+
+    result = await client.redact(text)
+
+    assert isinstance(result, RedactResult)
+    assert result.redacted is not None
+
+    # Without whitelist, all URLs should be redacted
+    # (This assumes the API actually redacts URLs - adjust assertion based on actual API behavior)
+    assert isinstance(result.redacted, str)

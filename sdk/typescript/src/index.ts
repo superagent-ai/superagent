@@ -22,12 +22,6 @@ export interface CreateClientOptions {
    * Optional timeout in milliseconds for requests.
    */
   timeoutMs?: number;
-  /**
-   * Optional whitelist of URLs that should not be redacted.
-   * URLs not in this list will be replaced with <REDACTED_URL>.
-   * Only applies to redact operations.
-   */
-  urlWhitelist?: string[];
 }
 
 export interface GuardCallbacks {
@@ -95,7 +89,7 @@ export interface RedactResult {
 
 export interface Client {
   guard(command: string, callbacks?: GuardCallbacks): Promise<GuardResult>;
-  redact(text: string): Promise<RedactResult>;
+  redact(text: string, options?: { urlWhitelist?: string[] }): Promise<RedactResult>;
 }
 
 export class GuardError extends Error {
@@ -186,7 +180,6 @@ export function createClient(options: CreateClientOptions): Client {
     apiKey,
     fetch: fetchImpl,
     timeoutMs,
-    urlWhitelist,
   } = options;
 
   if (!apiKey || typeof apiKey !== "string") {
@@ -268,7 +261,10 @@ export function createClient(options: CreateClientOptions): Client {
     return result;
   },
 
-    async redact(text: string): Promise<RedactResult> {
+    async redact(
+      text: string,
+      options?: { urlWhitelist?: string[] }
+    ): Promise<RedactResult> {
       if (!text || typeof text !== "string") {
         throw new GuardError("text must be a non-empty string.");
       }
@@ -291,7 +287,6 @@ export function createClient(options: CreateClientOptions): Client {
           },
           body: JSON.stringify({
             prompt: text,
-            ...(urlWhitelist && { urlWhitelist }),
           }),
           signal: controller?.signal,
         } satisfies RequestInit);
@@ -315,14 +310,39 @@ export function createClient(options: CreateClientOptions): Client {
       }
 
       const result = (await response.json()) as RedactionResponse;
-      const content = result.choices[0].message.content;
+      let content = result.choices[0].message.content as string;
+
+      // Apply URL whitelist locally if provided
+      if (options?.urlWhitelist) {
+        content = applyUrlWhitelist(text, content, options.urlWhitelist);
+      }
 
       return {
-        redacted: content as string,
+        redacted: content,
         reasoning: result.choices[0].message.reasoning_content || "",
         usage: result.usage,
         raw: result,
       };
     },
   };
+}
+
+function applyUrlWhitelist(
+  original: string,
+  redacted: string,
+  whitelist: string[]
+): string {
+  // Extract all URLs from the redacted text
+  const urlPattern = /https?:\/\/[^\s<>"']+/g;
+
+  // Replace URLs in the redacted text
+  return redacted.replace(urlPattern, (url) => {
+    // Check if URL matches any whitelist entry (prefix match)
+    const isWhitelisted = whitelist.some((whitelisted) =>
+      url.startsWith(whitelisted)
+    );
+
+    // Keep whitelisted URLs, redact others
+    return isWhitelisted ? url : '<URL_REDACTED>';
+  });
 }
