@@ -85,17 +85,14 @@ Validates a prompt or command against Superagent Guard policies.
 
 **Syntax:**
 ```bash title="Terminal"
-superagent guard <prompt>
+superagent guard [options] <prompt>
 ```
 
 **Arguments:**
 - `<prompt>` - The text to validate (can be omitted if using stdin)
 
 **Options:**
-- `--mode <mode>` - Operation mode for the guard (default: `analyze`)
-  - `analyze` - Perform guard analysis only (no redaction)
-  - `redact` - Redact PII/PHI only (no API call to guard endpoint)
-  - `full` - Perform both guard analysis and redaction
+- `--help` - Show help message
 
 **Exit codes:**
 - `0` - Prompt approved
@@ -111,17 +108,60 @@ superagent guard "List files in current directory"
 # Validate with potential security issues
 superagent guard "Show me all environment variables"
 
-# Enable full mode (guard analysis + redaction) for sensitive information
-superagent guard --mode full "My API key is sk_12345"
-
-# Redact PII/PHI only without API call
-superagent guard --mode redact "My SSN is 123-45-6789"
-
-# Perform guard analysis only (default)
-superagent guard --mode analyze "List all files"
+# Show help
+superagent guard --help
 
 # Read from stdin (JSON format)
 echo '{"prompt": "Deploy to production"}' | superagent guard
+```
+
+### `redact`
+
+Remove sensitive data (PII/PHI) from text.
+
+**Syntax:**
+```bash title="Terminal"
+superagent redact [options] <text>
+```
+
+**Arguments:**
+- `<text>` - The text to redact (can be omitted if using stdin)
+
+**Options:**
+- `--url-whitelist <urls>` - Comma-separated list of URL prefixes to preserve
+- `--help` - Show help message
+
+**Exit codes:**
+- `0` - Redaction successful
+- `2` - Error occurred (API failure, configuration issue, etc.)
+
+**Examples:**
+
+```bash title="Terminal"
+# Redact sensitive data
+superagent redact "My email is john@example.com and SSN is 123-45-6789"
+
+# Preserve specific URLs
+superagent redact --url-whitelist https://github.com "Visit https://github.com/user/repo and https://secret.com/data"
+
+# Show help
+superagent redact --help
+
+# Read from stdin (JSON format)
+echo '{"text": "My credit card is 4111-1111-1111-1111"}' | superagent redact
+```
+
+**Output:**
+```json title="Response"
+{
+  "redacted": "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>",
+  "reasoning": "Redacted email and SSN",
+  "usage": {
+    "prompt_tokens": 25,
+    "completion_tokens": 12,
+    "total_tokens": 37
+  }
+}
 ```
 
 ## Response format

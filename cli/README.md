@@ -1,6 +1,6 @@
 # Superagent CLI
 
-Command-line interface for [Superagent](https://superagent.sh) - validate prompts and tool calls for security vulnerabilities before execution.
+Command-line interface for [Superagent](https://superagent.sh) - analyze prompts for security threats and redact sensitive data.
 
 ## Installation
 
@@ -8,11 +8,11 @@ Command-line interface for [Superagent](https://superagent.sh) - validate prompt
 npm install -g @superagent-ai/cli
 ```
 
-## Usage
+## Commands
 
-### Standalone CLI
+### `guard` - Security Analysis
 
-Check if a prompt is safe:
+Analyze prompts for security threats:
 
 ```bash
 superagent guard "Write a hello world script"
@@ -48,36 +48,50 @@ Output:
 }
 ```
 
-### Operation Modes
+### `redact` - Data Redaction
 
-Use the `--mode` flag to control how the CLI processes prompts:
+Remove sensitive data from text:
 
-**Analyze Mode** (default) - Perform security analysis via API:
 ```bash
-superagent guard "Write a script"
-superagent guard --mode analyze "Write a script"
-```
-
-**Redact Mode** - Only redact sensitive data (no API call):
-```bash
-superagent guard --mode redact "My email is john@example.com and SSN is 123-45-6789"
+superagent redact "My email is john@example.com and SSN is 123-45-6789"
 ```
 
 Output:
 ```json
 {
-  "rejected": false,
-  "reasoning": "Redaction only mode - no guard analysis performed",
-  "redacted": "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>"
+  "redacted": "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>",
+  "reasoning": "Redacted email and SSN",
+  "usage": {
+    "prompt_tokens": 25,
+    "completion_tokens": 12,
+    "total_tokens": 37
+  }
 }
 ```
 
-**Full Mode** - Security analysis + redaction:
+**URL Whitelisting** - Preserve specific URLs:
+
 ```bash
-superagent guard --mode full "My API key is sk_test_123 in this script"
+superagent redact --url-whitelist https://github.com "Visit https://github.com/user/repo and https://secret.com/data"
 ```
 
-Output includes both `decision` and `redacted` fields.
+Output:
+```json
+{
+  "redacted": "Visit https://github.com/user/repo and <URL_REDACTED>",
+  "reasoning": "Preserved whitelisted URLs"
+}
+```
+
+## Help
+
+Get help for any command:
+
+```bash
+superagent --help
+superagent guard --help
+superagent redact --help
+```
 
 ### Claude Code Hook
 

@@ -1,21 +1,24 @@
-import { createGuard } from 'superagent-ai';
+import { createClient } from 'superagent-ai';
+
+function showHelp() {
+  console.log('Usage: superagent guard [options] <prompt>');
+  console.log('   or: echo \'{"prompt": "text"}\' | superagent guard');
+  console.log('');
+  console.log('Analyze prompts for security threats');
+  console.log('');
+  console.log('Options:');
+  console.log('  --help    Show this help message');
+  console.log('');
+  console.log('Examples:');
+  console.log('  superagent guard "rm -rf /"');
+  console.log('  echo \'{"prompt": "delete all files"}\' | superagent guard');
+}
 
 export async function guardCommand(args: string[]) {
-  // Check for --mode flag
-  const modeFlagIndex = args.indexOf('--mode');
-  let mode: "analyze" | "redact" | "full" = "analyze";
-
-  if (modeFlagIndex !== -1) {
-    // Get the value after --mode
-    const modeValue = args[modeFlagIndex + 1];
-    if (modeValue && ['analyze', 'redact', 'full'].includes(modeValue)) {
-      mode = modeValue as "analyze" | "redact" | "full";
-      // Remove --mode and its value from args
-      args.splice(modeFlagIndex, 2);
-    } else {
-      console.error('❌ ERROR: Invalid --mode value. Must be one of: analyze, redact, full');
-      process.exit(1);
-    }
+  // Check for --help flag
+  if (args.includes('--help') || args.includes('-h')) {
+    showHelp();
+    process.exit(0);
   }
 
   // Check if we have command line arguments first
@@ -50,8 +53,8 @@ export async function guardCommand(args: string[]) {
     prompt = args.join(' ');
 
     if (!prompt) {
-      console.error('Usage: superagent guard [--mode <analyze|redact|full>] <prompt>');
-      console.error('   or: echo \'{"prompt": "text"}\' | superagent guard [--mode <analyze|redact|full>]');
+      console.error('Usage: superagent guard <prompt>');
+      console.error('   or: echo \'{"prompt": "text"}\' | superagent guard');
       process.exit(1);
     }
   }
@@ -62,14 +65,13 @@ export async function guardCommand(args: string[]) {
     process.exit(2);
   }
 
-  // Create guard instance
-  const guard = createGuard({
+  // Create client instance
+  const client = createClient({
     apiKey: process.env.SUPERAGENT_API_KEY,
-    mode,
   });
 
   try {
-    const { decision, reasoning, rejected, redacted: redactedPrompt } = await guard(prompt);
+    const { decision, reasoning, rejected } = await client.guard(prompt);
 
     if (rejected) {
       if (isStdin) {
@@ -97,7 +99,6 @@ export async function guardCommand(args: string[]) {
           rejected: true,
           decision,
           reasoning,
-          ...(redactedPrompt && { redacted: redactedPrompt }),
         };
         console.log(JSON.stringify(output, null, 2));
         process.exit(1);
@@ -109,7 +110,6 @@ export async function guardCommand(args: string[]) {
           rejected: false,
           decision,
           reasoning,
-          ...(redactedPrompt && { redacted: redactedPrompt }),
         };
         console.log(JSON.stringify(output, null, 2));
       }
