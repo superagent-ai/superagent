@@ -1,0 +1,53 @@
+---
+title: Gemini CLI
+description: Configure Gemini CLI to use Superagent by setting GOOGLE_GEMINI_BASE_URL in settings.json or environment variables
+---
+
+Superagent provides seamless integration with Gemini CLI. Configure your base URL in Gemini CLI's settings to add AI firewall protection to your existing Gemini CLI workflows.
+
+## Configuration via settings.json
+
+To configure Gemini CLI to use Superagent, you can set the base URL in your Gemini CLI settings.json file:
+
+```json title="settings.json Configuration"
+{
+  "env": {
+    "GOOGLE_GEMINI_BASE_URL": "YOUR_SUPERAGENT_PROXY_URL"
+  }
+}
+```
+
+## Configuration via Environment Variable
+
+Alternatively, you can set the environment variable directly:
+
+```bash title="Environment Variable Setup"
+export GOOGLE_GEMINI_BASE_URL="YOUR_SUPERAGENT_PROXY_URL"
+```
+
+## Locating settings.json
+
+The settings.json file is typically located at:
+
+- **User settings**: `~/.gemini/settings.json`
+- **Project settings**: `.gemini/settings.json` (in your project directory)
+
+If the file doesn't exist, create it with the configuration above.
+
+## Configuration Priority
+
+Gemini CLI follows this configuration precedence order:
+1. Command-line arguments (highest priority)
+2. Environment variables
+3. Project settings file (`.gemini/settings.json`)
+4. User settings file (`~/.gemini/settings.json`)
+5. System defaults (lowest priority)
+
+## Migration Notes
+
+- **No Code Changes Required**: Your existing Gemini CLI workflows work unchanged
+- **Same API Surface**: All Gemini CLI functionality remains identical
+- **Added Protection**: Requests are now protected by Superagent's AI firewall
+- **Complete Compatibility**: Full compatibility with all Gemini CLI features and models
+
+Simply update your `GOOGLE_GEMINI_BASE_URL` to your Superagent proxy URL and restart Gemini CLI to enable protection!

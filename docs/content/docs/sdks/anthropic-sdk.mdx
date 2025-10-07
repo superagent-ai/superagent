@@ -1,0 +1,41 @@
+---
+title: Anthropic SDK
+description: Integrate Superagent with Anthropic SDK by simply updating your base URL
+---
+
+Superagent provides seamless integration with the Anthropic SDK. Simply replace your base URL to add AI firewall protection to your existing Anthropic applications.
+
+## Python SDK
+
+```python title="Python SDK Setup"
+import anthropic
+
+client = anthropic.Anthropic(
+    base_url="YOUR_SUPERAGENT_PROXY_URL",  # Replace with your Superagent proxy
+    api_key="your-anthropic-api-key"
+)
+
+# Use the client as usual - no other changes needed
+```
+
+## TypeScript/JavaScript SDK
+
+```typescript title="TypeScript/JavaScript SDK Setup"
+import Anthropic from '@anthropic-ai/sdk';
+
+const anthropic = new Anthropic({
+  baseURL: 'YOUR_SUPERAGENT_PROXY_URL', // Replace with your Superagent proxy
+  apiKey: 'your-anthropic-api-key',
+});
+
+// Use the client as usual - no other changes needed
+```
+
+## Migration Notes
+
+- **No Code Changes Required**: Your existing Anthropic SDK code works unchanged
+- **Same API Surface**: All Anthropic SDK methods and parameters remain identical
+- **Added Protection**: Requests are now protected by Superagent's AI firewall
+- **Complete Compatibility**: Full compatibility with all Claude models and features
+
+Simply update your `base_url` (Python) or `baseURL` (TypeScript) to your Superagent proxy URL and you're protected!

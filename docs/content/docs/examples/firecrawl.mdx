@@ -1,0 +1,143 @@
+---
+title: Secure search agent with Firecrawl
+description: Use Superagent Guard to vet crawl queries, fetched content, and tool actions while Firecrawl retrieves pages for your agent.
+---
+
+> **TL;DR**: In this post, you’ll ship a tiny but production-ready _web-search agent_ that crawls pages with **Firecrawl** and uses **Superagent Guard** to: (1) vet user queries, (2) scan fetched content for prompt injection and unsafe patterns, and (3) gate follow-on tool actions. Defense-in-depth for retrieval in ~50 lines.
+
+---
+
+## Why this matters
+LLM browsing agents can be tricked by prompt injection, malicious HTML/JS, and social-engineering embedded in page text. The safest baseline is to **treat all web input as untrusted** and **enforce checks** at every boundary:
+
+1. **Before** you browse: validate user prompts/URLs.  
+2. **During** browsing: sanitize and screen the fetched content.  
+3. **After** browsing: restrict any outbound actions unless they pass a policy.  
+
+This tutorial shows how to add those controls around Firecrawl’s official JS SDK.
+
+---
+
+## What you’ll build
+A minimal **web-search agent** using the AI SDK cookbook pattern. It exposes a `webSearch` tool that:
+
+- Accepts a URL  
+- Uses **Superagent Guard** to approve the fetch  
+- Crawls via **Firecrawl** (markdown or HTML)  
+- Screens the returned content again with the guard  
+- Returns safe text back to the model  
+
+You’ll also guard the **initial user prompt** so clearly malicious requests never reach the model.
+
+---
+
+## Prerequisites
+
+```bash title="Terminal"
+npm install ai @ai-sdk/openai superagent-ai zod @mendable/firecrawl-js dotenv
+```
+
+Set environment variables (e.g. in a .env file or your shell):
+
+```bash title=".env"
+export OPENAI_API_KEY=sk-openai-...
+export SUPERAGENT_API_KEY=sk-superagent-...
+export FIRECRAWL_API_KEY=fc-...
+```
+
+## Create a secure web search agent using Firecrawl and Vercel AI SDK
+
+Below is a complete runnable script. It mirrors the AI SDK “web-search agent” pattern and adds Superagent before/after the crawl.
+
+```typescript title="agent.ts"
+import 'dotenv/config';
+import { generateText, tool, stepCountIs } from 'ai';
+import { openai } from '@ai-sdk/openai';
+import { z } from 'zod';
+import FirecrawlApp from '@mendable/firecrawl-js';
+import { createClient } from 'superagent-ai';
+
+const app = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY! });
+
+const client = createClient({
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+
+export const webSearch = tool({
+  description: 'Search the web for up-to-date information',
+  inputSchema: z.object({
+    urlToCrawl: z
+      .string()
+      .url()
+      .describe('The URL to crawl (including http:// or https://)'),
+  }),
+  execute: async ({ urlToCrawl }) => {
+    // 1) Guard the URL before crawling (policy: FETCH)
+    const urlCheck = await client.guard(`FETCH: ${urlToCrawl}`);
+    if (urlCheck.rejected) return `Blocked fetch: ${urlCheck.reasoning}`;
+
+    // 2) Fetch via Firecrawl
+    const crawlResponse = await app.crawlUrl(urlToCrawl, {
+      limit: 1,
+      scrapeOptions: { formats: ['markdown', 'html'] },
+    });
+    if (!crawlResponse.success) {
+      throw new Error(`Failed to crawl: ${crawlResponse.error}`);
+    }
+
+    const doc = crawlResponse.data?.[0];
+    const content = (doc?.markdown as string | undefined) || (doc?.html as string | undefined) || '';
+
+    // 3) Guard fetched content before model consumption
+    const contentCheck = await client.guard(content.slice(0, 8000));
+    if (contentCheck.rejected) return `Blocked page content: ${contentCheck.reasoning}`;
+
+    return content;
+  },
+});
+
+async function main() {
+  const userPrompt = 'Get the latest blog post from vercel.com/blog';
+
+  // Pre-guard the user prompt
+  const pre = await client.guard(userPrompt);
+  if (pre.rejected) {
+    console.error('Blocked prompt:', pre.reasoning);
+    return;
+  }
+
+  const { text } = await generateText({
+    model: openai('gpt-4o-mini'),
+    prompt: userPrompt,
+    tools: { webSearch },
+    stopWhen: stepCountIs(5),
+  });
+
+  console.log(text);
+}
+
+main();
+
+```
+
+## How it works (line by line)
+
+### Step 1 — Client creation
+
+Use createClient with your Superagent API key. Pass text to client.guard() whenever you want to vet it. A rejected result includes a reasoning string.
+
+### Step 2 — Guarding URLs
+
+Prefix the string with FETCH: so your guard policy can treat URL fetches differently than general text.
+
+### Step 3 — Crawling with Firecrawl
+
+crawlUrl() fetches and converts the page. Here we request markdown and html and prefer markdown when available.
+
+### Step 4 — Content screening
+
+Guard the returned text again before passing to the LLM. This blocks prompt injection and unsafe patterns.
+
+### Step 5 — Budgeting agent steps
+
+Use stepCountIs(5) to prevent infinite loops.

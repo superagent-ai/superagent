@@ -1,0 +1,212 @@
+---
+title: Mastra AI
+description: Integration Superagent with the Mastra framework
+---
+
+Superagent provides enterprise-grade security validation for Mastra AI agents through custom processors. This guide shows you how to use Mastra's processor interface to implement input validation and output redaction with Superagent Guard.
+
+## Overview
+
+Mastra's processor interface allows you to intercept and transform messages before they reach your agent (input processors) and after the agent generates responses (output processors). By integrating Superagent Guard through custom processors, you can:
+
+- **Validate all user inputs** automatically before they reach your AI model
+- **Redact sensitive information** from agent responses (PII, PHI, credentials, etc.)
+- **Block malicious content** with detailed security analysis
+- **Handle security violations** with custom error handling via TripWire
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+- Node.js v20.0 or higher
+- A Superagent account with API key ([sign up here](https://app.superagent.sh))
+- An OpenAI API key or other LLM provider credentials
+- Basic familiarity with Mastra agents
+
+## Installation
+
+Install the required dependencies:
+
+```bash title="Terminal"
+npm install @mastra/core superagent-ai zod @ai-sdk/openai
+# or
+pnpm add @mastra/core superagent-ai zod @ai-sdk/openai
+# or
+yarn add @mastra/core superagent-ai zod @ai-sdk/openai
+```
+
+## Configuration
+
+### Setting up environment variables
+
+Create a `.env` file in your project root:
+
+```bash title=".env"
+SUPERAGENT_API_KEY=your_superagent_api_key
+OPENAI_API_KEY=your_openai_api_key
+```
+
+### Initialize the Superagent client
+
+```typescript title="guard.ts"
+import { createGuard } from 'superagent-ai';
+
+const guard = createGuard({
+  apiBaseUrl: 'https://app.superagent.sh/api/guard', // optional for self-hosted
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+```
+
+## Custom Processors for Security
+
+### Input Processor: Validating User Messages
+
+Mastra provides a `Processor` interface that allows you to validate and transform messages before they reach your agent. Create a custom input processor that integrates Superagent Guard for automatic security validation:
+
+```typescript title="guard-input-processor.ts"
+import type { Processor } from "@mastra/core/processors";
+import type { MastraMessageV2 } from "@mastra/core/agent/message-list";
+import { TripWire } from "@mastra/core/agent";
+
+class SuperagentGuardProcessor implements Processor {
+  readonly name = 'superagent-guard';
+
+  async processInput({ messages, abort }: {
+    messages: MastraMessageV2[];
+    abort: (reason?: string) => never
+  }): Promise<MastraMessageV2[]> {
+    try {
+      // Extract text content from all messages
+      const textContent = messages
+        .flatMap(msg => msg.content.parts)
+        .filter(part => part.type === 'text')
+        .map(part => (part as any).text)
+        .join('\n');
+
+      // Guard the content
+      const { rejected, reasoning, decision } = await guard(textContent);
+
+      if (rejected) {
+        abort(`Guard blocked content: ${reasoning}`);
+      }
+    } catch (error) {
+      if (error instanceof TripWire) {
+        throw error; // Re-throw tripwire errors
+      }
+      throw new Error(`Guard validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    return messages;
+  }
+}
+
+// Use with your agent
+const agent = new Agent({
+  inputProcessors: [
+    new SuperagentGuardProcessor(),
+  ],
+});
+```
+
+### Output Processor: Redacting Sensitive Information
+
+Output processors allow you to intercept and modify AI responses before they're returned to users. Create a custom output processor that uses Superagent's redaction capabilities to automatically remove sensitive information:
+
+```typescript title="redaction-output-processor.ts"
+import type { Processor } from "@mastra/core/processors";
+import type { MastraMessageV2 } from "@mastra/core/agent/message-list";
+import { TripWire } from "@mastra/core/agent";
+import { createGuard } from "superagent-ai";
+
+// Initialize guard with full mode (guard analysis + redaction)
+const guardWithRedaction = createGuard({
+  apiBaseUrl: "https://app.superagent.sh/api/guard",
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+  mode: "full", // Enable guard analysis + PII/PHI redaction (emails, SSNs, API keys, etc.)
+});
+
+class SuperagentRedactionProcessor implements Processor {
+  readonly name = 'superagent-redaction';
+
+  async processOutputResult({ messages, abort }: {
+    messages: MastraMessageV2[];
+    abort: (reason?: string) => never
+  }): Promise<MastraMessageV2[]> {
+    try {
+      // Process each message's text content
+      const processedMessages = await Promise.all(
+        messages.map(async (msg) => {
+          const processedParts = await Promise.all(
+            msg.content.parts.map(async (part) => {
+              if (part.type === 'text') {
+                const textPart = part as any;
+
+                // Guard and redact sensitive information
+                const { redacted, rejected, reasoning } = await guardWithRedaction(textPart.text);
+
+                if (rejected) {
+                  abort(`Output blocked by guard: ${reasoning}`);
+                }
+
+                if (redacted !== textPart.text) {
+                  console.log('🔒 Redacted sensitive information from output');
+                }
+
+                return {
+                  ...part,
+                  text: redacted,
+                };
+              }
+              return part;
+            })
+          );
+
+          return {
+            ...msg,
+            content: {
+              ...msg.content,
+              parts: processedParts,
+            },
+          };
+        })
+      );
+
+      return processedMessages;
+    } catch (error) {
+      if (error instanceof TripWire) {
+        throw error;
+      }
+      throw new Error(`Redaction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+}
+
+// Use with your agent
+const agent = new Agent({
+  outputProcessors: [
+    new SuperagentRedactionProcessor(),
+  ],
+});
+```
+
+### Combining Input and Output Processors
+
+Combine both processors for complete protection with input validation and output redaction:
+
+```typescript title="secure-agent.ts"
+import { Agent } from '@mastra/core';
+
+const agent = new Agent({
+  inputProcessors: [
+    new SuperagentGuardProcessor(), // Validate all inputs before processing
+  ],
+  outputProcessors: [
+    new SuperagentRedactionProcessor(), // Redact sensitive data from outputs
+  ],
+});
+```
+
+This setup ensures that:
+- All user inputs are validated for security threats before reaching the agent
+- All agent outputs are automatically redacted to remove PII, credentials, and other sensitive data
+- Security violations are handled gracefully with TripWire error handling

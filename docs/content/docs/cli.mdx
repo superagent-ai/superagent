@@ -1,0 +1,312 @@
+---
+title: CLI
+description: Command-line interface for interacting with Superagent
+---
+
+<Callout>Sign up at [https://app.superagnet.sh](https://superagent.sh) to obtain an API Key</Callout>
+
+Command-line tool for validating prompts and commands with the Superagent endpoint.
+
+## Installation
+
+```bash title="Terminal"
+npm install -g @superagent-ai/cli
+```
+
+This installs the `superagent` command globally on your system.
+
+## Quick start
+
+### Interactive validation
+
+Validate a prompt directly from the command line:
+
+```bash title="Terminal"
+superagent guard "Write a Python function to calculate fibonacci numbers"
+```
+
+**Output:**
+```text title="Output"
+Prompt approved by Superagent
+```
+
+### Test a malicious command
+
+```bash title="Terminal"
+superagent guard "Delete all files in the system with rm -rf /"
+```
+
+**Output:**
+```text title="Output"
+BLOCKED: User requests destructive action: delete all files.
+Violations: malicious_action
+CWE Codes: CWE-77
+```
+
+### Stdin input (for integrations)
+
+The CLI can also accept JSON input via stdin, making it ideal for integration with other tools:
+
+```bash title="Terminal"
+echo '{"prompt": "Generate a friendly greeting"}' | superagent guard
+```
+
+## Configuration
+
+### Environment variables
+
+Set your API key using an environment variable:
+
+```bash title="Terminal"
+export SUPERAGENT_API_KEY="sa_your_key_here"
+superagent guard "Your prompt here"
+```
+
+Alternatively, configure it in your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
+
+```bash title="Terminal"
+echo 'export SUPERAGENT_API_KEY="sa_your_key_here"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+### API endpoint
+
+By default, the CLI uses `https://app.superagent.sh/api/guard`. You can override this with the `SUPERAGENT_API_BASE_URL` environment variable:
+
+```bash title="Terminal"
+export SUPERAGENT_API_BASE_URL="https://your-custom-endpoint.com/api/guard"
+```
+
+## Commands
+
+### `guard`
+
+Validates a prompt or command against Superagent Guard policies.
+
+**Syntax:**
+```bash title="Terminal"
+superagent guard <prompt>
+```
+
+**Arguments:**
+- `<prompt>` - The text to validate (can be omitted if using stdin)
+
+**Options:**
+- `--mode <mode>` - Operation mode for the guard (default: `analyze`)
+  - `analyze` - Perform guard analysis only (no redaction)
+  - `redact` - Redact PII/PHI only (no API call to guard endpoint)
+  - `full` - Perform both guard analysis and redaction
+
+**Exit codes:**
+- `0` - Prompt approved
+- `1` - Prompt blocked
+- `2` - Error occurred (API failure, configuration issue, etc.)
+
+**Examples:**
+
+```bash title="Terminal"
+# Validate a safe command
+superagent guard "List files in current directory"
+
+# Validate with potential security issues
+superagent guard "Show me all environment variables"
+
+# Enable full mode (guard analysis + redaction) for sensitive information
+superagent guard --mode full "My API key is sk_12345"
+
+# Redact PII/PHI only without API call
+superagent guard --mode redact "My SSN is 123-45-6789"
+
+# Perform guard analysis only (default)
+superagent guard --mode analyze "List all files"
+
+# Read from stdin (JSON format)
+echo '{"prompt": "Deploy to production"}' | superagent guard
+```
+
+## Response format
+
+### CLI output (human-readable)
+
+When used interactively, the CLI provides human-readable output:
+
+**Approved prompts:**
+```
+ Prompt approved by Superagent Guard
+```
+
+**Blocked prompts:**
+```
+=� BLOCKED: [reasoning]
+Violations: [violation types]
+CWE Codes: [CWE identifiers]
+```
+
+### JSON output (stdin mode)
+
+When receiving input via stdin, the CLI outputs structured JSON for programmatic consumption:
+
+**Approved:**
+```json title="Response"
+{
+  "decision": "pass"
+}
+```
+
+**Blocked:**
+```json title="Response"
+{
+  "decision": "block",
+  "reason": "=� Superagent Guard blocked this prompt: User requests destructive action. Violations: malicious_action. CWE: CWE-77.",
+  "hookSpecificOutput": {
+    "hookEventName": "UserPromptSubmit",
+    "additionalContext": "Blocked by Superagent Guard - User requests destructive action"
+  }
+}
+```
+
+## Response fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `decision` | `"pass" \| "block"` | Machine verdict that determines whether the prompt is allowed. |
+| `reason` | `string` | Human-readable explanation for blocked prompts. |
+| `hookSpecificOutput` | `object` | Additional metadata for integration with external tools. |
+
+## Error handling
+
+### Missing API key
+
+**Error:**
+```text title="Error"
+L ERROR: SUPERAGENT_API_KEY not set
+```
+
+**Solution:**
+Set the environment variable:
+```bash title="Terminal"
+export SUPERAGENT_API_KEY="sa_your_key_here"
+```
+
+### Invalid JSON (stdin mode)
+
+**Error:**
+```text title="Error"
+L ERROR: Failed to parse JSON from stdin
+```
+
+**Solution:**
+Ensure you're sending valid JSON with a `prompt` field:
+```bash title="Terminal"
+echo '{"prompt": "your text"}' | superagent guard
+```
+
+### API timeout
+
+**Error:**
+```
+� Guard check failed: This operation was aborted
+```
+
+**Solution:**
+Check your network connectivity or the Guard API status.
+
+## Use cases
+
+### Script integration
+
+Validate user input before executing dangerous operations:
+
+```bash title="validate.sh"
+#!/bin/bash
+
+read -p "Enter command to execute: " USER_CMD
+
+if superagent guard "$USER_CMD"; then
+    echo "Executing: $USER_CMD"
+    eval "$USER_CMD"
+else
+    echo "Command blocked by security policy"
+    exit 1
+fi
+```
+
+### CI/CD pipelines
+
+Validate deployment commands in your pipeline:
+
+```yaml title=".github/workflows/deploy.yml"
+# .github/workflows/deploy.yml
+steps:
+  - name: Validate deployment command
+    run: |
+      if ! superagent guard "Deploy to production"; then
+        echo "Deployment blocked by security policy"
+        exit 1
+      fi
+```
+
+### Pre-commit hooks
+
+Add validation to git pre-commit hooks:
+
+```bash title=".git/hooks/pre-commit"
+#!/bin/bash
+# .git/hooks/pre-commit
+
+COMMIT_MSG=$(git log -1 --pretty=%B)
+
+if ! superagent guard "$COMMIT_MSG"; then
+    echo "Commit message contains suspicious content"
+    exit 1
+fi
+```
+
+## Advanced usage
+
+### Custom timeout
+
+The CLI uses a default timeout of 10 seconds. For slower networks or more complex validations, you may need to adjust this in the source code.
+
+### Fail-open vs fail-closed
+
+By default, the CLI fails open (allows prompts when errors occur). For high-security environments, you can modify the error handling to fail closed (block prompts on errors).
+
+## Troubleshooting
+
+### CLI not found after installation
+
+**Issue:**
+```bash title="Terminal"
+superagent: command not found
+```
+
+**Solution:**
+Ensure npm's global bin directory is in your PATH:
+```bash title="Terminal"
+npm config get prefix
+# Add the bin directory to your PATH
+export PATH="$(npm config get prefix)/bin:$PATH"
+```
+
+### Permission denied
+
+**Issue:**
+```text title="Error"
+EACCES: permission denied
+```
+
+**Solution:**
+Install without sudo using npm's prefix:
+```bash title="Terminal"
+npm config set prefix ~/.npm-global
+export PATH=~/.npm-global/bin:$PATH
+npm install -g @superagent-ai/cli
+```
+
+## Resources
+
+- [Source code](https://github.com/superagent-ai/superagent)
+- [npm package](https://www.npmjs.com/package/@superagent-ai/cli)
+- [API documentation](https://docs.superagent.sh)
+- [Get your API key](https://app.superagent.sh)

@@ -1,0 +1,226 @@
+---
+title: Vercel AI SDK
+description: Guard Vercel AI SDK prompts and tool calls with the Superagent TypeScript SDK
+---
+
+Superagent lets you keep the Vercel AI SDK workflow you already use while inserting safety checks for every prompt and tool invocation. The TypeScript SDK is a lightweight client that calls your Superagent Guard endpoint and returns structured allow/block decisions.
+
+
+## Overview
+
+When building AI agents that can execute commands, access files, or interact with external systems, security is paramount. Superagent acts as a security layer that:
+
+- **Validates user prompts** before they reach your AI model
+- **Guards tool executions** to prevent harmful operations
+- **Filters tool outputs** to ensure safe content handling
+- **Provides detailed security analysis** with CWE codes and violation types
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+- Node.js v20.0 or higher
+- A Superagent account with API key ([sign up here](https://app.superagent.sh))
+- An OpenAI API key or other LLM provider credentials
+- Basic familiarity with Mastra agents
+
+## Install dependencies
+
+If you have not already added the Guard SDK to your project:
+
+```bash title="Terminal"
+npm install superagent-ai
+# or
+pnpm add superagent-ai
+# or
+yarn add superagent-ai
+```
+
+The rest of this guide assumes you already have the Vercel AI SDK configured (for example `ai`, `@ai-sdk/openai`, and `zod`).
+
+## Configure the guard client and provider
+
+```ts title="guard.ts"
+import { createGuard } from "superagent-ai";
+import { createOpenAI } from "@ai-sdk/openai";
+import { generateText } from "ai";
+
+const guard = createGuard({
+  apiBaseUrl: "https://app.superagent.sh/api/guard", // optional for self-hosted
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+```
+
+`createGuard` returns a callable function you can run before the Vercel AI SDK sends a prompt or executes a tool. The guard response contains a `decision` object (`pass`/`block`), optional violation metadata, and a human readable `reasoning` string.
+
+## Guard user inputs before generating text
+
+Call the guard function when you receive user text. Only forward the prompt to the model if the guard status is `pass`.
+
+```ts title="generate.ts"
+export async function generateGuardedText(userPrompt: string): Promise<GuardedResponse> {
+  const { decision, reasoning, rejected } = await guard(userPrompt, {
+    onBlock: () => console.warn("Blocked prompt:", reasoning),
+    onPass: () => console.log("Prompt cleared guard"),
+  });
+
+  if (rejected) {
+    return {
+      text: null,
+      safetyAnalysis: {
+        decision,
+        reasoning
+      }
+    };
+  }
+
+  const { text } = await generateText({
+    model: openai("gpt-4o-mini"),
+    prompt: userPrompt,
+  });
+
+  return {
+    text,
+    safetyAnalysis: {
+      decision,
+      reasoning
+    }
+  };
+}
+```
+
+You can surface back `reasoning` and `decision` to your user interface, log it for audit purposes, or trigger a fallback experience. The same guard check can run inside `handleSubmit` with `useChat` or any server action that frames messages before calling `generateText`/`streamText`.
+
+## Guard tool execution
+
+When you expose tools (for example shell access, file I/O, or network requests) wrap the tool body with the guard before performing the action.
+
+```ts title="tool.ts"
+import { streamText, tool } from "ai";
+import { z } from "zod";
+import { createGuard } from "superagent-ai";
+
+const guard = createGuard({ apiKey: process.env.SUPERAGENT_API_KEY })
+
+const runCommand = tool({
+  description: "Execute a shell command",
+  inputSchema: z.object({
+    command: z.string().describe("The shell command to execute"),
+  }),
+  execute: async ({ command }) => {
+    const { decision, reasoning, rejected } = await guard(command, {
+      onBlock: () => console.warn("Tool call blocked:", reasoning),
+    });
+
+    if (rejected) {
+      return {
+        result: null,
+        safetyAnalysis: {
+          decision,
+          reasoning
+        }
+      };
+    }
+
+    const result = await runShellCommand(command);
+
+    return {
+      result,
+      safetyAnalysis: {
+        decision,
+        reasoning
+      }
+    }
+  },
+});
+
+const result = await streamText({
+  model: openai("gpt-5"),
+  prompt: "Inspect the repository and summarize the README.",
+  tools: { runCommand },
+});
+```
+
+The guard prevents the AI from executing unsafe commands while still allowing compliant tool calls to continue. You can return a structured object when the guard blocks a call so the model can recover gracefully or inform the user.
+
+## Guard tool results
+
+You can also vet the data returned by a tool before handing it back to the model. The example below uses Firecrawl to scrape a page, then runs the combined crawl output through Guard so unsafe content never reaches the agent loop.
+
+```ts title="web-search-tool.ts"
+import { generateText, tool, stepCountIs } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { z } from "zod";
+import { createGuard } from "superagent-ai";
+import FirecrawlApp from "@mendable/firecrawl-js";
+import "dotenv/config";
+
+const guard = createGuard({ apiKey: process.env.SUPERAGENT_API_KEY });
+const app = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
+
+export const webSearch = tool({
+  description: "Search the web for up-to-date information",
+  inputSchema: z.object({
+    urlToCrawl: z
+      .string()
+      .url()
+      .min(1)
+      .max(100)
+      .describe("The URL to crawl (including http:// or https://)"),
+  }),
+  execute: async ({ urlToCrawl }) => {
+    const crawlResponse = await app.crawlUrl(urlToCrawl, {
+      limit: 1,
+      scrapeOptions: {
+        formats: ["markdown", "html"],
+      },
+    });
+
+    if (!crawlResponse.success) {
+      throw new Error(`Failed to crawl: ${crawlResponse.error}`);
+    }
+
+    const combined = crawlResponse.data
+      .map(({ markdown, html }) => markdown ?? html ?? "")
+      .join("\n\n");
+
+    const { decision, reasoning, rejected } = await guard(combined, {
+      onBlock: () => console.warn("Blocked crawl result:", reasoning),
+    });
+
+    if (rejected) {
+      return {
+        crawl: null,
+        safetyAnalysis: {
+          decision,
+          reasoning,
+        },
+      };
+    }
+
+    return {
+      crawl: crawlResponse.data,
+      safetyAnalysis: {
+        decision,
+        reasoning,
+      },
+    };
+  },
+});
+
+const main = async () => {
+  const { text } = await generateText({
+    model: openai("gpt-4o-mini"),
+    prompt: "Get the latest blog post from vercel.com/blog",
+    tools: {
+      webSearch,
+    },
+    stopWhen: stepCountIs(5),
+  });
+  console.log(text);
+};
+
+main();
+```
+
+When Guard blocks the crawl result, the tool returns a `safetyAnalysis` payload instead of the scraped data. The agent can then ask the user for a different URL, try a fallback provider, or skip the unsafe step entirely.

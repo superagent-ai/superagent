@@ -1,0 +1,51 @@
+---
+title: Proxy
+description: Get started with Superagent proxy in just a few simple steps
+---
+
+Get started with Superagent in just a few simple steps.
+
+## Step 1: Sign up
+
+Sign up at [https://app.superagent.sh](https://app.superagent.sh)
+
+## Step 2: Get your proxy link
+
+1. Navigate to `/proxy` in your dashboard
+2. Copy the proxy link
+
+## Step 3: Update your existing application
+
+Replace your existing OpenAI base URL with the Superagent proxy link.
+
+```python title="Python SDK"
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="YOUR_PROXY_LINK_HERE",  # Replace with your proxy link
+    api_key="your-openai-api-key"
+)
+
+# Use the client as usual
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello, world!"}]
+)
+```
+
+```typescript title="TypeScript/JavaScript SDK"
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  baseURL: 'YOUR_PROXY_LINK_HERE', // Replace with your proxy link
+  apiKey: 'your-openai-api-key',
+});
+
+// Use the client as usual
+const response = await openai.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello, world!' }],
+});
+```
+
+That's it! Your application will now route through Superagent while maintaining full compatibility with the OpenAI API.

@@ -1,0 +1,66 @@
+---
+title: xAI SDK
+description: Integrate Superagent with xAI SDK by simply updating your base URL
+---
+
+Superagent provides seamless integration with the xAI SDK. Simply replace your base URL to add AI firewall protection to your existing xAI applications.
+
+## Python SDK
+
+```python title="Python SDK Setup"
+from xai_sdk import Client
+
+client = Client(
+    api_key="your-xai-api-key",
+    base_url="YOUR_SUPERAGENT_PROXY_URL"  # Replace with your Superagent proxy
+)
+
+# Use the client as usual - no other changes needed
+```
+
+## TypeScript/JavaScript SDK
+
+```typescript title="TypeScript/JavaScript SDK Setup"
+import { createXai } from '@ai-sdk/xai';
+
+const xai = createXai({
+  apiKey: 'your-xai-api-key',
+  baseURL: 'YOUR_SUPERAGENT_PROXY_URL', // Replace with your Superagent proxy
+});
+
+// Use the client as usual - no other changes needed
+```
+
+## Alternative: OpenAI SDK Compatible
+
+```python title="Python with OpenAI SDK"
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="YOUR_SUPERAGENT_PROXY_URL",  # Replace with your Superagent proxy
+    api_key="your-xai-api-key"
+)
+
+# xAI API is fully compatible with OpenAI SDK
+```
+
+```typescript title="TypeScript with OpenAI SDK"
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  baseURL: 'YOUR_SUPERAGENT_PROXY_URL', // Replace with your Superagent proxy
+  apiKey: 'your-xai-api-key',
+});
+
+// xAI API is fully compatible with OpenAI SDK
+```
+
+## Migration Notes
+
+- **No Code Changes Required**: Your existing xAI SDK code works unchanged
+- **Same API Surface**: All xAI SDK methods and parameters remain identical
+- **OpenAI Compatibility**: xAI API is fully compatible with OpenAI SDK
+- **Added Protection**: Requests are now protected by Superagent's AI firewall
+- **Complete Compatibility**: Full compatibility with all Grok models and features
+
+Simply update your `base_url` (Python) or `baseURL` (TypeScript) to your Superagent proxy URL and you're protected!

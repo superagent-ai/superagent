@@ -1,0 +1,89 @@
+---
+title: SuperagentLM
+description: Superagent's safety language model for real-time safety checks.
+---
+
+## Overview
+
+SuperagentLM is a SLM (Small Language Model) powers the Superagent's reasoning-driven detection of prompt injections, backdoors, and data leaks.
+
+
+## Threat Coverage
+
+- Attempts that override system policies.
+- Payloads such as reverse shells, ransomware droppers, or privilege escalation scripts.
+- Requests focused on secrets, credentials, or regulated PII.
+- Chains that try to coerce downstream models into unsafe behavior.
+
+
+## Evaluation benchmarks
+
+| Model | Detection accuracy |
+| --- | --- |
+| Superagent-LM | 98% |
+| Gemini 2.5 Pro | 97% |
+| GPT-5 | 94.5% |
+| Sonnet-4 | 37% |
+| Opus 4.1 | 24.5% |
+
+These accuracy numbers come from Superagent's internal detection eval suite; higher values mean fewer missed exploits during guard checks.
+
+## Model details
+
+- Architecture: GPT-OSS mixture-of-experts design with a 131k-token sliding attention context window, originally released as GPT-OSS 20B.
+- Finetuning: Instruction-tuned by Superagent on top of `unsloth/gpt-oss-20b-unsloth-bnb-4bit` via Unsloth's accelerated pipeline.
+- Parameters: 20.9B, exported as an 8-bit `superagent_lm_finetue.Q8_0.gguf` checkpoint for llama.cpp and compatible runtimes.
+- Package contents: Includes the Transformer `config.json`, chat template, recommended generation params, and the Q8_0 GGUF weights (~22.3 GB) for easy deployment across CPU/GPU setups.
+
+## Download Options
+
+### 20B Guard Model
+
+Expect large downloads: the quantized GGUF export is ~19.5 GiB, while the full-precision shards weigh in at roughly 40 GiB for BF16 workflows.
+
+<Cards>
+  <IconCard 
+    title="20B GGUF (Q8_0)" 
+    href="https://huggingface.co/superagent-ai/superagent-lm-20b-gguf" 
+    description="Quantized guard rail tuned for llama.cpp, ~19.5 GiB download via huggingface-cli"
+    icon={<Cpu className="size-4" />}
+  />
+  <IconCard 
+    title="20B Full Precision" 
+    href="https://huggingface.co/superagent-ai/superagent-lm-20b" 
+    description="BF16 safetensors across multiple shards (~40 GiB) for custom pipelines"
+    icon={<Server className="size-4" />}
+  />
+</Cards>
+
+### 270M Edge Variant
+
+Optimized for lighter inference: the Q8_0 GGUF package is ~1.7 GiB and the 16-bit checkpoint is ~1.5 GiB for users re-quantizing their own build.
+
+<Cards>
+  <IconCard 
+    title="270M GGUF (Q8_0)" 
+    href="https://huggingface.co/superagent-ai/superagent-lm-270m-gguf" 
+    description="Edge-friendly guard model in GGUF format (~1.7 GiB)"
+    icon={<Cpu className="size-4" />}
+  />
+  <IconCard 
+    title="270M 16-bit" 
+    href="https://huggingface.co/superagent-ai/superagent-lm-270m-16bit" 
+    description="Reference FP16/BF16 weights (~1.5 GiB) for custom quantization"
+    icon={<Server className="size-4" />}
+  />
+</Cards>
+
+### Dataset
+
+Superagent publishes the dataset behind its guard suite as a JSONL dataset (~39 MiB) so teams can reproduce benchmark checks locally.
+
+<Cards>
+  <IconCard 
+    title="Dataset" 
+    href="https://huggingface.co/datasets/superagent-ai/superagent-lm" 
+    description="Benchmark prompts, labels, and guard outcomes for regression testing"
+    icon={<BarChart3 className="size-4" />}
+  />
+</Cards>

@@ -1,0 +1,81 @@
+---
+title: What is Superagent?
+description: Runtime protection for agents, copilots, and AI applications
+---
+
+Superagent provides runtime protection for production agents and copilots. It runs as a secure proxy between your apps, models, and tools — inspecting every prompt, response, file, and tool call before they reach downstream systems.
+
+Point your OpenAI, Anthropic, or OSS model clients at the Superagent proxy and get real-time safeguards instantly. SuperagentLM, our reasoning-driven safety model, analyzes traffic with sub-50 ms latency so unsafe activity is blocked while valid workflows flow without friction.
+
+## Why Superagent
+
+- **Drop-in setup**: Swap your API base URL for the Superagent proxy — no refactor required  
+- **Agent-native**: Purpose-built to cover prompts, tool calls, function invocations, and file attachments  
+- **Stops real threats**: Detects and blocks prompt injections, malicious calls, data exfiltration, and backdoors  
+- **Complete visibility**: Stream structured logs, audits, and decisions into your existing security stack  
+
+## Core Capabilities
+
+<Cards>
+  <IconCard 
+    title="Runtime Protection" 
+    description="Inspects inbound prompts and outbound responses for adversarial patterns in real time"
+    icon={<Shield className="size-4" />}
+  />
+  <IconCard 
+    title="Guarded Tooling" 
+    description="Validates tool calls, parameters, and execution context before they run"
+    icon={<Workflow className="size-4" />}
+  />
+  <IconCard 
+    title="SuperagentLM" 
+    description="Reasoning-driven safety model that scores every request in milliseconds"
+    icon={<Cpu className="size-4" />}
+  />
+  <IconCard 
+    title="Unified Observability" 
+    description="Centralize policies, audits, and redaction reports for fast incident response"
+    icon={<BarChart3 className="size-4" />}
+  />
+</Cards>
+
+## How Superagent Protects
+
+1. **Intercept**: Superagent sits as a secure proxy between your app, models, and tools  
+2. **Analyze**: SuperagentLM reasons over prompts, responses, and payloads to detect injections, leaks, and misuse  
+3. **Protect**: Runtime policies block, redact, or quarantine threats while safe calls pass through untouched  
+4. **Monitor**: Stream logs, metrics, and alerts for full transparency and auditability  
+
+## Deployment Options
+
+- **Hosted**: Managed solution that launches in seconds, scales automatically, and requires no infrastructure  
+- **Self-hosted**: Deploy inside your VPC for full data ownership and enterprise-grade controls  
+
+## Build with Superagent
+
+<Cards>
+<IconCard 
+    title="TypeScript SDK" 
+    href="/typescript-sdk" 
+    description="Drop-in client for Node.js, Vite, and edge runtimes"
+    icon={<TypeScriptIcon className="size-4" />}
+  />
+  <IconCard 
+    title="Python SDK" 
+    href="/python-sdk" 
+    description="Typed Python bindings with OpenAI-compatible APIs"
+    icon={<PythonIcon className="size-4" />}
+  />
+  <IconCard 
+    title="Proxy" 
+    href="/proxy" 
+    description="Use the Superagent reverse proxy"
+    icon={<Server className="size-4" />}
+  />
+  <IconCard 
+    title="SuperagentLM" 
+    href="/superagent-lm" 
+    description="Download guard models and the eval dataset"
+    icon={<Cpu className="size-4" />}
+  />
+</Cards>

@@ -1,0 +1,354 @@
+---
+title: LangGraph
+description: Guard LangGraph agent flows and tool calls with Superagent
+---
+
+## Overview
+
+When building AI agents that can execute commands, access files, or interact with external systems, security is paramount. Superagent acts as a security layer that:
+
+- **Validates user prompts** before they reach your AI model
+- **Guards tool executions** to prevent harmful operations
+- **Filters tool outputs** to ensure safe content handling
+- **Provides detailed security analysis** with CWE codes and violation types
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+- Node.js v20.0 or higher
+- A Superagent account with API key ([sign up here](https://app.superagent.sh))
+- An OpenAI API key or other LLM provider credentials
+- Basic familiarity with Mastra agents
+
+## TypeScript
+
+**Install dependencies**
+
+```bash title="Terminal"
+npm install superagent-ai @langchain/langgraph @langchain/openai @langchain/core zod
+```
+
+**Configure the guard and LangGraph state**
+
+```ts title="config.ts"
+import { createGuard } from "superagent-ai";
+import { ChatOpenAI } from "@langchain/openai";
+import { StateGraph, MessagesAnnotation, Annotation } from "@langchain/langgraph";
+import { HumanMessage, AIMessage } from "@langchain/core/messages";
+
+const guard = createGuard({
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+
+const llm = new ChatOpenAI({
+  model: "gpt-5",
+  temperature: 0,
+});
+
+const State = Annotation.Root({
+  ...MessagesAnnotation.spec,
+  blocked: Annotation<boolean>({
+    default: () => false,
+  }),
+});
+```
+
+**Build a guarded workflow**
+
+```ts title="workflow.ts"
+async function guardInput(state: typeof State.State) {
+  const lastMessage = state.messages[state.messages.length - 1];
+  const { rejected, reasoning } = await guard(lastMessage.content as string);
+
+  if (rejected) {
+    return {
+      blocked: true,
+      messages: [new AIMessage(`Cannot process: ${reasoning}`)],
+    };
+  }
+
+  return { blocked: false };
+}
+
+async function generate(state: typeof State.State) {
+  if (state.blocked) return {};
+
+  const response = await llm.invoke(state.messages);
+  return { messages: [response] };
+}
+
+const workflow = new StateGraph(State)
+  .addNode("guard", guardInput)
+  .addNode("generate", generate)
+  .addEdge("__start__", "guard")
+  .addEdge("guard", "generate")
+  .addEdge("generate", "__end__");
+
+export const app = workflow.compile();
+```
+
+**Add guarded tools**
+
+```ts title="tools.ts"
+import { DynamicStructuredTool } from "@langchain/core/tools";
+import { ToolNode } from "@langchain/langgraph/prebuilt";
+import { z } from "zod";
+
+async function executeCommand(command: string) {
+  // replace with the side-effect you want the tool to perform
+  return `Executed: ${command}`;
+}
+
+const shellTool = new DynamicStructuredTool({
+  name: "shell",
+  description: "Execute shell command",
+  schema: z.object({
+    command: z.string(),
+  }),
+  func: async ({ command }) => {
+    const { rejected, reasoning } = await guard(command);
+    if (rejected) {
+      return `Blocked: ${reasoning}`;
+    }
+
+    return executeCommand(command); // implement your runner
+  },
+});
+
+const llmWithTools = llm.bindTools([shellTool]);
+const toolNode = new ToolNode([shellTool]);
+
+const shouldRouteToTools = (state: typeof State.State) => {
+  const last = state.messages[state.messages.length - 1];
+  return last instanceof AIMessage && last.tool_calls?.length ? "tools" : "__end__";
+};
+
+const toolWorkflow = new StateGraph(State)
+  .addNode("guard", guardInput)
+  .addNode("generate", async (state) => {
+    if (state.blocked) return {};
+    const response = await llmWithTools.invoke(state.messages);
+    return { messages: [response] };
+  })
+  .addNode("tools", toolNode)
+  .addEdge("__start__", "guard")
+  .addEdge("guard", "generate")
+  .addConditionalEdges("generate", shouldRouteToTools)
+  .addEdge("tools", "generate");
+
+export const agent = toolWorkflow.compile();
+```
+
+**Use the agent**
+
+```ts title="usage.ts"
+async function chat(userInput: string) {
+  const result = await app.invoke({
+    messages: [new HumanMessage(userInput)],
+  });
+
+  return result.messages[result.messages.length - 1].content;
+}
+
+const agentResponse = await agent.invoke({
+  messages: [new HumanMessage("List files in current directory")],
+});
+
+for await (const chunk of await agent.stream({
+  messages: [new HumanMessage("What's in the README?")],
+})) {
+  console.log(chunk);
+}
+```
+
+## Python
+
+**Install dependencies**
+
+```bash title="Terminal"
+uv add superagent-ai langgraph langchain-openai langchain-core
+```
+
+**Configure the guard and state**
+
+```python title="config.py"
+import asyncio
+import operator
+from typing import Annotated, Sequence, TypedDict
+
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, ToolMessage
+from langchain_openai import ChatOpenAI
+from langgraph.graph import StateGraph, END
+from superagent_ai import create_guard
+
+guard = create_guard(
+    api_base_url="https://app.superagent.sh/api/guard",
+    api_key="sk-...",
+)
+
+llm = ChatOpenAI(model="gpt-5")
+
+class State(TypedDict):
+    messages: Annotated[Sequence[BaseMessage], operator.add]
+    blocked: bool
+```
+
+**Build a guarded workflow**
+
+```python title="workflow.py"
+async def guard_input(state: State):
+    last_message = state["messages"][-1]
+    result = await guard(last_message.content)
+
+    if result.rejected:
+        return {
+            "blocked": True,
+            "messages": [AIMessage(content=f"Cannot process: {result.reasoning}")],
+        }
+
+    return {"blocked": False}
+
+
+async def generate(state: State):
+    if state.get("blocked", False):
+        return {}
+
+    response = await llm.ainvoke(state["messages"])
+    return {"messages": [response]}
+
+
+workflow = StateGraph(State)
+workflow.add_node("guard", guard_input)
+workflow.add_node("generate", generate)
+workflow.set_entry_point("guard")
+workflow.add_edge("guard", "generate")
+workflow.add_edge("generate", END)
+
+app = workflow.compile()
+```
+
+**Add guarded tools**
+
+```python title="tools.py"
+from langchain_core.tools import tool
+
+
+@tool
+async def shell(command: str) -> str:
+    """Execute shell command"""
+    result = await guard(command)
+
+    if result.rejected:
+        return f"Blocked: {result.reasoning}"
+
+    import subprocess
+
+    output = subprocess.run(command, shell=True, capture_output=True, text=True)
+    return output.stdout or output.stderr
+
+
+llm_with_tools = llm.bind_tools([shell])
+
+
+async def run_tools(state: State):
+    last_message = state["messages"][-1]
+
+    if not getattr(last_message, "tool_calls", None):
+        return {}
+
+    tool_messages: list[ToolMessage] = []
+    for call in last_message.tool_calls:
+        if call["name"] == "shell":
+            result = await shell.ainvoke(call["args"])
+            tool_messages.append(
+                ToolMessage(content=result, tool_call_id=call["id"])
+            )
+
+    return {"messages": tool_messages}
+```
+
+**Complete workflow with tools**
+
+```python title="agent.py"
+from typing import Literal
+
+
+def should_use_tools(state: State) -> Literal["tools", "end"]:
+    last_message = state["messages"][-1]
+    if getattr(last_message, "tool_calls", None):
+        return "tools"
+    return "end"
+
+
+tool_workflow = StateGraph(State)
+
+tool_workflow.add_node("guard", guard_input)
+
+
+async def generate_with_tools(state: State):
+    if state.get("blocked", False):
+        return {}
+    response = await llm_with_tools.ainvoke(state["messages"])
+    return {"messages": [response]}
+
+
+tool_workflow.add_node("generate", generate_with_tools)
+
+tool_workflow.add_node("tools", run_tools)
+
+tool_workflow.set_entry_point("guard")
+tool_workflow.add_edge("guard", "generate")
+tool_workflow.add_conditional_edges("generate", should_use_tools, {
+    "tools": "tools",
+    "end": END,
+})
+tool_workflow.add_edge("tools", "generate")
+
+agent = tool_workflow.compile()
+```
+
+**Use the agent**
+
+```python title="main.py"
+async def main():
+    result = await app.ainvoke({
+        "messages": [HumanMessage(content="Hello!")],
+        "blocked": False,
+    })
+    print(result["messages"][-1].content)
+
+    agent_response = await agent.ainvoke({
+        "messages": [HumanMessage(content="List files in current directory")],
+        "blocked": False,
+    })
+    print(agent_response["messages"][-1].content)
+
+    async for chunk in agent.astream({
+        "messages": [HumanMessage(content="What's in the README?")],
+        "blocked": False,
+    }):
+        print(chunk)
+
+    result = await guard("delete all files")
+    if result.decision.status == "block":
+        print("Violations:", result.decision.violation_types)
+        print("CWE codes:", result.decision.cwe_codes)
+
+    await guard.aclose()
+
+
+asyncio.run(main())
+```
+
+## Key concepts
+
+Both language implementations follow the same pattern:
+
+1. **Guard node** validates user input before it reaches the LLM.
+2. **Generate node** creates responses only after the guard passes.
+3. **Tools node** executes guarded tools and feeds their results into the state.
+4. **State management** tracks conversation history plus blocked status.
+5. **Conditional routing** decides whether to loop through tools or finish.
+
+The guard enforces safety at every hop: prompts are checked pre-LLM, tool inputs are screened before execution, and tool outputs can be filtered before returning to the user.

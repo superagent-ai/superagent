@@ -1,0 +1,29 @@
+---
+title: OpenAI Codex
+description: Configure OpenAI Codex to use Superagent by setting OPENAI_BASE_URL in settings.json
+---
+
+Superagent provides seamless integration with OpenAI Codex. Simply configure your base URL in OpenAI Codex's settings to add AI firewall protection to your existing OpenAI Codex workflows.
+
+## Configuration via settings.json
+
+To configure OpenAI Codex to use Superagent, you need to set the `OPENAI_BASE_URL` in your OpenAI Codex settings.json file:
+
+```json title="config.toml"
+# Built-in OpenAI provider can be customized here.
+# [model_providers.openai]
+# name = "OpenAI"
+base_url = "https://firewall.superagent.sh # Replace with your Superagent proxy
+```
+
+## Locating settings.json
+
+The settings.json file is typically located at:
+
+- **macOS**: `~/.config/openai-codex/settings.json`
+- **Linux**: `~/.config/openai-codex/settings.json`
+- **Windows**: `%APPDATA%\openai-codex\settings.json`
+
+If the file doesn't exist, create it with the configuration above.
+
+Simply update your `OPENAI_BASE_URL` to your Superagent proxy URL and restart OpenAI Codex to enable protection!

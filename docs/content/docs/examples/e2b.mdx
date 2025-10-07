@@ -1,0 +1,317 @@
+---
+title: Secure E2B sandboxes
+description: Guard AI‑generated code before executing it inside E2B sandboxes using the Superagent SDK.
+---
+
+Superagent lets you screen model‑generated code before it reaches an E2B sandbox. This example shows how to connect OpenAI with E2B's Code Interpreter, adding a security layer that vets all code before execution.
+
+## Why combine Superagent + E2B
+
+- Superagent rejects malicious code (data exfiltration, destructive commands, cryptocurrency mining) before any process starts.
+- E2B provides secure, isolated Python environments for executing AI-generated code.
+- Together you get defense‑in‑depth: pre‑execution safety + runtime isolation.
+
+## Python
+
+Install dependencies:
+
+```bash title="Terminal"
+pip install openai e2b-code-interpreter superagent-ai
+```
+
+Here's how to connect OpenAI with E2B Code Interpreter and guard the generated code:
+
+```python title="guarded-code-runner.py"
+import asyncio
+from openai import OpenAI
+from e2b_code_interpreter import Sandbox
+from superagent_ai import create_client
+
+async def main():
+    # Initialize clients
+    openai_client = OpenAI()
+    superagent_client = create_client(
+        api_key="sk-...",
+    )
+
+    # Configure the system prompt
+    system = "You are a helpful assistant that can execute python code in a Jupyter notebook. Only respond with the code to be executed and nothing else."
+    prompt = "Calculate how many r's are in the word 'strawberry'"
+
+    # Send messages to OpenAI API
+    response = openai_client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    # Extract the code from the response
+    code = response.choices[0].message.content
+
+    # 1) Guard the generated code
+    guard_result = await superagent_client.guard(code)
+    if guard_result.rejected:
+        print(f"⚠️  Blocked: {guard_result.reasoning}")
+    else:
+        # 2) Execute code in E2B Sandbox
+        with Sandbox.create() as sandbox:
+            execution = sandbox.run_code(code)
+            result = execution.text
+            print(result)
+
+    await superagent_client.aclose()
+
+asyncio.run(main())
+```
+
+### Function calling with guarded execution
+
+For more advanced use cases with function calling, define a tool that guards code before execution:
+
+```python title="function-calling.py"
+import asyncio
+from openai import OpenAI
+from e2b_code_interpreter import Sandbox
+from superagent_ai import create_client
+import json
+
+async def main():
+    openai_client = OpenAI()
+    superagent_client = create_client(
+        api_key="sk-...",
+    )
+
+    # Define tool for executing Python code
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "execute_python",
+                "description": "Execute Python code in a Jupyter notebook environment",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "code": {
+                            "type": "string",
+                            "description": "The Python code to execute"
+                        }
+                    },
+                    "required": ["code"]
+                }
+            }
+        }
+    ]
+
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant that can execute Python code."},
+        {"role": "user", "content": "Calculate the factorial of 10"}
+    ]
+
+    # Get tool call from OpenAI
+    response = openai_client.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+        tools=tools
+    )
+
+    # Process tool calls
+    if response.choices[0].message.tool_calls:
+        for tool_call in response.choices[0].message.tool_calls:
+            if tool_call.function.name == "execute_python":
+                args = json.loads(tool_call.function.arguments)
+                code = args["code"]
+
+                # Guard the code
+                guard_result = await superagent_client.guard(code)
+                if guard_result.rejected:
+                    result = f"⚠️  Blocked: {guard_result.reasoning}"
+                else:
+                    # Execute in sandbox
+                    with Sandbox.create() as sandbox:
+                        execution = sandbox.run_code(code)
+                        result = execution.text
+
+                # Send result back to model
+                messages.append(response.choices[0].message)
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": result
+                })
+
+                final_response = openai_client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=messages
+                )
+                print(final_response.choices[0].message.content)
+
+    await superagent_client.aclose()
+
+asyncio.run(main())
+```
+
+## TypeScript
+
+Install dependencies:
+
+```bash title="Terminal"
+npm install openai e2b-code-interpreter superagent-ai
+```
+
+Here's how to connect OpenAI with E2B Code Interpreter using TypeScript:
+
+```ts title="guarded-code-runner.ts"
+import OpenAI from "openai";
+import { Sandbox } from "e2b-code-interpreter";
+import { createClient } from "superagent-ai";
+
+// Initialize clients
+const openai = new OpenAI();
+const client = createClient({
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+
+async function runGuardedCode() {
+  // Configure the system prompt
+  const system = "You are a helpful assistant that can execute python code in a Jupyter notebook. Only respond with the code to be executed and nothing else.";
+  const prompt = "Calculate how many r's are in the word 'strawberry'";
+
+  // Send messages to OpenAI API
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: prompt }
+    ]
+  });
+
+  // Extract the code from the response
+  const code = response.choices[0].message.content!;
+
+  // 1) Guard the generated code
+  const { rejected, reasoning } = await client.guard(code);
+
+  if (rejected) {
+    console.log(`⚠️  Blocked: ${reasoning}`);
+    return;
+  }
+
+  // 2) Execute code in E2B Sandbox
+  const sandbox = await Sandbox.create();
+  try {
+    const execution = await sandbox.runCode(code);
+    console.log(execution.text);
+  } finally {
+    await sandbox.close();
+  }
+}
+
+runGuardedCode();
+```
+
+### Function calling with guarded execution
+
+For more advanced use cases with function calling:
+
+```ts title="function-calling.ts"
+import OpenAI from "openai";
+import { Sandbox } from "e2b-code-interpreter";
+import { createClient } from "superagent-ai";
+
+const openai = new OpenAI();
+const client = createClient({
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+
+// Define tool for executing Python code
+const tools: OpenAI.Chat.ChatCompletionTool[] = [
+  {
+    type: "function",
+    function: {
+      name: "execute_python",
+      description: "Execute Python code in a Jupyter notebook environment",
+      parameters: {
+        type: "object",
+        properties: {
+          code: {
+            type: "string",
+            description: "The Python code to execute"
+          }
+        },
+        required: ["code"]
+      }
+    }
+  }
+];
+
+async function runWithFunctionCalling() {
+  const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+    { role: "system", content: "You are a helpful assistant that can execute Python code." },
+    { role: "user", content: "Calculate the factorial of 10" }
+  ];
+
+  // Get tool call from OpenAI
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages,
+    tools
+  });
+
+  // Process tool calls
+  const message = response.choices[0].message;
+  if (message.tool_calls) {
+    for (const toolCall of message.tool_calls) {
+      if (toolCall.function.name === "execute_python") {
+        const args = JSON.parse(toolCall.function.arguments);
+        const code = args.code;
+
+        // Guard the code
+        const { rejected, reasoning } = await client.guard(code);
+        let result: string;
+
+        if (rejected) {
+          result = `⚠️  Blocked: ${reasoning}`;
+        } else {
+          // Execute in sandbox
+          const sandbox = await Sandbox.create();
+          try {
+            const execution = await sandbox.runCode(code);
+            result = execution.text;
+          } finally {
+            await sandbox.close();
+          }
+        }
+
+        // Send result back to model
+        messages.push(message);
+        messages.push({
+          role: "tool",
+          tool_call_id: toolCall.id,
+          content: result
+        });
+
+        const finalResponse = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages
+        });
+
+        console.log(finalResponse.choices[0].message.content);
+      }
+    }
+  }
+}
+
+runWithFunctionCalling();
+```
+
+## Security best practices
+
+- Always guard code before execution to catch malicious patterns.
+- Use E2B's isolated sandbox environments to prevent system access.
+- Keep audit logs of guard decisions and execution results.
+- Set appropriate timeouts for code execution.
+- Monitor and handle execution errors gracefully.
+
+This pattern gives you a simple, repeatable way to safely execute AI‑generated code with layered protections.

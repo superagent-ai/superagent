@@ -1,0 +1,90 @@
+---
+title: Deployment
+description: Deploy Superagent AI firewall using Docker, Node.js, or Rust
+---
+
+Superagent provides multiple deployment options to suit different environments and performance requirements. Choose the method that best fits your infrastructure needs.
+
+## Docker Deployment (Recommended)
+
+The fastest way to get Superagent running is with Docker Compose:
+
+```bash title="Docker Deployment"
+git clone https://github.com/superagent-ai/superagent.git
+cd superagent
+docker-compose up -d
+```
+
+This will start the Superagent firewall with all necessary dependencies.
+
+## Node.js Deployment
+
+For JavaScript/TypeScript environments:
+
+```bash title="Node.js Setup"
+git clone https://github.com/superagent-ai/superagent.git
+cd superagent/node
+npm install
+npm start
+```
+
+The Node.js version provides easy integration with existing Node.js applications.
+
+## Rust Deployment (High Performance)
+
+For maximum performance and minimal resource usage:
+
+```bash title="Rust Setup"
+git clone https://github.com/superagent-ai/superagent.git
+cd superagent/rust
+cargo build --release
+./target/release/ai-firewall start
+```
+
+The Rust implementation offers sub-100ms inference time and lower memory footprint.
+
+## Configuration
+
+Superagent uses a `vibekit.yaml` configuration file to define AI model providers and API endpoints:
+
+```yaml title="vibekit.yaml Example"
+models:
+  - name: "openai-gpt-4"
+    provider: "openai"
+    endpoint: "https://api.openai.com/v1"
+  - name: "anthropic-claude"
+    provider: "anthropic"
+    endpoint: "https://api.anthropic.com/v1"
+```
+
+### Custom Configuration Path
+
+You can specify a custom configuration file location:
+
+```bash title="Custom Config"
+# Node.js
+npm start -- --config /path/to/your/vibekit.yaml
+
+# Rust  
+./target/release/ai-firewall start --config /path/to/your/vibekit.yaml
+```
+
+## Security Features
+
+Once deployed, Superagent automatically provides:
+
+- **Prompt Injection Protection**: Blocks malicious prompts with `[INJECTION]` placeholders
+- **Backdoor Attack Prevention**: Detects and neutralizes backdoor attempts with `[BACKDOOR]` markers
+- **Sensitive Data Filtering**: Redacts sensitive information with `[REDACTED]` replacements
+- **Real-time Processing**: Sub-100ms inference time using fine-tuned Gemma 3 270M model
+- **Structured Logging**: JSON-formatted security event logs
+- **Graceful Fallback**: Continues operation even if firewall components are temporarily unavailable
+
+## Production Considerations
+
+- **High Availability**: Deploy multiple instances behind a load balancer
+- **Monitoring**: Monitor the structured JSON logs for security events
+- **Performance**: Rust deployment recommended for high-throughput environments
+- **Scaling**: Docker deployment supports horizontal scaling with orchestration platforms
+
+Your Superagent proxy URL will be available at the configured endpoint (typically `http://localhost:8080`) and can be used as the base URL in your AI client configurations.

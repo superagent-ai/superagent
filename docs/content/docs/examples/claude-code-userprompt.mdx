@@ -1,0 +1,108 @@
+---
+title: Superagent + Claude Code Hooks
+description: Secure Claude Code with Superagent hooks to validate and block malicious prompts before execution.
+---
+
+## Introduction
+
+Claude Code is a powerful AI coding assistant that can execute commands, read files, and make changes to your codebase. While this autonomy is incredibly useful, it also introduces potential security risks. What if a malicious prompt tricks Claude into executing dangerous commands? What if sensitive data accidentally gets exposed?
+
+This is where **Superagent** comes in. By integrating Superagent with Claude Code's hooks system, you can validate every prompt before Claude processes it, blocking malicious or dangerous requests automatically.
+
+In this guide, we'll walk through building a complete security solution using Claude Code's `UserPromptSubmit` hook and the Superagent API.
+
+## Prerequisites
+
+Before you begin, you'll need:
+
+1. **Superagent Account**: Sign up at [app.superagent.sh](https://app.superagent.sh)
+2. **API Key**: Once logged in, navigate to your dashboard and create a new API key (format: `sa_...`)
+3. **Claude Code**: Installed and running on your machine
+4. **Node.js**: Version 18 or higher for running the CLI
+
+## What are Claude Code Hooks?
+
+Claude Code hooks are custom scripts that execute at specific points in the Claude Code lifecycle. They allow you to:
+
+- **Validate prompts** before Claude processes them
+- **Add context** to prompts automatically
+- **Block dangerous operations** before they execute
+- **Log and audit** all interactions
+
+The `UserPromptSubmit` hook specifically fires whenever a user sends a prompt to Claude, making it the perfect place to implement security checks.
+
+## Configure Claude Code
+
+### Step 1: Install Superagent CLI
+
+```bash title="Terminal"
+npm i -g @superagent-ai/cli
+```
+
+### Step 2: Hook Configuration Format
+
+Claude Code hooks are configured in `~/.claude/settings.json`. Here's the complete configuration:
+
+```json title="~/.claude/settings.json"
+{
+  "env": {
+    "SUPERAGENT_API_KEY": "your_api_key_here"
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "superagent guard"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Step 3: Restart Claude Code
+
+Close and reopen Claude Code to load the new configuration.
+
+## How It Works
+
+1. **User sends a prompt** to Claude Code
+2. **Claude Code triggers the hook** before processing the prompt
+3. **Hook passes JSON to CLI via stdin**:
+   ```json title="Hook Input"
+   {
+     "prompt": "User's prompt text here",
+     "session_id": "abc123",
+     "cwd": "/current/working/dir"
+   }
+   ```
+4. **CLI validates the prompt** with SuperagentLM
+5. **CLI returns decision** as JSON:
+   - If **blocked**: Returns `{"decision": "block", "reason": "..."}`
+   - If **allowed**: Returns success (exit code 0)
+6. **Claude Code processes the result**:
+   - Blocked prompts are rejected with the reason shown to user
+   - Allowed prompts proceed normally
+
+
+## Next Steps
+
+- **Explore PreToolUse hooks** to validate Bash commands before execution
+- **Build custom validators** for your specific security policies
+- **Integrate with SIEM** for enterprise security monitoring
+- **Create team policies** with shared hook configurations
+
+Happy coding, and stay secure! 🛡️
+
+---
+
+## Resources
+
+- [Claude Code Documentation](https://docs.claude.com/en/docs/claude-code)
+- [Superagent  API](https://app.superagent.sh)
+- [Superagent CLI on npm](https://www.npmjs.com/package/@superagent-ai/cli)
+- [CWE Database](https://cwe.mitre.org)

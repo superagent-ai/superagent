@@ -1,0 +1,78 @@
+---
+title: Groq SDK
+description: Integrate Superagent with Groq SDK by simply updating your base URL
+---
+
+Superagent provides seamless integration with the Groq SDK. Simply replace your base URL to add AI firewall protection to your existing Groq applications.
+
+## Python SDK
+
+```python title="Python SDK Setup"
+from groq import Groq
+
+client = Groq(
+    base_url="YOUR_SUPERAGENT_PROXY_URL",  # Replace with your Superagent proxy
+    api_key="your-groq-api-key"
+)
+
+# Use the client as usual - no other changes needed
+chat_completion = client.chat.completions.create(
+    messages=[
+        {
+            "role": "user",
+            "content": "Explain the importance of fast inference for AI applications.",
+        }
+    ],
+    model="llama-3.3-70b-versatile",
+)
+```
+
+## TypeScript/JavaScript SDK
+
+```typescript title="TypeScript/JavaScript SDK Setup"
+import Groq from 'groq-sdk';
+
+const groq = new Groq({
+  baseURL: 'YOUR_SUPERAGENT_PROXY_URL', // Replace with your Superagent proxy
+  apiKey: 'your-groq-api-key',
+});
+
+// Use the client as usual - no other changes needed
+const chatCompletion = await groq.chat.completions.create({
+  messages: [
+    {
+      role: 'user',
+      content: 'Explain the importance of fast inference for AI applications.',
+    },
+  ],
+  model: 'llama-3.3-70b-versatile',
+});
+```
+
+## cURL Example
+
+```bash title="cURL Request"
+curl "YOUR_SUPERAGENT_PROXY_URL/chat/completions" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-groq-api-key" \
+  -d '{
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain the importance of fast inference for AI applications."
+      }
+    ],
+    "model": "llama-3.3-70b-versatile"
+  }'
+```
+
+## Migration Notes
+
+- **No Code Changes Required**: Your existing Groq SDK code works unchanged
+- **Same API Surface**: All Groq SDK methods and parameters remain identical
+- **Added Protection**: Requests are now protected by Superagent's AI firewall
+- **Complete Compatibility**: Full compatibility with all Groq models and features
+- **High-Performance Models**: Continue using Groq's fast inference models (e.g., `llama-3.3-70b-versatile`, `mixtral-8x7b-32768`)
+- **Lightning Fast**: Maintain Groq's industry-leading inference speeds with added security
+
+Simply update your `base_url` (Python) or `baseURL` (TypeScript) to your Superagent proxy URL and you're protected!

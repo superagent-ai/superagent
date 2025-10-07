@@ -1,0 +1,41 @@
+---
+title: OpenAI SDK
+description: Integrate Superagent with OpenAI SDK by simply updating your base URL
+---
+
+Superagent provides seamless integration with the OpenAI SDK. Simply replace your base URL to add AI firewall protection to your existing OpenAI applications.
+
+## Python SDK
+
+```python title="Python SDK Setup"
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="YOUR_SUPERAGENT_PROXY_URL",  # Replace with your Superagent proxy
+    api_key="your-openai-api-key"
+)
+
+# Use the client as usual - no other changes needed
+```
+
+## TypeScript/JavaScript SDK
+
+```typescript title="TypeScript/JavaScript SDK Setup"
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  baseURL: 'YOUR_SUPERAGENT_PROXY_URL', // Replace with your Superagent proxy
+  apiKey: 'your-openai-api-key',
+});
+
+// Use the client as usual - no other changes needed
+```
+
+## Migration Notes
+
+- **No Code Changes Required**: Your existing OpenAI SDK code works unchanged
+- **Same API Surface**: All OpenAI SDK methods and parameters remain identical
+- **Added Protection**: Requests are now protected by Superagent's AI firewall
+- **Complete Compatibility**: Full compatibility with all OpenAI models and features
+
+Simply update your `base_url` (Python) or `baseURL` (TypeScript) to your Superagent proxy URL and you're protected!

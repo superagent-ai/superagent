@@ -1,0 +1,9 @@
+{
+  "title": "AI Gateways",
+  "defaultOpen": false, 
+  "pages": [
+    "litellm.mdx",
+    "openrouter-sdk.mdx",
+    "vercel-ai-gateway.mdx"
+  ]
+}

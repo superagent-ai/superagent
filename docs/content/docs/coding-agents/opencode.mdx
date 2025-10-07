@@ -1,0 +1,98 @@
+---
+title: OpenCode
+description: Configure OpenCode to use Superagent by setting up a custom provider with base URL configuration
+---
+
+Superagent provides seamless integration with OpenCode. Configure a custom provider in OpenCode's settings to add AI firewall protection to your existing OpenCode workflows.
+
+## Configuration via Custom Provider
+
+To configure OpenCode to use Superagent, you need to set up a custom provider:
+
+### Step 1: Add Authentication
+
+First, add authentication for your custom provider:
+
+```bash title="Add Custom Provider Authentication"
+opencode auth login
+# Select "Other" when prompted for provider
+# Enter a unique provider ID (e.g., "superagent")
+# Provide your API key
+```
+
+### Step 2: Configure Provider in opencode.json
+
+Add the custom provider configuration to your `opencode.json` file:
+
+```json title="opencode.json Configuration"
+{
+  "model": {
+    "provider": "superagent",
+    "name": "gpt-4",
+    "baseUrl": "YOUR_SUPERAGENT_PROXY_URL"
+  }
+}
+```
+
+## Configuration File Locations
+
+OpenCode looks for configuration files in the following locations:
+
+- **Global config**: `~/.config/opencode/opencode.json`
+- **Project-specific config**: `opencode.json` in your project root
+- **Custom path**: Set via `OPENCODE_CONFIG` environment variable
+
+### Alternative Environment Variable Configuration
+
+You can also set the configuration path using an environment variable:
+
+```bash title="Environment Variable Setup"
+export OPENCODE_CONFIG="/path/to/your/opencode.json"
+```
+
+## Complete Configuration Example
+
+Here's a complete configuration example:
+
+```json title="Complete opencode.json Example"
+{
+  "model": {
+    "provider": "superagent",
+    "name": "gpt-4",
+    "baseUrl": "YOUR_SUPERAGENT_PROXY_URL"
+  },
+  "theme": "dark",
+  "autoupdate": true,
+  "permission": "ask"
+}
+```
+
+## Variable Substitution
+
+OpenCode supports variable substitution in configuration files:
+
+```json title="Configuration with Variables"
+{
+  "model": {
+    "provider": "superagent",
+    "name": "gpt-4",
+    "baseUrl": "{env:SUPERAGENT_BASE_URL}"
+  }
+}
+```
+
+Then set the environment variable:
+
+```bash title="Environment Variable"
+export SUPERAGENT_BASE_URL="YOUR_SUPERAGENT_PROXY_URL"
+```
+
+## Migration Notes
+
+- **No Code Changes Required**: Your existing OpenCode workflows work unchanged
+- **Same API Surface**: All OpenCode functionality remains identical
+- **Added Protection**: Requests are now protected by Superagent's AI firewall
+- **Complete Compatibility**: Full compatibility with all OpenCode features and models
+- **Multiple Providers**: OpenCode supports over 75 LLM providers through the AI SDK
+
+Simply configure your custom provider with your Superagent proxy URL and restart OpenCode to enable protection!

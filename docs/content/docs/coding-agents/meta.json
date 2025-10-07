@@ -1,0 +1,12 @@
+{
+  "title": "Coding Agents",
+  "defaultOpen": false, 
+  "pages": [
+    "claude-code",
+    "cursor-cli",
+    "cursor-ide",
+    "gemini-cli",
+    "openai-codex",
+    "opencode"
+  ]
+}

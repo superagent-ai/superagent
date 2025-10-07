@@ -1,0 +1,25 @@
+{
+  "title": "Framework",
+  "description": "The docs framework",
+  "icon": "Building",
+  "root": true,
+  "pages": [
+    "---Introduction---",
+    "index",
+    "typescript-sdk",
+    "python-sdk",
+    "cli",
+     "proxy",
+    "superagent-lm",
+    "---Guides---",
+    "agent-frameworks",
+    "coding-agents",
+    "sdks",
+    "ai-gateways",
+    "---Examples---",
+    "examples/mastra",
+    "examples/claude-code-userprompt.mdx",
+    "examples/e2b",
+    "examples/firecrawl"
+  ]
+}
