@@ -2,6 +2,27 @@
 
 All notable changes to Superagent will be documented in this file.
 
+## [@superagent-ai/cli@0.0.8] - 2025-10-16
+
+### Added
+- Added `--entities` flag to `redact` command for custom entity redaction using natural language
+  - Accepts comma-separated list of entity types to redact
+  - Example: `superagent redact --entities "credit card numbers,SSN" "text"`
+
+## [superagent-ai@0.0.12] - 2025-10-16
+
+### Added
+- Added `entities` parameter to `redact()` method in TypeScript and Python SDKs
+  - Allows specifying custom PII entities to redact using natural language descriptions
+  - Examples: `["credit card numbers", "email addresses", "phone numbers"]`
+  - Sent in request body to redaction API for AI-powered interpretation
+- Added `RedactOptions` interface to TypeScript SDK for better type safety
+
+### Documentation
+- Added "Custom Entity Redaction" section to TypeScript SDK documentation with examples
+- Added "Custom Entity Redaction" section to Python SDK documentation with examples
+- Updated CLI documentation with `--entities` flag usage and examples
+
 ## [@superagent-ai/cli@0.0.7] - 2025-10-07
 
 ### Added
