@@ -85,7 +85,7 @@ export async function redactCommand(args: string[]) {
   });
 
   try {
-    const result = await client.redact(text, { urlWhitelist, entities });
+    const result = await client.redact(text, { urlWhitelist });
 
     const output = {
       redacted: result.redacted,
