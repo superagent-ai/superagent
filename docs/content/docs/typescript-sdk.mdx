@@ -96,6 +96,7 @@ Redacts sensitive data from text.
 - `text` – The text to redact
 - `options` (optional) – Options object
   - `urlWhitelist` – Array of URL prefixes that should not be redacted. URLs matching these prefixes will be preserved in the output.
+  - `entities` – Array of natural language descriptions of PII entities to redact. Examples: `["credit card numbers", "email addresses", "phone numbers"]`
 
 **Returns:** `Promise<RedactResult>`
 
@@ -125,6 +126,35 @@ The redaction feature detects and replaces:
 - **Passport numbers** → `<REDACTED_PASSPORT>`
 - **IBAN** → `<REDACTED_IBAN>`
 - **ZIP codes** → `<REDACTED_ZIP>`
+
+## Custom Entity Redaction
+
+You can specify custom entities to redact using natural language descriptions by passing an `entities` option to the `redact()` method:
+
+```ts title="custom-entities-example.ts"
+const client = createClient({
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+
+const result = await client.redact(
+  "My credit card is 4532-1234-5678-9010 and my email is john@example.com",
+  { entities: ["credit card numbers", "email addresses"] }
+);
+// The model will redact the specified entity types based on your natural language descriptions
+```
+
+**How it works:**
+- The `entities` array is sent to the redaction API in the request body
+- You can describe entities in natural language (e.g., "credit card numbers", "social security numbers", "phone numbers")
+- The AI model interprets your descriptions and redacts matching content
+- This allows for flexible, context-aware redaction beyond predefined patterns
+
+**Examples of entity descriptions:**
+- `["credit card numbers", "social security numbers"]`
+- `["email addresses", "phone numbers", "IP addresses"]`
+- `["API keys", "passwords", "authentication tokens"]`
+- `["medical record numbers", "patient names"]`
+- `["company names", "project codenames"]`
 
 ## URL Whitelisting
 

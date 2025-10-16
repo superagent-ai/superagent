@@ -129,6 +129,7 @@ superagent redact [options] <text>
 
 **Options:**
 - `--url-whitelist <urls>` - Comma-separated list of URL prefixes to preserve
+- `--entities <entities>` - Comma-separated list of PII entity types to redact (natural language)
 - `--help` - Show help message
 
 **Exit codes:**
@@ -141,8 +142,14 @@ superagent redact [options] <text>
 # Redact sensitive data
 superagent redact "My email is john@example.com and SSN is 123-45-6789"
 
+# Redact specific entity types using natural language
+superagent redact --entities "credit card numbers,email addresses" "My card is 4111-1111-1111-1111 and email is john@example.com"
+
 # Preserve specific URLs
 superagent redact --url-whitelist https://github.com "Visit https://github.com/user/repo and https://secret.com/data"
+
+# Combine both options
+superagent redact --entities "phone numbers,SSN" --url-whitelist https://example.com "Call me at 555-1234 or visit https://example.com/profile"
 
 # Show help
 superagent redact --help

@@ -205,14 +205,27 @@ class Client:
 
         return result
 
-    async def redact(self, text: str, *, url_whitelist: Optional[list[str]] = None) -> RedactResult:
+    async def redact(
+        self,
+        text: str,
+        *,
+        url_whitelist: Optional[list[str]] = None,
+        entities: Optional[list[str]] = None
+    ) -> RedactResult:
         if not text:
             raise GuardError("text must be a non-empty string")
+
+        # Build request body
+        request_body: dict[str, Any] = {"prompt": text}
+
+        # Include entities in request body if provided
+        if entities:
+            request_body["entities"] = entities
 
         try:
             response = await self._client.post(
                 self._redact_endpoint,
-                json={"prompt": text},
+                json=request_body,
                 headers={
                     "Authorization": f"Bearer {self._api_key}",
                     "x-superagent-api-key": self._api_key,
