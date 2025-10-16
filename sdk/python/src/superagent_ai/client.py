@@ -23,6 +23,7 @@ class GuardMessage(TypedDict, total=False):
     role: str
     content: str
     reasoning_content: str
+    reasoning: str  # New field from updated API
 
 
 class GuardChoice(TypedDict):
@@ -241,8 +242,10 @@ class Client:
             )
 
         result = response.json()
-        content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
-        reasoning_content = result.get("choices", [{}])[0].get("message", {}).get("reasoning_content", "")
+        message = result.get("choices", [{}])[0].get("message", {})
+        content = message.get("content", "")
+        # Support both 'reasoning' (new API) and 'reasoning_content' (old API) for backward compatibility
+        reasoning_content = message.get("reasoning") or message.get("reasoning_content", "")
 
         # Apply URL whitelist locally if provided
         if url_whitelist:

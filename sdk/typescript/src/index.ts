@@ -45,6 +45,7 @@ export interface GuardMessage {
   role: string;
   content?: string;
   reasoning_content?: string;
+  reasoning?: string; // New field from updated API
 }
 
 export interface GuardChoice {
@@ -338,7 +339,7 @@ export function createClient(options: CreateClientOptions): Client {
 
       return {
         redacted: content,
-        reasoning: result.choices[0].message.reasoning_content || "",
+        reasoning: result.choices[0].message.reasoning || result.choices[0].message.reasoning_content || "",
         usage: result.usage,
         raw: result,
       };
