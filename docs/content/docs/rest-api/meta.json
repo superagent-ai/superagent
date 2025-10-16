@@ -2,7 +2,7 @@
   "title": "REST API",
   "defaultOpen": false,
   "pages": [
-    "guard-api",
-    "redact-api"
+    "guard",
+    "redact"
   ]
 }
