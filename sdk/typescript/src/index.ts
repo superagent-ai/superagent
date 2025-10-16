@@ -45,6 +45,7 @@ export interface GuardMessage {
   role: string;
   content?: string;
   reasoning_content?: string;
+  reasoning?: string; // New field from updated API
 }
 
 export interface GuardChoice {
@@ -87,9 +88,21 @@ export interface RedactResult {
   raw: RedactionResponse;
 }
 
+export interface RedactOptions {
+  /**
+   * Array of URL prefixes that should not be redacted.
+   */
+  urlWhitelist?: string[];
+  /**
+   * Array of natural language descriptions of PII entities to redact.
+   * Examples: ["credit card numbers", "email addresses", "phone numbers"]
+   */
+  entities?: string[];
+}
+
 export interface Client {
   guard(command: string, callbacks?: GuardCallbacks): Promise<GuardResult>;
-  redact(text: string, options?: { urlWhitelist?: string[] }): Promise<RedactResult>;
+  redact(text: string, options?: RedactOptions): Promise<RedactResult>;
 }
 
 export class GuardError extends Error {
@@ -263,7 +276,7 @@ export function createClient(options: CreateClientOptions): Client {
 
     async redact(
       text: string,
-      options?: { urlWhitelist?: string[] }
+      options?: RedactOptions
     ): Promise<RedactResult> {
       if (!text || typeof text !== "string") {
         throw new GuardError("text must be a non-empty string.");
@@ -278,6 +291,15 @@ export function createClient(options: CreateClientOptions): Client {
 
       let response: Response;
       try {
+        const requestBody: { prompt: string; entities?: string[] } = {
+          prompt: text,
+        };
+
+        // Include entities in request body if provided
+        if (options?.entities && options.entities.length > 0) {
+          requestBody.entities = options.entities;
+        }
+
         response = await fetcher(redactEndpoint, {
           method: "POST",
           headers: {
@@ -285,9 +307,7 @@ export function createClient(options: CreateClientOptions): Client {
             Authorization: `Bearer ${apiKey}`,
             "x-superagent-api-key": apiKey,
           },
-          body: JSON.stringify({
-            prompt: text,
-          }),
+          body: JSON.stringify(requestBody),
           signal: controller?.signal,
         } satisfies RequestInit);
       } catch (error) {
@@ -319,7 +339,7 @@ export function createClient(options: CreateClientOptions): Client {
 
       return {
         redacted: content,
-        reasoning: result.choices[0].message.reasoning_content || "",
+        reasoning: result.choices[0].message.reasoning || result.choices[0].message.reasoning_content || "",
         usage: result.usage,
         raw: result,
       };

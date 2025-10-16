@@ -18,6 +18,23 @@ export async function redactCommand(args: string[]) {
     }
   }
 
+  // Check for --entities flag
+  const entitiesFlagIndex = args.indexOf('--entities');
+  let entities: string[] | undefined;
+
+  if (entitiesFlagIndex !== -1) {
+    // Get the value after --entities (comma-separated entities)
+    const entitiesValue = args[entitiesFlagIndex + 1];
+    if (entitiesValue) {
+      entities = entitiesValue.split(',').map(entity => entity.trim());
+      // Remove --entities and its value from args
+      args.splice(entitiesFlagIndex, 2);
+    } else {
+      console.error('❌ ERROR: --entities requires a comma-separated list of entity types');
+      process.exit(1);
+    }
+  }
+
   // Check if we have command line arguments first
   const hasArgs = args.length > 0;
 
@@ -50,8 +67,8 @@ export async function redactCommand(args: string[]) {
     text = args.join(' ');
 
     if (!text) {
-      console.error('Usage: superagent redact [--url-whitelist <url1,url2>] <text>');
-      console.error('   or: echo \'{"text": "..."}\' | superagent redact [--url-whitelist <url1,url2>]');
+      console.error('Usage: superagent redact [--url-whitelist <url1,url2>] [--entities <entity1,entity2>] <text>');
+      console.error('   or: echo \'{"text": "..."}\' | superagent redact [--url-whitelist <url1,url2>] [--entities <entity1,entity2>]');
       process.exit(1);
     }
   }
@@ -68,7 +85,7 @@ export async function redactCommand(args: string[]) {
   });
 
   try {
-    const result = await client.redact(text, { urlWhitelist });
+    const result = await client.redact(text, { urlWhitelist, entities });
 
     const output = {
       redacted: result.redacted,

@@ -158,4 +158,49 @@ describe("createClient", () => {
     // Without whitelist, all URLs should be redacted
     // (This assumes the API actually redacts URLs - adjust assertion based on actual API behavior)
   });
+
+  it("redact with entities option redacts custom entities", async () => {
+    const client = createClient({
+      apiBaseUrl,
+      apiKey,
+    });
+
+    const text = "My email is john@example.com and SSN is 123-45-6789";
+
+    const result = await client.redact(text, {
+      entities: ["email addresses"],
+    });
+
+    expect(result.redacted).toBeDefined();
+    expect(typeof result.redacted).toBe("string");
+    expect(result.reasoning).toBeDefined();
+    expect(typeof result.reasoning).toBe("string");
+
+    // Email should be redacted
+    expect(result.redacted).not.toContain("john@example.com");
+    // SSN should NOT be redacted (not in entities list)
+    expect(result.redacted).toContain("123-45-6789");
+  });
+
+  it("redact with multiple entities redacts all specified types", async () => {
+    const client = createClient({
+      apiBaseUrl,
+      apiKey,
+    });
+
+    const text = "Contact john@example.com or call 555-1234. SSN: 123-45-6789";
+
+    const result = await client.redact(text, {
+      entities: ["email addresses", "phone numbers"],
+    });
+
+    expect(result.redacted).toBeDefined();
+    expect(typeof result.redacted).toBe("string");
+
+    // Email and phone should be redacted
+    expect(result.redacted).not.toContain("john@example.com");
+    expect(result.redacted).not.toContain("555-1234");
+    // SSN should NOT be redacted (not in entities list)
+    expect(result.redacted).toContain("123-45-6789");
+  });
 });

@@ -187,3 +187,50 @@ async def test_redact_without_url_whitelist() -> None:
     # Without whitelist, all URLs should be redacted
     # (This assumes the API actually redacts URLs - adjust assertion based on actual API behavior)
     assert isinstance(result.redacted, str)
+
+
+@pytest.mark.asyncio
+async def test_redact_with_entities_option() -> None:
+    """Test that entities option redacts custom entities"""
+    client = create_client(
+        api_base_url=API_BASE_URL,
+        api_key=API_KEY,
+    )
+
+    text = "My email is john@example.com and SSN is 123-45-6789"
+
+    result = await client.redact(text, entities=["email addresses"])
+
+    assert isinstance(result, RedactResult)
+    assert result.redacted is not None
+    assert isinstance(result.redacted, str)
+    assert result.reasoning is not None
+    assert isinstance(result.reasoning, str)
+
+    # Email should be redacted
+    assert "john@example.com" not in result.redacted
+    # SSN should NOT be redacted (not in entities list)
+    assert "123-45-6789" in result.redacted
+
+
+@pytest.mark.asyncio
+async def test_redact_with_multiple_entities() -> None:
+    """Test that multiple entities are all redacted"""
+    client = create_client(
+        api_base_url=API_BASE_URL,
+        api_key=API_KEY,
+    )
+
+    text = "Contact john@example.com or call 555-1234. SSN: 123-45-6789"
+
+    result = await client.redact(text, entities=["email addresses", "phone numbers"])
+
+    assert isinstance(result, RedactResult)
+    assert result.redacted is not None
+    assert isinstance(result.redacted, str)
+
+    # Email and phone should be redacted
+    assert "john@example.com" not in result.redacted
+    assert "555-1234" not in result.redacted
+    # SSN should NOT be redacted (not in entities list)
+    assert "123-45-6789" in result.redacted
