@@ -1,0 +1,8 @@
+{
+  "title": "REST API",
+  "defaultOpen": false,
+  "pages": [
+    "guard-api",
+    "redact-api"
+  ]
+}

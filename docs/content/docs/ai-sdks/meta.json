@@ -1,0 +1,12 @@
+{
+  "title": "AI SDKs",
+  "defaultOpen": false,
+  "pages": [
+    "anthropic-sdk",
+    "gemini-sdk",
+    "groq-sdk",
+    "openai-sdk",
+    "openrouter-sdk",
+    "xai-sdk"
+  ]
+}

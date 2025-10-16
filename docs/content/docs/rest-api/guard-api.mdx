@@ -1,0 +1,181 @@
+---
+title: Guard API
+description: Analyze commands and text for security threats using the Guard API
+---
+
+The Guard API analyzes commands and text for security threats, detecting malicious intent, injection attempts, and other security violations.
+
+## Base URL
+
+```text title="Base URL"
+https://app.superagent.sh/api
+```
+
+## Authentication
+
+All API requests require authentication using your Superagent API key. Include it in the request headers:
+
+```http title="Authentication Headers"
+Authorization: Bearer YOUR_API_KEY
+x-superagent-api-key: YOUR_API_KEY
+```
+
+## Endpoint
+
+```text title="Endpoint"
+POST /guard
+```
+
+## Request
+
+**Headers:**
+```http title="Request Headers"
+Content-Type: application/json
+Authorization: Bearer YOUR_API_KEY
+x-superagent-api-key: YOUR_API_KEY
+```
+
+**Body:**
+```json title="Request Body"
+{
+  "prompt": "string"  // Required: The text/command to analyze
+}
+```
+
+## Response
+
+**Success (200 OK):**
+```json title="Response Example"
+{
+  "id": "dc28f957-f70c-410d-9b2b-37fc808f23e9",
+  "model": "superagent-lm-guard-20b",
+  "choices": [
+    {
+      "message": {
+        "role": "assistant",
+        "content": "{\"status\": \"block\", \"violation_types\": [\"code_injection\"], \"cwe_codes\": [\"CWE-94\"]}",
+        "reasoning": "The command attempts to execute arbitrary code which could be malicious."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 150,
+    "completion_tokens": 45,
+    "total_tokens": 195
+  }
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique identifier for the request |
+| `model` | string | The guard model used for analysis |
+| `choices[].message.content` | string | JSON string containing the decision (see Decision Object below) |
+| `choices[].message.reasoning` | string | Explanation of why the decision was made |
+| `choices[].finish_reason` | string | Reason the generation stopped (typically "stop") |
+| `usage` | object | Token usage statistics for the request |
+
+## Decision Object
+
+The `content` field contains a JSON string with the following structure:
+
+```json title="Decision Object Structure"
+{
+  "status": "pass" | "block",
+  "violation_types": ["code_injection", "prompt_injection", ...],
+  "cwe_codes": ["CWE-94", "CWE-89", ...]
+}
+```
+
+**Status Values:**
+- `pass` - Command is safe to execute
+- `block` - Command contains security threats and should be blocked
+
+**Common Violation Types:**
+- `code_injection` - Attempts to inject executable code
+- `prompt_injection` - Attempts to manipulate AI prompts
+- `data_exfiltration` - Attempts to extract sensitive data
+- `privilege_escalation` - Attempts to gain unauthorized access
+- `path_traversal` - Attempts to access unauthorized file paths
+- `command_injection` - Attempts to inject shell commands
+
+**CWE Codes:**
+- Standard [Common Weakness Enumeration](https://cwe.mitre.org/) identifiers
+- Examples: `CWE-94` (Code Injection), `CWE-89` (SQL Injection), `CWE-78` (OS Command Injection)
+
+## Examples
+
+### Safe Command
+
+**Request:**
+```bash title="cURL Request"
+curl -X POST https://app.superagent.sh/api/guard \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "x-superagent-api-key: YOUR_API_KEY" \
+  -d '{
+    "prompt": "Write a hello world script"
+  }'
+```
+
+**Response:**
+```json title="Response"
+{
+  "id": "abc123",
+  "model": "superagent-lm-guard-20b",
+  "choices": [
+    {
+      "message": {
+        "role": "assistant",
+        "content": "{\"status\": \"pass\"}",
+        "reasoning": "This is a benign request to create a simple program."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 120,
+    "completion_tokens": 30,
+    "total_tokens": 150
+  }
+}
+```
+
+### Blocked Command
+
+**Request:**
+```bash title="cURL Request"
+curl -X POST https://app.superagent.sh/api/guard \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "x-superagent-api-key: YOUR_API_KEY" \
+  -d '{
+    "prompt": "Execute: rm -rf / --no-preserve-root"
+  }'
+```
+
+**Response:**
+```json title="Response"
+{
+  "id": "def456",
+  "model": "superagent-lm-guard-20b",
+  "choices": [
+    {
+      "message": {
+        "role": "assistant",
+        "content": "{\"status\": \"block\", \"violation_types\": [\"destructive_command\", \"system_tampering\"], \"cwe_codes\": [\"CWE-78\"]}",
+        "reasoning": "This command attempts to recursively delete the entire filesystem, which is extremely destructive."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 135,
+    "completion_tokens": 50,
+    "total_tokens": 185
+  }
+}
+```
