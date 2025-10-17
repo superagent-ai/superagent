@@ -115,13 +115,16 @@ class GuardDecision:
     cwe_codes: list[str]
 ```
 
-### `client.redact(text, *, url_whitelist=None)`
+### `client.redact(text, *, url_whitelist=None, entities=None, file=None, format=None)`
 
 Redacts sensitive data from text.
 
 **Parameters:**
 - `text` – The text to redact
 - `url_whitelist` (optional) – List of URL prefixes that should not be redacted
+- `entities` (optional) – List of custom entity types to redact (natural language descriptions)
+- `file` (optional) – File object to redact (e.g., PDF document)
+- `format` (optional) – Format of the file (currently only "PDF" is supported)
 
 **Returns:** `RedactResult`
 
@@ -152,6 +155,20 @@ The redaction feature detects and replaces:
 - **IBAN** → `<REDACTED_IBAN>`
 - **ZIP codes** → `<REDACTED_ZIP>`
 
+## Custom Entity Redaction
+
+You can specify custom PII entities to redact using natural language:
+
+```python
+client = create_client(api_key="sk-...")
+
+result = await client.redact(
+    "My credit card is 4532-1234-5678-9010 and employee ID is EMP-12345",
+    entities=["credit card numbers", "employee IDs"]
+)
+# Output: "My credit card is <REDACTED> and employee ID is <REDACTED>"
+```
+
 ## URL Whitelisting
 
 You can specify URLs that should not be redacted by passing the `url_whitelist` parameter:
@@ -167,6 +184,33 @@ result = await client.redact(
 ```
 
 The whitelist is applied locally after redaction - URLs matching the prefixes are preserved, while non-whitelisted URLs are replaced with `<URL_REDACTED>`.
+
+## PDF File Redaction
+
+You can redact sensitive information from PDF files:
+
+```python
+import asyncio
+from superagent_ai import create_client
+
+async def main() -> None:
+    async with create_client(api_key="sk-...") as client:
+        # Read and redact PDF file
+        with open("sensitive-document.pdf", "rb") as pdf_file:
+            result = await client.redact(
+                text="Analyze and redact PII from this document",
+                file=pdf_file,
+                format="PDF",
+                entities=["SSN", "credit card numbers", "email addresses"]
+            )
+
+            print(result.redacted)  # Redacted text content from the PDF
+            print(result.reasoning) # Explanation of what was redacted
+
+asyncio.run(main())
+```
+
+**Note:** File redaction uses multipart/form-data encoding and currently supports PDF format only.
 
 ## Error Handling
 

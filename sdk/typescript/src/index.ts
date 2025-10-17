@@ -85,7 +85,9 @@ export interface RedactResult {
   redacted: string;
   reasoning: string;
   usage?: GuardUsage;
-  raw: RedactionResponse;
+  raw: RedactionResponse | Record<string, never>;
+  pdf?: Blob;  // PDF blob when format is "pdf"
+  redacted_pdf?: string; // Base64 PDF data URL when file is provided with JSON response
 }
 
 export interface RedactOptions {
@@ -98,6 +100,15 @@ export interface RedactOptions {
    * Examples: ["credit card numbers", "email addresses", "phone numbers"]
    */
   entities?: string[];
+  /**
+   * File to redact (e.g., PDF document). When provided, multipart/form-data is used.
+   */
+  file?: File | Blob;
+  /**
+   * Output format: "json" returns JSON with redacted text (default), "pdf" returns a PDF file blob.
+   * When "pdf" is used with a file input, the API returns a redacted PDF file.
+   */
+  format?: "json" | "pdf";
 }
 
 export interface Client {
@@ -228,7 +239,7 @@ export function createClient(options: CreateClientOptions): Client {
           Authorization: `Bearer ${apiKey}`,
           "x-superagent-api-key": apiKey,
         },
-        body: JSON.stringify({ prompt: command }),
+        body: JSON.stringify({ text: command }),
         signal: controller?.signal,
       } satisfies RequestInit);
     } catch (error) {
@@ -291,25 +302,59 @@ export function createClient(options: CreateClientOptions): Client {
 
       let response: Response;
       try {
-        const requestBody: { prompt: string; entities?: string[] } = {
-          prompt: text,
-        };
+        // Use multipart/form-data when file is provided
+        if (options?.file) {
+          const formData = new FormData();
+          formData.append("text", text);
+          formData.append("file", options.file);
 
-        // Include entities in request body if provided
-        if (options?.entities && options.entities.length > 0) {
-          requestBody.entities = options.entities;
-        }
+          if (options.format) {
+            formData.append("format", options.format);
+          }
 
-        response = await fetcher(redactEndpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+          if (options.entities && options.entities.length > 0) {
+            formData.append("entities", JSON.stringify(options.entities));
+          }
+
+          const headers: Record<string, string> = {
             Authorization: `Bearer ${apiKey}`,
             "x-superagent-api-key": apiKey,
-          },
-          body: JSON.stringify(requestBody),
-          signal: controller?.signal,
-        } satisfies RequestInit);
+            // Don't set Content-Type - browser/fetch will set it with boundary
+          };
+
+          // Add Accept header if format is pdf to signal we want PDF response
+          if (options.format === "pdf") {
+            headers.Accept = "application/pdf";
+          }
+
+          response = await fetcher(redactEndpoint, {
+            method: "POST",
+            headers,
+            body: formData,
+            signal: controller?.signal,
+          } satisfies RequestInit);
+        } else {
+          // Use JSON when no file is provided
+          const requestBody: { text: string; entities?: string[] } = {
+            text: text,
+          };
+
+          // Include entities in request body if provided
+          if (options?.entities && options.entities.length > 0) {
+            requestBody.entities = options.entities;
+          }
+
+          response = await fetcher(redactEndpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+              "x-superagent-api-key": apiKey,
+            },
+            body: JSON.stringify(requestBody),
+            signal: controller?.signal,
+          } satisfies RequestInit);
+        }
       } catch (error) {
         if (timeoutHandle) {
           clearTimeout(timeoutHandle);
@@ -329,7 +374,34 @@ export function createClient(options: CreateClientOptions): Client {
         );
       }
 
-      const result = (await response.json()) as RedactionResponse;
+      // Check if response is PDF
+      const contentType = response.headers.get("content-type");
+      if (contentType?.includes("application/pdf")) {
+        // Return PDF blob
+        const pdfBlob = await response.blob();
+
+        // Try to get usage stats from X-Redaction-Stats header
+        const statsHeader = response.headers.get("X-Redaction-Stats");
+        let usage: GuardUsage | undefined;
+        if (statsHeader) {
+          try {
+            usage = JSON.parse(statsHeader);
+          } catch {
+            // Ignore parsing errors
+          }
+        }
+
+        return {
+          redacted: "", // Empty string for PDF responses
+          reasoning: "PDF file redacted",
+          pdf: pdfBlob,
+          usage,
+          raw: {},
+        };
+      }
+
+      // Handle JSON response
+      const result = (await response.json()) as RedactionResponse & { redacted_pdf?: string };
       let content = result.choices[0].message.content as string;
 
       // Apply URL whitelist locally if provided
@@ -342,6 +414,7 @@ export function createClient(options: CreateClientOptions): Client {
         reasoning: result.choices[0].message.reasoning || result.choices[0].message.reasoning_content || "",
         usage: result.usage,
         raw: result,
+        redacted_pdf: result.redacted_pdf,
       };
     },
   };

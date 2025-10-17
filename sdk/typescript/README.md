@@ -91,11 +91,18 @@ Redacts sensitive data from text.
 
 **Parameters:**
 - `text` – The text to redact
-- `options` (optional) – Options object with `urlWhitelist` array of URL prefixes to preserve
+- `options` (optional) – Redaction options
 
 **Returns:** `Promise<RedactResult>`
 
 ```ts
+interface RedactOptions {
+  urlWhitelist?: string[];  // URL prefixes to preserve
+  entities?: string[];      // Custom entity types to redact (natural language)
+  file?: File | Blob;       // File to redact (e.g., PDF document)
+  format?: "PDF";           // Format of the file
+}
+
 interface RedactResult {
   redacted: string;      // Text with sensitive data redacted
   reasoning: string;     // Explanation of what was redacted
@@ -122,6 +129,18 @@ The redaction feature detects and replaces:
 - **IBAN** → `<REDACTED_IBAN>`
 - **ZIP codes** → `<REDACTED_ZIP>`
 
+## Custom Entity Redaction
+
+You can specify custom PII entities to redact using natural language:
+
+```ts
+const result = await client.redact(
+  "My credit card is 4532-1234-5678-9010 and employee ID is EMP-12345",
+  { entities: ["credit card numbers", "employee IDs"] }
+);
+// Output: "My credit card is <REDACTED> and employee ID is <REDACTED>"
+```
+
 ## URL Whitelisting
 
 You can specify URLs that should not be redacted by passing the `urlWhitelist` option:
@@ -139,6 +158,37 @@ const result = await client.redact(
 ```
 
 The whitelist is applied locally after redaction - URLs matching the prefixes are preserved, while non-whitelisted URLs are replaced with `<URL_REDACTED>`.
+
+## PDF File Redaction
+
+You can redact sensitive information from PDF files:
+
+```ts
+import { readFileSync } from 'fs';
+
+const client = createClient({
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+
+// Read PDF file
+const pdfBuffer = readFileSync('sensitive-document.pdf');
+const pdfBlob = new Blob([pdfBuffer], { type: 'application/pdf' });
+
+// Redact the PDF
+const result = await client.redact(
+  "Analyze and redact PII from this document",
+  {
+    file: pdfBlob,
+    format: "PDF",
+    entities: ["SSN", "credit card numbers", "email addresses"]
+  }
+);
+
+console.log(result.redacted);  // Redacted text content from the PDF
+console.log(result.reasoning); // Explanation of what was redacted
+```
+
+**Note:** File redaction uses multipart/form-data encoding and currently supports PDF format only.
 
 ## Error Handling
 

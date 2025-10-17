@@ -2,6 +2,119 @@
 
 All notable changes to Superagent will be documented in this file.
 
+## [@superagent-ai/cli@0.0.9] - 2025-10-17
+
+### Breaking Changes
+- **BREAKING**: Changed `redact` command input parameter from `prompt` to `text`
+  - This aligns with the API specification and SDK parameter naming
+  - When using stdin JSON input, use `"text"` instead of `"prompt"`
+
+### Added
+- Added `--file` flag to `redact` command for PDF file redaction
+  - Accepts path to a PDF file for redaction
+  - When a file is provided, `format="pdf"` is automatically set to return a redacted PDF file
+  - The redacted PDF is saved to `redacted-output.pdf` in the current directory
+  - Example: `superagent redact --file document.pdf "Analyze this document"`
+
+### Migration Guide
+```bash
+# Before (v0.0.8)
+echo '{"prompt": "My email is john@example.com"}' | superagent redact
+
+# After (v0.0.9)
+echo '{"text": "My email is john@example.com"}' | superagent redact
+
+# New file redaction feature
+superagent redact --file sensitive-document.pdf "Redact PII from this document"
+```
+
+## [superagent-ai@0.0.13] - 2025-10-17
+
+### Breaking Changes
+- **BREAKING**: Redact API now uses `text` parameter instead of `prompt` in stdin JSON input
+  - This change aligns with the API specification
+  - The first positional argument remains the text to redact
+  - Only affects JSON input from stdin
+
+### Added
+- Added `file` parameter to `redact()` method for PDF file redaction
+  - Accepts `File` or `Blob` object in TypeScript SDK, file handle in Python SDK
+  - When provided, uses multipart/form-data encoding
+- Added `format` parameter to `redact()` method
+  - `format: "json"` (default) - Returns JSON with redacted text
+  - `format: "pdf"` - Returns a PDF Blob/bytes with redactions applied to the original PDF
+  - When `format="pdf"` is used with a PDF file input, the API returns a redacted PDF file
+- Added `pdf` field to `RedactResult` - contains PDF Blob (TypeScript) or bytes (Python) when `format="pdf"`
+- Added `redacted_pdf` field to `RedactResult` - contains base64-encoded PDF when file is provided with JSON response
+
+### Migration Guide
+```typescript
+// Before (v0.0.12)
+// No file support
+
+// After (v0.0.13)
+import { createClient } from 'superagent-ai';
+import { writeFileSync } from 'fs';
+
+const client = createClient({ apiKey: 'your-api-key' });
+
+// Option 1: Get redacted PDF file (format="pdf")
+const pdfFile = new Blob([pdfBuffer], { type: 'application/pdf' });
+const result = await client.redact('Analyze this document', {
+  file: pdfFile,
+  format: 'pdf',  // Returns PDF Blob
+  entities: ['SSN', 'credit card numbers']
+});
+
+if (result.pdf) {
+  // Save the redacted PDF
+  const arrayBuffer = await result.pdf.arrayBuffer();
+  writeFileSync('redacted.pdf', Buffer.from(arrayBuffer));
+}
+
+// Option 2: Get redacted text as JSON (format="json", default)
+const result2 = await client.redact('Analyze this document', {
+  file: pdfFile,
+  format: 'json',  // Returns JSON with redacted text
+  entities: ['SSN', 'credit card numbers']
+});
+console.log(result2.redacted);  // Redacted text from PDF
+```
+
+```python
+# Before (v0.0.12)
+# No file support
+
+# After (v0.0.13)
+from superagent_ai import create_client
+
+client = create_client(api_key="your-api-key")
+
+# Option 1: Get redacted PDF file (format="pdf")
+with open("document.pdf", "rb") as f:
+    result = await client.redact(
+        text="Analyze this document",
+        file=f,
+        format="pdf",  # Returns PDF bytes
+        entities=["SSN", "credit card numbers"]
+    )
+
+if result.pdf:
+    # Save the redacted PDF
+    with open("redacted.pdf", "wb") as output:
+        output.write(result.pdf)
+
+# Option 2: Get redacted text as JSON (format="json", default)
+with open("document.pdf", "rb") as f:
+    result = await client.redact(
+        text="Analyze this document",
+        file=f,
+        format="json",  # Returns JSON with redacted text
+        entities=["SSN", "credit card numbers"]
+    )
+print(result.redacted)  # Redacted text from PDF
+```
+
 ## [@superagent-ai/cli@0.0.8] - 2025-10-16
 
 ### Added

@@ -69,6 +69,20 @@ Output:
 }
 ```
 
+**Custom Entity Redaction** - Specify custom entities to redact:
+
+```bash
+superagent redact --entities "credit card numbers,employee IDs" "My credit card is 4532-1234-5678-9010 and employee ID is EMP-12345"
+```
+
+Output:
+```json
+{
+  "redacted": "My credit card is <REDACTED> and employee ID is <REDACTED>",
+  "reasoning": "Redacted credit card numbers and employee IDs"
+}
+```
+
 **URL Whitelisting** - Preserve specific URLs:
 
 ```bash
@@ -82,6 +96,33 @@ Output:
   "reasoning": "Preserved whitelisted URLs"
 }
 ```
+
+**PDF File Redaction** - Redact sensitive information from PDF files:
+
+```bash
+superagent redact --file sensitive-document.pdf "Analyze and redact PII from this document"
+```
+
+You can combine file redaction with custom entities:
+
+```bash
+superagent redact --file document.pdf --entities "SSN,credit card numbers" "Redact sensitive data"
+```
+
+Output:
+```json
+{
+  "redacted": "Redacted text content from the PDF with sensitive data removed",
+  "reasoning": "Redacted SSN and credit card numbers from PDF document",
+  "usage": {
+    "prompt_tokens": 150,
+    "completion_tokens": 45,
+    "total_tokens": 195
+  }
+}
+```
+
+**Note:** File redaction currently supports PDF format only.
 
 ## Help
 

@@ -105,7 +105,7 @@ class GuardDecision:
     cwe_codes: list[str]
 ```
 
-### `client.redact(text, *, url_whitelist=None, entities=None)`
+### `client.redact(text, *, url_whitelist=None, entities=None, file=None, format=None)`
 
 Redacts sensitive data from text.
 
@@ -113,16 +113,20 @@ Redacts sensitive data from text.
 - `text` – The text to redact
 - `url_whitelist` (optional) – List of URL prefixes that should not be redacted. URLs matching these prefixes will be preserved in the output.
 - `entities` (optional) – List of natural language descriptions of PII entities to redact. Examples: `["credit card numbers", "email addresses", "phone numbers"]`
+- `file` (optional) – File object to redact (e.g., PDF document). Pass an open file handle in binary mode.
+- `format` (optional) – Output format: `"json"` (default) returns JSON with redacted text, `"pdf"` returns redacted PDF bytes.
 
 **Returns:** `RedactResult`
 
 ```python
 @dataclass
 class RedactResult:
-    redacted: str               # Text with sensitive data redacted
-    reasoning: str              # Explanation of what was redacted
-    raw: dict                   # Full API response
-    usage: Optional[GuardUsage] # Token usage statistics
+    redacted: str                # Text with sensitive data redacted (empty when format="pdf")
+    reasoning: str               # Explanation of what was redacted
+    raw: dict                    # Full API response (empty when format="pdf")
+    usage: Optional[GuardUsage]  # Token usage statistics
+    pdf: Optional[bytes]         # PDF bytes when format="pdf"
+    redacted_pdf: Optional[str]  # Base64 PDF data URL when file provided with JSON response
 ```
 
 ## Detected PII/PHI Types
@@ -195,6 +199,78 @@ The whitelist is applied **locally after redaction**, meaning:
 - Whitelisted URLs (those starting with any prefix in `url_whitelist`) remain unchanged
 - Non-whitelisted URLs are replaced with `<URL_REDACTED>`
 - The matching is done using prefix comparison (e.g., `"https://github.com"` matches `"https://github.com/user/repo"`)
+
+## PDF File Redaction
+
+You can redact sensitive information from PDF files. The API supports two output formats:
+
+### Option 1: Get Redacted PDF File (format="pdf")
+
+Returns PDF bytes with redactions applied:
+
+```python title="pdf_file_output.py"
+import asyncio
+from superagent_ai import create_client
+
+async def main() -> None:
+    async with create_client(api_key="sk-...") as client:
+        # Get redacted PDF file
+        with open("sensitive-document.pdf", "rb") as pdf_file:
+            result = await client.redact(
+                text="Redact PII from this document",
+                file=pdf_file,
+                format="pdf",  # Returns PDF bytes
+                entities=["SSN", "credit card numbers", "email addresses"]
+            )
+
+        # Save the redacted PDF
+        if result.pdf:
+            with open("redacted-output.pdf", "wb") as output_file:
+                output_file.write(result.pdf)
+            print("Redacted PDF saved to redacted-output.pdf")
+
+asyncio.run(main())
+```
+
+### Option 2: Get Redacted Text (format="json", default)
+
+Returns JSON with the redacted text extracted from the PDF:
+
+```python title="pdf_text_output.py"
+import asyncio
+from superagent_ai import create_client
+
+async def main() -> None:
+    async with create_client(api_key="sk-...") as client:
+        # Get redacted text from PDF
+        with open("sensitive-document.pdf", "rb") as pdf_file:
+            result = await client.redact(
+                text="Extract and redact text from this document",
+                file=pdf_file,
+                format="json",  # Returns JSON with redacted text (default)
+                entities=["SSN", "credit card numbers", "email addresses"]
+            )
+
+            print(result.redacted)  # Redacted text extracted from the PDF
+            print(result.reasoning) # Explanation of what was redacted
+
+asyncio.run(main())
+```
+
+**How it works:**
+- When a `file` is provided, the SDK uses multipart/form-data encoding
+- The `text` parameter provides context for the redaction
+- `format="pdf"` returns a redacted PDF file as bytes
+- `format="json"` (default) extracts text from the PDF, redacts it, and returns as JSON
+- You can combine file redaction with `entities` to specify custom entity types
+
+**Use cases:**
+- Redact sensitive data from contracts, invoices, or legal documents
+- Process medical records while maintaining HIPAA compliance
+- Sanitize financial documents before sharing
+- Prepare documents for public release by removing confidential information
+
+**Note:** The file should be opened in binary mode (`"rb"`). The SDK handles the proper encoding and content-type headers automatically.
 
 ## Error Handling
 

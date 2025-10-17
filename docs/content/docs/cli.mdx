@@ -130,6 +130,7 @@ superagent redact [options] <text>
 **Options:**
 - `--url-whitelist <urls>` - Comma-separated list of URL prefixes to preserve
 - `--entities <entities>` - Comma-separated list of PII entity types to redact (natural language)
+- `--file <path>` - Path to PDF file to redact
 - `--help` - Show help message
 
 **Exit codes:**
@@ -148,7 +149,13 @@ superagent redact --entities "credit card numbers,email addresses" "My card is 4
 # Preserve specific URLs
 superagent redact --url-whitelist https://github.com "Visit https://github.com/user/repo and https://secret.com/data"
 
-# Combine both options
+# Redact PDF files
+superagent redact --file sensitive-document.pdf "Analyze and redact PII from this document"
+
+# Combine file with entities
+superagent redact --file contract.pdf --entities "SSN,credit card numbers" "Redact sensitive information"
+
+# Combine URL whitelist with entities
 superagent redact --entities "phone numbers,SSN" --url-whitelist https://example.com "Call me at 555-1234 or visit https://example.com/profile"
 
 # Show help
@@ -170,6 +177,54 @@ echo '{"text": "My credit card is 4111-1111-1111-1111"}' | superagent redact
   }
 }
 ```
+
+### PDF File Redaction
+
+The `redact` command supports redacting sensitive information from PDF files. When you use the `--file` flag, the CLI automatically requests a redacted PDF file from the API.
+
+```bash title="Terminal"
+# Basic PDF redaction - saves redacted PDF to redacted-output.pdf
+superagent redact --file document.pdf "Redact PII from this document"
+
+# Combine with custom entities
+superagent redact --file contract.pdf --entities "SSN,credit card numbers,email addresses" "Redact sensitive data"
+
+# Combine with URL whitelist
+superagent redact --file report.pdf --url-whitelist https://company.com "Redact while preserving company URLs"
+```
+
+**How it works:**
+- The `--file` flag accepts a path to a PDF file
+- The CLI automatically sets `format="pdf"` to request a redacted PDF file
+- The API applies redactions directly to the PDF document
+- The redacted PDF is saved to `redacted-output.pdf` in the current directory
+- You can combine `--file` with `--entities` and `--url-whitelist` options
+- Currently only PDF format is supported
+
+**Output:**
+```json title="Response"
+{
+  "message": "Redacted PDF saved to redacted-output.pdf",
+  "reasoning": "PDF file redacted",
+  "usage": {
+    "prompt_tokens": 245,
+    "completion_tokens": 78,
+    "total_tokens": 323
+  }
+}
+```
+
+**Important Notes:**
+- When using `--file`, you receive a **redacted PDF file**, not JSON with text
+- The redacted PDF is saved to `redacted-output.pdf` automatically
+- Redactions are applied directly to the original PDF with sensitive information removed
+- The PDF maintains its original formatting and layout
+
+**Use cases:**
+- Redact contracts before sharing with external parties
+- Sanitize invoices and financial documents
+- Process medical records while maintaining HIPAA compliance
+- Prepare legal documents for public disclosure
 
 ## Response format
 

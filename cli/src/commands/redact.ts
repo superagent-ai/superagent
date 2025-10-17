@@ -1,4 +1,5 @@
 import { createClient } from 'superagent-ai';
+import { readFileSync } from 'fs';
 
 export async function redactCommand(args: string[]) {
   // Check for --url-whitelist flag
@@ -35,6 +36,30 @@ export async function redactCommand(args: string[]) {
     }
   }
 
+  // Check for --file flag
+  const fileFlagIndex = args.indexOf('--file');
+  let file: Blob | undefined;
+  let format: "json" | "pdf" = "json"; // Default to JSON format
+
+  if (fileFlagIndex !== -1) {
+    const filePath = args[fileFlagIndex + 1];
+    if (filePath) {
+      try {
+        const fileBuffer = readFileSync(filePath);
+        file = new Blob([fileBuffer], { type: 'application/pdf' });
+        format = 'pdf'; // Request PDF output when file is provided
+        // Remove --file and its value from args
+        args.splice(fileFlagIndex, 2);
+      } catch (error: any) {
+        console.error(`❌ ERROR: Failed to read file: ${error.message}`);
+        process.exit(1);
+      }
+    } else {
+      console.error('❌ ERROR: --file requires a file path');
+      process.exit(1);
+    }
+  }
+
   // Check if we have command line arguments first
   const hasArgs = args.length > 0;
 
@@ -67,8 +92,18 @@ export async function redactCommand(args: string[]) {
     text = args.join(' ');
 
     if (!text) {
-      console.error('Usage: superagent redact [--url-whitelist <url1,url2>] [--entities <entity1,entity2>] <text>');
+      console.error('Usage: superagent redact [--url-whitelist <url1,url2>] [--entities <entity1,entity2>] [--file <path>] <text>');
       console.error('   or: echo \'{"text": "..."}\' | superagent redact [--url-whitelist <url1,url2>] [--entities <entity1,entity2>]');
+      console.error('');
+      console.error('Options:');
+      console.error('  --url-whitelist <urls>    Comma-separated list of URL prefixes to not redact');
+      console.error('  --entities <entities>     Comma-separated list of entity types to redact');
+      console.error('  --file <path>            Path to PDF file to redact');
+      console.error('');
+      console.error('Examples:');
+      console.error('  superagent redact "My email is john@example.com"');
+      console.error('  superagent redact --entities "emails,phones" "Contact: john@example.com, 555-1234"');
+      console.error('  superagent redact --file document.pdf "Analyze this document"');
       process.exit(1);
     }
   }
@@ -85,12 +120,34 @@ export async function redactCommand(args: string[]) {
   });
 
   try {
-    const result = await client.redact(text, { urlWhitelist });
+    const result = await client.redact(text, {
+      urlWhitelist,
+      entities,
+      file,
+      format: file ? format : undefined // Only send format if file is provided
+    });
 
+    // If PDF blob is returned, save it to a file
+    if (result.pdf) {
+      const { writeFileSync } = await import('fs');
+      const outputPath = 'redacted-output.pdf';
+      const arrayBuffer = await result.pdf.arrayBuffer();
+      writeFileSync(outputPath, Buffer.from(arrayBuffer));
+
+      console.log(JSON.stringify({
+        message: `Redacted PDF saved to ${outputPath}`,
+        reasoning: result.reasoning,
+        usage: result.usage,
+      }, null, 2));
+      process.exit(0);
+    }
+
+    // JSON output
     const output = {
       redacted: result.redacted,
       reasoning: result.reasoning,
       usage: result.usage,
+      ...(result.redacted_pdf && { redacted_pdf: 'Base64 PDF data (truncated for display)' })
     };
 
     console.log(JSON.stringify(output, null, 2));
