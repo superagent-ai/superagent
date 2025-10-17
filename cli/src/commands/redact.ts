@@ -39,10 +39,11 @@ export async function redactCommand(args: string[]) {
   // Check for --file flag
   const fileFlagIndex = args.indexOf('--file');
   let file: Blob | undefined;
+  let filePath: string | undefined;
   let format: "json" | "pdf" = "json"; // Default to JSON format
 
   if (fileFlagIndex !== -1) {
-    const filePath = args[fileFlagIndex + 1];
+    filePath = args[fileFlagIndex + 1];
     if (filePath) {
       try {
         const fileBuffer = readFileSync(filePath);
@@ -130,7 +131,20 @@ export async function redactCommand(args: string[]) {
     // If PDF blob is returned, save it to a file
     if (result.pdf) {
       const { writeFileSync } = await import('fs');
-      const outputPath = 'redacted-output.pdf';
+      const { basename, extname } = await import('path');
+
+      // Generate output filename based on original file with timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T').join('_').slice(0, -5);
+      let outputPath: string;
+
+      if (filePath) {
+        const filename = basename(filePath, extname(filePath));
+        const extension = extname(filePath) || '.pdf';
+        outputPath = `${filename}_redacted_${timestamp}${extension}`;
+      } else {
+        outputPath = `redacted_${timestamp}.pdf`;
+      }
+
       const arrayBuffer = await result.pdf.arrayBuffer();
       writeFileSync(outputPath, Buffer.from(arrayBuffer));
 

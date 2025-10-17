@@ -231,7 +231,6 @@ class Client:
                     data["format"] = format
 
                 if entities:
-                    import json
                     data["entities"] = json.dumps(entities)
 
                 headers = {
