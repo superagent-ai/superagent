@@ -56,6 +56,8 @@ class RedactResult:
     reasoning: str
     raw: dict
     usage: Optional[GuardUsage] = None
+    pdf: Optional[bytes] = None  # PDF bytes when format is "pdf"
+    redacted_pdf: Optional[str] = None  # Base64 PDF data URL when file is provided with JSON response
 
 
 BlockCallback = Callable[[str], Union[Awaitable[None], None]]
@@ -168,7 +170,7 @@ class Client:
         try:
             response = await self._client.post(
                 self._guard_endpoint,
-                json={"prompt": command},
+                json={"text": command},
                 headers={
                     "Authorization": f"Bearer {self._api_key}",
                     "x-superagent-api-key": self._api_key,
@@ -211,28 +213,59 @@ class Client:
         text: str,
         *,
         url_whitelist: Optional[list[str]] = None,
-        entities: Optional[list[str]] = None
+        entities: Optional[list[str]] = None,
+        file: Optional[Any] = None,
+        format: Optional[str] = None
     ) -> RedactResult:
         if not text:
             raise GuardError("text must be a non-empty string")
 
-        # Build request body
-        request_body: dict[str, Any] = {"prompt": text}
-
-        # Include entities in request body if provided
-        if entities:
-            request_body["entities"] = entities
-
         try:
-            response = await self._client.post(
-                self._redact_endpoint,
-                json=request_body,
-                headers={
+            # Use multipart/form-data when file is provided
+            if file is not None:
+                # Build multipart form data
+                files = {"file": file}
+                data = {"text": text}
+
+                if format:
+                    data["format"] = format
+
+                if entities:
+                    data["entities"] = json.dumps(entities)
+
+                headers = {
                     "Authorization": f"Bearer {self._api_key}",
                     "x-superagent-api-key": self._api_key,
-                },
-                timeout=self._timeout,
-            )
+                }
+
+                # Add Accept header if format is pdf to signal we want PDF response
+                if format == "pdf":
+                    headers["Accept"] = "application/pdf"
+
+                response = await self._client.post(
+                    self._redact_endpoint,
+                    files=files,
+                    data=data,
+                    headers=headers,
+                    timeout=self._timeout,
+                )
+            else:
+                # Use JSON when no file is provided
+                request_body: dict[str, Any] = {"text": text}
+
+                # Include entities in request body if provided
+                if entities:
+                    request_body["entities"] = entities
+
+                response = await self._client.post(
+                    self._redact_endpoint,
+                    json=request_body,
+                    headers={
+                        "Authorization": f"Bearer {self._api_key}",
+                        "x-superagent-api-key": self._api_key,
+                    },
+                    timeout=self._timeout,
+                )
         except httpx.RequestError as error:
             raise GuardError(f"Failed to reach redact endpoint: {error}") from error
 
@@ -241,6 +274,30 @@ class Client:
                 f"Redact request failed with status {response.status_code}: {response.text}"
             )
 
+        # Check if response is PDF
+        content_type = response.headers.get("content-type", "")
+        if "application/pdf" in content_type:
+            # Return PDF bytes
+            pdf_bytes = response.content
+
+            # Try to get usage stats from X-Redaction-Stats header
+            usage = None
+            stats_header = response.headers.get("X-Redaction-Stats")
+            if stats_header:
+                try:
+                    usage = json.loads(stats_header)
+                except Exception:
+                    pass
+
+            return RedactResult(
+                redacted="",  # Empty string for PDF responses
+                reasoning="PDF file redacted",
+                raw={},
+                usage=usage,
+                pdf=pdf_bytes,
+            )
+
+        # Handle JSON response
         result = response.json()
         message = result.get("choices", [{}])[0].get("message", {})
         content = message.get("content", "")
@@ -256,6 +313,7 @@ class Client:
             reasoning=reasoning_content,
             raw=result,
             usage=result.get("usage"),
+            redacted_pdf=result.get("redacted_pdf"),
         )
 
     def _apply_url_whitelist(self, original: str, redacted: str, whitelist: list[str]) -> str:
