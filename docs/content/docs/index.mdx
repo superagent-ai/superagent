@@ -1,81 +1,66 @@
 ---
 title: What is Superagent?
-description: Runtime protection for agents, copilots, and AI applications
+description: Purpose-trained models for secure and compliant AI applications
 ---
 
-Superagent provides runtime protection for production agents and copilots. It runs as a secure proxy between your apps, models, and tools — inspecting every prompt, response, file, and tool call before they reach downstream systems.
+Superagent provides three purpose-trained models — Guard, Verify, and Redact — available as standalone APIs that protect AI applications in real time. Each model is optimized for low-latency runtime protection in production environments.
 
-Point your OpenAI, Anthropic, or OSS model clients at the Superagent proxy and get real-time safeguards instantly. SuperagentLM, our reasoning-driven safety model, analyzes traffic with sub-50 ms latency so unsafe activity is blocked while valid workflows flow without friction.
-
-## Why Superagent
-
-- **Drop-in setup**: Swap your API base URL for the Superagent proxy — no refactor required  
-- **Agent-native**: Purpose-built to cover prompts, tool calls, function invocations, and file attachments  
-- **Stops real threats**: Detects and blocks prompt injections, malicious calls, data exfiltration, and backdoors  
-- **Complete visibility**: Stream structured logs, audits, and decisions into your existing security stack  
-
-## Core Capabilities
+## Capabilities
 
 <Cards>
-  <IconCard 
-    title="Runtime Protection" 
-    description="Inspects inbound prompts and outbound responses for adversarial patterns in real time"
+  <IconCard
+    title="Guard"
+    description="Detects and blocks unsafe inputs, prompt injections, malicious tool calls, and backdoors before they reach your models"
     icon={<Shield className="size-4" />}
   />
-  <IconCard 
-    title="Guarded Tooling" 
-    description="Validates tool calls, parameters, and execution context before they run"
-    icon={<Workflow className="size-4" />}
-  />
-  <IconCard 
-    title="SuperagentLM" 
-    description="Reasoning-driven safety model that scores every request in milliseconds"
-    icon={<Cpu className="size-4" />}
-  />
-  <IconCard 
-    title="Unified Observability" 
-    description="Centralize policies, audits, and redaction reports for fast incident response"
+  <IconCard
+    title="Verify"
+    description="Validates model outputs against enterprise sources and policies to ensure every generation is factual and compliant"
     icon={<BarChart3 className="size-4" />}
+  />
+  <IconCard
+    title="Redact"
+    description="Removes sensitive data like PII, PHI, and secrets from text, logs, or documents automatically"
+    icon={<Server className="size-4" />}
   />
 </Cards>
 
-## How Superagent Protects
+## Why Superagent
 
-1. **Intercept**: Superagent sits as a secure proxy between your app, models, and tools  
-2. **Analyze**: SuperagentLM reasons over prompts, responses, and payloads to detect injections, leaks, and misuse  
-3. **Protect**: Runtime policies block, redact, or quarantine threats while safe calls pass through untouched  
-4. **Monitor**: Stream logs, metrics, and alerts for full transparency and auditability  
+- **Purpose-trained SLMs**: Low-latency, optimized models for runtime AI protection
+- **Agent-native**: Purpose-built to cover prompts, tool calls, function invocations, and file attachments
+- **Stops real threats**: Detects and blocks prompt injections, malicious calls, data exfiltration, and backdoors
+- **Complete visibility**: Stream structured logs, audits, and decisions into your existing security stack
 
-## Deployment Options
+## Get Started
 
-- **Hosted**: Managed solution that launches in seconds, scales automatically, and requires no infrastructure  
-- **Self-hosted**: Deploy inside your VPC for full data ownership and enterprise-grade controls  
+Ready to secure your AI applications? [Get your API key](https://app.superagent.sh) and make your first call in minutes with our [quickstart guide](/quickstart). Test Guard, Verify, or Redact via API, SDK, or CLI.
 
 ## Build with Superagent
 
 <Cards>
-<IconCard 
-    title="TypeScript SDK" 
-    href="/typescript-sdk" 
-    description="Drop-in client for Node.js, Vite, and edge runtimes"
-    icon={<TypeScriptIcon className="size-4" />}
+  <IconCard
+    title="API"
+    href="/api"
+    description="REST API for Guard, Verify, and Redact"
+    icon={<Server className="size-4" />}
   />
-  <IconCard 
-    title="Python SDK" 
-    href="/python-sdk" 
+  <IconCard
+    title="Python SDK"
+    href="/sdks/python-sdk"
     description="Typed Python bindings with OpenAI-compatible APIs"
     icon={<PythonIcon className="size-4" />}
   />
-  <IconCard 
-    title="Proxy" 
-    href="/proxy" 
-    description="Use the Superagent reverse proxy"
-    icon={<Server className="size-4" />}
+  <IconCard
+    title="TypeScript SDK"
+    href="/sdks/typescript-sdk"
+    description="Drop-in client for Node.js, Vite, and edge runtimes"
+    icon={<TypeScriptIcon className="size-4" />}
   />
-  <IconCard 
-    title="SuperagentLM" 
-    href="/superagent-lm" 
-    description="Download guard models and the eval dataset"
+  <IconCard
+    title="CLI"
+    href="/cli"
+    description="Command-line tool for testing and automation"
     icon={<Cpu className="size-4" />}
   />
 </Cards>
