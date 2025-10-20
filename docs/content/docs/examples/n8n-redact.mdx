@@ -1,0 +1,101 @@
+---
+title: Guardrails in n8n with Superagent
+description: Modern inbox automations touch real customer data. If a workflow reads raw mail, you risk leaking phone numbers, emails, addresses, card-like strings, and URLs into logs and prompts. Redaction gives you a safety buffer while keeping your agents useful.
+---
+
+This post shows the pattern we ship for the Email Triage Agent template in n8n. We insert a Superagent Redact call between the Gmail trigger and the classifier so every message is cleaned before the model sees it.
+
+## Prerequisites
+
+Before you start, you'll need:
+
+1. An [n8n account](https://n8n.io) (cloud or self-hosted)
+2. A [Superagent account](https://app.superagent.sh) and API key
+
+## The pattern
+
+**Gmail Trigger → HTTP Request (Superagent Redact) → Email Classification → Gmail label actions**
+
+![Email Triage Workflow with Superagent Guardrails](/n8n-1.png)
+
+What you get:
+
+* PII is scrubbed before inference
+* Prompts stay stable
+* Logs are safer to store and share
+
+## Why Superagent Redact
+
+* Targets common PII like emails, phones, addresses, URLs
+* Simple REST API
+* Works as a drop-in guardrail for any text step
+
+## Drop-in wiring in the template
+
+Start from the Email Triage Agent in n8n.
+
+![Email Triage Workflow Template](/n8n-2.png)
+
+Add one **HTTP Request** node between the trigger and the classifier. Configure:
+
+* Method: `POST`
+* URL: `https://app.superagent.sh/api/redact`
+* Auth: Bearer `SUPERAGENT_API_KEY`
+* Body JSON:
+
+  ```json
+  {
+    "text": "{{$json.text}}"
+  }
+  ```
+
+Here is the node in context:
+
+![Superagent HTTP node](/n8n-3.png)
+
+Point your **Email Classification** prompt to the HTTP node output:
+
+```
+Categorize this email:
+
+**From:** {{ $('New Email Trigger').item.json.from.value[0].address }}
+**Subject:** {{ $('New Email Trigger').item.json.subject }}
+**Content:** 
+{{ $json.choices[0].message.content }}
+
+Please analyze this email and apply appropriate labels using the available tools.
+```
+
+![Gmail Classifier Prompt](/n8n-4.png)
+
+## Test it
+
+Send a test email with real PII to your Gmail account:
+
+```
+My phone is 555-123-4567 and you can email me at john@example.com.
+I live at 123 Main Street, New York, NY 10001.
+```
+
+Check the execution log in the HTTP Request node. The redacted output should look like:
+
+```
+My phone is [PHONE_REDACTED] and you can email me at [EMAIL_REDACTED].
+I live at [ADDRESS_REDACTED].
+```
+
+Your classifier sees clean text, but the workflow still routes the email correctly.
+
+## What you've protected
+
+* Customer support logs no longer leak PII
+* Model prompts stay consistent without random customer data
+* Compliance audits get cleaner (GDPR, HIPAA, SOC 2)
+* You can share workflow exports without scrubbing test data
+
+## Next steps
+
+* Set up alerts for high-sensitivity redactions
+* Join our [Discord channel](https://discord.gg/spZ7MnqFT4)
+
+---
