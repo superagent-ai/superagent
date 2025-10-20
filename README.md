@@ -1,115 +1,63 @@
-# Superagent
+# 🥷 Superagent
 
-Runtime protection for AI agents and copilots - inspect prompts, validate tool calls, and block threats in real time.
+**Guard. Verify. Redact.**
+
+Purpose-trained models that secure your applications and keep them compliant — with low-latency, production-ready performance.
 
 ## What is Superagent?
 
-Superagent is a secure proxy between your apps, models, and tools. It provides:
+Superagent provides the security and compliance capabilities you need to ship with confidence. We've built three purpose-trained models — Guard, Verify, and Redact — that work as standalone APIs to protect your applications in real time, without slowing you down.
 
-- **Runtime Protection** - Detects prompt injections, backdoors, and data leaks in real time
-- **Guarded Tooling** - Validates tool calls and parameters before execution
-- **SuperagentLM** - Reasoning-driven safety model with sub-50ms latency
-- **Unified Observability** - Centralized policies, audits, and compliance logs
+Whether you're building agents, chatbots, or workflows, Superagent gives you the tools to detect threats, validate outputs, and protect sensitive data before they become problems.
 
-## Components
+📚 [Read the full documentation](https://docs.superagent.sh)
 
-This repository contains:
+## Capabilities
 
-1. **SDKs** (Python & TypeScript) - Validate actions directly in your app without running the proxy
-2. **Proxy** (Node.js & Rust) - Route requests through a secure reverse proxy with runtime protection
-3. **CLI** - Command-line interface for managing and interacting with Superagent
+### Guard
+Detects and blocks unsafe inputs, prompt injections, malicious tool calls, and backdoors before they reach your models or systems. With **98% threat detection accuracy**, Guard outperforms GPT-5, Gemini 2.5 Pro, and other frontier models — without the latency penalty.
 
-## Quick Start
+### Verify
+Grounds and validates model outputs against your enterprise sources, documents, or APIs. Every generation is factual, consistent, and policy-aligned. Stop hallucinations from reaching production.
 
-### SDKs
+### Redact
+Removes sensitive data (PII, PHI, secrets) from text, logs, or documents in real time. Enable privacy and compliance across AI inputs and outputs without manual review.
 
-Install and use the SDK to enforce runtime protections directly in your application:
+## How to use it?
 
-**Python:**
-```bash
-pip install superagent-ai
-```
+Superagent fits into your workflow, no matter how you build:
 
-**TypeScript:**
-```bash
-npm install superagent-ai
-```
+- **API**: [Documentation](https://docs.superagent.sh/api) — Send any payload and receive a guarded, verified, or redacted result. Supports JSON, text, or document inputs.
+- **SDKs**: [Python](https://docs.superagent.sh/python-sdk), [TypeScript](https://docs.superagent.sh/typescript-sdk) — Lightweight client libraries for embedding Guard, Verify, or Redact directly into your workflows and orchestration layers.
+- **CLI**: [Documentation](https://docs.superagent.sh/cli) — Command-line tool for developers and ops teams to test, audit, or batch-process data locally.
 
-See [sdk/python/README.md](sdk/python/README.md) and [sdk/typescript/README.md](sdk/typescript/README.md) for usage examples and API documentation.
+All access methods share the same core engine and authentication model — simple to integrate, fast to deploy, and ready for production from day one.
 
-### CLI
+### Get Started
 
-Install the CLI tool for managing Superagent:
+To use the API, sign up on [Superagent](https://app.superagent.sh) and get your API key. You'll be up and running in minutes.
 
-```bash
-npm install -g @superagent-ai/cli
-```
+## Why Superagent?
 
-### Proxy
+- **Low-latency protection** — Optimized for runtime use without compromising security or performance
+- **Open source (MIT)** — Full transparency with 10K+ GitHub stars and community trust
+- **Framework-agnostic** — Works seamlessly with any LLM provider, agent framework, or orchestration layer
+- **Compliance-ready** — Maps to EU AI Act, ISO/IEC 42001, NIST AI RMF, GDPR, SOC 2, and HIPAA requirements
+- **Flexible deployment** — Choose hosted cloud or self-hosted infrastructure based on your needs
+- **Production-proven** — Battle-tested by Y Combinator companies and enterprises shipping AI at scale
 
-Run Superagent as a reverse proxy to protect all AI API traffic:
+## Use Cases
 
-**Node.js:**
-```bash
-cd proxy/node/
-npm install
-npm start
-```
+- **Customer-facing applications**: Protect chatbots and assistants from prompt injection and malicious inputs
+- **Enterprise workflows**: Validate outputs against internal knowledge bases and policy documents
+- **Data pipeline security**: Automatically redact PII/PHI from logs, documents, and datasets
+- **Agent safety**: Monitor and control autonomous agent actions before execution
+- **Compliance automation**: Build audit trails and ensure regulatory alignment across all models
 
-**Rust (High Performance):**
-```bash
-cd proxy/rust/
-cargo build --release
-./target/release/ai-firewall start
-```
+## Resources
 
-**Docker:**
-```bash
-docker-compose up -d
-```
-
-See [proxy/node/README.md](proxy/node/README.md) and [proxy/rust/README.md](proxy/rust/README.md) for configuration, CLI options, and programmatic usage.
-
-## Configuration
-
-Edit `superagent.yaml` to configure models and providers:
-
-```yaml
-models:
-  - model_name: "gpt-5"
-    provider: "openai"
-    api_base: "https://api.openai.com"
-
-  - model_name: "claude-sonnet-4-5"
-    provider: "anthropic"
-    api_base: "https://api.anthropic.com/v1"
-
-# Optional: Send telemetry to external webhook
-telemetry_webhook:
-  url: "https://your-webhook.com/api/telemetry"
-  headers:
-    x-api-key: "your-api-key"
-```
-
-## Repository Structure
-
-```
-├── proxy/
-│   ├── node/       # Node.js proxy implementation
-│   └── rust/       # Rust proxy implementation (high performance)
-├── sdk/
-│   ├── python/     # Python SDK
-│   └── typescript/ # TypeScript SDK
-├── cli/            # Command-line interface
-├── docker/         # Docker configurations
-└── README.md       # This file
-```
-
-## Documentation
-
-- **Docs**: [docs.superagent.sh](https://docs.superagent.sh)
-- **Models**: [huggingface.co/superagent-ai](https://huggingface.co/superagent-ai)
-
-## License
-
-See [LICENSE](LICENSE) file for details.
+- 🌐 [Superagent Website](https://superagent.sh)
+- 📚 [Documentation](https://docs.superagent.sh)
+- 🐙 [GitHub](https://github.com/superagent-ai/superagent)
+- 🤗 [HuggingFace](https://huggingface.co/superagent-ai)
+- 💬 [Discord](https://discord.gg/spZ7MnqFT4)
