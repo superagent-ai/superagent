@@ -21,6 +21,8 @@ import {
   Server,
   Bot,
   Activity,
+  Check,
+  EyeOff,
 } from "lucide-react";
 import { SiPython, SiTypescript } from "react-icons/si";
 
@@ -47,6 +49,8 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     Server,
     Bot,
     Activity,
+    Check,
+    EyeOff,
     TypeScriptIcon: SiTypescript,
     PythonIcon: SiPython,
     img: (props) => <ImageZoom {...(props as any)} />,
