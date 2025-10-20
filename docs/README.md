@@ -1,45 +1,63 @@
-# docs
+# 🥷 Superagent
 
-This is a Next.js application generated with
-[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
+**Guard. Verify. Redact.**
 
-Run development server:
+Purpose-trained models that secure your applications and keep them compliant — with low-latency, production-ready performance.
 
-```bash
-npm run dev
-# or
-pnpm dev
-# or
-yarn dev
-```
+## What is Superagent?
 
-Open http://localhost:3000 with your browser to see the result.
+Superagent provides the security and compliance capabilities you need to ship with confidence. We've built three purpose-trained models — Guard, Verify, and Redact — that work as standalone APIs to protect your applications in real time, without slowing you down.
 
-## Explore
+Whether you're building agents, chatbots, or workflows, Superagent gives you the tools to detect threats, validate outputs, and protect sensitive data before they become problems.
 
-In the project, you can see:
+📚 [Read the full documentation](https://docs.superagent.sh)
 
-- `lib/source.ts`: Code for content source adapter, [`loader()`](https://fumadocs.dev/docs/headless/source-api) provides the interface to access your content.
-- `lib/layout.shared.tsx`: Shared options for layouts, optional but preferred to keep.
+## Capabilities
 
-| Route                     | Description                                            |
-| ------------------------- | ------------------------------------------------------ |
-| `app/(home)`              | The route group for your landing page and other pages. |
-| `app/docs`                | The documentation layout and pages.                    |
-| `app/api/search/route.ts` | The Route Handler for search.                          |
+### Guard
+Detects and blocks unsafe inputs, prompt injections, malicious tool calls, and backdoors before they reach your models or systems. With **98% threat detection accuracy**, Guard outperforms GPT-5, Gemini 2.5 Pro, and other frontier models — without the latency penalty.
 
-### Fumadocs MDX
+### Verify
+Grounds and validates model outputs against your enterprise sources, documents, or APIs. Every generation is factual, consistent, and policy-aligned. Stop hallucinations from reaching production.
 
-A `source.config.ts` config file has been included, you can customise different options like frontmatter schema.
+### Redact
+Removes sensitive data (PII, PHI, secrets) from text, logs, or documents in real time. Enable privacy and compliance across AI inputs and outputs without manual review.
 
-Read the [Introduction](https://fumadocs.dev/docs/mdx) for further details.
+## How to use it?
 
-## Learn More
+Superagent fits into your workflow, no matter how you build:
 
-To learn more about Next.js and Fumadocs, take a look at the following
-resources:
+- **API**: [Documentation](https://docs.superagent.sh/api) — Send any payload and receive a guarded, verified, or redacted result. Supports JSON, text, or document inputs.
+- **SDKs**: [Python](https://docs.superagent.sh/python-sdk), [TypeScript](https://docs.superagent.sh/typescript-sdk) — Lightweight client libraries for embedding Guard, Verify, or Redact directly into your workflows and orchestration layers.
+- **CLI**: [Documentation](https://docs.superagent.sh/cli) — Command-line tool for developers and ops teams to test, audit, or batch-process data locally.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
-  features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [Fumadocs](https://fumadocs.vercel.app) - learn about Fumadocs
+All access methods share the same core engine and authentication model — simple to integrate, fast to deploy, and ready for production from day one.
+
+### Get Started
+
+To use the API, sign up on [Superagent](https://app.superagent.sh) and get your API key. You'll be up and running in minutes.
+
+## Why Superagent?
+
+- **Low-latency protection** — Optimized for runtime use without compromising security or performance
+- **Open source (MIT)** — Full transparency with 10K+ GitHub stars and community trust
+- **Framework-agnostic** — Works seamlessly with any LLM provider, agent framework, or orchestration layer
+- **Compliance-ready** — Maps to EU AI Act, ISO/IEC 42001, NIST AI RMF, GDPR, SOC 2, and HIPAA requirements
+- **Flexible deployment** — Choose hosted cloud or self-hosted infrastructure based on your needs
+- **Production-proven** — Battle-tested by Y Combinator companies and enterprises shipping AI at scale
+
+## Use Cases
+
+- **Customer-facing applications**: Protect chatbots and assistants from prompt injection and malicious inputs
+- **Enterprise workflows**: Validate outputs against internal knowledge bases and policy documents
+- **Data pipeline security**: Automatically redact PII/PHI from logs, documents, and datasets
+- **Agent safety**: Monitor and control autonomous agent actions before execution
+- **Compliance automation**: Build audit trails and ensure regulatory alignment across all models
+
+## Resources
+
+- 🌐 [Superagent Website](https://superagent.sh)
+- 📚 [Documentation](https://docs.superagent.sh)
+- 🐙 [GitHub](https://github.com/superagent-ai/superagent)
+- 🤗 [HuggingFace](https://huggingface.co/superagent-ai)
+- 💬 [Discord](https://discord.gg/spZ7MnqFT4)
