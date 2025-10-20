@@ -43,7 +43,7 @@ Add one **HTTP Request** node between the trigger and the classifier. Configure:
 * Auth: Bearer `SUPERAGENT_API_KEY`
 * Body JSON:
 
-  ```json
+  ```json title="HTTP Request Body"
   {
     "text": "{{$json.text}}"
   }
@@ -55,12 +55,12 @@ Here is the node in context:
 
 Point your **Email Classification** prompt to the HTTP node output:
 
-```
+```text title="Email Classification Prompt"
 Categorize this email:
 
 **From:** {{ $('New Email Trigger').item.json.from.value[0].address }}
 **Subject:** {{ $('New Email Trigger').item.json.subject }}
-**Content:** 
+**Content:**
 {{ $json.choices[0].message.content }}
 
 Please analyze this email and apply appropriate labels using the available tools.
@@ -72,14 +72,14 @@ Please analyze this email and apply appropriate labels using the available tools
 
 Send a test email with real PII to your Gmail account:
 
-```
+```text title="Test Email Content"
 My phone is 555-123-4567 and you can email me at john@example.com.
 I live at 123 Main Street, New York, NY 10001.
 ```
 
 Check the execution log in the HTTP Request node. The redacted output should look like:
 
-```
+```text title="Redacted Output"
 My phone is [PHONE_REDACTED] and you can email me at [EMAIL_REDACTED].
 I live at [ADDRESS_REDACTED].
 ```
