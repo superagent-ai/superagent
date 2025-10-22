@@ -92,7 +92,7 @@ export interface RedactResult {
 
 export interface RedactOptions {
   /**
-   * Array of URL prefixes that should not be redacted.
+   * Array of URL prefixes that should not be redacted (only applies to text input).
    */
   urlWhitelist?: string[];
   /**
@@ -101,19 +101,15 @@ export interface RedactOptions {
    */
   entities?: string[];
   /**
-   * File to redact (e.g., PDF document). When provided, multipart/form-data is used.
-   */
-  file?: File | Blob;
-  /**
    * Output format: "json" returns JSON with redacted text (default), "pdf" returns a PDF file blob.
-   * When "pdf" is used with a file input, the API returns a redacted PDF file.
+   * Only applies to file input.
    */
   format?: "json" | "pdf";
 }
 
 export interface Client {
-  guard(command: string, callbacks?: GuardCallbacks): Promise<GuardResult>;
-  redact(text: string, options?: RedactOptions): Promise<RedactResult>;
+  guard(input: string | File | Blob, callbacks?: GuardCallbacks): Promise<GuardResult>;
+  redact(input: string | File | Blob, options?: RedactOptions): Promise<RedactResult>;
 }
 
 export class GuardError extends Error {
@@ -216,11 +212,20 @@ export function createClient(options: CreateClientOptions): Client {
 
   return {
     async guard(
-      command: string,
+      input: string | File | Blob,
       callbacks: GuardCallbacks = {}
     ): Promise<GuardResult> {
-    if (!command || typeof command !== "string") {
-      throw new GuardError("command must be a non-empty string.");
+    // Determine if input is a file or text
+    // Check for File/Blob in a way that works in both browser and Node.js
+    const isFile = typeof input !== 'string' && (
+      (typeof File !== 'undefined' && input instanceof File) ||
+      (typeof Blob !== 'undefined' && input instanceof Blob) ||
+      // Node.js file-like objects
+      (input && typeof input === 'object' && 'stream' in input)
+    );
+
+    if (!isFile && (!input || typeof input !== "string")) {
+      throw new GuardError("input must be a non-empty string or file.");
     }
 
     const controller =
@@ -232,16 +237,37 @@ export function createClient(options: CreateClientOptions): Client {
 
     let response: Response;
     try {
-      response = await fetcher(guardEndpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      if (isFile) {
+        // Use multipart/form-data for file input
+        const formData = new FormData();
+        formData.append("text", ""); // Empty text when file is provided
+        formData.append("file", input);
+
+        const headers: Record<string, string> = {
           Authorization: `Bearer ${apiKey}`,
           "x-superagent-api-key": apiKey,
-        },
-        body: JSON.stringify({ text: command }),
-        signal: controller?.signal,
-      } satisfies RequestInit);
+          // Don't set Content-Type - browser/fetch will set it with boundary
+        };
+
+        response = await fetcher(guardEndpoint, {
+          method: "POST",
+          headers,
+          body: formData,
+          signal: controller?.signal,
+        } satisfies RequestInit);
+      } else {
+        // Use JSON for text input
+        response = await fetcher(guardEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+            "x-superagent-api-key": apiKey,
+          },
+          body: JSON.stringify({ text: input }),
+          signal: controller?.signal,
+        } satisfies RequestInit);
+      }
     } catch (error) {
       if (timeoutHandle) {
         clearTimeout(timeoutHandle);
@@ -261,6 +287,7 @@ export function createClient(options: CreateClientOptions): Client {
       );
     }
 
+    // Handle JSON response (guard always returns JSON, even for PDF files)
     const analysis = (await response.json()) as AnalysisResponse;
     const decision = parseDecision(analysis?.choices?.[0]?.message?.content);
     const rawReasoning = analysis?.choices?.[0]?.message?.reasoning_content;
@@ -286,11 +313,20 @@ export function createClient(options: CreateClientOptions): Client {
   },
 
     async redact(
-      text: string,
+      input: string | File | Blob,
       options?: RedactOptions
     ): Promise<RedactResult> {
-      if (!text || typeof text !== "string") {
-        throw new GuardError("text must be a non-empty string.");
+      // Determine if input is a file or text
+      // Check for File/Blob in a way that works in both browser and Node.js
+      const isFile = typeof input !== 'string' && (
+        (typeof File !== 'undefined' && input instanceof File) ||
+        (typeof Blob !== 'undefined' && input instanceof Blob) ||
+        // Node.js file-like objects
+        (input && typeof input === 'object' && 'stream' in input)
+      );
+
+      if (!isFile && (!input || typeof input !== "string")) {
+        throw new GuardError("input must be a non-empty string or file.");
       }
 
       const controller =
@@ -302,17 +338,17 @@ export function createClient(options: CreateClientOptions): Client {
 
       let response: Response;
       try {
-        // Use multipart/form-data when file is provided
-        if (options?.file) {
+        if (isFile) {
+          // Use multipart/form-data for file input
           const formData = new FormData();
-          formData.append("text", text);
-          formData.append("file", options.file);
+          formData.append("text", ""); // Empty text when file is provided
+          formData.append("file", input);
 
-          if (options.format) {
+          if (options?.format) {
             formData.append("format", options.format);
           }
 
-          if (options.entities && options.entities.length > 0) {
+          if (options?.entities && options.entities.length > 0) {
             formData.append("entities", JSON.stringify(options.entities));
           }
 
@@ -323,7 +359,7 @@ export function createClient(options: CreateClientOptions): Client {
           };
 
           // Add Accept header if format is pdf to signal we want PDF response
-          if (options.format === "pdf") {
+          if (options?.format === "pdf") {
             headers.Accept = "application/pdf";
           }
 
@@ -334,9 +370,9 @@ export function createClient(options: CreateClientOptions): Client {
             signal: controller?.signal,
           } satisfies RequestInit);
         } else {
-          // Use JSON when no file is provided
+          // Use JSON for text input
           const requestBody: { text: string; entities?: string[] } = {
-            text: text,
+            text: input,
           };
 
           // Include entities in request body if provided
@@ -404,9 +440,9 @@ export function createClient(options: CreateClientOptions): Client {
       const result = (await response.json()) as RedactionResponse & { redacted_pdf?: string };
       let content = result.choices[0].message.content as string;
 
-      // Apply URL whitelist locally if provided
-      if (options?.urlWhitelist) {
-        content = applyUrlWhitelist(text, content, options.urlWhitelist);
+      // Apply URL whitelist locally if provided (only for text input)
+      if (!isFile && options?.urlWhitelist) {
+        content = applyUrlWhitelist(input, content, options.urlWhitelist);
       }
 
       return {

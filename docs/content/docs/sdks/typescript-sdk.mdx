@@ -62,63 +62,141 @@ Creates a new Superagent client.
 - `fetch` (optional) – Custom fetch implementation (defaults to global `fetch`)
 - `timeoutMs` (optional) – Request timeout in milliseconds
 
-### `client.guard(command, callbacks?)`
+### `client.guard(input, callbacks?)`
 
-Analyzes a command for security threats.
+Analyzes text or a PDF file for security threats.
+
+import { TypeTable } from 'fumadocs-ui/components/type-table';
 
 **Parameters:**
-- `command` – The text to analyze
-- `callbacks` (optional) – Object with `onPass` and `onBlock` callbacks
+
+<TypeTable
+  type={{
+    input: {
+      description: 'String of text to analyze OR File/Blob object (e.g., PDF document)',
+      type: 'string | File | Blob',
+    },
+    callbacks: {
+      description: 'Object with onPass and onBlock callbacks',
+      type: 'GuardCallbacks',
+    },
+  }}
+/>
 
 **Returns:** `Promise<GuardResult>`
 
-```ts
-interface GuardResult {
-  rejected: boolean;        // True if guard blocked the command
-  decision?: GuardDecision; // Parsed decision details
-  usage?: GuardUsage;       // Token usage statistics
-  reasoning: string;        // Explanation from the guard
-  raw: AnalysisResponse;    // Full API response
-}
+<TypeTable
+  type={{
+    rejected: {
+      description: 'True if guard blocked the input',
+      type: 'boolean',
+    },
+    decision: {
+      description: 'Parsed decision details',
+      type: 'GuardDecision | undefined',
+    },
+    usage: {
+      description: 'Token usage statistics',
+      type: 'GuardUsage | undefined',
+    },
+    reasoning: {
+      description: 'Explanation from the guard',
+      type: 'string',
+    },
+    raw: {
+      description: 'Full API response',
+      type: 'AnalysisResponse',
+    },
+  }}
+/>
 
-interface GuardDecision {
-  status: "pass" | "block";
-  violation_types?: string[];
-  cwe_codes?: string[];
-}
-```
+**GuardDecision:**
 
-### `client.redact(text, options?)`
+<TypeTable
+  type={{
+    status: {
+      description: 'Decision status',
+      type: '"pass" | "block"',
+    },
+    violation_types: {
+      description: 'List of violation types detected',
+      type: 'string[] | undefined',
+    },
+    cwe_codes: {
+      description: 'List of CWE code identifiers',
+      type: 'string[] | undefined',
+    },
+  }}
+/>
 
-Redacts sensitive data from text.
+### `client.redact(input, options?)`
+
+Redacts sensitive data from text or PDF files.
 
 **Parameters:**
-- `text` – The text to redact
-- `options` (optional) – Options object
-  - `urlWhitelist` – Array of URL prefixes that should not be redacted. URLs matching these prefixes will be preserved in the output.
-  - `entities` – Array of natural language descriptions of PII entities to redact. Examples: `["credit card numbers", "email addresses", "phone numbers"]`
-  - `file` – File or Blob object to redact (e.g., PDF document)
-  - `format` – Output format: `"json"` (default) returns JSON with redacted text, `"pdf"` returns a redacted PDF file
+
+<TypeTable
+  type={{
+    input: {
+      description: 'String of text to redact OR File/Blob object (e.g., PDF document)',
+      type: 'string | File | Blob',
+    },
+    options: {
+      description: 'Optional redaction configuration',
+      type: 'RedactOptions',
+    },
+  }}
+/>
+
+**RedactOptions:**
+
+<TypeTable
+  type={{
+    urlWhitelist: {
+      description: 'Array of URL prefixes that should not be redacted (only applies to text input)',
+      type: 'string[] | undefined',
+    },
+    entities: {
+      description: 'Array of natural language descriptions of PII entities to redact. Examples: ["credit card numbers", "email addresses", "phone numbers"]',
+      type: 'string[] | undefined',
+    },
+    format: {
+      description: 'Output format: "json" (default) returns JSON with redacted text, "pdf" returns a redacted PDF file (only applies to file input)',
+      type: '"json" | "pdf" | undefined',
+    },
+  }}
+/>
 
 **Returns:** `Promise<RedactResult>`
 
-```ts
-interface RedactOptions {
-  urlWhitelist?: string[];  // URL prefixes to preserve
-  entities?: string[];      // Custom entity types to redact
-  file?: File | Blob;       // File to redact (e.g., PDF)
-  format?: "json" | "pdf";  // Output format
-}
-
-interface RedactResult {
-  redacted: string;         // Text with sensitive data redacted (empty when format="pdf")
-  reasoning: string;        // Explanation of what was redacted
-  usage?: GuardUsage;       // Token usage statistics
-  raw: RedactionResponse;   // Full API response (empty when format="pdf")
-  pdf?: Blob;               // PDF Blob when format="pdf"
-  redacted_pdf?: string;    // Base64 PDF data URL when file provided with JSON response
-}
-```
+<TypeTable
+  type={{
+    redacted: {
+      description: 'Text with sensitive data redacted (empty when format="pdf")',
+      type: 'string',
+    },
+    reasoning: {
+      description: 'Explanation of what was redacted',
+      type: 'string',
+    },
+    usage: {
+      description: 'Token usage statistics',
+      type: 'GuardUsage | undefined',
+    },
+    raw: {
+      description: 'Full API response (empty when format="pdf")',
+      type: 'RedactionResponse',
+    },
+    pdf: {
+      description: 'PDF Blob when format="pdf"',
+      type: 'Blob | undefined',
+    },
+    redacted_pdf: {
+      description: 'Base64 PDF data URL when file provided with JSON response',
+      type: 'string | undefined',
+    },
+  }}
+/>
 
 ## Detected PII/PHI Types
 
@@ -216,9 +294,8 @@ const pdfBlob = new Blob([pdfBuffer], { type: 'application/pdf' });
 
 // Get redacted PDF file
 const result = await client.redact(
-  "Redact PII from this document",
+  pdfBlob,  // Pass file as first parameter
   {
-    file: pdfBlob,
     format: "pdf",  // Returns redacted PDF
     entities: ["SSN", "credit card numbers", "email addresses"]
   }
@@ -248,9 +325,8 @@ const pdfBlob = new Blob([pdfBuffer], { type: 'application/pdf' });
 
 // Get redacted text from PDF
 const result = await client.redact(
-  "Extract and redact text from this document",
+  pdfBlob,  // Pass file as first parameter
   {
-    file: pdfBlob,
     format: "json",  // Returns JSON with redacted text (default)
     entities: ["SSN", "credit card numbers", "email addresses"]
   }
@@ -261,8 +337,8 @@ console.log(result.reasoning); // Explanation of what was redacted
 ```
 
 **How it works:**
-- When a `file` is provided, the SDK uses multipart/form-data encoding
-- The `text` parameter provides context for the redaction
+- Pass the file object (File or Blob) directly as the first parameter
+- The SDK automatically uses multipart/form-data encoding for file inputs
 - `format="pdf"` returns a redacted PDF file as a Blob
 - `format="json"` (default) extracts text from the PDF, redacts it, and returns as JSON
 - You can combine file redaction with `entities` to specify custom entity types
@@ -272,6 +348,60 @@ console.log(result.reasoning); // Explanation of what was redacted
 - Process medical records while maintaining HIPAA compliance
 - Sanitize financial documents before sharing
 - Prepare documents for public release by removing confidential information
+
+## PDF File Guard Analysis
+
+You can analyze PDF files for security threats using the Guard method. The API analyzes the PDF content and returns a JSON response with the security assessment:
+
+### Analyze PDF Files
+
+Analyzes a PDF file and returns JSON with security assessment:
+
+```ts title="pdf-guard.ts"
+import { createClient } from "superagent-ai";
+import { readFileSync } from 'fs';
+
+const client = createClient({
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+
+// Read PDF file
+const pdfBuffer = readFileSync('document.pdf');
+const pdfBlob = new Blob([pdfBuffer], { type: 'application/pdf' });
+
+// Analyze PDF file for security threats
+const result = await client.guard(
+  pdfBlob,  // Pass file as first parameter
+  {
+    onBlock: (reason) => console.warn("Guard blocked:", reason),
+    onPass: () => console.log("Guard approved!"),
+  }
+);
+
+// Check the analysis result
+if (result.rejected) {
+  console.log(`Document contains security threats: ${result.reasoning}`);
+  if (result.decision) {
+    console.log(`Violation types: ${result.decision.violation_types}`);
+    console.log(`CWE codes: ${result.decision.cwe_codes}`);
+  }
+} else {
+  console.log(`Document is safe: ${result.reasoning}`);
+}
+```
+
+**How it works:**
+- Pass the file object (File or Blob) directly as the first parameter
+- The SDK automatically uses multipart/form-data encoding for file inputs
+- The guard extracts text from the PDF and analyzes it for security threats
+- Returns JSON with `rejected`, `reasoning`, `decision`, and `usage` fields
+- You can use the `onBlock` and `onPass` callbacks to handle the analysis results
+
+**Use cases:**
+- Analyze uploaded documents for malicious content before processing
+- Validate PDF attachments for security threats
+- Screen documents for prompt injection attempts
+- Ensure document safety before feeding to AI models
 
 ## Error Handling
 
