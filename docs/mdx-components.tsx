@@ -4,6 +4,7 @@ import { Mermaid } from "@/components/mdx/mermaid";
 import { IconCard } from "@/components/mdx/icon-card";
 import { APIPage } from "fumadocs-openapi/ui";
 import { ImageZoom } from "fumadocs-ui/components/image-zoom";
+import * as TabsComponents from "fumadocs-ui/components/tabs";
 import { openapi } from "@/lib/openapi";
 import {
   Shield,
@@ -54,6 +55,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     TypeScriptIcon: SiTypescript,
     PythonIcon: SiPython,
     img: (props) => <ImageZoom {...(props as any)} />,
+    ...TabsComponents,
     ...components,
   };
 }
