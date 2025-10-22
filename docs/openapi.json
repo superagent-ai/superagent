@@ -233,7 +233,7 @@
     "/api/guard": {
       "post": {
         "summary": "Analyze prompt for security threats",
-        "description": "Classifies user inputs to detect malicious intent such as prompt injection, system prompt extraction, or data exfiltration attempts. Returns classification with violation types and CWE codes.",
+        "description": "Classifies user inputs to detect malicious intent such as prompt injection, system prompt extraction, or data exfiltration attempts. Returns classification with violation types and CWE codes. Supports both text and PDF file analysis.",
         "operationId": "guardPrompt",
         "tags": ["Security"],
         "security": [
@@ -259,6 +259,23 @@
                   }
                 }
               }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "description": "The text content to analyze (can be empty string when file is provided)"
+                  },
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Optional PDF file to analyze for security threats"
+                  }
+                }
+              }
             }
           }
         },
@@ -280,8 +297,17 @@
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 },
-                "example": {
-                  "error": "Invalid text provided"
+                "examples": {
+                  "invalidText": {
+                    "value": {
+                      "error": "Invalid text provided"
+                    }
+                  },
+                  "invalidFile": {
+                    "value": {
+                      "error": "file must be a PDF file (application/pdf)"
+                    }
+                  }
                 }
               }
             }
