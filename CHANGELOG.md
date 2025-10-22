@@ -2,7 +2,7 @@
 
 All notable changes to Superagent will be documented in this file.
 
-## [superagent-ai@0.0.15 / @superagent-ai/cli@0.0.11] - 2025-01-22
+## [superagent-ai@0.0.14 / @superagent-ai/cli@0.0.11] - 2025-01-22
 
 ### Breaking Changes
 

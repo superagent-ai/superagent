@@ -216,7 +216,13 @@ export function createClient(options: CreateClientOptions): Client {
       callbacks: GuardCallbacks = {}
     ): Promise<GuardResult> {
     // Determine if input is a file or text
-    const isFile = input instanceof File || input instanceof Blob;
+    // Check for File/Blob in a way that works in both browser and Node.js
+    const isFile = typeof input !== 'string' && (
+      (typeof File !== 'undefined' && input instanceof File) ||
+      (typeof Blob !== 'undefined' && input instanceof Blob) ||
+      // Node.js file-like objects
+      (input && typeof input === 'object' && 'stream' in input)
+    );
 
     if (!isFile && (!input || typeof input !== "string")) {
       throw new GuardError("input must be a non-empty string or file.");
@@ -311,7 +317,13 @@ export function createClient(options: CreateClientOptions): Client {
       options?: RedactOptions
     ): Promise<RedactResult> {
       // Determine if input is a file or text
-      const isFile = input instanceof File || input instanceof Blob;
+      // Check for File/Blob in a way that works in both browser and Node.js
+      const isFile = typeof input !== 'string' && (
+        (typeof File !== 'undefined' && input instanceof File) ||
+        (typeof Blob !== 'undefined' && input instanceof Blob) ||
+        // Node.js file-like objects
+        (input && typeof input === 'object' && 'stream' in input)
+      );
 
       if (!isFile && (!input || typeof input !== "string")) {
         throw new GuardError("input must be a non-empty string or file.");
