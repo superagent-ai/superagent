@@ -2,7 +2,7 @@
 
 All notable changes to Superagent will be documented in this file.
 
-## [Unreleased] - 2025-01-22
+## [superagent-ai@0.0.15 / @superagent-ai/cli@0.0.11] - 2025-01-22
 
 ### Breaking Changes
 
@@ -16,12 +16,12 @@ All notable changes to Superagent will be documented in this file.
 
 - **Python SDK**:
   ```python
-  # Before (v0.0.13)
+  # Before (v0.0.14)
   with open("doc.pdf", "rb") as f:
       result = await client.guard("Analyze this", file=f)
       result = await client.redact("Redact this", file=f, format="pdf")
 
-  # After (v0.1.0)
+  # After (v0.0.15)
   with open("doc.pdf", "rb") as f:
       result = await client.guard(f)  # Pass file directly
       result = await client.redact(f, format="pdf")  # Pass file directly
@@ -29,11 +29,11 @@ All notable changes to Superagent will be documented in this file.
 
 - **TypeScript SDK**:
   ```typescript
-  // Before (v0.0.13)
+  // Before (v0.0.14)
   const result = await client.guard("text", {}, { file: pdfBlob });
   const result = await client.redact("text", { file: pdfBlob, format: "pdf" });
 
-  // After (v0.1.0)
+  // After (v0.0.15)
   const result = await client.guard(pdfBlob);  // Pass file directly
   const result = await client.redact(pdfBlob, { format: "pdf" });  // Pass file directly
   ```
