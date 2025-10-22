@@ -1,0 +1,14 @@
+
+{
+  "mcpServers": {
+    "superagent": {
+      "command": "node",
+      "args": [
+        "/Users/alanzabihi/Documents/code/superagent-mcp/dist/index.js"
+      ],
+      "env": {
+        "SUPERAGENT_API_KEY": "sa_ff1770be16cf74979c01daf1bcc03d1bf5575675a77333d26827c9f64617d325"
+      }
+    }
+  }
+}
