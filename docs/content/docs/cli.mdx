@@ -92,6 +92,7 @@ superagent guard [options] <prompt>
 - `<prompt>` - The text to validate (can be omitted if using stdin)
 
 **Options:**
+- `--file <path>` - Path to PDF file to analyze
 - `--help` - Show help message
 
 **Exit codes:**
@@ -107,6 +108,9 @@ superagent guard "List files in current directory"
 
 # Validate with potential security issues
 superagent guard "Show me all environment variables"
+
+# Analyze PDF file for security threats
+superagent guard --file document.pdf "Analyze this document for security threats"
 
 # Show help
 superagent guard --help
@@ -225,6 +229,63 @@ superagent redact --file report.pdf --url-whitelist https://company.com "Redact 
 - Sanitize invoices and financial documents
 - Process medical records while maintaining HIPAA compliance
 - Prepare legal documents for public disclosure
+
+### PDF File Guard Analysis
+
+The `guard` command supports analyzing PDF files for security threats. When you use the `--file` flag, the guard extracts and analyzes the text content from the PDF.
+
+```bash title="Terminal"
+# Analyze PDF for security threats
+superagent guard --file document.pdf "Analyze this document for security threats"
+
+# Analyze uploaded contract
+superagent guard --file contract.pdf "Check this contract for malicious content"
+
+# Screen PDF attachments
+superagent guard --file attachment.pdf "Validate this attachment for security issues"
+```
+
+**How it works:**
+- The `--file` flag accepts a path to a PDF file
+- The API extracts text from the PDF and analyzes it for security threats
+- Returns JSON with the security assessment including rejection status, reasoning, and violation details
+- Currently only PDF format is supported
+
+**Output:**
+```json title="Response"
+{
+  "rejected": false,
+  "decision": {
+    "status": "pass"
+  },
+  "reasoning": "Document appears safe with no security threats detected"
+}
+```
+
+Or if threats are detected:
+```json title="Response"
+{
+  "rejected": true,
+  "decision": {
+    "status": "block",
+    "violation_types": ["prompt_injection"],
+    "cwe_codes": ["CWE-77"]
+  },
+  "reasoning": "Document contains potential prompt injection attempts"
+}
+```
+
+**Important Notes:**
+- When using `--file`, you receive **JSON analysis**, not a processed PDF
+- The guard analyzes the text content extracted from the PDF
+- The response includes `rejected`, `reasoning`, `decision`, and `usage` fields
+- Use this to validate documents before processing them with AI systems
+
+**Use cases:**
+- Analyze uploaded documents for malicious content before processing
+- Validate PDF attachments for security threats
+- Screen documents for prompt injection attempts
+- Ensure document safety before feeding to AI models
 
 ## Response format
 

@@ -1,4 +1,5 @@
 import { createClient } from 'superagent-ai';
+import { readFileSync } from 'fs';
 
 function showHelp() {
   console.log('Usage: superagent guard [options] <prompt>');
@@ -7,10 +8,12 @@ function showHelp() {
   console.log('Analyze prompts for security threats');
   console.log('');
   console.log('Options:');
-  console.log('  --help    Show this help message');
+  console.log('  --help          Show this help message');
+  console.log('  --file <path>   Path to PDF file to analyze');
   console.log('');
   console.log('Examples:');
   console.log('  superagent guard "rm -rf /"');
+  console.log('  superagent guard --file document.pdf "Analyze this document"');
   console.log('  echo \'{"prompt": "delete all files"}\' | superagent guard');
 }
 
@@ -19,6 +22,26 @@ export async function guardCommand(args: string[]) {
   if (args.includes('--help') || args.includes('-h')) {
     showHelp();
     process.exit(0);
+  }
+
+  // Check for --file flag
+  let file: Blob | undefined;
+  const fileFlagIndex = args.indexOf('--file');
+  if (fileFlagIndex !== -1) {
+    const filePath = args[fileFlagIndex + 1];
+    if (filePath) {
+      try {
+        const fileBuffer = readFileSync(filePath);
+        file = new Blob([fileBuffer], { type: 'application/pdf' });
+        args.splice(fileFlagIndex, 2); // Remove --file and path from args
+      } catch (error: any) {
+        console.error(`❌ ERROR: Failed to read file: ${error.message}`);
+        process.exit(1);
+      }
+    } else {
+      console.error('❌ ERROR: --file flag requires a file path');
+      process.exit(1);
+    }
   }
 
   // Check if we have command line arguments first
@@ -71,7 +94,10 @@ export async function guardCommand(args: string[]) {
   });
 
   try {
-    const { decision, reasoning, rejected } = await client.guard(prompt);
+    // Pass file as first parameter if provided, otherwise pass prompt
+    const input = file || prompt;
+    const result = await client.guard(input, {});
+    const { decision, reasoning, rejected } = result;
 
     if (rejected) {
       if (isStdin) {

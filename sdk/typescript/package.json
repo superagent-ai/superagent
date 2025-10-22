@@ -1,6 +1,6 @@
 {
   "name": "superagent-ai",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "TypeScript SDK for Superagent.",
   "type": "module",
   "main": "dist/index.js",
