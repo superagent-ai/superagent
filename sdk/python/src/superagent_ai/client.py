@@ -41,6 +41,34 @@ class GuardDecision(TypedDict, total=False):
     violation_types: list[str]
     cwe_codes: list[str]
 
+
+class Source(TypedDict, total=False):
+    """Source material for verification."""
+    content: str  # Required
+    name: str  # Required
+    url: str  # Optional
+
+
+class SourceReference(TypedDict):
+    """Reference to a source used in verification."""
+    name: str
+    url: str
+
+
+class ClaimVerification(TypedDict):
+    """Individual claim verification result."""
+    claim: str
+    verdict: bool
+    sources: list[SourceReference]
+    evidence: str
+    reasoning: str
+
+
+class VerificationResult(TypedDict):
+    """Result containing all verified claims."""
+    claims: list[ClaimVerification]
+
+
 @dataclass(slots=True)
 class GuardResult:
     rejected: bool
@@ -58,6 +86,14 @@ class RedactResult:
     usage: Optional[GuardUsage] = None
     pdf: Optional[bytes] = None  # PDF bytes when format is "pdf"
     redacted_pdf: Optional[str] = None  # Base64 PDF data URL when file is provided with JSON response
+
+
+@dataclass(slots=True)
+class VerifyResult:
+    """Result of verification containing all claims with verdicts and evidence."""
+    claims: list[ClaimVerification]
+    raw: dict
+    usage: Optional[GuardUsage] = None
 
 
 BlockCallback = Callable[[str], Union[Awaitable[None], None]]
@@ -143,6 +179,7 @@ class Client:
         base = _sanitize_url(api_base_url)
         self._guard_endpoint = f"{base}/guard"
         self._redact_endpoint = f"{base}/redact"
+        self._verify_endpoint = f"{base}/verify"
         self._timeout = timeout
         self._client = client or httpx.AsyncClient(timeout=timeout)
         self._owns_client = client is None
@@ -355,6 +392,78 @@ class Client:
             return url if is_whitelisted else '<URL_REDACTED>'
 
         return re.sub(url_pattern, replace_url, redacted)
+
+    async def verify(
+        self,
+        text: str,
+        sources: list[Source],
+    ) -> VerifyResult:
+        """Verify claims in text against provided source materials.
+
+        Args:
+            text: The text containing claims to verify
+            sources: List of source materials to verify claims against.
+                    Each source must have 'content' and 'name' fields, and optionally a 'url' field.
+
+        Returns:
+            VerifyResult containing claims with verdicts, sources, evidence, and reasoning
+
+        Raises:
+            GuardError: If the request fails or is misconfigured
+        """
+        if not text or not isinstance(text, str):
+            raise GuardError("text must be a non-empty string")
+
+        if not sources or not isinstance(sources, list) or len(sources) == 0:
+            raise GuardError("sources must be a non-empty list")
+
+        # Validate each source
+        for source in sources:
+            if not isinstance(source, dict):
+                raise GuardError("Each source must be a dictionary")
+            if "content" not in source or not isinstance(source["content"], str):
+                raise GuardError("Each source must have a 'content' field (string)")
+            if "name" not in source or not isinstance(source["name"], str):
+                raise GuardError("Each source must have a 'name' field (string)")
+            if "url" in source and not isinstance(source["url"], str):
+                raise GuardError("If provided, 'url' must be a string")
+
+        request_body = {
+            "text": text,
+            "sources": sources,
+        }
+
+        try:
+            response = await self._client.post(
+                self._verify_endpoint,
+                json=request_body,
+                headers={
+                    "Authorization": f"Bearer {self._api_key}",
+                    "x-superagent-api-key": self._api_key,
+                },
+                timeout=self._timeout,
+            )
+        except httpx.RequestError as error:
+            raise GuardError(f"Failed to reach verify endpoint: {error}") from error
+
+        if response.status_code >= httpx.codes.BAD_REQUEST:
+            raise GuardError(
+                f"Verify request failed with status {response.status_code}: {response.text}"
+            )
+
+        # Handle JSON response
+        result = response.json()
+        message = result.get("choices", [{}])[0].get("message", {})
+        content = message.get("content", {})
+
+        # Extract claims from the structured response
+        claims = content.get("claims", [])
+
+        return VerifyResult(
+            claims=claims,
+            raw=result,
+            usage=result.get("usage"),
+        )
 
 
 def create_client(

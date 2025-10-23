@@ -48,6 +48,26 @@ const redactResult = await client.redact(
 
 console.log(redactResult.redacted);
 // Output: "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>"
+
+// Verify: Check claims against source materials
+const verifyResult = await client.verify(
+  "The company was founded in 2020 and has 500 employees",
+  [
+    {
+      name: "About Us",
+      content: "Founded in 2020, our company has grown rapidly...",
+      url: "https://example.com/about"
+    },
+    {
+      name: "Team Page",
+      content: "We currently have over 450 team members...",
+      url: "https://example.com/team"
+    }
+  ]
+);
+
+console.log(verifyResult.claims);
+// Output: Array of claim verifications with verdicts, evidence, and reasoning
 ```
 
 ## API Reference
@@ -197,6 +217,140 @@ Redacts sensitive data from text or PDF files.
     },
   }}
 />
+
+### `client.verify(text, sources)`
+
+Verifies claims in text against provided source materials.
+
+**Parameters:**
+
+<TypeTable
+  type={{
+    text: {
+      description: 'String containing claims to verify',
+      type: 'string',
+    },
+    sources: {
+      description: 'Array of source materials to verify claims against',
+      type: 'Source[]',
+    },
+  }}
+/>
+
+**Source:**
+
+<TypeTable
+  type={{
+    content: {
+      description: 'The content of the source material',
+      type: 'string',
+    },
+    name: {
+      description: 'The name or identifier of the source',
+      type: 'string',
+    },
+    url: {
+      description: 'Optional URL of the source',
+      type: 'string | undefined',
+    },
+  }}
+/>
+
+**Returns:** `Promise<VerifyResult>`
+
+<TypeTable
+  type={{
+    claims: {
+      description: 'Array of verified claims with verdicts and evidence',
+      type: 'ClaimVerification[]',
+    },
+    usage: {
+      description: 'Token usage statistics',
+      type: 'GuardUsage | undefined',
+    },
+    raw: {
+      description: 'Full API response',
+      type: 'AnalysisResponse',
+    },
+  }}
+/>
+
+**ClaimVerification:**
+
+<TypeTable
+  type={{
+    claim: {
+      description: 'The specific claim being verified from the input text',
+      type: 'string',
+    },
+    verdict: {
+      description: 'True if the claim is supported by the sources, false if contradicted or unverifiable',
+      type: 'boolean',
+    },
+    sources: {
+      description: 'List of sources used for this verification',
+      type: 'SourceReference[]',
+    },
+    evidence: {
+      description: 'Relevant quotes or excerpts from the sources',
+      type: 'string',
+    },
+    reasoning: {
+      description: 'Brief reasoning for the verdict',
+      type: 'string',
+    },
+  }}
+/>
+
+## Claim Verification
+
+You can verify claims in text against provided source materials:
+
+```ts title="verify-example.ts"
+const client = createClient({
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+
+const result = await client.verify(
+  "The company was founded in 2020 and has 500 employees.",
+  [
+    {
+      name: "About Us",
+      content: "Founded in 2020, our company has grown rapidly...",
+      url: "https://example.com/about"
+    },
+    {
+      name: "Team Page",
+      content: "We currently have over 450 team members...",
+      url: "https://example.com/team"
+    }
+  ]
+);
+
+// Iterate through claims to check verdicts
+for (const claim of result.claims) {
+  console.log(`Claim: ${claim.claim}`);
+  console.log(`Verdict: ${claim.verdict ? '✓ True' : '✗ False'}`);
+  console.log(`Evidence: ${claim.evidence}`);
+  console.log(`Reasoning: ${claim.reasoning}`);
+  console.log(`Sources: ${claim.sources.map(s => s.name).join(', ')}`);
+  console.log('---');
+}
+```
+
+**How it works:**
+- The `text` parameter contains the claims you want to verify
+- The `sources` array provides the reference materials against which claims are verified
+- The AI analyzes each claim and determines if it's supported, contradicted, or unverifiable
+- Returns detailed results with verdicts, evidence quotes, reasoning, and source references
+- Only uses information explicitly stated in the provided sources
+
+**Use cases:**
+- Fact-checking articles or content against authoritative sources
+- Verifying marketing claims against product documentation
+- Validating information in reports against source data
+- Checking consistency between different documents
+- Automated compliance verification
 
 ## Detected PII/PHI Types
 

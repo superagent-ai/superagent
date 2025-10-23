@@ -203,4 +203,168 @@ describe("createClient", () => {
     // SSN should NOT be redacted (not in entities list)
     expect(result.redacted).toContain("123-45-6789");
   });
+
+  it("verify method verifies claims against sources", async () => {
+    const client = createClient({
+      apiBaseUrl,
+      apiKey,
+    });
+
+    const text = "The company was founded in 2020 and has 500 employees.";
+    const sources = [
+      {
+        name: "About Us",
+        content: "Founded in 2020, our company has grown rapidly to become a leader in the industry.",
+        url: "https://example.com/about",
+      },
+      {
+        name: "Team Page",
+        content: "We currently have over 450 dedicated team members working across multiple offices.",
+        url: "https://example.com/team",
+      },
+    ];
+
+    const result = await client.verify(text, sources);
+
+    expect(result.claims).toBeDefined();
+    expect(Array.isArray(result.claims)).toBe(true);
+    expect(result.claims.length).toBeGreaterThan(0);
+    expect(result.usage).toBeDefined();
+    expect(result.usage?.prompt_tokens).toBeGreaterThan(0);
+    expect(result.raw.id).toBeDefined();
+
+    // Check structure of first claim
+    const firstClaim = result.claims[0];
+    expect(firstClaim.claim).toBeDefined();
+    expect(typeof firstClaim.claim).toBe("string");
+    expect(typeof firstClaim.verdict).toBe("boolean");
+    expect(Array.isArray(firstClaim.sources)).toBe(true);
+    expect(typeof firstClaim.evidence).toBe("string");
+    expect(typeof firstClaim.reasoning).toBe("string");
+  });
+
+  it("verify method returns correct verdicts for true and false claims", async () => {
+    const client = createClient({
+      apiBaseUrl,
+      apiKey,
+    });
+
+    const text = "The company was founded in 2020 and has 500 employees.";
+    const sources = [
+      {
+        name: "About Us",
+        content: "Founded in 2020, our company has grown rapidly.",
+        url: "https://example.com/about",
+      },
+      {
+        name: "Team Page",
+        content: "We currently have over 450 team members.",
+        url: "https://example.com/team",
+      },
+    ];
+
+    const result = await client.verify(text, sources);
+
+    expect(result.claims).toBeDefined();
+    expect(result.claims.length).toBeGreaterThan(0);
+
+    // Find the claim about founding year
+    const foundingClaim = result.claims.find((c) =>
+      c.claim.toLowerCase().includes("2020")
+    );
+    if (foundingClaim) {
+      // Should be true - supported by "Founded in 2020"
+      expect(foundingClaim.verdict).toBe(true);
+      expect(foundingClaim.evidence).toBeDefined();
+      expect(foundingClaim.reasoning).toBeDefined();
+    }
+
+    // Find the claim about employee count
+    const employeeClaim = result.claims.find((c) =>
+      c.claim.toLowerCase().includes("500")
+    );
+    if (employeeClaim) {
+      // Should be false - contradicted by "over 450 team members"
+      expect(employeeClaim.verdict).toBe(false);
+      expect(employeeClaim.evidence).toBeDefined();
+      expect(employeeClaim.reasoning).toBeDefined();
+    }
+  });
+
+  it("verify method validates required text parameter", async () => {
+    const client = createClient({
+      apiBaseUrl,
+      apiKey,
+    });
+
+    const sources = [
+      {
+        name: "Test Source",
+        content: "Test content",
+      },
+    ];
+
+    await expect(client.verify("", sources)).rejects.toThrow(
+      "text must be a non-empty string"
+    );
+  });
+
+  it("verify method validates required sources parameter", async () => {
+    const client = createClient({
+      apiBaseUrl,
+      apiKey,
+    });
+
+    await expect(client.verify("Test claim", [])).rejects.toThrow(
+      "sources must be a non-empty array"
+    );
+  });
+
+  it("verify method validates source structure", async () => {
+    const client = createClient({
+      apiBaseUrl,
+      apiKey,
+    });
+
+    const invalidSources = [
+      {
+        name: "Test Source",
+        // Missing content field
+      },
+    ] as any;
+
+    await expect(
+      client.verify("Test claim", invalidSources)
+    ).rejects.toThrow("Each source must have a 'content' field (string)");
+  });
+
+  it("verify method includes source references in results", async () => {
+    const client = createClient({
+      apiBaseUrl,
+      apiKey,
+    });
+
+    const text = "The company was founded in 2020.";
+    const sources = [
+      {
+        name: "Company History",
+        content: "The company was established in 2020 by our founders.",
+        url: "https://example.com/history",
+      },
+    ];
+
+    const result = await client.verify(text, sources);
+
+    expect(result.claims).toBeDefined();
+    expect(result.claims.length).toBeGreaterThan(0);
+
+    const claim = result.claims[0];
+    expect(claim.sources).toBeDefined();
+    expect(Array.isArray(claim.sources)).toBe(true);
+    expect(claim.sources.length).toBeGreaterThan(0);
+
+    const source = claim.sources[0];
+    expect(source.name).toBeDefined();
+    expect(source.url).toBeDefined();
+  });
 });

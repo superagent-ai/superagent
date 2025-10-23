@@ -1,6 +1,6 @@
 # Superagent Python SDK
 
-Python client for calling the Superagent Guard and Redact endpoints.
+Python client for calling the Superagent Guard, Redact, and Verify endpoints.
 
 ## Installation
 
@@ -54,6 +54,26 @@ async def main() -> None:
 
     print(redact_result.redacted)
     # Output: "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>"
+
+    # Verify: Check claims against source materials
+    verify_result = await client.verify(
+        "The company was founded in 2020 and has 500 employees",
+        [
+            {
+                "name": "About Us",
+                "content": "Founded in 2020, our company has grown rapidly...",
+                "url": "https://example.com/about"
+            },
+            {
+                "name": "Team Page",
+                "content": "We currently have over 450 team members...",
+                "url": "https://example.com/team"
+            }
+        ]
+    )
+
+    print(verify_result.claims)
+    # Output: Array of claim verifications with verdicts, evidence, and reasoning
 
     await client.aclose()
 

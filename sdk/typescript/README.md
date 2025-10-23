@@ -1,6 +1,6 @@
 # Superagent TypeScript SDK
 
-A lightweight client for calling the Superagent Guard and Redact endpoints from TypeScript or JavaScript projects.
+A lightweight client for calling the Superagent Guard, Redact, and Verify endpoints from TypeScript or JavaScript projects.
 
 ## Installation
 
@@ -45,6 +45,26 @@ const redactResult = await client.redact(
 
 console.log(redactResult.redacted);
 // Output: "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>"
+
+// Verify: Check claims against source materials
+const verifyResult = await client.verify(
+  "The company was founded in 2020 and has 500 employees",
+  [
+    {
+      name: "About Us",
+      content: "Founded in 2020, our company has grown rapidly...",
+      url: "https://example.com/about"
+    },
+    {
+      name: "Team Page",
+      content: "We currently have over 450 team members...",
+      url: "https://example.com/team"
+    }
+  ]
+);
+
+console.log(verifyResult.claims);
+// Output: Array of claim verifications with verdicts, evidence, and reasoning
 ```
 
 ## API Reference
