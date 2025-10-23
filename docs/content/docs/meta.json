@@ -11,16 +11,18 @@
     "cli",
     "llms",
     "---Guides---",
-    "agent-frameworks",
-    "coding-agents",
-    "ai-sdks",
-    "ai-gateways",
+    "agent-frameworks/langgraph",
+    "agent-frameworks/mastra",
+    "agent-frameworks/vercel-ai-sdk",
     "---Examples---",
     "examples/redact-pdfs",
     "examples/n8n-redact",
     "examples/mastra",
     "examples/claude-code-userprompt.mdx",
     "examples/e2b",
-    "examples/firecrawl"
+    "examples/firecrawl",
+    "---Resources---",
+    "resources/rate-limits",
+    "resources/data-retention"
   ]
 }
