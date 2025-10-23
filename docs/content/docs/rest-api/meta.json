@@ -3,6 +3,7 @@
   "defaultOpen": false,
   "pages": [
     "guard",
-    "redact"
+    "redact",
+    "verify"
   ]
 }

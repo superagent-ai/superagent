@@ -3,7 +3,7 @@
   "info": {
     "title": "Superagent API",
     "version": "1.0.0",
-    "description": "API for content redaction and prompt security analysis using Superagent's AI models",
+    "description": "API for content redaction, prompt security analysis, and fact verification using Superagent's AI models",
     "contact": {
       "name": "Superagent",
       "url": "https://superagent.ai"
@@ -223,6 +223,184 @@
                 },
                 "example": {
                   "error": "Failed to analyze prompt"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/verify": {
+      "post": {
+        "summary": "Verify claims against source materials",
+        "description": "Analyzes input text and verifies each claim against provided source materials. Returns detailed verification results with verdicts, evidence, and reasoning for each claim.",
+        "operationId": "verifyText",
+        "tags": ["Verification"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKeyHeader": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text", "sources"],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "description": "The text containing claims to verify",
+                    "example": "The company was founded in 2020 and has 500 employees."
+                  },
+                  "sources": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Source"
+                    },
+                    "minItems": 1,
+                    "description": "Array of source materials to verify claims against",
+                    "example": [
+                      {
+                        "name": "About Us",
+                        "content": "Founded in 2020, our company has grown rapidly...",
+                        "url": "https://example.com/about"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully verified the text",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyResponse"
+                },
+                "example": {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "model": "superagent-lm-verify-20b",
+                  "choices": [
+                    {
+                      "message": {
+                        "role": "assistant",
+                        "content": {
+                          "claims": [
+                            {
+                              "claim": "The company was founded in 2020",
+                              "verdict": true,
+                              "sources": [
+                                {
+                                  "name": "About Us",
+                                  "url": "https://example.com/about"
+                                }
+                              ],
+                              "evidence": "Founded in 2020, our company has grown rapidly...",
+                              "reasoning": "The founding year is explicitly stated in the About Us source."
+                            }
+                          ]
+                        }
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": {
+                    "prompt_tokens": 250,
+                    "completion_tokens": 150,
+                    "total_tokens": 400
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "missingText": {
+                    "value": {
+                      "error": "text is required and must be a string"
+                    }
+                  },
+                  "missingSources": {
+                    "value": {
+                      "error": "sources is required and must be a non-empty array"
+                    }
+                  },
+                  "invalidSource": {
+                    "value": {
+                      "error": "Each source must have a 'content' field (string)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "missingKey": {
+                    "value": {
+                      "error": "API key missing"
+                    }
+                  },
+                  "invalidKey": {
+                    "value": {
+                      "error": "Invalid API key"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Team not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Team not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "verificationFailed": {
+                    "value": {
+                      "error": "Failed to verify text"
+                    }
+                  },
+                  "parseFailed": {
+                    "value": {
+                      "error": "Failed to parse verification result"
+                    }
+                  }
                 }
               }
             }
@@ -504,6 +682,129 @@
           }
         }
       },
+      "VerifyResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for this request",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "model": {
+            "type": "string",
+            "description": "Model used for verification",
+            "example": "superagent-lm-verify-20b"
+          },
+          "choices": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "object",
+                  "properties": {
+                    "role": {
+                      "type": "string",
+                      "example": "assistant"
+                    },
+                    "content": {
+                      "$ref": "#/components/schemas/VerificationResult"
+                    }
+                  }
+                },
+                "finish_reason": {
+                  "type": "string",
+                  "example": "stop"
+                }
+              }
+            }
+          },
+          "usage": {
+            "$ref": "#/components/schemas/Usage"
+          }
+        }
+      },
+      "Source": {
+        "type": "object",
+        "required": ["content", "name"],
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "The content of the source material",
+            "example": "Founded in 2020, our company has grown rapidly..."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name or identifier of the source",
+            "example": "About Us"
+          },
+          "url": {
+            "type": "string",
+            "description": "Optional URL of the source",
+            "example": "https://example.com/about"
+          }
+        }
+      },
+      "VerificationResult": {
+        "type": "object",
+        "properties": {
+          "claims": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClaimVerification"
+            },
+            "description": "List of verified claims from the input text"
+          }
+        }
+      },
+      "ClaimVerification": {
+        "type": "object",
+        "properties": {
+          "claim": {
+            "type": "string",
+            "description": "The specific claim being verified from the input text",
+            "example": "The company was founded in 2020"
+          },
+          "verdict": {
+            "type": "boolean",
+            "description": "True if the claim is supported by the sources, false if contradicted or unverifiable",
+            "example": true
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SourceReference"
+            },
+            "description": "List of sources used for this verification"
+          },
+          "evidence": {
+            "type": "string",
+            "description": "Relevant quotes or excerpts from the sources",
+            "example": "Founded in 2020, our company has grown rapidly..."
+          },
+          "reasoning": {
+            "type": "string",
+            "description": "Brief reasoning for the verdict",
+            "example": "The founding year is explicitly stated in the About Us source."
+          }
+        }
+      },
+      "SourceReference": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the source",
+            "example": "About Us"
+          },
+          "url": {
+            "type": "string",
+            "description": "The URL of the source",
+            "example": "https://example.com/about"
+          }
+        }
+      },
       "Usage": {
         "type": "object",
         "description": "Token usage statistics for the request",
@@ -544,6 +845,10 @@
     {
       "name": "Security",
       "description": "APIs for analyzing and detecting security threats in user inputs"
+    },
+    {
+      "name": "Verification",
+      "description": "APIs for fact-checking and verifying claims against source materials"
     }
   ]
 }
