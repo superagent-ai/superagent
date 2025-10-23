@@ -1,11 +1,11 @@
 {
-  "name": "superagent-mcp-server",
-  "version": "1.0.0",
+  "name": "@superagent-ai/mcp",
+  "version": "0.0.1",
   "description": "MCP server for Superagent.sh API integration - security guardrails and PII redaction",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "superagent-mcp-server": "dist/index.js"
+    "superagent-mcp": "dist/index.js"
   },
   "scripts": {
     "start": "node dist/index.js",
