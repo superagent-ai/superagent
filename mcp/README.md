@@ -8,7 +8,21 @@ MCP server providing security guardrails and PII redaction through [Superagent](
 
 ## Installation
 
-### Using npx (Recommended)
+### Claude Code (Recommended)
+
+Install using the Claude Code MCP command:
+
+```bash
+claude mcp add --transport stdio superagent \
+  --env SUPERAGENT_API_KEY=your_api_key_here \
+  -- npx -y @superagent-ai/mcp
+```
+
+This will automatically configure the server at the appropriate scope (local, project, or user).
+
+### Claude Desktop
+
+#### Using npx (Recommended)
 
 No installation required! Just configure Claude Desktop:
 
@@ -28,7 +42,9 @@ No installation required! Just configure Claude Desktop:
 }
 ```
 
-### Global Installation
+**After configuration, restart Claude Desktop.**
+
+#### Global Installation
 
 ```bash
 npm install -g @superagent-ai/mcp
@@ -58,7 +74,14 @@ npm install
 npm run build
 ```
 
-Configure Claude Desktop with the absolute path:
+**For Claude Code:**
+```bash
+claude mcp add --transport stdio superagent \
+  --env SUPERAGENT_API_KEY=your_api_key_here \
+  -- node /absolute/path/to/superagent/mcp/dist/index.js
+```
+
+**For Claude Desktop**, configure with the absolute path:
 
 ```json
 {
@@ -73,8 +96,6 @@ Configure Claude Desktop with the absolute path:
   }
 }
 ```
-
-**After configuration, restart Claude Desktop.**
 
 ## Getting Started
 
