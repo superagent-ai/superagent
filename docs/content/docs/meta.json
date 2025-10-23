@@ -14,6 +14,8 @@
     "---Guides---",
     "agent-frameworks/langgraph",
     "agent-frameworks/mastra",
+    "agent-frameworks/openai-agents-sdk",
+    "agent-frameworks/pydantic-ai",
     "agent-frameworks/vercel-ai-sdk",
     "---Examples---",
     "examples/redact-pdfs",
