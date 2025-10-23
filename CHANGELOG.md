@@ -26,12 +26,25 @@ All notable changes to Superagent will be documented in this file.
   - Powered by `superagent-lm-verify-20b` model
   - Returns detailed claim-by-claim verification results
 
+#### MCP Server
+- Added `superagent_verify` tool for claim verification
+  - Accepts text and sources array for fact-checking
+  - Returns structured verification results with verdicts and evidence
+  - Supports verification against multiple source materials
+  - Provides detailed reasoning and source references for each claim
+
 #### Documentation
 - Added verify endpoint to OpenAPI specification
 - Updated TypeScript SDK documentation with verify examples
 - Updated Python SDK documentation with verify examples
 - Updated CLI documentation with verify command usage
+- Updated MCP server documentation with verify tool examples
 - Added verify.mdx documentation page
+
+#### Tests
+- Added comprehensive test coverage for verify method in TypeScript SDK
+- Added comprehensive test coverage for verify method in Python SDK
+- Tests include happy path, validation, error handling, and edge cases
 
 ## [@superagent-ai/mcp@0.0.4] - 2025-01-23
 
