@@ -45,6 +45,26 @@ async def main() -> None:
     print(redact_result.redacted)
     # Output: "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>"
 
+    # Verify: Check claims against source materials
+    verify_result = await client.verify(
+        "The company was founded in 2020 and has 500 employees",
+        [
+            {
+                "name": "About Us",
+                "content": "Founded in 2020, our company has grown rapidly...",
+                "url": "https://example.com/about"
+            },
+            {
+                "name": "Team Page",
+                "content": "We currently have over 450 team members...",
+                "url": "https://example.com/team"
+            }
+        ]
+    )
+
+    print(verify_result.claims)
+    # Output: Array of claim verifications with verdicts, evidence, and reasoning
+
     await client.aclose()
 
 asyncio.run(main())
@@ -206,6 +226,142 @@ Redacts sensitive data from text or PDF files.
     },
   }}
 />
+
+### `client.verify(text, sources)`
+
+Verifies claims in text against provided source materials.
+
+**Parameters:**
+
+<TypeTable
+  type={{
+    text: {
+      description: 'String containing claims to verify',
+      type: 'str',
+    },
+    sources: {
+      description: 'List of source materials to verify claims against (list of dictionaries)',
+      type: 'list[Source]',
+    },
+  }}
+/>
+
+**Source (dict):**
+
+<TypeTable
+  type={{
+    content: {
+      description: 'The content of the source material (required)',
+      type: 'str',
+    },
+    name: {
+      description: 'The name or identifier of the source (required)',
+      type: 'str',
+    },
+    url: {
+      description: 'Optional URL of the source',
+      type: 'str | None',
+    },
+  }}
+/>
+
+**Returns:** `VerifyResult`
+
+<TypeTable
+  type={{
+    claims: {
+      description: 'List of verified claims with verdicts and evidence',
+      type: 'list[ClaimVerification]',
+    },
+    raw: {
+      description: 'Full API response',
+      type: 'dict',
+    },
+    usage: {
+      description: 'Token usage statistics',
+      type: 'Optional[GuardUsage]',
+    },
+  }}
+/>
+
+**ClaimVerification (dict):**
+
+<TypeTable
+  type={{
+    claim: {
+      description: 'The specific claim being verified from the input text',
+      type: 'str',
+    },
+    verdict: {
+      description: 'True if the claim is supported by the sources, False if contradicted or unverifiable',
+      type: 'bool',
+    },
+    sources: {
+      description: 'List of sources used for this verification',
+      type: 'list[SourceReference]',
+    },
+    evidence: {
+      description: 'Relevant quotes or excerpts from the sources',
+      type: 'str',
+    },
+    reasoning: {
+      description: 'Brief reasoning for the verdict',
+      type: 'str',
+    },
+  }}
+/>
+
+## Claim Verification
+
+You can verify claims in text against provided source materials:
+
+```python title="verify_example.py"
+import asyncio
+from superagent_ai import create_client
+
+async def main() -> None:
+    async with create_client(api_key="sk-...") as client:
+        result = await client.verify(
+            "The company was founded in 2020 and has 500 employees.",
+            [
+                {
+                    "name": "About Us",
+                    "content": "Founded in 2020, our company has grown rapidly...",
+                    "url": "https://example.com/about"
+                },
+                {
+                    "name": "Team Page",
+                    "content": "We currently have over 450 team members...",
+                    "url": "https://example.com/team"
+                }
+            ]
+        )
+
+        # Iterate through claims to check verdicts
+        for claim in result.claims:
+            print(f"Claim: {claim['claim']}")
+            print(f"Verdict: {'✓ True' if claim['verdict'] else '✗ False'}")
+            print(f"Evidence: {claim['evidence']}")
+            print(f"Reasoning: {claim['reasoning']}")
+            print(f"Sources: {', '.join(s['name'] for s in claim['sources'])}")
+            print('---')
+
+asyncio.run(main())
+```
+
+**How it works:**
+- The `text` parameter contains the claims you want to verify
+- The `sources` list provides the reference materials against which claims are verified
+- The AI analyzes each claim and determines if it's supported, contradicted, or unverifiable
+- Returns detailed results with verdicts, evidence quotes, reasoning, and source references
+- Only uses information explicitly stated in the provided sources
+
+**Use cases:**
+- Fact-checking articles or content against authoritative sources
+- Verifying marketing claims against product documentation
+- Validating information in reports against source data
+- Checking consistency between different documents
+- Automated compliance verification
 
 ## Detected PII/PHI Types
 

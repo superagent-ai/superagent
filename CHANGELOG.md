@@ -2,6 +2,37 @@
 
 All notable changes to Superagent will be documented in this file.
 
+## [superagent-ai@0.0.16 / @superagent-ai/cli@0.0.11] - 2025-01-23
+
+### Added
+
+#### SDKs (Python & TypeScript)
+- Added `verify()` method for fact-checking claims against source materials
+  - Accepts text and an array of source materials
+  - Returns detailed verification results with verdicts, evidence, reasoning, and source references
+  - Supports verification against multiple sources with structured output
+  - Each claim includes: verdict (true/false), sources used, evidence excerpts, and reasoning
+
+#### CLI
+- Added `verify` command for verifying claims from the command line
+  - Accepts text and sources via `--sources` flag (JSON format)
+  - Supports stdin input for programmatic integration
+  - Returns JSON with claim verifications including verdicts and evidence
+
+#### API
+- Added `/api/verify` REST endpoint for claim verification
+  - POST endpoint accepting text and sources in request body
+  - Uses structured output with JSON schema validation
+  - Powered by `superagent-lm-verify-20b` model
+  - Returns detailed claim-by-claim verification results
+
+#### Documentation
+- Added verify endpoint to OpenAPI specification
+- Updated TypeScript SDK documentation with verify examples
+- Updated Python SDK documentation with verify examples
+- Updated CLI documentation with verify command usage
+- Added verify.mdx documentation page
+
 ## [@superagent-ai/mcp@0.0.4] - 2025-01-23
 
 ### Added

@@ -4,6 +4,9 @@ const GUARD_ENDPOINT = process.env.SUPERAGENT_LM_API_BASE_URL
 const REDACT_ENDPOINT = process.env.SUPERAGENT_LM_API_BASE_URL
   ? `${process.env.SUPERAGENT_LM_API_BASE_URL}/redact`
   : "https://app.superagent.sh/api/redact";
+const VERIFY_ENDPOINT = process.env.SUPERAGENT_LM_API_BASE_URL
+  ? `${process.env.SUPERAGENT_LM_API_BASE_URL}/verify`
+  : "https://app.superagent.sh/api/verify";
 
 export interface CreateClientOptions {
   /**
@@ -107,9 +110,63 @@ export interface RedactOptions {
   format?: "json" | "pdf";
 }
 
+export interface Source {
+  /**
+   * The content of the source material
+   */
+  content: string;
+  /**
+   * The name or identifier of the source
+   */
+  name: string;
+  /**
+   * Optional URL of the source
+   */
+  url?: string;
+}
+
+export interface SourceReference {
+  name: string;
+  url: string;
+}
+
+export interface ClaimVerification {
+  /**
+   * The specific claim being verified from the input text
+   */
+  claim: string;
+  /**
+   * True if the claim is supported by the sources, false if contradicted or unverifiable
+   */
+  verdict: boolean;
+  /**
+   * List of sources used for this verification
+   */
+  sources: SourceReference[];
+  /**
+   * Relevant quotes or excerpts from the sources
+   */
+  evidence: string;
+  /**
+   * Brief reasoning for the verdict
+   */
+  reasoning: string;
+}
+
+export interface VerificationResult {
+  claims: ClaimVerification[];
+}
+
+export interface VerifyResult {
+  claims: ClaimVerification[];
+  usage?: GuardUsage;
+  raw: AnalysisResponse;
+}
+
 export interface Client {
   guard(input: string | File | Blob, callbacks?: GuardCallbacks): Promise<GuardResult>;
   redact(input: string | File | Blob, options?: RedactOptions): Promise<RedactResult>;
+  verify(text: string, sources: Source[]): Promise<VerifyResult>;
 }
 
 export class GuardError extends Error {
@@ -209,6 +266,7 @@ export function createClient(options: CreateClientOptions): Client {
   const fetcher = ensureFetch(fetchImpl);
   const guardEndpoint = `${apiBaseUrl}/guard`;
   const redactEndpoint = `${apiBaseUrl}/redact`;
+  const verifyEndpoint = `${apiBaseUrl}/verify`;
 
   return {
     async guard(
@@ -451,6 +509,88 @@ export function createClient(options: CreateClientOptions): Client {
         usage: result.usage,
         raw: result,
         redacted_pdf: result.redacted_pdf,
+      };
+    },
+
+    async verify(
+      text: string,
+      sources: Source[]
+    ): Promise<VerifyResult> {
+      if (!text || typeof text !== "string") {
+        throw new GuardError("text must be a non-empty string.");
+      }
+
+      if (!sources || !Array.isArray(sources) || sources.length === 0) {
+        throw new GuardError("sources must be a non-empty array.");
+      }
+
+      // Validate each source
+      for (const source of sources) {
+        if (!source.content || typeof source.content !== "string") {
+          throw new GuardError("Each source must have a 'content' field (string)");
+        }
+        if (!source.name || typeof source.name !== "string") {
+          throw new GuardError("Each source must have a 'name' field (string)");
+        }
+        if (source.url !== undefined && typeof source.url !== "string") {
+          throw new GuardError("If provided, 'url' must be a string");
+        }
+      }
+
+      const controller =
+        typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timeoutHandle =
+        controller && timeoutMs
+          ? setTimeout(() => controller.abort(), timeoutMs)
+          : undefined;
+
+      let response: Response;
+      try {
+        response = await fetcher(verifyEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+            "x-superagent-api-key": apiKey,
+          },
+          body: JSON.stringify({ text, sources }),
+          signal: controller?.signal,
+        } satisfies RequestInit);
+      } catch (error) {
+        if (timeoutHandle) {
+          clearTimeout(timeoutHandle);
+        }
+        const message =
+          error instanceof Error ? error.message : "Unknown fetch error";
+        throw new GuardError(`Failed to reach verify endpoint: ${message}`);
+      }
+
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
+
+      if (!response.ok) {
+        throw new GuardError(
+          `Verify request failed with status ${response.status}: ${response.statusText}`
+        );
+      }
+
+      // Handle JSON response
+      const result = (await response.json()) as AnalysisResponse & {
+        choices: Array<{
+          message: {
+            role: string;
+            content: VerificationResult;
+          };
+        }>;
+      };
+      const content = result.choices[0].message.content;
+      const claims = content.claims;
+
+      return {
+        claims,
+        usage: result.usage,
+        raw: result,
       };
     },
   };
