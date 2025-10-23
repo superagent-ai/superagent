@@ -2,6 +2,21 @@
 
 All notable changes to Superagent will be documented in this file.
 
+## [@superagent-ai/mcp@0.0.4] - 2025-01-23
+
+### Added
+- Initial release of Model Context Protocol (MCP) server for Superagent
+- Added `superagent_guard` tool for security threat analysis
+  - Detects prompt injection, jailbreaks, and data exfiltration
+  - Returns JSON with rejection status, violation types, CWE codes, and reasoning
+- Added `superagent_redact` tool for PII/PHI redaction
+  - Removes sensitive data like emails, SSNs, phone numbers, credit cards
+  - Supports custom entity types for flexible redaction
+  - Returns redacted text with placeholders like `<EMAIL_REDACTED>`
+- Integration with official `superagent-ai` TypeScript SDK
+- Support for Claude Code and Claude Desktop clients
+- Published to npm as `@superagent-ai/mcp`
+
 ## [superagent-ai@0.0.15 / @superagent-ai/cli@0.0.10] - 2025-01-22
 
 ### Breaking Changes
