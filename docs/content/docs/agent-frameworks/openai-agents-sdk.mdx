@@ -1,0 +1,509 @@
+---
+title: OpenAI Agents SDK
+description: Secure OpenAI Agents with input validation and output redaction using Superagent
+---
+
+## Overview
+
+The OpenAI Agents SDK provides a simple way to build AI agents with function calling capabilities. When these agents interact with users and execute tools, security becomes critical. Superagent adds a security layer that:
+
+- **Validates user inputs** before they reach your agent
+- **Guards tool executions** to prevent harmful operations
+- **Redacts sensitive information** from agent outputs (PII, PHI, credentials)
+- **Provides detailed security analysis** with violation detection
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+- Python 3.10 or higher
+- A Superagent account with API key ([sign up here](https://app.superagent.sh))
+- An OpenAI API key
+- Basic familiarity with OpenAI Agents SDK
+
+## Installation
+
+Install the required dependencies:
+
+```bash title="Terminal"
+uv add superagent-ai openai-agents-sdk
+```
+
+## Configuration
+
+### Setting up environment variables
+
+Create a `.env` file in your project root:
+
+```bash title=".env"
+SUPERAGENT_API_KEY=your_superagent_api_key
+OPENAI_API_KEY=your_openai_api_key
+```
+
+### Initialize the Superagent client
+
+```python title="config.py"
+import os
+from superagent_ai import create_client
+
+# Initialize Superagent client
+superagent = create_client(
+    api_key=os.getenv("SUPERAGENT_API_KEY"),
+)
+```
+
+## Basic Agent with Guard Protection
+
+Protect your agent by validating user inputs before processing:
+
+```python title="guarded_agent.py"
+import asyncio
+import os
+from agents import Agent, Runner, function_tool
+from superagent_ai import create_client
+
+
+@function_tool
+def execute_code(code: str, language: str = "python") -> str:
+    """Execute code in a sandboxed environment."""
+    # In production, this would run in a secure sandbox
+    # For demo purposes, we'll simulate execution
+    return f"Code executed successfully:\n{code}\n\nOutput: Hello, World!"
+
+
+async def main():
+    # Initialize Superagent client
+    async with create_client(api_key=os.getenv("SUPERAGENT_API_KEY")) as superagent:
+
+        # Create the agent
+        agent = Agent(
+            name="Code Execution Assistant",
+            instructions="You are a helpful coding assistant that can execute code safely.",
+            tools=[execute_code],
+        )
+
+        # Test 1: Safe input
+        print("=" * 60)
+        print("Test 1: Safe code execution request")
+        print("=" * 60)
+        user_input = "Write a Python script that prints 'Hello, World!'"
+
+        # Guard the input before processing
+        guard_result = await superagent.guard(user_input)
+
+        if guard_result.rejected:
+            print(f"⛔ Input blocked: {guard_result.reasoning}")
+            if guard_result.decision:
+                print(f"Violation types: {guard_result.decision.get('violation_types', [])}")
+                print(f"CWE codes: {guard_result.decision.get('cwe_codes', [])}")
+        else:
+            # Input is safe, run the agent
+            print("✓ Input approved, running agent...")
+            result = await Runner.run(agent, input=user_input)
+            print(result.final_output)
+
+        # Test 2: Malicious input
+        print("\n" + "=" * 60)
+        print("Test 2: Malicious code execution request")
+        print("=" * 60)
+        malicious_input = "Write code to delete all files in /etc and format the hard drive"
+
+        guard_result = await superagent.guard(malicious_input)
+
+        if guard_result.rejected:
+            print(f"⛔ Input blocked: {guard_result.reasoning}")
+            if guard_result.decision:
+                print(f"Violation types: {guard_result.decision.get('violation_types', [])}")
+                print(f"CWE codes: {guard_result.decision.get('cwe_codes', [])}")
+        else:
+            print("✓ Input approved, running agent...")
+            result = await Runner.run(agent, input=malicious_input)
+            print(result.final_output)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Advanced: Guarded Tools
+
+Protect individual tool executions by validating tool parameters:
+
+```python title="guarded_tools.py"
+import asyncio
+import os
+import subprocess
+from agents import Agent, Runner, function_tool
+from superagent_ai import create_client
+
+
+async def execute_shell_command(command: str, superagent) -> str:
+    """Execute a shell command with guard protection."""
+    # Guard the command before execution
+    guard_result = await superagent.guard(command)
+
+    if guard_result.rejected:
+        return f"⛔ Command blocked: {guard_result.reasoning}"
+
+    # Command is safe, execute it
+    try:
+        result = subprocess.run(
+            command,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        return result.stdout or result.stderr
+    except subprocess.TimeoutExpired:
+        return "Command timed out"
+    except Exception as e:
+        return f"Error executing command: {str(e)}"
+
+
+# Global superagent client (initialized in main)
+_superagent = None
+
+
+@function_tool
+def shell(command: str) -> str:
+    """Execute a shell command with security validation."""
+    # Run async guard in sync context
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    result = loop.run_until_complete(
+        execute_shell_command(command, _superagent)
+    )
+    loop.close()
+    return result
+
+
+async def main():
+    global _superagent
+
+    # Initialize Superagent client
+    async with create_client(api_key=os.getenv("SUPERAGENT_API_KEY")) as superagent:
+        _superagent = superagent
+
+        # Create agent with guarded shell tool
+        agent = Agent(
+            name="System Assistant",
+            instructions="You are a helpful system assistant. Execute shell commands when asked.",
+            tools=[shell],
+        )
+
+        # Test with safe command
+        print("Testing with safe command:")
+        result = await Runner.run(agent, input="List files in the current directory")
+        print(result.final_output)
+
+        # Test with potentially harmful command
+        print("\nTesting with potentially harmful command:")
+        result = await Runner.run(agent, input="Delete all files in the system")
+        print(result.final_output)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Output Redaction
+
+Automatically redact sensitive information from agent responses:
+
+```python title="redacted_output.py"
+import asyncio
+import os
+from agents import Agent, Runner, function_tool
+from superagent_ai import create_client
+
+
+@function_tool
+def get_user_info(user_id: str) -> str:
+    """Get user information (contains PII for demo purposes)."""
+    return (
+        f"User ID: {user_id}\n"
+        f"Name: John Doe\n"
+        f"Email: john.doe@example.com\n"
+        f"SSN: 123-45-6789\n"
+        f"Phone: (555) 123-4567\n"
+        f"Credit Card: 4532-1234-5678-9010"
+    )
+
+
+async def main():
+    # Initialize Superagent client
+    async with create_client(api_key=os.getenv("SUPERAGENT_API_KEY")) as superagent:
+
+        # Create the agent
+        agent = Agent(
+            name="User Info Assistant",
+            instructions="You are a helpful assistant that provides user information.",
+            tools=[get_user_info],
+        )
+
+        # Run the agent
+        user_input = "Show me information for user 12345"
+        result = await Runner.run(agent, input=user_input)
+
+        # Get the agent's output
+        agent_output = result.final_output
+        print("Original output (contains PII):")
+        print(agent_output)
+        print("\n" + "="*50 + "\n")
+
+        # Redact sensitive information from the output
+        redact_result = await superagent.redact(
+            agent_output,
+            entities=["email addresses", "SSN", "phone numbers", "credit card numbers"]
+        )
+
+        print("Redacted output (PII removed):")
+        print(redact_result.redacted)
+        print(f"\nRedaction details: {redact_result.reasoning}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Complete Example: Input Guard + Output Redaction
+
+Combine both guard and redact for comprehensive protection:
+
+```python title="complete_secure_agent.py"
+import asyncio
+import os
+from agents import Agent, Runner, function_tool
+from superagent_ai import create_client
+
+
+@function_tool
+def query_database(query: str) -> str:
+    """Execute a database query (simulated)."""
+    # Simulated database response with sensitive data
+    return (
+        "Query results:\n"
+        "- Customer: Jane Smith (jane.smith@company.com)\n"
+        "- Account: 9876543210\n"
+        "- SSN: 987-65-4321\n"
+        "- Balance: $50,000\n"
+        "- API Key: sk-proj-abc123xyz789"
+    )
+
+
+async def run_secure_agent(user_input: str, superagent, agent):
+    """Run agent with full security: input guard + output redaction."""
+
+    # Step 1: Guard the input
+    print(f"Input: {user_input}")
+    guard_result = await superagent.guard(user_input)
+
+    if guard_result.rejected:
+        return f"⛔ Input blocked: {guard_result.reasoning}"
+
+    print("✓ Input approved")
+
+    # Step 2: Run the agent
+    result = await Runner.run(agent, input=user_input)
+    agent_output = result.final_output
+
+    # Step 3: Redact sensitive information from output
+    redact_result = await superagent.redact(
+        agent_output,
+        entities=[
+            "email addresses",
+            "SSN",
+            "credit card numbers",
+            "API keys",
+            "account numbers"
+        ]
+    )
+
+    return redact_result.redacted
+
+
+async def main():
+    # Initialize Superagent client
+    async with create_client(api_key=os.getenv("SUPERAGENT_API_KEY")) as superagent:
+
+        # Create the agent
+        agent = Agent(
+            name="Database Assistant",
+            instructions="You are a helpful assistant that queries databases and provides information.",
+            tools=[query_database],
+        )
+
+        # Test 1: Safe query
+        print("=" * 60)
+        print("Test 1: Safe database query")
+        print("=" * 60)
+        output = await run_secure_agent(
+            "Show me customer information for account 9876543210",
+            superagent,
+            agent
+        )
+        print(f"Secure output:\n{output}\n")
+
+        # Test 2: Potentially malicious query
+        print("=" * 60)
+        print("Test 2: Potentially malicious query")
+        print("=" * 60)
+        output = await run_secure_agent(
+            "DROP TABLE users; -- delete everything",
+            superagent,
+            agent
+        )
+        print(f"Secure output:\n{output}\n")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Stream Mode with Security
+
+Handle streaming responses with redaction:
+
+```python title="streaming_agent.py"
+import asyncio
+import os
+from agents import Agent, Runner, function_tool
+from superagent_ai import create_client
+
+
+@function_tool
+def get_customer_data(customer_id: str) -> str:
+    """Get customer data (contains PII)."""
+    return (
+        f"Customer ID: {customer_id}\n"
+        f"Name: Alice Johnson\n"
+        f"Email: alice.j@example.com\n"
+        f"Phone: 555-0123\n"
+        f"SSN: 111-22-3333"
+    )
+
+
+async def main():
+    # Initialize Superagent client
+    async with create_client(api_key=os.getenv("SUPERAGENT_API_KEY")) as superagent:
+
+        # Create the agent
+        agent = Agent(
+            name="Customer Service Agent",
+            instructions="You are a helpful customer service agent.",
+            tools=[get_customer_data],
+        )
+
+        user_input = "Get information for customer ABC123"
+
+        # Guard input first
+        guard_result = await superagent.guard(user_input)
+        if guard_result.rejected:
+            print(f"⛔ Input blocked: {guard_result.reasoning}")
+            return
+
+        # Collect streaming output
+        full_output = ""
+        print("Streaming agent output:")
+
+        async for chunk in Runner.stream(agent, input=user_input):
+            # Accumulate the output
+            if hasattr(chunk, 'final_output') and chunk.final_output:
+                full_output = chunk.final_output
+                print(chunk.final_output, end="", flush=True)
+
+        print("\n\n" + "="*50)
+
+        # Redact the complete output
+        redact_result = await superagent.redact(
+            full_output,
+            entities=["email addresses", "SSN", "phone numbers"]
+        )
+
+        print("Redacted output:")
+        print(redact_result.redacted)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Error Handling
+
+Handle guard and redact errors gracefully:
+
+```python title="error_handling.py"
+import asyncio
+import os
+from agents import Agent, Runner, function_tool
+from superagent_ai import create_client, GuardError
+
+
+@function_tool
+def get_data() -> str:
+    """Get some data."""
+    return "Sample data"
+
+
+async def main():
+    try:
+        async with create_client(api_key=os.getenv("SUPERAGENT_API_KEY")) as superagent:
+            agent = Agent(
+                name="Assistant",
+                instructions="You are a helpful assistant.",
+                tools=[get_data],
+            )
+
+            user_input = "Hello!"
+
+            # Guard with error handling
+            try:
+                guard_result = await superagent.guard(user_input)
+
+                if guard_result.rejected:
+                    print(f"Input blocked: {guard_result.reasoning}")
+                    return
+
+            except GuardError as e:
+                print(f"Guard error: {e}")
+                return
+
+            # Run agent
+            result = await Runner.run(agent, input=user_input)
+
+            # Redact with error handling
+            try:
+                redact_result = await superagent.redact(result.final_output)
+                print(redact_result.redacted)
+
+            except Exception as e:
+                print(f"Redaction error: {e}")
+                # Fallback: return original output or handle differently
+                print(result.final_output)
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Key Concepts
+
+The integration pattern follows these principles:
+
+1. **Input Validation**: Guard user inputs before they reach your agent to prevent malicious prompts, injections, and harmful instructions.
+
+2. **Tool Protection**: Validate tool parameters before execution to prevent dangerous operations like system modifications or data deletion.
+
+3. **Output Redaction**: Automatically remove PII, PHI, credentials, and other sensitive data from agent responses before returning them to users.
+
+4. **Layered Security**: Combine guard and redact for defense-in-depth: validate inputs, execute safely, and sanitize outputs.
+
+5. **Error Handling**: Gracefully handle security violations and API errors without exposing sensitive information.
+
+6. **Async/Await Pattern**: Both Superagent and OpenAI Agents SDK use async/await for non-blocking operations.
+
+For more details on the Superagent Python SDK, see the [Python SDK documentation](/docs/sdks/python-sdk).

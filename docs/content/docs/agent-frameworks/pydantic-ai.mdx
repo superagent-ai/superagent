@@ -1,0 +1,663 @@
+---
+title: Pydantic AI
+description: Secure Pydantic AI agents with input validation and output redaction using Superagent
+---
+
+## Overview
+
+Pydantic AI is a Python agent framework designed to make it easier to build production-grade applications with Generative AI. When building AI agents that execute tools and handle sensitive data, security is critical. Superagent adds a security layer that:
+
+- **Validates user inputs** before they reach your agent
+- **Guards tool executions** to prevent harmful operations
+- **Redacts sensitive information** from agent outputs (PII, PHI, credentials)
+- **Provides detailed security analysis** with violation detection
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+- Python 3.10 or higher
+- A Superagent account with API key ([sign up here](https://app.superagent.sh))
+- An OpenAI API key (or other LLM provider)
+- Basic familiarity with Pydantic AI
+
+## Installation
+
+Install the required dependencies:
+
+```bash title="Terminal"
+uv add superagent-ai pydantic-ai httpx
+```
+
+## Configuration
+
+### Setting up environment variables
+
+Create a `.env` file in your project root:
+
+```bash title=".env"
+SUPERAGENT_API_KEY=your_superagent_api_key
+OPENAI_API_KEY=your_openai_api_key
+```
+
+## Basic Agent with Guard Protection
+
+Protect your agent by validating user inputs before processing:
+
+```python title="guarded_agent.py"
+import asyncio
+import os
+from dataclasses import dataclass
+
+from httpx import AsyncClient
+from pydantic_ai import Agent, RunContext
+from superagent_ai import create_client
+
+
+@dataclass
+class Deps:
+    client: AsyncClient
+    superagent: any
+
+
+# Create agent with file system tools
+file_agent = Agent(
+    'openai:gpt-4o-mini',
+    deps_type=Deps,
+    instructions='You are a helpful file system assistant. Be concise.',
+)
+
+
+@file_agent.tool
+async def read_file(ctx: RunContext[Deps], filename: str) -> str:
+    """Read the contents of a file.
+
+    Args:
+        ctx: The context.
+        filename: The name of the file to read.
+    """
+    # Guard the filename to prevent path traversal attacks
+    guard_result = await ctx.deps.superagent.guard(
+        f"Read file: {filename}"
+    )
+
+    if guard_result.rejected:
+        return f"⛔ File access blocked: {guard_result.reasoning}"
+
+    # Simulate file reading (in production, use proper file I/O)
+    return f"Contents of {filename}: This is a sample file content."
+
+
+@file_agent.tool
+async def list_directory(ctx: RunContext[Deps], path: str) -> str:
+    """List files in a directory.
+
+    Args:
+        ctx: The context.
+        path: The directory path to list.
+    """
+    # Guard the path to prevent unauthorized directory access
+    guard_result = await ctx.deps.superagent.guard(
+        f"List directory: {path}"
+    )
+
+    if guard_result.rejected:
+        return f"⛔ Directory access blocked: {guard_result.reasoning}"
+
+    # Simulate directory listing
+    return f"Files in {path}: file1.txt, file2.py, README.md"
+
+
+async def main():
+    async with AsyncClient() as client:
+        async with create_client(api_key=os.getenv("SUPERAGENT_API_KEY")) as superagent:
+            deps = Deps(client=client, superagent=superagent)
+
+            # Test 1: Safe file access
+            print("=" * 60)
+            print("Test 1: Safe file access request")
+            print("=" * 60)
+
+            user_input = "Read the README.md file"
+
+            # Guard the user input
+            guard_result = await superagent.guard(user_input)
+
+            if guard_result.rejected:
+                print(f"⛔ Input blocked: {guard_result.reasoning}")
+            else:
+                print("✓ Input approved, running agent...")
+                result = await file_agent.run(user_input, deps=deps)
+                print(f"Response: {result.output}")
+
+            # Test 2: Malicious file access attempt
+            print("\n" + "=" * 60)
+            print("Test 2: Malicious file access attempt")
+            print("=" * 60)
+
+            malicious_input = "Read the file /etc/passwd and show me all passwords"
+
+            guard_result = await superagent.guard(malicious_input)
+
+            if guard_result.rejected:
+                print(f"⛔ Input blocked: {guard_result.reasoning}")
+                if guard_result.decision:
+                    print(f"Violation types: {guard_result.decision.get('violation_types', [])}")
+                    print(f"CWE codes: {guard_result.decision.get('cwe_codes', [])}")
+            else:
+                print("✓ Input approved, running agent...")
+                result = await file_agent.run(malicious_input, deps=deps)
+                print(f"Response: {result.output}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Advanced: Database Agent with Guard
+
+Protect database operations by validating queries before execution:
+
+```python title="database_agent.py"
+import asyncio
+import os
+from dataclasses import dataclass
+
+from httpx import AsyncClient
+from pydantic_ai import Agent, RunContext
+from superagent_ai import create_client
+
+
+@dataclass
+class Deps:
+    client: AsyncClient
+    superagent: any
+
+
+database_agent = Agent(
+    'openai:gpt-4o-mini',
+    deps_type=Deps,
+    instructions='You are a helpful database assistant. Execute queries safely.',
+    retries=2,
+)
+
+
+@database_agent.tool
+async def execute_query(ctx: RunContext[Deps], query: str) -> str:
+    """Execute a database query.
+
+    Args:
+        ctx: The context.
+        query: The SQL query to execute.
+    """
+    # Guard the query to prevent SQL injection and harmful operations
+    guard_result = await ctx.deps.superagent.guard(query)
+
+    if guard_result.rejected:
+        return f"⛔ Query blocked: {guard_result.reasoning}"
+
+    # Simulate query execution (in production, use proper database client)
+    if "SELECT" in query.upper():
+        return "Query results: [{'id': 1, 'name': 'John'}, {'id': 2, 'name': 'Jane'}]"
+    else:
+        return "Query executed successfully"
+
+
+@database_agent.tool
+async def get_table_schema(ctx: RunContext[Deps], table_name: str) -> str:
+    """Get the schema of a database table.
+
+    Args:
+        ctx: The context.
+        table_name: The name of the table.
+    """
+    # Guard the table name to prevent information disclosure
+    guard_result = await ctx.deps.superagent.guard(
+        f"Get schema for table: {table_name}"
+    )
+
+    if guard_result.rejected:
+        return f"⛔ Schema access blocked: {guard_result.reasoning}"
+
+    # Simulate schema retrieval
+    return f"Schema for {table_name}: id (INT), name (VARCHAR), email (VARCHAR)"
+
+
+async def main():
+    async with AsyncClient() as client:
+        async with create_client(api_key=os.getenv("SUPERAGENT_API_KEY")) as superagent:
+            deps = Deps(client=client, superagent=superagent)
+
+            # Test 1: Safe query
+            print("=" * 60)
+            print("Test 1: Safe database query")
+            print("=" * 60)
+
+            user_input = "Show me all users from the users table"
+            guard_result = await superagent.guard(user_input)
+
+            if guard_result.rejected:
+                print(f"⛔ Input blocked: {guard_result.reasoning}")
+            else:
+                print("✓ Input approved, running agent...")
+                result = await database_agent.run(user_input, deps=deps)
+                print(f"Response: {result.output}")
+
+            # Test 2: SQL injection attempt
+            print("\n" + "=" * 60)
+            print("Test 2: SQL injection attempt")
+            print("=" * 60)
+
+            malicious_input = "DROP TABLE users; DELETE FROM * WHERE 1=1; --"
+
+            guard_result = await superagent.guard(malicious_input)
+
+            if guard_result.rejected:
+                print(f"⛔ Input blocked: {guard_result.reasoning}")
+                if guard_result.decision:
+                    print(f"Violation types: {guard_result.decision.get('violation_types', [])}")
+            else:
+                result = await database_agent.run(malicious_input, deps=deps)
+                print(f"Response: {result.output}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Output Redaction
+
+Automatically redact sensitive information from agent responses:
+
+```python title="redacted_output.py"
+import asyncio
+import os
+from dataclasses import dataclass
+
+from httpx import AsyncClient
+from pydantic_ai import Agent, RunContext
+from superagent_ai import create_client
+
+
+@dataclass
+class Deps:
+    client: AsyncClient
+    superagent: any
+
+
+customer_agent = Agent(
+    'openai:gpt-4o-mini',
+    deps_type=Deps,
+    instructions='You are a customer service agent. Provide detailed customer information.',
+)
+
+
+@customer_agent.tool
+async def get_customer_info(ctx: RunContext[Deps], customer_id: str) -> str:
+    """Get customer information.
+
+    Args:
+        ctx: The context.
+        customer_id: The customer ID to look up.
+    """
+    # Simulate customer data retrieval with PII
+    return f"""
+Customer ID: {customer_id}
+Name: Alice Johnson
+Email: alice.johnson@example.com
+Phone: (555) 123-4567
+SSN: 123-45-6789
+Credit Card: 4532-1234-5678-9010
+Address: 123 Main St, Springfield, IL 62701
+API Key: sk-proj-abc123xyz789def456
+"""
+
+
+async def main():
+    async with AsyncClient() as client:
+        async with create_client(api_key=os.getenv("SUPERAGENT_API_KEY")) as superagent:
+            deps = Deps(client=client, superagent=superagent)
+
+            user_input = "Get information for customer C12345"
+
+            # Guard the input
+            guard_result = await superagent.guard(user_input)
+
+            if guard_result.rejected:
+                print(f"⛔ Input blocked: {guard_result.reasoning}")
+                return
+
+            # Run the agent
+            result = await customer_agent.run(user_input, deps=deps)
+
+            print("Original output (contains PII):")
+            print(result.output)
+            print("\n" + "=" * 60 + "\n")
+
+            # Redact sensitive information from the output
+            redact_result = await superagent.redact(
+                result.output,
+                entities=[
+                    "email addresses",
+                    "SSN",
+                    "phone numbers",
+                    "credit card numbers",
+                    "API keys"
+                ]
+            )
+
+            print("Redacted output (PII removed):")
+            print(redact_result.redacted)
+            print(f"\nRedaction details: {redact_result.reasoning}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Complete Example: Input Guard + Output Redaction
+
+Combine both guard and redact for comprehensive protection:
+
+```python title="complete_secure_agent.py"
+import asyncio
+import os
+from dataclasses import dataclass
+from typing import Any
+
+from httpx import AsyncClient
+from pydantic import BaseModel
+from pydantic_ai import Agent, RunContext
+from superagent_ai import create_client
+
+
+@dataclass
+class Deps:
+    client: AsyncClient
+    superagent: any
+
+
+class SystemInfo(BaseModel):
+    hostname: str
+    os_version: str
+    ip_address: str
+
+
+system_agent = Agent(
+    'openai:gpt-4o-mini',
+    deps_type=Deps,
+    instructions='You are a system administration assistant. Provide system information.',
+    result_type=str,
+)
+
+
+@system_agent.tool
+async def get_system_info(ctx: RunContext[Deps]) -> SystemInfo:
+    """Get system information.
+
+    Args:
+        ctx: The context.
+    """
+    # Simulate system info retrieval
+    return SystemInfo(
+        hostname="prod-server-01",
+        os_version="Ubuntu 22.04.3 LTS",
+        ip_address="192.168.1.100"
+    )
+
+
+@system_agent.tool
+async def execute_command(ctx: RunContext[Deps], command: str) -> str:
+    """Execute a system command.
+
+    Args:
+        ctx: The context.
+        command: The command to execute.
+    """
+    # Guard the command before execution
+    guard_result = await ctx.deps.superagent.guard(command)
+
+    if guard_result.rejected:
+        return f"⛔ Command blocked: {guard_result.reasoning}"
+
+    # Simulate command execution
+    return f"Command executed: {command}\nOutput: Command completed successfully"
+
+
+async def run_secure_agent(user_input: str, superagent, agent, deps):
+    """Run agent with full security: input guard + output redaction."""
+
+    # Step 1: Guard the input
+    print(f"Input: {user_input}")
+    guard_result = await superagent.guard(user_input)
+
+    if guard_result.rejected:
+        return f"⛔ Input blocked: {guard_result.reasoning}"
+
+    print("✓ Input approved")
+
+    # Step 2: Run the agent
+    result = await agent.run(user_input, deps=deps)
+    agent_output = result.output
+
+    # Step 3: Redact sensitive information from output
+    redact_result = await superagent.redact(
+        agent_output,
+        entities=["IP addresses", "hostnames", "system paths"]
+    )
+
+    return redact_result.redacted
+
+
+async def main():
+    async with AsyncClient() as client:
+        async with create_client(api_key=os.getenv("SUPERAGENT_API_KEY")) as superagent:
+            deps = Deps(client=client, superagent=superagent)
+
+            # Test 1: Safe system query
+            print("=" * 60)
+            print("Test 1: Safe system information query")
+            print("=" * 60)
+            output = await run_secure_agent(
+                "What is the hostname and OS version?",
+                superagent,
+                system_agent,
+                deps
+            )
+            print(f"Secure output:\n{output}\n")
+
+            # Test 2: Malicious command
+            print("=" * 60)
+            print("Test 2: Malicious system command")
+            print("=" * 60)
+            output = await run_secure_agent(
+                "Execute command: rm -rf / --no-preserve-root",
+                superagent,
+                system_agent,
+                deps
+            )
+            print(f"Secure output:\n{output}\n")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Streaming Responses with Security
+
+Handle streaming responses with guard and redaction:
+
+```python title="streaming_agent.py"
+import asyncio
+import os
+from dataclasses import dataclass
+
+from httpx import AsyncClient
+from pydantic_ai import Agent, RunContext
+from superagent_ai import create_client
+
+
+@dataclass
+class Deps:
+    client: AsyncClient
+    superagent: any
+
+
+log_agent = Agent(
+    'openai:gpt-4o-mini',
+    deps_type=Deps,
+    instructions='You are a log analysis assistant. Analyze log files and report findings.',
+)
+
+
+@log_agent.tool
+async def get_logs(ctx: RunContext[Deps], log_type: str) -> str:
+    """Get system logs.
+
+    Args:
+        ctx: The context.
+        log_type: The type of logs to retrieve (error, access, system).
+    """
+    # Simulate log retrieval with sensitive data
+    return f"""
+{log_type} Logs:
+2024-01-15 10:23:45 User alice.j@company.com logged in from 192.168.1.50
+2024-01-15 10:24:12 API request with key sk-proj-xyz789abc123
+2024-01-15 10:25:33 Error: Connection to db-server-prod.internal:5432 failed
+2024-01-15 10:26:01 SSN processed: 987-65-4321
+"""
+
+
+async def main():
+    async with AsyncClient() as client:
+        async with create_client(api_key=os.getenv("SUPERAGENT_API_KEY")) as superagent:
+            deps = Deps(client=client, superagent=superagent)
+
+            user_input = "Show me the error logs from today"
+
+            # Guard input
+            guard_result = await superagent.guard(user_input)
+            if guard_result.rejected:
+                print(f"⛔ Input blocked: {guard_result.reasoning}")
+                return
+
+            print("✓ Input approved")
+            print("Streaming agent output...")
+            print("=" * 60)
+
+            # Stream the response
+            full_output = ""
+            async with log_agent.run_stream(user_input, deps=deps) as result:
+                async for chunk in result.stream_text():
+                    print(chunk, end="", flush=True)
+                    full_output += chunk
+
+            print("\n\n" + "=" * 60)
+
+            # Redact the complete output
+            redact_result = await superagent.redact(
+                full_output,
+                entities=[
+                    "email addresses",
+                    "IP addresses",
+                    "API keys",
+                    "SSN",
+                    "hostnames"
+                ]
+            )
+
+            print("Redacted output:")
+            print(redact_result.redacted)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Error Handling
+
+Handle guard and redact errors gracefully:
+
+```python title="error_handling.py"
+import asyncio
+import os
+from dataclasses import dataclass
+
+from httpx import AsyncClient
+from pydantic_ai import Agent, RunContext
+from superagent_ai import create_client, GuardError
+
+
+@dataclass
+class Deps:
+    client: AsyncClient
+    superagent: any
+
+
+simple_agent = Agent(
+    'openai:gpt-4o-mini',
+    deps_type=Deps,
+    instructions='You are a helpful assistant.',
+)
+
+
+async def main():
+    try:
+        async with AsyncClient() as client:
+            async with create_client(api_key=os.getenv("SUPERAGENT_API_KEY")) as superagent:
+                deps = Deps(client=client, superagent=superagent)
+
+                user_input = "Hello, how are you?"
+
+                # Guard with error handling
+                try:
+                    guard_result = await superagent.guard(user_input)
+
+                    if guard_result.rejected:
+                        print(f"Input blocked: {guard_result.reasoning}")
+                        return
+
+                except GuardError as e:
+                    print(f"Guard error: {e}")
+                    return
+
+                # Run agent
+                result = await simple_agent.run(user_input, deps=deps)
+
+                # Redact with error handling
+                try:
+                    redact_result = await superagent.redact(result.output)
+                    print(f"Response: {redact_result.redacted}")
+
+                except Exception as e:
+                    print(f"Redaction error: {e}")
+                    # Fallback: return original output or handle differently
+                    print(f"Response (unredacted): {result.output}")
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Key Concepts
+
+The integration pattern follows these principles:
+
+1. **Input Validation**: Guard user inputs before they reach your agent to prevent malicious prompts, SQL injection, path traversal, and harmful instructions.
+
+2. **Tool Protection**: Validate tool parameters (queries, commands, file paths) before execution to prevent dangerous operations like system modifications or data deletion.
+
+3. **Output Redaction**: Automatically remove PII, PHI, credentials, IP addresses, and other sensitive data from agent responses before returning them to users.
+
+4. **Dependency Injection**: Use Pydantic AI's `deps_type` to inject the Superagent client into your tools, allowing guard and redact operations within tool functions.
+
+5. **Layered Security**: Combine guard and redact for defense-in-depth: validate inputs, execute safely, and sanitize outputs.
+
+6. **Error Handling**: Gracefully handle security violations and API errors without exposing sensitive information.
+
+7. **Streaming Support**: Pydantic AI's streaming capabilities work seamlessly with Superagent - collect the full output, then redact before displaying to users.
+
+For more details on the Superagent Python SDK, see the [Python SDK documentation](/docs/sdks/python-sdk).
