@@ -1,0 +1,54 @@
+---
+title: SuperagentLM Guard 270M
+description: 270M parameter edge-optimized guard model for real-time safety checks.
+---
+
+## Overview
+
+SuperagentLM Guard 270M is a lightweight 270 million parameter edge variant optimized for lighter inference while maintaining strong safety detection capabilities.
+
+## Threat Coverage
+
+- Attempts that override system policies.
+- Payloads such as reverse shells, ransomware droppers, or privilege escalation scripts.
+- Requests focused on secrets, credentials, or regulated PII.
+- Chains that try to coerce downstream models into unsafe behavior.
+
+## Model Details
+
+- **Architecture**: GPT-OSS-based architecture optimized for edge deployment.
+- **Finetuning**: Instruction-tuned by Superagent for efficient edge inference.
+- **Parameters**: 270M, optimized for CPU and edge GPU deployments.
+- **Use case**: Ideal for edge deployments, mobile applications, or resource-constrained environments where latency and resource usage are critical.
+
+## Download
+
+Optimized for lighter inference: the Q8_0 GGUF package is ~1.7 GiB and the 16-bit checkpoint is ~1.5 GiB for users re-quantizing their own build.
+
+<Cards>
+  <IconCard
+    title="270M GGUF (Q8_0)"
+    href="https://huggingface.co/superagent-ai/superagent-lm-270m-gguf"
+    description="Edge-friendly guard model in GGUF format (~1.7 GiB)"
+    icon={<Cpu className="size-4" />}
+  />
+  <IconCard
+    title="270M 16-bit"
+    href="https://huggingface.co/superagent-ai/superagent-lm-270m-16bit"
+    description="Reference FP16/BF16 weights (~1.5 GiB) for custom quantization"
+    icon={<Server className="size-4" />}
+  />
+</Cards>
+
+## Dataset
+
+Superagent publishes the dataset behind its guard suite as a JSONL dataset (~39 MiB) so teams can reproduce benchmark checks locally.
+
+<Cards>
+  <IconCard
+    title="Dataset"
+    href="https://huggingface.co/datasets/superagent-ai/superagent-lm"
+    description="Benchmark prompts, labels, and guard outcomes for regression testing"
+    icon={<BarChart3 className="size-4" />}
+  />
+</Cards>

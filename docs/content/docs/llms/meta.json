@@ -1,0 +1,11 @@
+{
+  "title": "Models",
+  "description": "Superagent's safety language models",
+  "pages": [
+    "superagent-lm-guard-20b",
+    "superagent-lm-guard-270m",
+    "superagent-lm-redact-20b",
+    "superagent-lm-redact-3b",
+    "superagent-lm-redact-270m"
+  ]
+}

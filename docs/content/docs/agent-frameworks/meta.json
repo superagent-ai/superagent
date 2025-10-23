@@ -1,9 +1,0 @@
-{
-  "title": "Agent Frameworks",
-  "defaultOpen": false, 
-  "pages": [
-    "langgraph.mdx",
-    "mastra.mdx",
-    "vercel-ai-sdk.mdx"
-  ]
-}

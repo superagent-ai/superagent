@@ -1,0 +1,24 @@
+---
+title: Rate Limits
+description: API rate limits and usage quotas for Superagent
+---
+
+Superagent enforces rate limits to ensure fair usage and maintain service quality across all users. Our rate limiting follows the same structure as Fireworks AI.
+
+## Fixed Rate Limits
+
+The platform enforces the following maximum usage caps:
+
+- **Requests**: 6,000 requests per minute
+
+
+## Rate Limit Response Headers
+
+API responses include headers to help you track your current usage:
+
+- `x-ratelimit-remaining-requests`: Number of remaining requests or tokens available
+- `x-ratelimit-over-limit`: Indicates whether your requests are being deprioritized (value: `yes` or `no`)
+
+## Higher Rate Limits
+
+If you need higher rate limits for your use case, please contact our support team to discuss custom rate limits and GPU capacity options.

@@ -159,24 +159,46 @@ class Client:
 
     async def guard(
         self,
-        command: str,
+        input: Union[str, Any],
         *,
         on_block: Optional[BlockCallback] = None,
         on_pass: Optional[PassCallback] = None,
     ) -> GuardResult:
-        if not command:
-            raise GuardError("command must be a non-empty string")
+        # Determine if input is a file or text
+        is_file = hasattr(input, 'read') or not isinstance(input, str)
+
+        if not is_file and not input:
+            raise GuardError("input must be a non-empty string or file")
 
         try:
-            response = await self._client.post(
-                self._guard_endpoint,
-                json={"text": command},
-                headers={
+            if is_file:
+                # Use multipart/form-data for file input
+                files = {"file": input}
+                data = {"text": ""}  # Empty text when file is provided
+
+                headers = {
                     "Authorization": f"Bearer {self._api_key}",
                     "x-superagent-api-key": self._api_key,
-                },
-                timeout=self._timeout,
-            )
+                }
+
+                response = await self._client.post(
+                    self._guard_endpoint,
+                    files=files,
+                    data=data,
+                    headers=headers,
+                    timeout=self._timeout,
+                )
+            else:
+                # Use JSON for text input
+                response = await self._client.post(
+                    self._guard_endpoint,
+                    json={"text": input},
+                    headers={
+                        "Authorization": f"Bearer {self._api_key}",
+                        "x-superagent-api-key": self._api_key,
+                    },
+                    timeout=self._timeout,
+                )
         except httpx.RequestError as error:
             raise GuardError(f"Failed to reach guard endpoint: {error}") from error
 
@@ -185,6 +207,7 @@ class Client:
                 f"Guard request failed with status {response.status_code}: {response.text}"
             )
 
+        # Handle JSON response (guard always returns JSON, even for PDF files)
         analysis: AnalysisResponse = response.json()
         message = (analysis.get("choices") or [{}])[0].get("message", {})
         content = message.get("content")
@@ -210,22 +233,23 @@ class Client:
 
     async def redact(
         self,
-        text: str,
+        input: Union[str, Any],
         *,
         url_whitelist: Optional[list[str]] = None,
         entities: Optional[list[str]] = None,
-        file: Optional[Any] = None,
         format: Optional[str] = None
     ) -> RedactResult:
-        if not text:
-            raise GuardError("text must be a non-empty string")
+        # Determine if input is a file or text
+        is_file = hasattr(input, 'read') or not isinstance(input, str)
+
+        if not is_file and not input:
+            raise GuardError("input must be a non-empty string or file")
 
         try:
-            # Use multipart/form-data when file is provided
-            if file is not None:
-                # Build multipart form data
-                files = {"file": file}
-                data = {"text": text}
+            if is_file:
+                # Use multipart/form-data for file input
+                files = {"file": input}
+                data = {"text": ""}  # Empty text when file is provided
 
                 if format:
                     data["format"] = format
@@ -250,8 +274,8 @@ class Client:
                     timeout=self._timeout,
                 )
             else:
-                # Use JSON when no file is provided
-                request_body: dict[str, Any] = {"text": text}
+                # Use JSON for text input
+                request_body: dict[str, Any] = {"text": input}
 
                 # Include entities in request body if provided
                 if entities:
@@ -304,9 +328,9 @@ class Client:
         # Support both 'reasoning' (new API) and 'reasoning_content' (old API) for backward compatibility
         reasoning_content = message.get("reasoning") or message.get("reasoning_content", "")
 
-        # Apply URL whitelist locally if provided
-        if url_whitelist:
-            content = self._apply_url_whitelist(text, content, url_whitelist)
+        # Apply URL whitelist locally if provided (only for text input)
+        if url_whitelist and not is_file:
+            content = self._apply_url_whitelist(input, content, url_whitelist)
 
         return RedactResult(
             redacted=content,

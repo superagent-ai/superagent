@@ -121,10 +121,11 @@ export async function redactCommand(args: string[]) {
   });
 
   try {
-    const result = await client.redact(text, {
+    // Pass file as first parameter if provided, otherwise pass text
+    const input = file || text;
+    const result = await client.redact(input, {
       urlWhitelist,
       entities,
-      file,
       format: file ? format : undefined // Only send format if file is provided
     });
 

@@ -7,7 +7,7 @@ Superagent provides three purpose-trained models â€” Guard, Verify, and Redact â
 
 ## Capabilities
 
-<Cards>
+<Cards className="grid-cols-3">
   <IconCard
     title="Guard"
     description="Detects and blocks unsafe inputs, prompt injections, malicious tool calls, and backdoors before they reach your models"
@@ -16,12 +16,12 @@ Superagent provides three purpose-trained models â€” Guard, Verify, and Redact â
   <IconCard
     title="Verify"
     description="Validates model outputs against enterprise sources and policies to ensure every generation is factual and compliant"
-    icon={<BarChart3 className="size-4" />}
+    icon={<Check className="size-4" />}
   />
   <IconCard
     title="Redact"
     description="Removes sensitive data like PII, PHI, and secrets from text, logs, or documents automatically"
-    icon={<Server className="size-4" />}
+    icon={<EyeOff className="size-4" />}
   />
 </Cards>
 
@@ -36,9 +36,7 @@ Superagent provides three purpose-trained models â€” Guard, Verify, and Redact â
 
 Ready to secure your AI applications? [Get your API key](https://app.superagent.sh) and make your first call in minutes with our [quickstart guide](/quickstart). Test Guard, Verify, or Redact via API, SDK, or CLI.
 
-## Build with Superagent
-
-<Cards>
+<Cards className="grid-cols-3">
   <IconCard
     title="API"
     href="/api"
@@ -46,7 +44,7 @@ Ready to secure your AI applications? [Get your API key](https://app.superagent.
     icon={<Server className="size-4" />}
   />
   <IconCard
-    title="Python SDK"
+    title="SDK"
     href="/sdks/python-sdk"
     description="Typed Python bindings with OpenAI-compatible APIs"
     icon={<PythonIcon className="size-4" />}
@@ -58,9 +56,23 @@ Ready to secure your AI applications? [Get your API key](https://app.superagent.
     icon={<TypeScriptIcon className="size-4" />}
   />
   <IconCard
+    title="MCP"
+    href="/mcp"
+    description="MCP server for your AI Agent"
+    icon={<Server className="size-4" />}
+  />
+  <IconCard
     title="CLI"
     href="/cli"
     description="Command-line tool for testing and automation"
     icon={<Cpu className="size-4" />}
   />
 </Cards>
+
+## Support
+
+Need help or have questions? Connect with us:
+
+- **X (Twitter)**: Follow [@superagent_ai](https://x.com/superagent_ai) for updates and announcements
+- **Discord**: Join our community at [discord.gg/spZ7MnqFT4](https://discord.gg/spZ7MnqFT4) for support and discussions
+- **GitHub**: Check out our source code and contribute at [github.com/superagent-ai/superagent](https://github.com/superagent-ai/superagent)

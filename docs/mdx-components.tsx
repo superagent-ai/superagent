@@ -3,6 +3,8 @@ import type { MDXComponents } from "mdx/types";
 import { Mermaid } from "@/components/mdx/mermaid";
 import { IconCard } from "@/components/mdx/icon-card";
 import { APIPage } from "fumadocs-openapi/ui";
+import { ImageZoom } from "fumadocs-ui/components/image-zoom";
+import * as TabsComponents from "fumadocs-ui/components/tabs";
 import { openapi } from "@/lib/openapi";
 import {
   Shield,
@@ -20,6 +22,8 @@ import {
   Server,
   Bot,
   Activity,
+  Check,
+  EyeOff,
 } from "lucide-react";
 import { SiPython, SiTypescript } from "react-icons/si";
 
@@ -46,8 +50,12 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     Server,
     Bot,
     Activity,
+    Check,
+    EyeOff,
     TypeScriptIcon: SiTypescript,
     PythonIcon: SiPython,
+    img: (props) => <ImageZoom {...(props as any)} />,
+    ...TabsComponents,
     ...components,
   };
 }

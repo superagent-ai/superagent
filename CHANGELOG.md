@@ -2,6 +2,70 @@
 
 All notable changes to Superagent will be documented in this file.
 
+## [superagent-ai@0.0.15 / @superagent-ai/cli@0.0.10] - 2025-01-22
+
+### Breaking Changes
+
+#### Python SDK & TypeScript SDK
+
+- **BREAKING**: Changed method signatures for `guard()` and `redact()` to accept input as first parameter
+  - **Before**: `guard(command: str, *, file=None)` / `redact(text: str, *, file=None)`
+  - **After**: `guard(input: str | File)` / `redact(input: str | File)`
+  - Input is now **either** text **or** file, never both
+  - This provides a cleaner, more intuitive API where you pass the thing you want to analyze/redact
+
+- **Python SDK**:
+  ```python
+  # Before (v0.0.14)
+  with open("doc.pdf", "rb") as f:
+      result = await client.guard("Analyze this", file=f)
+      result = await client.redact("Redact this", file=f, format="pdf")
+
+  # After (v0.0.15)
+  with open("doc.pdf", "rb") as f:
+      result = await client.guard(f)  # Pass file directly
+      result = await client.redact(f, format="pdf")  # Pass file directly
+  ```
+
+- **TypeScript SDK**:
+  ```typescript
+  // Before (v0.0.14)
+  const result = await client.guard("text", {}, { file: pdfBlob });
+  const result = await client.redact("text", { file: pdfBlob, format: "pdf" });
+
+  // After (v0.0.15)
+  const result = await client.guard(pdfBlob);  // Pass file directly
+  const result = await client.redact(pdfBlob, { format: "pdf" });  // Pass file directly
+  ```
+
+### Added
+
+#### Python SDK & TypeScript SDK
+
+- Added PDF file support to `guard()` method
+  - Guard endpoint now accepts PDF files for security analysis
+  - Returns JSON analysis of the PDF content (not a processed PDF)
+  - Extracts and analyzes text from PDF for security threats
+  - Example: `await client.guard(pdf_file)`
+
+- Improved API design with union types
+  - `guard(input: str | File)` - accepts string OR file
+  - `redact(input: str | File)` - accepts string OR file
+  - Automatic detection of input type (no need to specify which)
+
+#### CLI
+
+- Added `--file` flag to `guard` command for PDF file analysis
+  - Analyzes PDF files for security threats
+  - Returns JSON analysis (not a processed PDF)
+  - Example: `superagent guard --file document.pdf`
+
+### Changed
+
+- URL whitelist option now only applies to text input (not file input)
+- All PDF examples updated to use new cleaner API
+- Documentation updated with Fumadocs TypeTable components for better type information display
+
 ## [@superagent-ai/cli@0.0.9] - 2025-10-17
 
 ### Breaking Changes

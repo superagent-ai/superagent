@@ -1,0 +1,244 @@
+---
+title: Redact PDFs in seconds
+description: Remove sensitive information from PDF documents using Superagent Redact API with SDK, CLI, or REST
+---
+
+<video autoPlay loop muted playsInline className="rounded-lg border shadow-lg mb-8">
+  <source src="/playground.mp4" type="video/mp4" />
+  Your browser does not support the video tag.
+</video>
+
+Protect sensitive information in your PDF documents by automatically redacting PII/PHI such as SSNs, emails, phone numbers, credit cards, and more. Superagent makes it simple to sanitize documents while preserving their original formatting.
+
+## Why redact PDFs?
+
+- **Compliance**: Meet GDPR, HIPAA, and SOC 2 requirements by removing PII/PHI before sharing
+- **Security**: Prevent data leaks when distributing contracts, invoices, or reports
+- **Privacy**: Protect customer information in legal documents and financial records
+- **Automation**: Process documents at scale without manual review
+
+## Quick Start
+
+Choose your preferred method to redact PDFs:
+
+```typescript tab="TypeScript SDK" icon="TypeScriptIcon" title="redact-pdf.ts"
+import { createClient } from "superagent-ai";
+import { readFileSync, writeFileSync } from "fs";
+
+const client = createClient({
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+
+// Read PDF file
+const pdfBuffer = readFileSync("sensitive-document.pdf");
+const pdfBlob = new Blob([pdfBuffer], { type: "application/pdf" });
+
+// Redact PDF and get redacted file
+const result = await client.redact(pdfBlob, {
+  format: "pdf", // Returns redacted PDF
+  entities: ["SSN", "credit card numbers", "email addresses", "phone numbers"],
+});
+
+// Save the redacted PDF
+if (result.pdf) {
+  const arrayBuffer = await result.pdf.arrayBuffer();
+  writeFileSync("redacted-output.pdf", Buffer.from(arrayBuffer));
+  console.log("✓ Redacted PDF saved to redacted-output.pdf");
+}
+
+// Installation: npm install superagent-ai
+```
+
+```python tab="Python SDK" icon="PythonIcon" title="redact_pdf.py"
+import asyncio
+from superagent_ai import create_client
+
+async def main() -> None:
+    async with create_client(api_key="sk-...") as client:
+        # Get redacted PDF file
+        with open("sensitive-document.pdf", "rb") as pdf_file:
+            result = await client.redact(
+                pdf_file,
+                format="pdf",  # Returns PDF bytes
+                entities=["SSN", "credit card numbers", "email addresses", "phone numbers"]
+            )
+
+        # Save the redacted PDF
+        if result.pdf:
+            with open("redacted-output.pdf", "wb") as output_file:
+                output_file.write(result.pdf)
+            print("✓ Redacted PDF saved to redacted-output.pdf")
+
+asyncio.run(main())
+
+# Installation: uv add superagent-ai
+```
+
+```bash tab="CLI" icon="Settings" title="Terminal"
+# Basic PDF redaction
+superagent redact --file document.pdf "Redact PII from this document"
+
+# Redact specific entity types
+superagent redact --file contract.pdf --entities "SSN,credit card numbers,email addresses" "Redact sensitive data"
+
+# Combine with URL whitelist
+superagent redact --file report.pdf --url-whitelist https://company.com "Redact while preserving company URLs"
+
+# Installation: npm install -g @superagent-ai/cli
+# Setup: export SUPERAGENT_API_KEY="sk-..."
+# Output: Redacted PDF saved to redacted-output.pdf
+```
+
+```bash tab="REST API" icon="Cloud" title="cURL Request"
+# Get redacted PDF file
+curl -X POST https://app.superagent.sh/api/redact \
+  -H "Authorization: Bearer sk-..." \
+  -F "file=@sensitive-document.pdf" \
+  -F "format=pdf" \
+  -F 'entities=["SSN", "credit card numbers", "email addresses"]' \
+  --output redacted-output.pdf
+
+# Or get redacted text as JSON
+curl -X POST https://app.superagent.sh/api/redact \
+  -H "Authorization: Bearer sk-..." \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@document.pdf" \
+  -F "format=json"
+
+# Response (JSON format):
+# {
+#   "redacted": "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>",
+#   "reasoning": "Redacted email addresses and SSN from PDF content",
+#   "usage": {
+#     "prompt_tokens": 245,
+#     "completion_tokens": 78,
+#     "total_tokens": 323
+#   }
+# }
+```
+
+## What gets redacted?
+
+Superagent automatically detects and redacts:
+
+- **Email addresses** → `<REDACTED_EMAIL>`
+- **Social Security Numbers** → `<REDACTED_SSN>`
+- **Credit cards** (Visa, Mastercard, Amex) → `<REDACTED_CC>`
+- **Phone numbers** (US format) → `<REDACTED_PHONE>`
+- **IP addresses** (IPv4/IPv6) → `<REDACTED_IP>`
+- **API keys & tokens** → `<REDACTED_API_KEY>`
+- **AWS access keys** → `<REDACTED_AWS_KEY>`
+- **Medical record numbers** → `<REDACTED_MRN>`
+- **Passport numbers** → `<REDACTED_PASSPORT>`
+- **IBAN** → `<REDACTED_IBAN>`
+- **ZIP codes** → `<REDACTED_ZIP>`
+
+## Custom entity redaction
+
+Define your own entity types using natural language:
+
+```typescript tab="TypeScript" icon="TypeScriptIcon" title="custom-entities.ts"
+const result = await client.redact(pdfBlob, {
+  format: "pdf",
+  entities: [
+    "employee IDs",
+    "project codenames",
+    "salary information",
+    "bank account numbers"
+  ]
+});
+```
+
+```python tab="Python" icon="PythonIcon" title="custom_entities.py"
+result = await client.redact(
+    pdf_file,
+    format="pdf",
+    entities=[
+        "employee IDs",
+        "project codenames",
+        "salary information",
+        "bank account numbers"
+    ]
+)
+```
+
+The AI model interprets your natural language descriptions and redacts matching content intelligently.
+
+## Use cases
+
+### Legal documents
+Redact client information from contracts before sharing with third parties:
+
+```typescript title="legal-redaction.ts"
+const result = await client.redact(contractBlob, {
+  format: "pdf",
+  entities: ["client names", "addresses", "phone numbers", "SSN"]
+});
+```
+
+### Medical records
+Maintain HIPAA compliance by removing PHI from patient records:
+
+```python title="medical_redaction.py"
+result = await client.redact(
+    medical_record_file,
+    format="pdf",
+    entities=["patient names", "MRN", "SSN", "addresses", "phone numbers"]
+)
+```
+
+### Financial documents
+Sanitize invoices and statements before archiving:
+
+```bash title="Terminal"
+superagent redact --file invoice.pdf --entities "credit card numbers,bank accounts,SSN" "Redact financial data"
+```
+
+## Output options
+
+### Option 1: Redacted PDF file (format="pdf")
+
+Returns a PDF with redactions applied directly to the document. The original formatting and layout are preserved.
+
+### Option 2: Redacted text (format="json")
+
+Extracts text from the PDF, redacts it, and returns as JSON. Useful for text analysis or indexing.
+
+```typescript tab="PDF Output" title="pdf-output.ts"
+const result = await client.redact(pdfBlob, {
+  format: "pdf" // Returns Blob with redacted PDF
+});
+
+if (result.pdf) {
+  // Save or process the redacted PDF
+  const arrayBuffer = await result.pdf.arrayBuffer();
+  writeFileSync("redacted.pdf", Buffer.from(arrayBuffer));
+}
+```
+
+```typescript tab="JSON Output" title="json-output.ts"
+const result = await client.redact(pdfBlob, {
+  format: "json" // Returns text extracted from PDF
+});
+
+console.log(result.redacted); // Redacted text
+console.log(result.reasoning); // What was redacted
+```
+
+## What you've protected
+
+- **Compliance audits** get cleaner with no PII leaks
+- **Customer trust** increases with proper data handling
+- **Legal risk** decreases by sanitizing documents before distribution
+- **Workflow efficiency** improves with automated redaction at scale
+
+## Next steps
+
+- Integrate redaction into your document processing pipeline
+- Set up automated workflows with [n8n integration](/docs/examples/n8n-redact)
+- Explore [Guard API](/docs/rest-api/guard) for content validation
+- Join our [Discord community](https://discord.gg/spZ7MnqFT4)
+
+---
+
+Ready to protect your documents? Get your API key at [app.superagent.sh](https://app.superagent.sh)
