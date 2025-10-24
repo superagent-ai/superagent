@@ -6,6 +6,7 @@
   "pages": [
     "---Introduction---",
     "index",
+    "quickstart",
     "sdks",
     "rest-api",
     "cli",
