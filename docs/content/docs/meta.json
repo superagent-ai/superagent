@@ -19,6 +19,7 @@
     "agent-frameworks/vercel-ai-sdk",
     "---Examples---",
     "examples/redact-pdfs",
+    "examples/scan-file-uploads",
     "examples/n8n-redact",
     "examples/mastra",
     "examples/claude-code-userprompt.mdx",
