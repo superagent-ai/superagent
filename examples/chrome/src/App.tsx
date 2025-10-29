@@ -1,91 +1,236 @@
-import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { User, Bot } from "lucide-react";
+"use client";
 
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { Button } from "@/components/ui/button";
 import { PromptBox } from "@/components/ui/prompt-input";
-
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-}
+import {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from "@/components/ai-elements/conversation";
+import { Branch, BranchMessages } from "@/components/ai-elements/branch";
+import { Message } from "@/components/ai-elements/message";
+import { Response } from "@/components/ai-elements/response";
+import { Check, X, Globe } from "lucide-react";
+import { useState } from "react";
 
 function App() {
-  const [messages] = useState<Message[]>([]);
+  const [includePageContext, setIncludePageContext] = useState(false);
+  const [pageData, setPageData] = useState<any>(null);
+
+  const { messages, sendMessage, addToolResult, status, error } = useChat({
+    transport: new DefaultChatTransport({
+      api: import.meta.env.AGENT_API_URL || "http://localhost:3000/api/chat",
+    }),
+    async onToolCall({ toolCall }: { toolCall: any }) {
+      console.log("Tool call received:", toolCall);
+
+      // Don't handle dynamic tools
+      if (toolCall.dynamic) {
+        return;
+      }
+
+      // Handle client-side tools
+      if (toolCall.toolName === "getLocation") {
+        // Mock location - in production, use navigator.geolocation
+        const cities = ["New York", "Los Angeles", "Chicago", "San Francisco"];
+        addToolResult({
+          tool: "getLocation",
+          toolCallId: toolCall.toolCallId,
+          output: cities[Math.floor(Math.random() * cities.length)],
+        });
+      }
+    },
+  });
+
+  console.log("Chat status:", status);
+  console.log("Messages count:", messages.length);
+  if (error) console.error("Chat error:", error);
+
+  const fetchPageData = async () => {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ action: 'getPageHTML' }, (response) => {
+        if (response?.success) {
+          resolve(response.data);
+        } else {
+          console.error('Failed to get page HTML:', response?.error);
+          resolve(null);
+        }
+      });
+    });
+  };
+
+  const handleSendMessage = async (message: { text: string; image?: string }) => {
+    if (message.text.trim()) {
+      let messageText = message.text;
+
+      // If page context is enabled, fetch and prepend it
+      if (includePageContext) {
+        const data: any = await fetchPageData();
+        if (data) {
+          setPageData(data);
+          // Include page context in the message
+          messageText = `Page Context:
+URL: ${data.url}
+Title: ${data.title}
+${data.description ? `Description: ${data.description}\n` : ''}
+Content:
+${data.bodyText.substring(0, 5000)}${data.bodyText.length > 5000 ? '...(truncated)' : ''}
+
+---
+
+User Question: ${message.text}`;
+        }
+      }
+
+      sendMessage({ text: messageText });
+    }
+  };
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
-      {/* Chat Messages */}
-      <ScrollArea className="flex-1 p-4">
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center p-8">
-            <Bot className="h-16 w-16 text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">
-              Welcome to Superagent
-            </h2>
-            <p className="text-muted-foreground">
-              Start a conversation by typing a message below
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-3 ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                {message.role === "assistant" && (
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
-                      <Bot className="h-5 w-5 text-white" />
-                    </div>
-                  </div>
-                )}
-                <Card
-                  className={`p-3 max-w-[80%] ${
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
-                  }`}
-                >
-                  <p className="text-sm whitespace-pre-wrap">
-                    {message.content}
-                  </p>
-                </Card>
-                {message.role === "user" && (
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                      <User className="h-5 w-5" />
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-            {(status === "submitted" || status === "streaming") && (
-              <div className="flex gap-3 justify-start">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
-                    <Bot className="h-5 w-5 text-white" />
-                  </div>
-                </div>
-                <Card className="p-3 bg-muted">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-current rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-current rounded-full animate-bounce delay-100" />
-                    <div className="w-2 h-2 bg-current rounded-full animate-bounce delay-200" />
-                  </div>
-                </Card>
-              </div>
-            )}
-          </div>
-        )}
-      </ScrollArea>
+    <div className="relative flex h-screen w-full flex-col overflow-hidden">
+      <Conversation>
+        <ConversationContent>
+          {messages.map((message: any) => {
+            // Collect all text parts into one string
+            const textParts =
+              message.parts?.filter((p: any) => p.type === "text") || [];
+            const combinedText = textParts.map((p: any) => p.text).join("");
 
-      {/* Input Area */}
-      <PromptBox className="m-4 rounded-2xl" />
+            // Create a version object for Branch component
+            const version = {
+              id: message.id,
+              content: combinedText,
+            };
+
+            return (
+              <Branch defaultBranch={0} key={message.id}>
+                <BranchMessages>
+                  <Message from={message.role} key={message.id}>
+                    {message.role === "user" ? (
+                      <div className="rounded-3xl rounded-br-md border bg-secondary px-4 py-2.5 text-[15px] text-foreground max-w-[80%]">
+                        {version.content}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        <div className="text-[15px] text-foreground">
+                          <Response>{version.content}</Response>
+                        </div>
+
+                        {message.parts?.map((part: any, index: number) => {
+                          // Skip text parts (already rendered above)
+                          if (part.type === "text") {
+                            return null;
+                          }
+
+                          // Render tool confirmation requests
+                          if (part.type === "tool-askForConfirmation") {
+                            const callId = part.toolCallId;
+                            switch (part.state) {
+                              case "input-available":
+                                return (
+                                  <div
+                                    key={callId}
+                                    className="flex flex-col gap-2 my-2"
+                                  >
+                                    <p className="font-medium">
+                                      {part.input?.message}
+                                    </p>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        size="sm"
+                                        onClick={() =>
+                                          addToolResult({
+                                            tool: "askForConfirmation",
+                                            toolCallId: callId,
+                                            output: "Yes, confirmed.",
+                                          })
+                                        }
+                                      >
+                                        <Check className="h-4 w-4 mr-1" />
+                                        Yes
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() =>
+                                          addToolResult({
+                                            tool: "askForConfirmation",
+                                            toolCallId: callId,
+                                            output: "No, cancelled.",
+                                          })
+                                        }
+                                      >
+                                        <X className="h-4 w-4 mr-1" />
+                                        No
+                                      </Button>
+                                    </div>
+                                  </div>
+                                );
+                              case "output-available":
+                                return (
+                                  <div
+                                    key={callId}
+                                    className="text-xs text-muted-foreground"
+                                  >
+                                    ✓ {part.output}
+                                  </div>
+                                );
+                            }
+                          }
+
+                          // Render tool calls
+                          if (part.type?.startsWith("tool-")) {
+                            return (
+                              <div
+                                key={index}
+                                className="text-xs text-muted-foreground italic my-1"
+                              >
+                                {part.state === "input-available" &&
+                                  `Using ${part.type.replace("tool-", "")}...`}
+                                {part.state === "output-available" &&
+                                  `✓ ${part.type.replace(
+                                    "tool-",
+                                    ""
+                                  )} completed`}
+                              </div>
+                            );
+                          }
+
+                          return null;
+                        })}
+                      </div>
+                    )}
+                  </Message>
+                </BranchMessages>
+              </Branch>
+            );
+          })}
+        </ConversationContent>
+        <ConversationScrollButton />
+      </Conversation>
+      <div className="shrink-0 border-t bg-background">
+        <div className="flex items-center justify-between px-4 py-2">
+          <Button
+            variant={includePageContext ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIncludePageContext(!includePageContext)}
+            className="gap-2"
+          >
+            <Globe className="h-4 w-4" />
+            {includePageContext ? "Page Context: ON" : "Page Context: OFF"}
+          </Button>
+          {pageData && includePageContext && (
+            <span className="text-xs text-muted-foreground">
+              {pageData.title}
+            </span>
+          )}
+        </div>
+        <div className="px-4 pb-4">
+          <PromptBox className="rounded-2xl" onSubmit={handleSendMessage} />
+        </div>
+      </div>
     </div>
   );
 }

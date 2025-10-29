@@ -6,7 +6,8 @@
   "permissions": [
     "activeTab",
     "sidePanel",
-    "storage"
+    "storage",
+    "scripting"
   ],
   "action": {
     "default_title": "Open Superagent"
