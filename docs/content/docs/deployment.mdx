@@ -1,9 +1,9 @@
 ---
 title: Deployment
-description: Deploy Superagent AI firewall using Docker, Node.js, or Rust
+description: Deploy Superagent as a hosted API or self-hosted in your infrastructure
 ---
 
-Superagent provides multiple deployment options to suit different environments and performance requirements. Choose the method that best fits your infrastructure needs.
+Superagent provides flexible deployment options to suit different security, compliance, and infrastructure requirements. All deployment options provide the same Guard, Verify, and Redact capabilities with consistent APIs.
 
 ## Docker Deployment (Recommended)
 
@@ -15,7 +15,7 @@ cd superagent
 docker-compose up -d
 ```
 
-This will start the Superagent firewall with all necessary dependencies.
+This will start Superagent with all necessary dependencies.
 
 ## Node.js Deployment
 
@@ -87,4 +87,4 @@ Once deployed, Superagent automatically provides:
 - **Performance**: Rust deployment recommended for high-throughput environments
 - **Scaling**: Docker deployment supports horizontal scaling with orchestration platforms
 
-Your Superagent proxy URL will be available at the configured endpoint (typically `http://localhost:8080`) and can be used as the base URL in your AI client configurations.
+Your Superagent API URL will be available at the configured endpoint (typically `http://localhost:8080`) and can be used as the base URL in your AI client configurations.
