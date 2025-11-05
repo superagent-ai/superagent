@@ -2,7 +2,7 @@
 
 All notable changes to Superagent will be documented in this file.
 
-## [superagent-ai@0.0.17] - 2025-01-23
+## [superagent-ai@0.0.17]
 
 ### Breaking Changes
 
@@ -17,7 +17,7 @@ All notable changes to Superagent will be documented in this file.
 - SDK users: No changes required
 - Direct API users: Update code to parse `content` as object instead of JSON string
 
-## [superagent-ai@0.0.16 / @superagent-ai/cli@0.0.11] - 2025-01-23
+## [superagent-ai@0.0.16 / @superagent-ai/cli@0.0.11]
 
 ### Added
 
@@ -61,7 +61,7 @@ All notable changes to Superagent will be documented in this file.
 - Added comprehensive test coverage for verify method in Python SDK
 - Tests include happy path, validation, error handling, and edge cases
 
-## [@superagent-ai/mcp@0.0.4] - 2025-01-23
+## [@superagent-ai/mcp@0.0.4]
 
 ### Added
 - Initial release of Model Context Protocol (MCP) server for Superagent
@@ -76,7 +76,7 @@ All notable changes to Superagent will be documented in this file.
 - Support for Claude Code and Claude Desktop clients
 - Published to npm as `@superagent-ai/mcp`
 
-## [superagent-ai@0.0.15 / @superagent-ai/cli@0.0.10] - 2025-01-22
+## [superagent-ai@0.0.15 / @superagent-ai/cli@0.0.10]
 
 ### Breaking Changes
 
@@ -140,7 +140,7 @@ All notable changes to Superagent will be documented in this file.
 - All PDF examples updated to use new cleaner API
 - Documentation updated with Fumadocs TypeTable components for better type information display
 
-## [@superagent-ai/cli@0.0.9] - 2025-10-17
+## [@superagent-ai/cli@0.0.9]
 
 ### Breaking Changes
 - **BREAKING**: Changed `redact` command input parameter from `prompt` to `text`
@@ -166,7 +166,7 @@ echo '{"text": "My email is john@example.com"}' | superagent redact
 superagent redact --file sensitive-document.pdf "Redact PII from this document"
 ```
 
-## [superagent-ai@0.0.13] - 2025-10-17
+## [superagent-ai@0.0.13]
 
 ### Breaking Changes
 - **BREAKING**: Redact API now uses `text` parameter instead of `prompt` in stdin JSON input
@@ -253,14 +253,14 @@ with open("document.pdf", "rb") as f:
 print(result.redacted)  # Redacted text from PDF
 ```
 
-## [@superagent-ai/cli@0.0.8] - 2025-10-16
+## [@superagent-ai/cli@0.0.8]
 
 ### Added
 - Added `--entities` flag to `redact` command for custom entity redaction using natural language
   - Accepts comma-separated list of entity types to redact
   - Example: `superagent redact --entities "credit card numbers,SSN" "text"`
 
-## [superagent-ai@0.0.12] - 2025-10-16
+## [superagent-ai@0.0.12]
 
 ### Added
 - Added `entities` parameter to `redact()` method in TypeScript and Python SDKs
@@ -274,7 +274,7 @@ print(result.redacted)  # Redacted text from PDF
 - Added "Custom Entity Redaction" section to Python SDK documentation with examples
 - Updated CLI documentation with `--entities` flag usage and examples
 
-## [@superagent-ai/cli@0.0.7] - 2025-10-07
+## [@superagent-ai/cli@0.0.7]
 
 ### Added
 - Added `redact` command for removing sensitive data from text
@@ -297,7 +297,7 @@ superagent redact "My email is john@example.com"
 superagent guard "prompt"  # guard no longer supports redaction
 ```
 
-## [superagent-ai@0.0.11] - 2025-10-07
+## [superagent-ai@0.0.11]
 
 ### Added
 - Added `urlWhitelist` option to `redact()` method for preserving specific URLs during redaction
@@ -305,7 +305,7 @@ superagent guard "prompt"  # guard no longer supports redaction
 ### Deprecated
 - `createGuard()` is deprecated in favor of `createClient()`
 
-## [@superagent-ai/cli@0.0.6] - 2025-10-06
+## [@superagent-ai/cli@0.0.6]
 
 ### Breaking Changes
 - **BREAKING**: Replaced `--redacted` flag with `--mode` flag
@@ -328,7 +328,7 @@ superagent guard --redacted "prompt"
 superagent guard --mode full "prompt"
 ```
 
-## [superagent-ai@0.0.9] - 2025-10-06
+## [superagent-ai@0.0.9]
 
 ### Breaking Changes
 - **BREAKING**: Replaced `redacted` boolean option with `mode` parameter in both TypeScript and Python SDKs
@@ -353,7 +353,7 @@ createGuard({ mode: "analyze" })  // or omit mode (default)
 createGuard({ mode: "full" })
 ```
 
-## [@superagent-ai/cli@0.0.5] - 2025-10-01
+## [@superagent-ai/cli@0.0.5]
 
 ### Enhancements
 - Added `--redacted` flag to enable redaction of sensitive data (PII/PHI) in prompts
@@ -361,7 +361,7 @@ createGuard({ mode: "full" })
 - Upgraded `superagent-ai` dependency to v0.0.7
 
 
-## [superagent-ai@0.0.7] - 2025-10-01
+## [superagent-ai@0.0.7]
 
 ### Enhancements
 - Added `redacted` option to `createGuard()` for automatic PII/PHI redaction
