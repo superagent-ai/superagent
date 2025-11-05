@@ -19,20 +19,28 @@ class GuardUsage(TypedDict):
     total_tokens: int
 
 
+class GuardMessageContent(TypedDict, total=False):
+    classification: Literal["pass", "block"]
+    violation_types: list[str]
+    cwe_codes: list[str]
+
+
 class GuardMessage(TypedDict, total=False):
     role: str
-    content: str
-    reasoning_content: str
-    reasoning: str  # New field from updated API
+    content: Union[GuardMessageContent, str]  # Support both dict (new API) and str (backward compat)
+    reasoning_content: str  # Deprecated, use reasoning instead
+    reasoning: str
 
 
-class GuardChoice(TypedDict):
+class GuardChoice(TypedDict, total=False):
     message: GuardMessage
+    finish_reason: str
 
 
 class AnalysisResponse(TypedDict, total=False):
     usage: GuardUsage
     id: str
+    model: Optional[str]
     choices: list[GuardChoice]
 
 
@@ -104,13 +112,19 @@ def _sanitize_url(url: str) -> str:
     return url[:-1] if url.endswith("/") else url
 
 
-def _parse_decision(content: Optional[str]) -> Optional[GuardDecision]:
+def _parse_decision(content: Optional[Union[GuardMessageContent, str]]) -> Optional[GuardDecision]:
     if not content:
         return None
-    try:
-        parsed = json.loads(content)
-    except ValueError:
-        return None
+
+    # Handle new API format where content is already a dict
+    if isinstance(content, dict):
+        parsed = content
+    else:
+        # Handle legacy format where content is a JSON string
+        try:
+            parsed = json.loads(content)
+        except ValueError:
+            return None
 
     if not isinstance(parsed, dict):
         return None
@@ -248,7 +262,8 @@ class Client:
         analysis: AnalysisResponse = response.json()
         message = (analysis.get("choices") or [{}])[0].get("message", {})
         content = message.get("content")
-        reasoning = message.get("reasoning_content")
+        # Support both new 'reasoning' field and legacy 'reasoning_content' field
+        reasoning = message.get("reasoning") or message.get("reasoning_content")
         decision = _parse_decision(content)
         rejected = bool(decision and decision.get("status") == "block")
 
