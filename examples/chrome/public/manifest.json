@@ -4,10 +4,13 @@
   "version": "1.0.0",
   "description": "Superagent Chrome extension built with React, TypeScript and shadcn/ui",
   "permissions": [
-    "activeTab",
     "sidePanel",
     "storage",
-    "scripting"
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "action": {
     "default_title": "Open Superagent"
