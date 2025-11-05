@@ -44,20 +44,29 @@ export interface GuardUsage {
   total_tokens: number;
 }
 
+export interface GuardMessageContent {
+  classification: "pass" | "block";
+  violation_types?: string[];
+  cwe_codes?: string[];
+  [key: string]: unknown;
+}
+
 export interface GuardMessage {
   role: string;
-  content?: string;
-  reasoning_content?: string;
-  reasoning?: string; // New field from updated API
+  content?: GuardMessageContent | string; // Support both object (new API) and string (backward compat)
+  reasoning_content?: string; // Deprecated, use reasoning instead
+  reasoning?: string;
 }
 
 export interface GuardChoice {
   message: GuardMessage;
+  finish_reason?: string;
 }
 
 export interface AnalysisResponse {
   usage: GuardUsage;
   id: string;
+  model?: string;
   choices: GuardChoice[];
   [key: string]: unknown;
 }
@@ -186,50 +195,58 @@ function ensureFetch(fetchImpl: typeof fetch | undefined): typeof fetch {
   return resolved.bind(globalThis);
 }
 
-function parseDecision(content: string | undefined): GuardDecision | undefined {
+function parseDecision(content: GuardMessageContent | string | undefined): GuardDecision | undefined {
   if (!content) {
     return undefined;
   }
 
-  try {
-    const payload = JSON.parse(content) as Record<string, unknown>;
-    if (!payload || typeof payload !== "object") {
+  // Handle new API format where content is already an object
+  let payload: Record<string, unknown>;
+  if (typeof content === "object") {
+    payload = content as Record<string, unknown>;
+  } else {
+    // Handle legacy format where content is a JSON string
+    try {
+      payload = JSON.parse(content) as Record<string, unknown>;
+    } catch (error) {
+      // The guard may occasionally return non-JSON text; treat that as undefined.
       return undefined;
     }
+  }
 
-    const statusSource = payload.status ?? payload.classification;
-    if (statusSource !== "pass" && statusSource !== "block") {
-      return undefined;
-    }
-
-    const decision: GuardDecision = { status: statusSource };
-
-    if (Array.isArray(payload.violation_types)) {
-      decision.violation_types = payload.violation_types as string[];
-    }
-
-    if (Array.isArray(payload.cwe_codes)) {
-      decision.cwe_codes = payload.cwe_codes as string[];
-    }
-
-    for (const [key, value] of Object.entries(payload)) {
-      if (
-        key === "status" ||
-        key === "classification" ||
-        key === "violation_types" ||
-        key === "cwe_codes"
-      ) {
-        continue;
-      }
-
-      decision[key] = value;
-    }
-
-    return decision;
-  } catch (error) {
-    // The guard may occasionally return non-JSON text; treat that as undefined.
+  if (!payload || typeof payload !== "object") {
     return undefined;
   }
+
+  const statusSource = payload.status ?? payload.classification;
+  if (statusSource !== "pass" && statusSource !== "block") {
+    return undefined;
+  }
+
+  const decision: GuardDecision = { status: statusSource };
+
+  if (Array.isArray(payload.violation_types)) {
+    decision.violation_types = payload.violation_types as string[];
+  }
+
+  if (Array.isArray(payload.cwe_codes)) {
+    decision.cwe_codes = payload.cwe_codes as string[];
+  }
+
+  for (const [key, value] of Object.entries(payload)) {
+    if (
+      key === "status" ||
+      key === "classification" ||
+      key === "violation_types" ||
+      key === "cwe_codes"
+    ) {
+      continue;
+    }
+
+    decision[key] = value;
+  }
+
+  return decision;
 }
 
 function normalizeReason(
@@ -347,8 +364,11 @@ export function createClient(options: CreateClientOptions): Client {
 
     // Handle JSON response (guard always returns JSON, even for PDF files)
     const analysis = (await response.json()) as AnalysisResponse;
-    const decision = parseDecision(analysis?.choices?.[0]?.message?.content);
-    const rawReasoning = analysis?.choices?.[0]?.message?.reasoning_content;
+    const message = analysis?.choices?.[0]?.message;
+    const content = message?.content;
+    const decision = parseDecision(content);
+    // Support both new 'reasoning' field and legacy 'reasoning_content' field
+    const rawReasoning = message?.reasoning ?? message?.reasoning_content;
     const rejected = decision?.status === "block";
 
     const normalizedReason = normalizeReason(decision, rawReasoning);

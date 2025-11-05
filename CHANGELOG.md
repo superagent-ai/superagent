@@ -2,6 +2,21 @@
 
 All notable changes to Superagent will be documented in this file.
 
+## [superagent-ai@0.0.17] - 2025-01-23
+
+### Breaking Changes
+
+- **BREAKING**: Guard endpoint API response schema updated
+  - `choices[0].message.content` is now an object (was a JSON string)
+  - `choices[0].message.reasoning` replaces `reasoning_content` (deprecated field still supported)
+  - Added `model` and `finish_reason` fields to response
+
+### Changed
+
+- Updated SDKs to handle both new and legacy response formats (backward compatible)
+- SDK users: No changes required
+- Direct API users: Update code to parse `content` as object instead of JSON string
+
 ## [superagent-ai@0.0.16 / @superagent-ai/cli@0.0.11] - 2025-01-23
 
 ### Added
