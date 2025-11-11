@@ -14,6 +14,8 @@ import { Message } from "@/components/ai-elements/message";
 import { Response } from "@/components/ai-elements/response";
 import { Check, X } from "lucide-react";
 
+const AUTO_CONTINUE_TOKEN = "__AUTO_CONTINUE__";
+
 function App() {
   const { messages, sendMessage, addToolResult, status, error } = useChat({
     transport: new DefaultChatTransport({
@@ -22,6 +24,13 @@ function App() {
     // Don't use sendAutomaticallyWhen since we manually send screenshot messages
     // The screenshot message will trigger a new AI response automatically
     async onToolCall({ toolCall }: { toolCall: any }) {
+      const triggerAutoContinue = (reason: string) => {
+        setTimeout(() => {
+          sendMessage({ text: AUTO_CONTINUE_TOKEN }).catch((err: any) => {
+            console.error(`Failed to trigger continue after ${reason}:`, err);
+          });
+        }, 0);
+      };
       console.log("Tool call received:", toolCall);
 
       // Don't handle dynamic tools
@@ -31,12 +40,12 @@ function App() {
 
       // Handle screenshot tool
       if (toolCall.toolName === "takeScreenshot") {
-        chrome.runtime.sendMessage({ action: 'takeScreenshot' }, (response) => {
+        chrome.runtime.sendMessage({ action: "takeScreenshot" }, (response) => {
           if (response?.success && response?.data?.screenshot) {
             // Store viewport info globally so we can use it for click scaling
             (window as any).viewportInfo = response.data.viewport;
 
-            console.log('Viewport info:', response.data.viewport);
+            console.log("Viewport info:", response.data.viewport);
 
             // First, acknowledge the tool call with viewport dimensions
             const vp = response.data.viewport;
@@ -52,85 +61,226 @@ function App() {
                 {
                   type: "file",
                   url: response.data.screenshot,
-                  mediaType: "image/jpeg"
-                }
+                  mediaType: "image/jpeg",
+                },
               ],
             });
           } else {
             addToolResult({
               tool: "takeScreenshot",
               toolCallId: toolCall.toolCallId,
-              output: `Failed to take screenshot: ${response?.error || 'Unknown error'}`,
+              output: `Failed to take screenshot: ${
+                response?.error || "Unknown error"
+              }`,
             });
+            triggerAutoContinue("takeScreenshot (error)");
           }
         });
       }
 
       // Handle get text content tool
       if (toolCall.toolName === "getTextContent") {
-        chrome.runtime.sendMessage({ action: 'getTextContent' }, (response) => {
+        chrome.runtime.sendMessage({ action: "getTextContent" }, (response) => {
           if (response?.success && response?.data?.text) {
             addToolResult({
               tool: "getTextContent",
               toolCallId: toolCall.toolCallId,
               output: response.data.text,
             });
+            triggerAutoContinue("getTextContent");
           } else {
             addToolResult({
               tool: "getTextContent",
               toolCallId: toolCall.toolCallId,
-              output: `Failed to get text content: ${response?.error || 'Unknown error'}`,
+              output: `Failed to get text content: ${
+                response?.error || "Unknown error"
+              }`,
             });
+            triggerAutoContinue("getTextContent (error)");
           }
         });
       }
 
       // Handle get HTML tool
       if (toolCall.toolName === "getHTML") {
-        chrome.runtime.sendMessage({ action: 'getPageHTML' }, (response) => {
+        chrome.runtime.sendMessage({ action: "getPageHTML" }, (response) => {
           if (response?.success && response?.data?.html) {
             addToolResult({
               tool: "getHTML",
               toolCallId: toolCall.toolCallId,
               output: response.data.html,
             });
+            triggerAutoContinue("getHTML");
           } else {
             addToolResult({
               tool: "getHTML",
               toolCallId: toolCall.toolCallId,
-              output: `Failed to get HTML: ${response?.error || 'Unknown error'}`,
+              output: `Failed to get HTML: ${
+                response?.error || "Unknown error"
+              }`,
             });
+            triggerAutoContinue("getHTML (error)");
           }
         });
       }
 
+      // Handle get interactive elements tool
+      if (toolCall.toolName === "getInteractiveElements") {
+        chrome.runtime.sendMessage(
+          { action: "getInteractiveElements" },
+          (response) => {
+            if (response?.success && response?.data?.elements) {
+              const elements = response.data.elements;
+
+              // Format the elements list for display - limit to first 50 chars of text for brevity
+              const elementsList = elements
+                .map((el: any) => {
+                  const parts = [];
+                  if (el.text)
+                    parts.push(`text: "${el.text.substring(0, 50)}"`);
+                  if (el.tagName) parts.push(`tag: ${el.tagName}`);
+                  if (el.ariaLabel) parts.push(`aria-label: "${el.ariaLabel}"`);
+                  if (el.href) parts.push(`href: ${el.href}`);
+                  if (el.id) parts.push(`id: ${el.id}`);
+                  return `Index ${el.index}: ${parts.join(", ")}`;
+                })
+                .join("\n");
+
+              // Add tool result which will trigger the AI to continue with the next action
+              addToolResult({
+                tool: "getInteractiveElements",
+                toolCallId: toolCall.toolCallId,
+                output: `Found ${elements.length} interactive elements. Now analyze the list and call the click tool with the appropriate index for the element the user requested:\n${elementsList}`,
+              });
+              triggerAutoContinue("getInteractiveElements");
+            } else {
+              addToolResult({
+                tool: "getInteractiveElements",
+                toolCallId: toolCall.toolCallId,
+                output: `Failed to get interactive elements: ${
+                  response?.error || "Unknown error"
+                }`,
+              });
+              triggerAutoContinue("getInteractiveElements (error)");
+            }
+          }
+        );
+      }
+
       // Handle click tool
       if (toolCall.toolName === "click") {
-        const { x1, y1, x2, y2 } = toolCall.input;
+        const { index } = toolCall.input;
 
-        // Calculate center of bounding box
-        const x = Math.round((x1 + x2) / 2);
-        const y = Math.round((y1 + y2) / 2);
+        if (index === undefined || index === null) {
+          addToolResult({
+            tool: "click",
+            toolCallId: toolCall.toolCallId,
+            output: `Failed to click: index must be provided`,
+          });
+          triggerAutoContinue("click (missing index)");
+          return;
+        }
 
-        console.log('Click tool called with bounding box:', { x1, y1, x2, y2 });
-        console.log('Calculated center point:', { x, y });
+        console.log("Click tool called with index:", index);
 
-        chrome.runtime.sendMessage({ action: 'clickElement', x, y, boundingBox: { x1, y1, x2, y2 } }, (response) => {
-          console.log('Click response:', response);
-          if (response?.success && response?.data?.clicked) {
-            const element = response.data.element || 'unknown';
-            const text = response.data.text || '';
+        chrome.runtime.sendMessage(
+          { action: "clickElementByIndex", index },
+          (response) => {
+            console.log("Click by index response:", response);
+            if (response?.success && response?.data?.clicked) {
+              const element = response.data.element || "unknown";
+              const text = response.data.text || "";
+              addToolResult({
+                tool: "click",
+                toolCallId: toolCall.toolCallId,
+                output: `Clicked element at index ${index} (${element})${
+                  text ? ": " + text : ""
+                }`,
+              });
+              triggerAutoContinue("click");
+            } else {
+              addToolResult({
+                tool: "click",
+                toolCallId: toolCall.toolCallId,
+                output: `Failed to click element at index ${index}: ${
+                  response?.error || response?.data?.message || "Unknown error"
+                }`,
+              });
+              triggerAutoContinue("click (error)");
+            }
+          }
+        );
+      }
+
+      // Handle navigate to URL tool
+      if (toolCall.toolName === "navigateToUrl") {
+        const { url } = toolCall.input;
+        chrome.runtime.sendMessage(
+          { action: "navigateToUrl", url },
+          (response) => {
+            if (response?.success) {
+              addToolResult({
+                tool: "navigateToUrl",
+                toolCallId: toolCall.toolCallId,
+                output: response.data.message || `Navigated to ${url}`,
+              });
+              triggerAutoContinue("navigateToUrl");
+            } else {
+              addToolResult({
+                tool: "navigateToUrl",
+                toolCallId: toolCall.toolCallId,
+                output: `Failed to navigate: ${
+                  response?.error || "Unknown error"
+                }`,
+              });
+              triggerAutoContinue("navigateToUrl (error)");
+            }
+          }
+        );
+      }
+
+      // Handle go back tool
+      if (toolCall.toolName === "goBack") {
+        chrome.runtime.sendMessage({ action: "goBack" }, (response) => {
+          if (response?.success) {
             addToolResult({
-              tool: "click",
+              tool: "goBack",
               toolCallId: toolCall.toolCallId,
-              output: `Clicked ${element} at center of box (${x}, ${y})${text ? ': ' + text : ''}`,
+              output: response.data.message || "Navigated back",
             });
+            triggerAutoContinue("goBack");
           } else {
             addToolResult({
-              tool: "click",
+              tool: "goBack",
               toolCallId: toolCall.toolCallId,
-              output: `Failed to click at (${x}, ${y}): ${response?.error || response?.data?.message || 'Unknown error'}`,
+              output: `Failed to go back: ${
+                response?.error || "Unknown error"
+              }`,
             });
+            triggerAutoContinue("goBack (error)");
+          }
+        });
+      }
+
+      // Handle go forward tool
+      if (toolCall.toolName === "goForward") {
+        chrome.runtime.sendMessage({ action: "goForward" }, (response) => {
+          if (response?.success) {
+            addToolResult({
+              tool: "goForward",
+              toolCallId: toolCall.toolCallId,
+              output: response.data.message || "Navigated forward",
+            });
+            triggerAutoContinue("goForward");
+          } else {
+            addToolResult({
+              tool: "goForward",
+              toolCallId: toolCall.toolCallId,
+              output: `Failed to go forward: ${
+                response?.error || "Unknown error"
+              }`,
+            });
+            triggerAutoContinue("goForward (error)");
           }
         });
       }
@@ -152,16 +302,22 @@ function App() {
       <Conversation>
         <ConversationContent>
           {messages.map((message: any) => {
-            // Hide screenshot messages (user messages with only file parts)
-            const hasOnlyFiles = message.parts?.every((p: any) => p.type === "file");
+            // Hide auto-continue and screenshot messages
+            const hasOnlyFiles = message.parts?.every(
+              (p: any) => p.type === "file"
+            );
             if (message.role === "user" && hasOnlyFiles) {
-              return null; // Don't render screenshot messages
+              return null;
             }
-
-            // Collect all text parts into one string
             const textParts =
               message.parts?.filter((p: any) => p.type === "text") || [];
             const combinedText = textParts.map((p: any) => p.text).join("");
+            if (
+              message.role === "user" &&
+              combinedText === AUTO_CONTINUE_TOKEN
+            ) {
+              return null;
+            }
 
             // Create a version object for Branch component
             const version = {

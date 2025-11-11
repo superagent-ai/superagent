@@ -1,8 +1,19 @@
 // Background service worker for Superagent Chrome extension
 
+// Store selectorMap per tab (tabId -> Map<index, elementData>)
+const tabSelectorMaps = new Map();
+
 // Handle extension installation
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Superagent Chrome extension installed');
+});
+
+// Clear selector map cache when tab is updated (navigation, reload, etc.)
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.status === 'loading' || changeInfo.url) {
+    // Clear the selector map for this tab when page starts loading or URL changes
+    tabSelectorMaps.delete(tabId);
+  }
 });
 
 // Handle toolbar icon click - open side panel
@@ -228,146 +239,477 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
-  if (request.action === 'clickElement') {
+  if (request.action === 'getInteractiveElements') {
     chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
       if (tabs[0]) {
         try {
-          const bbox = request.boundingBox;
-          console.log('Attempting to click with bounding box:', bbox);
-          console.log('Center point:', request.x, request.y);
-
-          // Click at specific coordinates (center of bounding box)
           const results = await chrome.scripting.executeScript({
             target: { tabId: tabs[0].id },
-            func: (x, y, bbox) => {
-              console.log('Executing click at:', x, y);
-              console.log('Bounding box:', bbox);
+            func: function() {
+              function buildSelectorMap() {
+                const selectorMap = new Map();
+                let elementIndex = 0;
 
-              // Draw the bounding box on the screen for debugging
-              const boxOverlay = document.createElement('div');
-              boxOverlay.style.position = 'fixed';
-              boxOverlay.style.left = bbox.x1 + 'px';
-              boxOverlay.style.top = bbox.y1 + 'px';
-              boxOverlay.style.width = (bbox.x2 - bbox.x1) + 'px';
-              boxOverlay.style.height = (bbox.y2 - bbox.y1) + 'px';
-              boxOverlay.style.border = '3px solid red';
-              boxOverlay.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
-              boxOverlay.style.zIndex = '999999';
-              boxOverlay.style.pointerEvents = 'none';
-              document.body.appendChild(boxOverlay);
+                function isInteractive(element) {
+                  if (!element || element.tagName === 'SCRIPT' || element.tagName === 'STYLE' || element.tagName === 'NOSCRIPT') {
+                    return false;
+                  }
 
-              // Draw a center point marker
-              const centerMarker = document.createElement('div');
-              centerMarker.style.position = 'fixed';
-              centerMarker.style.left = (x - 5) + 'px';
-              centerMarker.style.top = (y - 5) + 'px';
-              centerMarker.style.width = '10px';
-              centerMarker.style.height = '10px';
-              centerMarker.style.borderRadius = '50%';
-              centerMarker.style.backgroundColor = 'blue';
-              centerMarker.style.zIndex = '999999';
-              centerMarker.style.pointerEvents = 'none';
-              document.body.appendChild(centerMarker);
+                  const rect = element.getBoundingClientRect();
+                  const style = window.getComputedStyle(element);
+                  const isVisible = rect.width > 0 && rect.height > 0 && 
+                                    style.display !== 'none' && 
+                                    style.visibility !== 'hidden' && 
+                                    style.opacity !== '0';
 
-              // Remove overlays after 2 seconds
-              setTimeout(() => {
-                boxOverlay.remove();
-                centerMarker.remove();
-              }, 2000);
+                  if (!isVisible) {
+                    return false;
+                  }
 
-              // Get ALL elements at the coordinates (not just the topmost one)
-              const elements = document.elementsFromPoint(x, y);
-              console.log('Found elements at point:', elements.length);
+                  const interactiveTags = ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'LABEL'];
+                  if (interactiveTags.indexOf(element.tagName) !== -1) {
+                    return true;
+                  }
 
-              if (!elements || elements.length === 0) {
+                  if (element.hasAttribute('onclick') ||
+                      (element.hasAttribute('role') && ['button', 'link', 'menuitem', 'tab', 'option'].indexOf(element.getAttribute('role')) !== -1) ||
+                      (element.hasAttribute('tabindex') && parseInt(element.getAttribute('tabindex')) >= 0) ||
+                      element.hasAttribute('data-testid') ||
+                      element.classList.contains('clickable') ||
+                      style.cursor === 'pointer' ||
+                      element.getAttribute('href') ||
+                      element.getAttribute('type') === 'submit' ||
+                      element.getAttribute('type') === 'button' ||
+                      element.onclick) {
+                    return true;
+                  }
+
+                  return false;
+                }
+
+                function getXPath(element) {
+                  if (element.id) {
+                    return '//*[@id="' + element.id + '"]';
+                  }
+                  if (element === document.body) {
+                    return '/html/body';
+                  }
+                  if (element === document.documentElement) {
+                    return '/html';
+                  }
+                  
+                  var ix = 0;
+                  var siblings = element.parentNode.childNodes;
+                  for (var i = 0; i < siblings.length; i++) {
+                    var sibling = siblings[i];
+                    if (sibling === element) {
+                      return getXPath(element.parentNode) + '/' + element.tagName.toLowerCase() + '[' + (ix + 1) + ']';
+                    }
+                    if (sibling.nodeType === 1 && sibling.tagName === element.tagName) {
+                      ix++;
+                    }
+                  }
+                }
+
+                function getCSSSelector(element) {
+                  if (element.id) {
+                    return '#' + element.id.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+                  }
+                  
+                  var path = [];
+                  while (element && element.nodeType === Node.ELEMENT_NODE) {
+                    var selector = element.tagName.toLowerCase();
+                    if (element.className && typeof element.className === 'string') {
+                      var classes = element.className.trim().split(/\s+/).filter(function(c) { return c.length > 0; });
+                      if (classes.length > 0) {
+                        selector += '.' + classes.join('.');
+                      }
+                    }
+                    var parent = element.parentNode;
+                    if (parent) {
+                      var siblings = Array.from(parent.children).filter(function(s) {
+                        return s.tagName === element.tagName;
+                      });
+                      if (siblings.length > 1) {
+                        var index = siblings.indexOf(element) + 1;
+                        selector += ':nth-of-type(' + index + ')';
+                      }
+                    }
+                    path.unshift(selector);
+                    element = parent;
+                  }
+                  return path.join(' > ');
+                }
+
+                function getElementDescription(element) {
+                  const tagName = element.tagName.toLowerCase();
+                  const text = element.textContent ? element.textContent.trim().substring(0, 100) : '';
+                  const ariaLabel = element.getAttribute('aria-label') || '';
+                  const title = element.getAttribute('title') || '';
+                  const id = element.id || '';
+                  const className = element.className ? (typeof element.className === 'string' ? element.className : element.className.toString()) : '';
+                  const href = element.href || '';
+                  const type = element.type || '';
+                  const value = element.value || '';
+                  const placeholder = element.placeholder || '';
+                  const role = element.getAttribute('role') || '';
+                  
+                  var xpath = '';
+                  var cssSelector = '';
+                  try {
+                    xpath = getXPath(element) || '';
+                    cssSelector = getCSSSelector(element) || '';
+                  } catch (e) {
+                    // If XPath/CSS generation fails, continue without them
+                  }
+
+                  return {
+                    tagName: tagName,
+                    text: text,
+                    ariaLabel: ariaLabel,
+                    title: title,
+                    id: id,
+                    className: className,
+                    href: href,
+                    type: type,
+                    value: value,
+                    placeholder: placeholder,
+                    role: role,
+                    xpath: xpath,
+                    cssSelector: cssSelector,
+                    boundingBox: element.getBoundingClientRect()
+                  };
+                }
+
+                function traverseDOM(node) {
+                  if (!node || node.nodeType !== Node.ELEMENT_NODE) {
+                    return;
+                  }
+
+                  if (isInteractive(node)) {
+                    const description = getElementDescription(node);
+                    selectorMap.set(elementIndex, {
+                      index: elementIndex,
+                      element: node,
+                      tagName: description.tagName,
+                      text: description.text,
+                      ariaLabel: description.ariaLabel,
+                      title: description.title,
+                      id: description.id,
+                      className: description.className,
+                      href: description.href,
+                      type: description.type,
+                      value: description.value,
+                      placeholder: description.placeholder,
+                      role: description.role,
+                      xpath: description.xpath,
+                      cssSelector: description.cssSelector,
+                      boundingBox: description.boundingBox
+                    });
+                    elementIndex++;
+                  }
+
+                  var children = Array.from(node.children);
+                  for (var i = 0; i < children.length; i++) {
+                    traverseDOM(children[i]);
+                  }
+                }
+
+                traverseDOM(document.body);
+                return selectorMap;
+              }
+
+              const selectorMap = buildSelectorMap();
+              const elements = [];
+              var entries = Array.from(selectorMap.entries());
+              for (var i = 0; i < entries.length; i++) {
+                var entry = entries[i];
+                var idx = entry[0];
+                var data = entry[1];
+                var rect = data.boundingBox;
+                elements.push({
+                  index: data.index,
+                  tagName: data.tagName,
+                  text: data.text,
+                  ariaLabel: data.ariaLabel,
+                  title: data.title,
+                  id: data.id,
+                  className: data.className,
+                  href: data.href,
+                  type: data.type,
+                  value: data.value,
+                  placeholder: data.placeholder,
+                  role: data.role,
+                  xpath: data.xpath || '',
+                  cssSelector: data.cssSelector || '',
+                  boundingBox: {
+                    x: rect.x,
+                    y: rect.y,
+                    width: rect.width,
+                    height: rect.height,
+                    top: rect.top,
+                    left: rect.left,
+                    right: rect.right,
+                    bottom: rect.bottom
+                  }
+                });
+              }
+              return elements;
+            }
+          });
+
+          if (results && results[0]) {
+            // Store the selector map for this tab
+            const tabId = tabs[0].id;
+            tabSelectorMaps.set(tabId, results[0].result);
+            
+            sendResponse({
+              success: true,
+              data: {
+                elements: results[0].result,
+                count: results[0].result.length
+              }
+            });
+          } else {
+            sendResponse({ success: false, error: 'No results from script execution' });
+          }
+        } catch (error) {
+          sendResponse({ success: false, error: error.message });
+        }
+      } else {
+        sendResponse({ success: false, error: 'No active tab found' });
+      }
+    });
+    return true;
+  }
+
+  if (request.action === 'clickElementByIndex') {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      if (tabs[0]) {
+        try {
+          const elementIndex = request.index;
+          console.log('Attempting to click element with index:', elementIndex);
+
+          const results = await chrome.scripting.executeScript({
+            target: { tabId: tabs[0].id },
+            func: async function(index) {
+              function buildSelectorMap() {
+                const selectorMap = new Map();
+                let elementIndex = 0;
+
+                function isInteractive(element) {
+                  if (!element || element.tagName === 'SCRIPT' || element.tagName === 'STYLE' || element.tagName === 'NOSCRIPT') {
+                    return false;
+                  }
+
+                  const rect = element.getBoundingClientRect();
+                  const style = window.getComputedStyle(element);
+                  const isVisible = rect.width > 0 && rect.height > 0 && 
+                                    style.display !== 'none' && 
+                                    style.visibility !== 'hidden' && 
+                                    style.opacity !== '0';
+
+                  if (!isVisible) {
+                    return false;
+                  }
+
+                  const interactiveTags = ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'LABEL'];
+                  if (interactiveTags.indexOf(element.tagName) !== -1) {
+                    return true;
+                  }
+
+                  if (element.hasAttribute('onclick') ||
+                      (element.hasAttribute('role') && ['button', 'link', 'menuitem', 'tab', 'option'].indexOf(element.getAttribute('role')) !== -1) ||
+                      (element.hasAttribute('tabindex') && parseInt(element.getAttribute('tabindex')) >= 0) ||
+                      element.hasAttribute('data-testid') ||
+                      element.classList.contains('clickable') ||
+                      style.cursor === 'pointer' ||
+                      element.getAttribute('href') ||
+                      element.getAttribute('type') === 'submit' ||
+                      element.getAttribute('type') === 'button' ||
+                      element.onclick) {
+                    return true;
+                  }
+
+                  return false;
+                }
+
+                function getElementDescription(element) {
+                  const tagName = element.tagName.toLowerCase();
+                  const text = element.textContent ? element.textContent.trim().substring(0, 100) : '';
+                  const ariaLabel = element.getAttribute('aria-label') || '';
+                  const title = element.getAttribute('title') || '';
+                  const id = element.id || '';
+                  const className = element.className ? (typeof element.className === 'string' ? element.className : element.className.toString()) : '';
+                  const href = element.href || '';
+                  const type = element.type || '';
+                  const value = element.value || '';
+                  const placeholder = element.placeholder || '';
+                  const role = element.getAttribute('role') || '';
+
+                  return {
+                    tagName: tagName,
+                    text: text,
+                    ariaLabel: ariaLabel,
+                    title: title,
+                    id: id,
+                    className: className,
+                    href: href,
+                    type: type,
+                    value: value,
+                    placeholder: placeholder,
+                    role: role,
+                    boundingBox: element.getBoundingClientRect()
+                  };
+                }
+
+                function traverseDOM(node) {
+                  if (!node || node.nodeType !== Node.ELEMENT_NODE) {
+                    return;
+                  }
+
+                  if (isInteractive(node)) {
+                    const description = getElementDescription(node);
+                    selectorMap.set(elementIndex, {
+                      index: elementIndex,
+                      element: node,
+                      tagName: description.tagName,
+                      text: description.text,
+                      ariaLabel: description.ariaLabel,
+                      title: description.title,
+                      id: description.id,
+                      className: description.className,
+                      href: description.href,
+                      type: description.type,
+                      value: description.value,
+                      placeholder: description.placeholder,
+                      role: description.role,
+                      boundingBox: description.boundingBox
+                    });
+                    elementIndex++;
+                  }
+
+                  var children = Array.from(node.children);
+                  for (var i = 0; i < children.length; i++) {
+                    traverseDOM(children[i]);
+                  }
+                }
+
+                traverseDOM(document.body);
+                return selectorMap;
+              }
+
+              const selectorMap = buildSelectorMap();
+              const elementData = selectorMap.get(index);
+
+              if (!elementData || !elementData.element) {
                 return {
                   clicked: false,
-                  message: 'No element found at coordinates',
-                  coordinates: { x, y }
+                  message: 'No element found at index ' + index,
+                  index: index
                 };
               }
 
-              // Find the best clickable element from the stack
-              const clickableTags = ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'];
-              let clickableElement = null;
+              var element = elementData.element;
+              
+              // Function to scroll element into view
+              function scrollIntoViewIfNeeded(el) {
+                var rect = el.getBoundingClientRect();
+                var isInViewport = rect.top >= 0 && 
+                                  rect.left >= 0 && 
+                                  rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                                  rect.right <= (window.innerWidth || document.documentElement.clientWidth);
+                
+                if (!isInViewport) {
+                  el.scrollIntoView({
+                    behavior: 'auto',
+                    block: 'center',
+                    inline: 'center'
+                  });
+                  // Wait a bit for scroll to complete
+                  return new Promise(function(resolve) {
+                    setTimeout(resolve, 300);
+                  });
+                }
+                return Promise.resolve();
+              }
 
-              // First, try to find a proper clickable element
-              for (const el of elements) {
-                if (clickableTags.includes(el.tagName) ||
-                    el.onclick ||
-                    el.getAttribute('role') === 'button' ||
-                    el.getAttribute('role') === 'link' ||
-                    el.getAttribute('role') === 'menuitem' ||
-                    el.getAttribute('tabindex') === '0' ||
-                    el.hasAttribute('data-testid') ||
-                    el.classList.contains('clickable') ||
-                    el.style.cursor === 'pointer'
-                ) {
-                  clickableElement = el;
-                  console.log('Found clickable element:', clickableElement.tagName, clickableElement);
+              // Scroll element into view before clicking
+              await scrollIntoViewIfNeeded(element);
+              
+              // Wait for element to be stable (no position changes)
+              var lastRect = element.getBoundingClientRect();
+              var stable = false;
+              for (var attempt = 0; attempt < 10; attempt++) {
+                await new Promise(function(resolve) { setTimeout(resolve, 50); });
+                var currentRect = element.getBoundingClientRect();
+                if (Math.abs(currentRect.x - lastRect.x) < 2 &&
+                    Math.abs(currentRect.y - lastRect.y) < 2 &&
+                    Math.abs(currentRect.width - lastRect.width) < 2 &&
+                    Math.abs(currentRect.height - lastRect.height) < 2) {
+                  stable = true;
                   break;
                 }
+                lastRect = currentRect;
               }
 
-              // If no clickable element found, use the first non-body element
-              if (!clickableElement) {
-                clickableElement = elements.find(el => el.tagName !== 'BODY' && el.tagName !== 'HTML') || elements[0];
-                console.log('Using fallback element:', clickableElement);
-              }
+              var rect = element.getBoundingClientRect();
+              var centerX = rect.left + rect.width / 2;
+              var centerY = rect.top + rect.height / 2;
 
-              // Highlight the clickable element briefly with green outline
-              const originalOutline = clickableElement.style.outline;
-              clickableElement.style.outline = '3px solid green';
-              setTimeout(() => {
-                clickableElement.style.outline = originalOutline;
+              // Highlight the element briefly
+              var originalOutline = element.style.outline;
+              element.style.outline = '3px solid green';
+              setTimeout(function() {
+                element.style.outline = originalOutline;
               }, 2000);
 
               // Try multiple click methods for better compatibility
               // Method 1: Direct click
-              clickableElement.click();
+              element.click();
 
               // Method 2: Mouse events sequence
-              const mouseDownEvent = new MouseEvent('mousedown', {
+              var mouseDownEvent = new MouseEvent('mousedown', {
                 view: window,
                 bubbles: true,
                 cancelable: true,
-                clientX: x,
-                clientY: y
+                clientX: centerX,
+                clientY: centerY
               });
-              const mouseUpEvent = new MouseEvent('mouseup', {
+              var mouseUpEvent = new MouseEvent('mouseup', {
                 view: window,
                 bubbles: true,
                 cancelable: true,
-                clientX: x,
-                clientY: y
+                clientX: centerX,
+                clientY: centerY
               });
-              const clickEvent = new MouseEvent('click', {
+              var clickEvent = new MouseEvent('click', {
                 view: window,
                 bubbles: true,
                 cancelable: true,
-                clientX: x,
-                clientY: y
+                clientX: centerX,
+                clientY: centerY
               });
 
-              clickableElement.dispatchEvent(mouseDownEvent);
-              clickableElement.dispatchEvent(mouseUpEvent);
-              clickableElement.dispatchEvent(clickEvent);
+              element.dispatchEvent(mouseDownEvent);
+              element.dispatchEvent(mouseUpEvent);
+              element.dispatchEvent(clickEvent);
 
               // Method 3: Focus if it's an input or link
-              if (clickableTags.includes(clickableElement.tagName)) {
-                clickableElement.focus();
+              var clickableTags = ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'];
+              if (clickableTags.indexOf(element.tagName) !== -1) {
+                element.focus();
               }
 
               return {
                 clicked: true,
-                element: clickableElement.tagName,
-                text: clickableElement.textContent?.substring(0, 100) || clickableElement.getAttribute('aria-label') || 'No text',
-                coordinates: { x, y },
-                boundingBox: bbox,
-                href: clickableElement.href || null
+                index: index,
+                element: element.tagName,
+                text: (element.textContent ? element.textContent.substring(0, 100) : '') || element.getAttribute('aria-label') || 'No text',
+                href: element.href || null
               };
             },
-            args: [request.x, request.y, request.boundingBox]
+            args: [elementIndex]
           });
 
           if (results && results[0]) {
@@ -387,4 +729,84 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return true;
   }
+
+  if (request.action === 'navigateToUrl') {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      if (tabs[0]) {
+        try {
+          await chrome.tabs.update(tabs[0].id, { url: request.url });
+          sendResponse({
+            success: true,
+            data: { message: `Navigated to ${request.url}` }
+          });
+        } catch (error) {
+          sendResponse({ success: false, error: error.message });
+        }
+      } else {
+        sendResponse({ success: false, error: 'No active tab found' });
+      }
+    });
+    return true;
+  }
+
+  if (request.action === 'goBack') {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      if (tabs[0]) {
+        try {
+          const results = await chrome.scripting.executeScript({
+            target: { tabId: tabs[0].id },
+            func: function() {
+              window.history.back();
+              return { success: true };
+            }
+          });
+          
+          if (results && results[0]) {
+            sendResponse({
+              success: true,
+              data: { message: 'Navigated back' }
+            });
+          } else {
+            sendResponse({ success: false, error: 'No results from script execution' });
+          }
+        } catch (error) {
+          sendResponse({ success: false, error: error.message });
+        }
+      } else {
+        sendResponse({ success: false, error: 'No active tab found' });
+      }
+    });
+    return true;
+  }
+
+  if (request.action === 'goForward') {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      if (tabs[0]) {
+        try {
+          const results = await chrome.scripting.executeScript({
+            target: { tabId: tabs[0].id },
+            func: function() {
+              window.history.forward();
+              return { success: true };
+            }
+          });
+          
+          if (results && results[0]) {
+            sendResponse({
+              success: true,
+              data: { message: 'Navigated forward' }
+            });
+          } else {
+            sendResponse({ success: false, error: 'No results from script execution' });
+          }
+        } catch (error) {
+          sendResponse({ success: false, error: error.message });
+        }
+      } else {
+        sendResponse({ success: false, error: 'No active tab found' });
+      }
+    });
+    return true;
+  }
+
 });
