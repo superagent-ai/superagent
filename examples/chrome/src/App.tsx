@@ -16,6 +16,35 @@ import { Check, X } from "lucide-react";
 
 const AUTO_CONTINUE_TOKEN = "__AUTO_CONTINUE__";
 
+const TOOL_LABELS: Record<string, string> = {
+  takeScreenshot: "Screenshot captured",
+  getTextContent: "Captured page text",
+  getInteractiveElements: "Listed interactive elements",
+  click: "Clicked element",
+  navigateToUrl: "Navigated to URL",
+  goBack: "Went back",
+  goForward: "Went forward",
+};
+
+const summarizeToolOutput = (toolName: string, output?: unknown) => {
+  const label = TOOL_LABELS[toolName] ?? toolName;
+  if (typeof output !== "string") {
+    return `✓ ${label}`;
+  }
+
+  const normalized = output.trim();
+  if (!normalized) {
+    return `✓ ${label}`;
+  }
+
+  const failed = normalized.toLowerCase().startsWith("failed");
+  if (failed) {
+    return `⚠️ ${normalized}`;
+  }
+
+  return `✓ ${label}`;
+};
+
 function App() {
   const { messages, sendMessage, addToolResult, status, error } = useChat({
     transport: new DefaultChatTransport({
@@ -31,6 +60,15 @@ function App() {
           });
         }, 0);
       };
+
+      const emitToolError = (toolName: string, message: string) => {
+        addToolResult({
+          tool: toolName,
+          toolCallId: toolCall.toolCallId,
+          output: message,
+        });
+        triggerAutoContinue(`${toolName} (error)`);
+      };
       console.log("Tool call received:", toolCall);
 
       // Don't handle dynamic tools
@@ -40,131 +78,177 @@ function App() {
 
       // Handle screenshot tool
       if (toolCall.toolName === "takeScreenshot") {
-        chrome.runtime.sendMessage({ action: "takeScreenshot" }, (response) => {
-          if (response?.success && response?.data?.screenshot) {
-            // Store viewport info globally so we can use it for click scaling
-            (window as any).viewportInfo = response.data.viewport;
+        if (!chrome?.runtime?.sendMessage) {
+          emitToolError(
+            "takeScreenshot",
+            "Failed to take screenshot: chrome runtime is unavailable"
+          );
+          return;
+        }
 
-            console.log("Viewport info:", response.data.viewport);
+        try {
+          chrome.runtime.sendMessage(
+            { action: "takeScreenshot" },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                emitToolError(
+                  "takeScreenshot",
+                  `Failed to take screenshot: ${chrome.runtime.lastError.message}`
+                );
+                return;
+              }
 
-            // First, acknowledge the tool call with viewport dimensions
-            const vp = response.data.viewport;
-            addToolResult({
-              tool: "takeScreenshot",
-              toolCallId: toolCall.toolCallId,
-              output: `Screenshot captured. The screenshot shows a ${vp.width}x${vp.height} viewport. When providing click coordinates, use coordinates based on this ${vp.width}x${vp.height} resolution.`,
-            });
+              if (response?.success && response?.data?.screenshot) {
+                addToolResult({
+                  tool: "takeScreenshot",
+                  toolCallId: toolCall.toolCallId,
+                  output: "Screenshot captured",
+                });
 
-            // Then send the image as a user message with file part
-            sendMessage({
-              parts: [
-                {
-                  type: "file",
-                  url: response.data.screenshot,
-                  mediaType: "image/jpeg",
-                },
-              ],
-            });
-          } else {
-            addToolResult({
-              tool: "takeScreenshot",
-              toolCallId: toolCall.toolCallId,
-              output: `Failed to take screenshot: ${
-                response?.error || "Unknown error"
-              }`,
-            });
-            triggerAutoContinue("takeScreenshot (error)");
-          }
-        });
+                // Then send the image as a user message with file part
+                sendMessage({
+                  parts: [
+                    {
+                      type: "file",
+                      url: response.data.screenshot,
+                      mediaType: "image/jpeg",
+                    },
+                  ],
+                });
+              } else {
+                emitToolError(
+                  "takeScreenshot",
+                  `Failed to take screenshot: ${
+                    response?.error || "Unknown error"
+                  }`
+                );
+              }
+            }
+          );
+        } catch (error) {
+          emitToolError(
+            "takeScreenshot",
+            `Failed to take screenshot: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        }
       }
 
       // Handle get text content tool
       if (toolCall.toolName === "getTextContent") {
-        chrome.runtime.sendMessage({ action: "getTextContent" }, (response) => {
-          if (response?.success && response?.data?.text) {
-            addToolResult({
-              tool: "getTextContent",
-              toolCallId: toolCall.toolCallId,
-              output: response.data.text,
-            });
-            triggerAutoContinue("getTextContent");
-          } else {
-            addToolResult({
-              tool: "getTextContent",
-              toolCallId: toolCall.toolCallId,
-              output: `Failed to get text content: ${
-                response?.error || "Unknown error"
-              }`,
-            });
-            triggerAutoContinue("getTextContent (error)");
-          }
-        });
-      }
+        if (!chrome?.runtime?.sendMessage) {
+          emitToolError(
+            "getTextContent",
+            "Failed to get text content: chrome runtime is unavailable"
+          );
+          return;
+        }
 
-      // Handle get HTML tool
-      if (toolCall.toolName === "getHTML") {
-        chrome.runtime.sendMessage({ action: "getPageHTML" }, (response) => {
-          if (response?.success && response?.data?.html) {
-            addToolResult({
-              tool: "getHTML",
-              toolCallId: toolCall.toolCallId,
-              output: response.data.html,
-            });
-            triggerAutoContinue("getHTML");
-          } else {
-            addToolResult({
-              tool: "getHTML",
-              toolCallId: toolCall.toolCallId,
-              output: `Failed to get HTML: ${
-                response?.error || "Unknown error"
-              }`,
-            });
-            triggerAutoContinue("getHTML (error)");
-          }
-        });
+        try {
+          chrome.runtime.sendMessage(
+            { action: "getTextContent" },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                emitToolError(
+                  "getTextContent",
+                  `Failed to get text content: ${chrome.runtime.lastError.message}`
+                );
+                return;
+              }
+
+              if (response?.success && response?.data?.text) {
+                addToolResult({
+                  tool: "getTextContent",
+                  toolCallId: toolCall.toolCallId,
+                  output: response.data.text,
+                });
+                triggerAutoContinue("getTextContent");
+              } else {
+                emitToolError(
+                  "getTextContent",
+                  `Failed to get text content: ${
+                    response?.error || "Unknown error"
+                  }`
+                );
+              }
+            }
+          );
+        } catch (error) {
+          emitToolError(
+            "getTextContent",
+            `Failed to get text content: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        }
       }
 
       // Handle get interactive elements tool
       if (toolCall.toolName === "getInteractiveElements") {
-        chrome.runtime.sendMessage(
-          { action: "getInteractiveElements" },
-          (response) => {
-            if (response?.success && response?.data?.elements) {
-              const elements = response.data.elements;
+        if (!chrome?.runtime?.sendMessage) {
+          emitToolError(
+            "getInteractiveElements",
+            "Failed to get interactive elements: chrome runtime is unavailable"
+          );
+          return;
+        }
 
-              // Format the elements list for display - limit to first 50 chars of text for brevity
-              const elementsList = elements
-                .map((el: any) => {
-                  const parts = [];
-                  if (el.text)
-                    parts.push(`text: "${el.text.substring(0, 50)}"`);
-                  if (el.tagName) parts.push(`tag: ${el.tagName}`);
-                  if (el.ariaLabel) parts.push(`aria-label: "${el.ariaLabel}"`);
-                  if (el.href) parts.push(`href: ${el.href}`);
-                  if (el.id) parts.push(`id: ${el.id}`);
-                  return `Index ${el.index}: ${parts.join(", ")}`;
-                })
-                .join("\n");
+        try {
+          chrome.runtime.sendMessage(
+            { action: "getInteractiveElements" },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                emitToolError(
+                  "getInteractiveElements",
+                  `Failed to get interactive elements: ${chrome.runtime.lastError.message}`
+                );
+                return;
+              }
 
-              // Add tool result which will trigger the AI to continue with the next action
-              addToolResult({
-                tool: "getInteractiveElements",
-                toolCallId: toolCall.toolCallId,
-                output: `Found ${elements.length} interactive elements. Now analyze the list and call the click tool with the appropriate index for the element the user requested:\n${elementsList}`,
-              });
-              triggerAutoContinue("getInteractiveElements");
-            } else {
-              addToolResult({
-                tool: "getInteractiveElements",
-                toolCallId: toolCall.toolCallId,
-                output: `Failed to get interactive elements: ${
-                  response?.error || "Unknown error"
-                }`,
-              });
-              triggerAutoContinue("getInteractiveElements (error)");
+              if (response?.success && response?.data?.elements) {
+                const elements = response.data.elements;
+
+                // Format the elements list for display - limit to first 50 chars of text for brevity
+                const elementsList = elements
+                  .map((el: any) => {
+                    const parts = [];
+                    if (el.text)
+                      parts.push(`text: "${el.text.substring(0, 50)}"`);
+                    if (el.tagName) parts.push(`tag: ${el.tagName}`);
+                    if (el.ariaLabel)
+                      parts.push(`aria-label: "${el.ariaLabel}"`);
+                    if (el.href) parts.push(`href: ${el.href}`);
+                    if (el.id) parts.push(`id: ${el.id}`);
+                    return `Index ${el.index}: ${parts.join(", ")}`;
+                  })
+                  .join("\n");
+
+                // Add tool result which will trigger the AI to continue with the next action
+                addToolResult({
+                  tool: "getInteractiveElements",
+                  toolCallId: toolCall.toolCallId,
+                  output: elementsList,
+                });
+                triggerAutoContinue("getInteractiveElements");
+              } else {
+                emitToolError(
+                  "getInteractiveElements",
+                  `Failed to get interactive elements: ${
+                    response?.error || "Unknown error"
+                  }`
+                );
+              }
             }
-          }
-        );
+          );
+        } catch (error) {
+          emitToolError(
+            "getInteractiveElements",
+            `Failed to get interactive elements: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        }
       }
 
       // Handle click tool
@@ -181,108 +265,196 @@ function App() {
           return;
         }
 
+        if (!chrome?.runtime?.sendMessage) {
+          emitToolError(
+            "click",
+            "Failed to click: chrome runtime is unavailable"
+          );
+          return;
+        }
+
         console.log("Click tool called with index:", index);
 
-        chrome.runtime.sendMessage(
-          { action: "clickElementByIndex", index },
-          (response) => {
-            console.log("Click by index response:", response);
-            if (response?.success && response?.data?.clicked) {
-              const element = response.data.element || "unknown";
-              const text = response.data.text || "";
-              addToolResult({
-                tool: "click",
-                toolCallId: toolCall.toolCallId,
-                output: `Clicked element at index ${index} (${element})${
-                  text ? ": " + text : ""
-                }`,
-              });
-              triggerAutoContinue("click");
-            } else {
-              addToolResult({
-                tool: "click",
-                toolCallId: toolCall.toolCallId,
-                output: `Failed to click element at index ${index}: ${
-                  response?.error || response?.data?.message || "Unknown error"
-                }`,
-              });
-              triggerAutoContinue("click (error)");
+        try {
+          chrome.runtime.sendMessage(
+            { action: "clickElementByIndex", index },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                emitToolError(
+                  "click",
+                  `Failed to click element at index ${index}: ${chrome.runtime.lastError.message}`
+                );
+                return;
+              }
+
+              console.log("Click by index response:", response);
+              if (response?.success && response?.data?.clicked) {
+                const element = response.data.element || "unknown";
+                const text = response.data.text || "";
+                addToolResult({
+                  tool: "click",
+                  toolCallId: toolCall.toolCallId,
+                  output: `Clicked element at index ${index} (${element})${
+                    text ? ": " + text : ""
+                  }`,
+                });
+                triggerAutoContinue("click");
+              } else {
+                emitToolError(
+                  "click",
+                  `Failed to click element at index ${index}: ${
+                    response?.error ||
+                    response?.data?.message ||
+                    "Unknown error"
+                  }`
+                );
+              }
             }
-          }
-        );
+          );
+        } catch (error) {
+          emitToolError(
+            "click",
+            `Failed to click element at index ${index}: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        }
       }
 
       // Handle navigate to URL tool
       if (toolCall.toolName === "navigateToUrl") {
+        if (!chrome?.runtime?.sendMessage) {
+          emitToolError(
+            "navigateToUrl",
+            "Failed to navigate: chrome runtime is unavailable"
+          );
+          return;
+        }
+
         const { url } = toolCall.input;
-        chrome.runtime.sendMessage(
-          { action: "navigateToUrl", url },
-          (response) => {
-            if (response?.success) {
-              addToolResult({
-                tool: "navigateToUrl",
-                toolCallId: toolCall.toolCallId,
-                output: response.data.message || `Navigated to ${url}`,
-              });
-              triggerAutoContinue("navigateToUrl");
-            } else {
-              addToolResult({
-                tool: "navigateToUrl",
-                toolCallId: toolCall.toolCallId,
-                output: `Failed to navigate: ${
-                  response?.error || "Unknown error"
-                }`,
-              });
-              triggerAutoContinue("navigateToUrl (error)");
+        try {
+          chrome.runtime.sendMessage(
+            { action: "navigateToUrl", url },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                emitToolError(
+                  "navigateToUrl",
+                  `Failed to navigate: ${chrome.runtime.lastError.message}`
+                );
+                return;
+              }
+
+              if (response?.success) {
+                addToolResult({
+                  tool: "navigateToUrl",
+                  toolCallId: toolCall.toolCallId,
+                  output: response.data.message || `Navigated to ${url}`,
+                });
+                triggerAutoContinue("navigateToUrl");
+              } else {
+                emitToolError(
+                  "navigateToUrl",
+                  `Failed to navigate: ${response?.error || "Unknown error"}`
+                );
+              }
             }
-          }
-        );
+          );
+        } catch (error) {
+          emitToolError(
+            "navigateToUrl",
+            `Failed to navigate: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        }
       }
 
       // Handle go back tool
       if (toolCall.toolName === "goBack") {
-        chrome.runtime.sendMessage({ action: "goBack" }, (response) => {
-          if (response?.success) {
-            addToolResult({
-              tool: "goBack",
-              toolCallId: toolCall.toolCallId,
-              output: response.data.message || "Navigated back",
-            });
-            triggerAutoContinue("goBack");
-          } else {
-            addToolResult({
-              tool: "goBack",
-              toolCallId: toolCall.toolCallId,
-              output: `Failed to go back: ${
-                response?.error || "Unknown error"
-              }`,
-            });
-            triggerAutoContinue("goBack (error)");
-          }
-        });
+        if (!chrome?.runtime?.sendMessage) {
+          emitToolError(
+            "goBack",
+            "Failed to go back: chrome runtime is unavailable"
+          );
+          return;
+        }
+
+        try {
+          chrome.runtime.sendMessage({ action: "goBack" }, (response) => {
+            if (chrome.runtime.lastError) {
+              emitToolError(
+                "goBack",
+                `Failed to go back: ${chrome.runtime.lastError.message}`
+              );
+              return;
+            }
+
+            if (response?.success) {
+              addToolResult({
+                tool: "goBack",
+                toolCallId: toolCall.toolCallId,
+                output: response.data.message || "Navigated back",
+              });
+              triggerAutoContinue("goBack");
+            } else {
+              emitToolError(
+                "goBack",
+                `Failed to go back: ${response?.error || "Unknown error"}`
+              );
+            }
+          });
+        } catch (error) {
+          emitToolError(
+            "goBack",
+            `Failed to go back: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        }
       }
 
       // Handle go forward tool
       if (toolCall.toolName === "goForward") {
-        chrome.runtime.sendMessage({ action: "goForward" }, (response) => {
-          if (response?.success) {
-            addToolResult({
-              tool: "goForward",
-              toolCallId: toolCall.toolCallId,
-              output: response.data.message || "Navigated forward",
-            });
-            triggerAutoContinue("goForward");
-          } else {
-            addToolResult({
-              tool: "goForward",
-              toolCallId: toolCall.toolCallId,
-              output: `Failed to go forward: ${
-                response?.error || "Unknown error"
-              }`,
-            });
-            triggerAutoContinue("goForward (error)");
-          }
-        });
+        if (!chrome?.runtime?.sendMessage) {
+          emitToolError(
+            "goForward",
+            "Failed to go forward: chrome runtime is unavailable"
+          );
+          return;
+        }
+
+        try {
+          chrome.runtime.sendMessage({ action: "goForward" }, (response) => {
+            if (chrome.runtime.lastError) {
+              emitToolError(
+                "goForward",
+                `Failed to go forward: ${chrome.runtime.lastError.message}`
+              );
+              return;
+            }
+
+            if (response?.success) {
+              addToolResult({
+                tool: "goForward",
+                toolCallId: toolCall.toolCallId,
+                output: response.data.message || "Navigated forward",
+              });
+              triggerAutoContinue("goForward");
+            } else {
+              emitToolError(
+                "goForward",
+                `Failed to go forward: ${response?.error || "Unknown error"}`
+              );
+            }
+          });
+        } catch (error) {
+          emitToolError(
+            "goForward",
+            `Failed to go forward: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        }
       }
     },
   });
@@ -411,7 +583,10 @@ function App() {
                                 {part.state === "output-available" && (
                                   <div className="flex flex-col gap-2">
                                     <div className="text-xs text-muted-foreground">
-                                      ✓ {part.output || `${toolName} completed`}
+                                      {summarizeToolOutput(
+                                        toolName,
+                                        part.output
+                                      )}
                                     </div>
                                   </div>
                                 )}

@@ -114,11 +114,6 @@ When you receive the elements list from getInteractiveElements, your very next a
           "Get the text content of the current browser page. This extracts all visible text from the page.",
         inputSchema: z.object({}),
       }),
-      getHTML: tool({
-        description:
-          "Get the HTML structure of the current page. Use this to identify elements and their attributes before clicking.",
-        inputSchema: z.object({}),
-      }),
       getInteractiveElements: tool({
         description:
           "Get a list of all interactive elements on the page with their indices. Each element has an index that can be used to click it. Use this FIRST when the user wants to click something - then immediately use the click tool with the appropriate index to click the element the user requested.",
