@@ -92,10 +92,31 @@ Your response must include these tool calls IN SEQUENCE WITHOUT STOPPING:
   Tool Call 3: takeScreenshot()
   Then provide text response: "Clicked on Trust Center"
 
+INPUTTING TEXT - CRITICAL WORKFLOW:
+* When the user asks you to enter text into a field (e.g., "type 'hello' in the search box", "fill the email field with 'test@example.com'"):
+  1. FIRST: Call getInputElements to get the full list of input fields (input, textarea)
+  2. SECOND: Analyze the list and find the index of the field that matches what the user wants (match by placeholder, ariaLabel, id, name, or other attributes)
+  3. THIRD: IMMEDIATELY call inputText with that index and the text to enter - DO NOT WAIT, DO NOT ASK FOR CONFIRMATION, DO NOT TELL THE USER
+  4. FOURTH: Take a screenshot to show the result
+* DO NOT stop after getting the input elements list - you MUST proceed to input the text automatically
+* DO NOT ask the user which field to use - you should determine the correct index yourself
+* DO NOT explain the fields to the user - just find the right one and input the text silently
+* DO NOT respond with text after getting input elements - immediately call inputText tool next
+
+EXAMPLE INPUT TEXT FLOW:
+User says: "type 'hello world' in the search box"
+Your response must include these tool calls IN SEQUENCE WITHOUT STOPPING:
+  Tool Call 1: getInputElements()
+  Receive result with Index 5: placeholder "Search...", type "text"
+  Tool Call 2: inputText(index: 5, text: "hello world")
+  Tool Call 3: takeScreenshot()
+  Then provide text response: "Entered 'hello world' in the search field"
+
 CRITICAL: You MUST make multiple tool calls in a single response. Do not wait for user confirmation between tools.
-When you receive the elements list from getInteractiveElements, your very next action in the SAME response must be to call click with the appropriate index.
+When you receive the elements list from getInteractiveElements or getInputElements, your very next action in the SAME response must be to call click or inputText with the appropriate index.
 
 * You can navigate to URLs using navigateToUrl, go back using goBack, or go forward using goForward.
+* You can scroll the page up or down using scrollUp and scrollDown tools. These tools accept an optional amount parameter (in pixels). If no amount is specified, they scroll by one viewport height.
 * Analyze the screenshot to answer user questions about what's visible on the current page.
 </IMPORTANT>`,
     messages: convertToModelMessages(
@@ -119,6 +140,11 @@ When you receive the elements list from getInteractiveElements, your very next a
           "Get a list of all interactive elements on the page with their indices. Each element has an index that can be used to click it. Use this FIRST when the user wants to click something - then immediately use the click tool with the appropriate index to click the element the user requested.",
         inputSchema: z.object({}),
       }),
+      getInputElements: tool({
+        description:
+          "Get a list of all input fields (input, textarea) on the page with their indices. Each element has an index that can be used to input text into it. Use this FIRST when the user wants to enter text into a field - then immediately use the inputText tool with the appropriate index and text.",
+        inputSchema: z.object({}),
+      }),
       click: tool({
         description:
           "Click on an element by its index. Use getInteractiveElements first to get the list of elements and their indices.",
@@ -128,6 +154,18 @@ When you receive the elements list from getInteractiveElements, your very next a
             .describe(
               "The index of the element to click (from getInteractiveElements)"
             ),
+        }),
+      }),
+      inputText: tool({
+        description:
+          "Input text into an input field or textarea by its index. Use getInputElements first to get the list of input elements and their indices.",
+        inputSchema: z.object({
+          index: z
+            .number()
+            .describe(
+              "The index of the input element to fill (from getInputElements)"
+            ),
+          text: z.string().describe("The text to input into the field"),
         }),
       }),
       navigateToUrl: tool({
@@ -150,6 +188,30 @@ When you receive the elements list from getInteractiveElements, your very next a
         description:
           "Navigate forward to the next page in the browser history.",
         inputSchema: z.object({}),
+      }),
+      scrollUp: tool({
+        description:
+          "Scroll the page up by a specified amount (in pixels). If no amount is specified, scrolls by one viewport height.",
+        inputSchema: z.object({
+          amount: z
+            .number()
+            .optional()
+            .describe(
+              "Optional. Number of pixels to scroll up. If not provided, scrolls by one viewport height."
+            ),
+        }),
+      }),
+      scrollDown: tool({
+        description:
+          "Scroll the page down by a specified amount (in pixels). If no amount is specified, scrolls by one viewport height.",
+        inputSchema: z.object({
+          amount: z
+            .number()
+            .optional()
+            .describe(
+              "Optional. Number of pixels to scroll down. If not provided, scrolls by one viewport height."
+            ),
+        }),
       }),
     },
   });

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Superagent Chrome",
+  "name": "ReplyGuy",
   "version": "1.0.0",
-  "description": "Superagent Chrome extension built with React, TypeScript and shadcn/ui",
+  "description": "ReplyGuy 🔁 - The first autonomous AI Agent that doom scrolls, likes, posts and re-posts stuff on Linkedin/X so you can go full locked-in ship mode and build generational wealth.",
   "permissions": [
     "sidePanel",
     "storage",
@@ -13,7 +13,7 @@
     "<all_urls>"
   ],
   "action": {
-    "default_title": "Open Superagent"
+    "default_title": "Open ReplyGuy"
   },
   "background": {
     "service_worker": "background.js"

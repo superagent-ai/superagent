@@ -1,4 +1,6 @@
-# Superagent Chrome Extension
+# ReplyGuy Chrome Extension 🔁
+
+Introducing ReplyGuy 🔁 - The first autonomous AI Agent that doom scrolls, likes, posts and re-posts stuff on Linkedin/X so you can go full locked-in ship mode and build generational wealth.
 
 A modern Chrome extension built with **Vite**, **React 18**, **TypeScript**, and **shadcn/ui**. Features a beautiful sidebar interface with no external API dependencies.
 
@@ -13,7 +15,7 @@ A modern Chrome extension built with **Vite**, **React 18**, **TypeScript**, and
 - **Hot Module Replacement** during development
 - **No inline scripts** - fully compatible with Chrome extension CSP
 - **Dark/Light Mode** - automatically follows system preferences
-- **Superagent Branding** - ninja logo and official colors
+- **ReplyGuy Branding** - custom logo and branding
 
 ## Quick Start
 
@@ -45,7 +47,7 @@ This creates a `dist/` folder with all extension files.
 2. Enable **Developer mode** (top right toggle)
 3. Click **Load unpacked**
 4. Select the `dist/` folder
-5. Click the Superagent icon in your toolbar!
+5. Click the ReplyGuy icon in your toolbar!
 
 ## Project Structure
 

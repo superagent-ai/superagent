@@ -20,10 +20,14 @@ const TOOL_LABELS: Record<string, string> = {
   takeScreenshot: "Screenshot captured",
   getTextContent: "Captured page text",
   getInteractiveElements: "Listed interactive elements",
+  getInputElements: "Listed input fields",
   click: "Clicked element",
+  inputText: "Entered text",
   navigateToUrl: "Navigated to URL",
   goBack: "Went back",
   goForward: "Went forward",
+  scrollUp: "Scrolled up",
+  scrollDown: "Scrolled down",
 };
 
 const summarizeToolOutput = (toolName: string, output?: unknown) => {
@@ -69,7 +73,6 @@ function App() {
         });
         triggerAutoContinue(`${toolName} (error)`);
       };
-      console.log("Tool call received:", toolCall);
 
       // Don't handle dynamic tools
       if (toolCall.dynamic) {
@@ -145,41 +148,83 @@ function App() {
           return;
         }
 
+        let resultAdded = false;
+        const addResultSafely = (output: string, isError: boolean = false) => {
+          if (resultAdded) return;
+          resultAdded = true;
+          addToolResult({
+            tool: "getTextContent",
+            toolCallId: toolCall.toolCallId,
+            output,
+          });
+          if (!isError) {
+            triggerAutoContinue("getTextContent");
+          }
+        };
+
+        const timeoutId = setTimeout(() => {
+          if (!resultAdded) {
+            console.warn("getTextContent tool timed out, adding error result");
+            addResultSafely(
+              "Failed to get text content: Request timed out",
+              true
+            );
+          }
+        }, 10000);
+
         try {
           chrome.runtime.sendMessage(
             { action: "getTextContent" },
             (response) => {
-              if (chrome.runtime.lastError) {
-                emitToolError(
-                  "getTextContent",
-                  `Failed to get text content: ${chrome.runtime.lastError.message}`
-                );
-                return;
-              }
+              clearTimeout(timeoutId);
+              try {
+                if (chrome.runtime.lastError) {
+                  addResultSafely(
+                    `Failed to get text content: ${chrome.runtime.lastError.message}`,
+                    true
+                  );
+                  return;
+                }
 
-              if (response?.success && response?.data?.text) {
-                addToolResult({
-                  tool: "getTextContent",
-                  toolCallId: toolCall.toolCallId,
-                  output: response.data.text,
-                });
-                triggerAutoContinue("getTextContent");
-              } else {
-                emitToolError(
-                  "getTextContent",
+                if (!response) {
+                  addResultSafely(
+                    "Failed to get text content: No response received",
+                    true
+                  );
+                  return;
+                }
+
+                if (response?.success && response?.data?.text) {
+                  addResultSafely(response.data.text, false);
+                } else {
+                  addResultSafely(
+                    `Failed to get text content: ${
+                      response?.error ||
+                      response?.data?.error ||
+                      "Unknown error"
+                    }`,
+                    true
+                  );
+                }
+              } catch (callbackError) {
+                addResultSafely(
                   `Failed to get text content: ${
-                    response?.error || "Unknown error"
-                  }`
+                    callbackError instanceof Error
+                      ? callbackError.message
+                      : String(callbackError)
+                  }`,
+                  true
                 );
               }
             }
           );
         } catch (error) {
-          emitToolError(
-            "getTextContent",
+          clearTimeout(timeoutId);
+          addResultSafely(
             `Failed to get text content: ${
               error instanceof Error ? error.message : String(error)
-            }`
+            }`,
+            true
           );
         }
       }
@@ -194,59 +239,102 @@ function App() {
           return;
         }
 
+        let resultAdded = false;
+        const addResultSafely = (output: string, isError: boolean = false) => {
+          if (resultAdded) return;
+          resultAdded = true;
+          addToolResult({
+            tool: "getInteractiveElements",
+            toolCallId: toolCall.toolCallId,
+            output,
+          });
+          if (!isError) {
+            triggerAutoContinue("getInteractiveElements");
+          }
+        };
+
+        const timeoutId = setTimeout(() => {
+          if (!resultAdded) {
+            console.warn(
+              "getInteractiveElements tool timed out, adding error result"
+            );
+            addResultSafely(
+              "Failed to get interactive elements: Request timed out",
+              true
+            );
+          }
+        }, 10000);
+
         try {
           chrome.runtime.sendMessage(
             { action: "getInteractiveElements" },
             (response) => {
-              if (chrome.runtime.lastError) {
-                emitToolError(
-                  "getInteractiveElements",
-                  `Failed to get interactive elements: ${chrome.runtime.lastError.message}`
-                );
-                return;
-              }
+              clearTimeout(timeoutId);
+              try {
+                if (chrome.runtime.lastError) {
+                  addResultSafely(
+                    `Failed to get interactive elements: ${chrome.runtime.lastError.message}`,
+                    true
+                  );
+                  return;
+                }
 
-              if (response?.success && response?.data?.elements) {
-                const elements = response.data.elements;
+                if (!response) {
+                  addResultSafely(
+                    "Failed to get interactive elements: No response received",
+                    true
+                  );
+                  return;
+                }
 
-                // Format the elements list for display - limit to first 50 chars of text for brevity
-                const elementsList = elements
-                  .map((el: any) => {
-                    const parts = [];
-                    if (el.text)
-                      parts.push(`text: "${el.text.substring(0, 50)}"`);
-                    if (el.tagName) parts.push(`tag: ${el.tagName}`);
-                    if (el.ariaLabel)
-                      parts.push(`aria-label: "${el.ariaLabel}"`);
-                    if (el.href) parts.push(`href: ${el.href}`);
-                    if (el.id) parts.push(`id: ${el.id}`);
-                    return `Index ${el.index}: ${parts.join(", ")}`;
-                  })
-                  .join("\n");
+                if (response?.success && response?.data?.elements) {
+                  const elements = response.data.elements;
 
-                // Add tool result which will trigger the AI to continue with the next action
-                addToolResult({
-                  tool: "getInteractiveElements",
-                  toolCallId: toolCall.toolCallId,
-                  output: elementsList,
-                });
-                triggerAutoContinue("getInteractiveElements");
-              } else {
-                emitToolError(
-                  "getInteractiveElements",
+                  // Format the elements list for display - limit to first 50 chars of text for brevity
+                  const elementsList = elements
+                    .map((el: any) => {
+                      const parts = [];
+                      if (el.text)
+                        parts.push(`text: "${el.text.substring(0, 50)}"`);
+                      if (el.tagName) parts.push(`tag: ${el.tagName}`);
+                      if (el.ariaLabel)
+                        parts.push(`aria-label: "${el.ariaLabel}"`);
+                      if (el.href) parts.push(`href: ${el.href}`);
+                      if (el.id) parts.push(`id: ${el.id}`);
+                      return `Index ${el.index}: ${parts.join(", ")}`;
+                    })
+                    .join("\n");
+
+                  addResultSafely(elementsList, false);
+                } else {
+                  addResultSafely(
+                    `Failed to get interactive elements: ${
+                      response?.error ||
+                      response?.data?.error ||
+                      "Unknown error"
+                    }`,
+                    true
+                  );
+                }
+              } catch (callbackError) {
+                addResultSafely(
                   `Failed to get interactive elements: ${
-                    response?.error || "Unknown error"
-                  }`
+                    callbackError instanceof Error
+                      ? callbackError.message
+                      : String(callbackError)
+                  }`,
+                  true
                 );
               }
             }
           );
         } catch (error) {
-          emitToolError(
-            "getInteractiveElements",
+          clearTimeout(timeoutId);
+          addResultSafely(
             `Failed to get interactive elements: ${
               error instanceof Error ? error.message : String(error)
-            }`
+            }`,
+            true
           );
         }
       }
@@ -273,50 +361,343 @@ function App() {
           return;
         }
 
-        console.log("Click tool called with index:", index);
+        let resultAdded = false;
+        const addResultSafely = (output: string, isError: boolean = false) => {
+          if (resultAdded) return;
+          resultAdded = true;
+          addToolResult({
+            tool: "click",
+            toolCallId: toolCall.toolCallId,
+            output,
+          });
+          if (!isError) {
+            triggerAutoContinue("click");
+          }
+        };
+
+        const timeoutId = setTimeout(() => {
+          if (!resultAdded) {
+            addResultSafely(
+              `Failed to click element at index ${index}: Request timed out`,
+              true
+            );
+          }
+        }, 10000);
 
         try {
           chrome.runtime.sendMessage(
             { action: "clickElementByIndex", index },
             (response) => {
-              if (chrome.runtime.lastError) {
-                emitToolError(
-                  "click",
-                  `Failed to click element at index ${index}: ${chrome.runtime.lastError.message}`
-                );
-                return;
-              }
+              clearTimeout(timeoutId);
+              try {
+                if (chrome.runtime.lastError) {
+                  addResultSafely(
+                    `Failed to click element at index ${index}: ${chrome.runtime.lastError.message}`,
+                    true
+                  );
+                  return;
+                }
 
-              console.log("Click by index response:", response);
-              if (response?.success && response?.data?.clicked) {
-                const element = response.data.element || "unknown";
-                const text = response.data.text || "";
-                addToolResult({
-                  tool: "click",
-                  toolCallId: toolCall.toolCallId,
-                  output: `Clicked element at index ${index} (${element})${
-                    text ? ": " + text : ""
-                  }`,
-                });
-                triggerAutoContinue("click");
-              } else {
-                emitToolError(
-                  "click",
+                if (!response) {
+                  addResultSafely(
+                    `Failed to click element at index ${index}: No response received`,
+                    true
+                  );
+                  return;
+                }
+
+                if (response?.success && response?.data) {
+                  if (response.data.clicked === true || response.data.element) {
+                    const element = response.data.element || "unknown";
+                    const text = response.data.text || "";
+                    addResultSafely(
+                      `Clicked element at index ${index} (${element})${
+                        text ? ": " + text : ""
+                      }`,
+                      false
+                    );
+                  } else {
+                    addResultSafely(
+                      `Failed to click element at index ${index}: ${
+                        response.data.message ||
+                        response?.error ||
+                        response?.data?.error ||
+                        "Click action did not succeed"
+                      }`,
+                      true
+                    );
+                  }
+                } else {
+                  addResultSafely(
+                    `Failed to click element at index ${index}: ${
+                      response?.error ||
+                      response?.data?.message ||
+                      response?.data?.error ||
+                      "Unknown error"
+                    }`,
+                    true
+                  );
+                }
+              } catch (callbackError) {
+                addResultSafely(
                   `Failed to click element at index ${index}: ${
-                    response?.error ||
-                    response?.data?.message ||
-                    "Unknown error"
-                  }`
+                    callbackError instanceof Error
+                      ? callbackError.message
+                      : String(callbackError)
+                  }`,
+                  true
                 );
               }
             }
           );
         } catch (error) {
-          emitToolError(
-            "click",
+          clearTimeout(timeoutId);
+          addResultSafely(
             `Failed to click element at index ${index}: ${
               error instanceof Error ? error.message : String(error)
-            }`
+            }`,
+            true
+          );
+        }
+      }
+
+      // Handle get input elements tool
+      if (toolCall.toolName === "getInputElements") {
+        if (!chrome?.runtime?.sendMessage) {
+          emitToolError(
+            "getInputElements",
+            "Failed to get input elements: chrome runtime is unavailable"
+          );
+          return;
+        }
+
+        let resultAdded = false;
+        const addResultSafely = (output: string, isError: boolean = false) => {
+          if (resultAdded) return;
+          resultAdded = true;
+          addToolResult({
+            tool: "getInputElements",
+            toolCallId: toolCall.toolCallId,
+            output,
+          });
+          if (!isError) {
+            triggerAutoContinue("getInputElements");
+          }
+        };
+
+        const timeoutId = setTimeout(() => {
+          if (!resultAdded) {
+            console.warn(
+              "getInputElements tool timed out, adding error result"
+            );
+            addResultSafely(
+              "Failed to get input elements: Request timed out",
+              true
+            );
+          }
+        }, 10000);
+
+        try {
+          chrome.runtime.sendMessage(
+            { action: "getInputElements" },
+            (response) => {
+              clearTimeout(timeoutId);
+              try {
+                if (chrome.runtime.lastError) {
+                  addResultSafely(
+                    `Failed to get input elements: ${chrome.runtime.lastError.message}`,
+                    true
+                  );
+                  return;
+                }
+
+                if (!response) {
+                  addResultSafely(
+                    "Failed to get input elements: No response received",
+                    true
+                  );
+                  return;
+                }
+
+                if (response?.success && response?.data?.elements) {
+                  const elements = response.data.elements;
+
+                  // Format the elements list for display
+                  const elementsList = elements
+                    .map((el: any) => {
+                      const parts = [];
+                      if (el.placeholder)
+                        parts.push(`placeholder: "${el.placeholder}"`);
+                      if (el.type) parts.push(`type: ${el.type}`);
+                      if (el.tagName) parts.push(`tag: ${el.tagName}`);
+                      if (el.contentEditable)
+                        parts.push(`contenteditable: true`);
+                      if (el.ariaLabel)
+                        parts.push(`aria-label: "${el.ariaLabel}"`);
+                      if (el.id) parts.push(`id: ${el.id}`);
+                      if (el.name) parts.push(`name: ${el.name}`);
+                      return `Index ${el.index}: ${parts.join(", ")}`;
+                    })
+                    .join("\n");
+
+                  addResultSafely(elementsList, false);
+                } else {
+                  addResultSafely(
+                    `Failed to get input elements: ${
+                      response?.error ||
+                      response?.data?.error ||
+                      "Unknown error"
+                    }`,
+                    true
+                  );
+                }
+              } catch (callbackError) {
+                addResultSafely(
+                  `Failed to get input elements: ${
+                    callbackError instanceof Error
+                      ? callbackError.message
+                      : String(callbackError)
+                  }`,
+                  true
+                );
+              }
+            }
+          );
+        } catch (error) {
+          clearTimeout(timeoutId);
+          addResultSafely(
+            `Failed to get input elements: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+            true
+          );
+        }
+      }
+
+      // Handle input text tool
+      if (toolCall.toolName === "inputText") {
+        const { index, text } = toolCall.input;
+
+        if (index === undefined || index === null) {
+          addToolResult({
+            tool: "inputText",
+            toolCallId: toolCall.toolCallId,
+            output: `Failed to input text: index must be provided`,
+          });
+          triggerAutoContinue("inputText (missing index)");
+          return;
+        }
+
+        if (text === undefined || text === null) {
+          addToolResult({
+            tool: "inputText",
+            toolCallId: toolCall.toolCallId,
+            output: `Failed to input text: text must be provided`,
+          });
+          triggerAutoContinue("inputText (missing text)");
+          return;
+        }
+
+        if (!chrome?.runtime?.sendMessage) {
+          emitToolError(
+            "inputText",
+            "Failed to input text: chrome runtime is unavailable"
+          );
+          return;
+        }
+
+        console.log("Input text tool called with index:", index, "text:", text);
+
+        let resultAdded = false;
+        const addResultSafely = (output: string, isError: boolean = false) => {
+          if (resultAdded) return;
+          resultAdded = true;
+          addToolResult({
+            tool: "inputText",
+            toolCallId: toolCall.toolCallId,
+            output,
+          });
+          if (!isError) {
+            triggerAutoContinue("inputText");
+          }
+        };
+
+        // Timeout safety net - ensure we always add a result
+        const timeoutId = setTimeout(() => {
+          if (!resultAdded) {
+            console.warn("Input text tool timed out, adding error result");
+            addResultSafely(
+              `Failed to input text at index ${index}: Request timed out`,
+              true
+            );
+          }
+        }, 10000); // 10 second timeout
+
+        try {
+          chrome.runtime.sendMessage(
+            { action: "inputTextByIndex", index, text },
+            (response) => {
+              clearTimeout(timeoutId);
+              try {
+                if (chrome.runtime.lastError) {
+                  addResultSafely(
+                    `Failed to input text at index ${index}: ${chrome.runtime.lastError.message}`,
+                    true
+                  );
+                  return;
+                }
+
+                console.log("Input text by index response:", response);
+
+                // Ensure we always add a tool result, even if response is malformed
+                if (!response) {
+                  addResultSafely(
+                    `Failed to input text at index ${index}: No response received`,
+                    true
+                  );
+                  return;
+                }
+
+                if (response?.success && response?.data?.success) {
+                  const element = response.data.element || "unknown";
+                  const placeholder = response.data.placeholder || "";
+                  addResultSafely(
+                    `Input text into element at index ${index} (${element})${
+                      placeholder ? ` with placeholder "${placeholder}"` : ""
+                    }`,
+                    false
+                  );
+                } else {
+                  addResultSafely(
+                    `Failed to input text at index ${index}: ${
+                      response?.error ||
+                      response?.data?.message ||
+                      response?.data?.error ||
+                      "Unknown error"
+                    }`,
+                    true
+                  );
+                }
+              } catch (callbackError) {
+                // Ensure tool result is added even if callback throws
+                addResultSafely(
+                  `Failed to input text at index ${index}: ${
+                    callbackError instanceof Error
+                      ? callbackError.message
+                      : String(callbackError)
+                  }`,
+                  true
+                );
+              }
+            }
+          );
+        } catch (error) {
+          clearTimeout(timeoutId);
+          addResultSafely(
+            `Failed to input text at index ${index}: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+            true
           );
         }
       }
@@ -451,6 +832,108 @@ function App() {
           emitToolError(
             "goForward",
             `Failed to go forward: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        }
+      }
+
+      // Handle scroll up tool
+      if (toolCall.toolName === "scrollUp") {
+        if (!chrome?.runtime?.sendMessage) {
+          emitToolError(
+            "scrollUp",
+            "Failed to scroll up: chrome runtime is unavailable"
+          );
+          return;
+        }
+
+        const { amount } = toolCall.input || {};
+
+        try {
+          chrome.runtime.sendMessage(
+            { action: "scrollPage", direction: "up", amount },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                emitToolError(
+                  "scrollUp",
+                  `Failed to scroll up: ${chrome.runtime.lastError.message}`
+                );
+                return;
+              }
+
+              if (response?.success && response?.data) {
+                const scrollInfo = response.data;
+                const scrollAmount = amount || scrollInfo.viewportHeight;
+                addToolResult({
+                  tool: "scrollUp",
+                  toolCallId: toolCall.toolCallId,
+                  output: `Scrolled up by ${scrollAmount}px. Current scroll position: ${scrollInfo.scrollY}px`,
+                });
+                triggerAutoContinue("scrollUp");
+              } else {
+                emitToolError(
+                  "scrollUp",
+                  `Failed to scroll up: ${response?.error || "Unknown error"}`
+                );
+              }
+            }
+          );
+        } catch (error) {
+          emitToolError(
+            "scrollUp",
+            `Failed to scroll up: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        }
+      }
+
+      // Handle scroll down tool
+      if (toolCall.toolName === "scrollDown") {
+        if (!chrome?.runtime?.sendMessage) {
+          emitToolError(
+            "scrollDown",
+            "Failed to scroll down: chrome runtime is unavailable"
+          );
+          return;
+        }
+
+        const { amount } = toolCall.input || {};
+
+        try {
+          chrome.runtime.sendMessage(
+            { action: "scrollPage", direction: "down", amount },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                emitToolError(
+                  "scrollDown",
+                  `Failed to scroll down: ${chrome.runtime.lastError.message}`
+                );
+                return;
+              }
+
+              if (response?.success && response?.data) {
+                const scrollInfo = response.data;
+                const scrollAmount = amount || scrollInfo.viewportHeight;
+                addToolResult({
+                  tool: "scrollDown",
+                  toolCallId: toolCall.toolCallId,
+                  output: `Scrolled down by ${scrollAmount}px. Current scroll position: ${scrollInfo.scrollY}px`,
+                });
+                triggerAutoContinue("scrollDown");
+              } else {
+                emitToolError(
+                  "scrollDown",
+                  `Failed to scroll down: ${response?.error || "Unknown error"}`
+                );
+              }
+            }
+          );
+        } catch (error) {
+          emitToolError(
+            "scrollDown",
+            `Failed to scroll down: ${
               error instanceof Error ? error.message : String(error)
             }`
           );
