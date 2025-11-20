@@ -14,13 +14,7 @@ export function baseOptions(): BaseLayoutProps {
     nav: {
       title: (
         <>
-          <Image
-            src="/logo.jpg"
-            width={25}
-            height={25}
-            alt="Superagent Logo"
-            className="rounded-md border"
-          />
+          <Image src="/logo.png" width={25} height={25} alt="Superagent Logo" />
           Superagent
         </>
       ),
