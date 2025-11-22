@@ -44,6 +44,29 @@ describe("createClient", () => {
     expect(onBlock).toHaveBeenCalled();
   });
 
+  it("guard accepts URL string and analyzes PDF from URL", async () => {
+    const onPass = vi.fn();
+    const client = createClient({
+      apiBaseUrl,
+      apiKey,
+    });
+
+    // Use a publicly accessible PDF URL for testing
+    // Note: This test requires a valid PDF URL that the API can download
+    const pdfUrl = "https://arxiv.org/pdf/2511.05313";
+
+    const result = await client.guard(pdfUrl, { onPass });
+
+    expect(result.rejected).toBeDefined();
+    expect(typeof result.rejected).toBe("boolean");
+    expect(result.decision).toBeDefined();
+    expect(result.reasoning).toBeDefined();
+    expect(typeof result.reasoning).toBe("string");
+    expect(result.usage).toBeDefined();
+    expect(result.usage?.prompt_tokens).toBeGreaterThan(0);
+    expect(result.raw.id).toBeDefined();
+  });
+
   it("redact method redacts sensitive data", async () => {
     const client = createClient({
       apiBaseUrl,

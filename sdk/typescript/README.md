@@ -32,6 +32,12 @@ const guardResult = await client.guard("Write a hello world script", {
   },
 });
 
+// Guard: Analyze PDF from URL
+const urlGuardResult = await client.guard("https://example.com/document.pdf", {
+  onBlock: (reason) => console.warn("Guard blocked:", reason),
+  onPass: () => console.log("Guard approved!"),
+});
+
 if (guardResult.rejected) {
   console.log("Blocked:", guardResult.reasoning);
 } else {
@@ -79,13 +85,15 @@ Creates a new Superagent client.
 - `fetch` (optional) – Custom fetch implementation (defaults to global `fetch`)
 - `timeoutMs` (optional) – Request timeout in milliseconds
 
-### `client.guard(command, callbacks?)`
+### `client.guard(input, callbacks?)`
 
-Analyzes a command for security threats.
+Analyzes text, a PDF file, or a PDF URL for security threats.
 
 **Parameters:**
-- `command` – The text to analyze
+- `input` – The text to analyze, a File/Blob object (e.g., PDF), or a URL string (e.g., `"https://example.com/document.pdf"`)
 - `callbacks` (optional) – Object with `onPass` and `onBlock` callbacks
+
+**Note:** URLs are automatically detected if the string starts with `http://` or `https://`. The API will download and analyze the PDF from the URL.
 
 **Returns:** `Promise<GuardResult>`
 
