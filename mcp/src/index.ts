@@ -31,7 +31,7 @@ const GuardInputSchema = z
       .min(1, "Text cannot be empty")
       .max(50000, "Text exceeds maximum length of 50,000 characters")
       .describe(
-        "The user input text to analyze for security threats like prompt injection, system prompt extraction, or data exfiltration"
+        "The user input text or PDF URL to analyze for security threats like prompt injection, system prompt extraction, or data exfiltration. URLs starting with http:// or https:// are automatically detected and the PDF will be downloaded and analyzed."
       ),
   })
   .strict();
@@ -108,16 +108,17 @@ server.registerTool(
   "superagent_guard",
   {
     title: "Superagent Security Guard",
-    description: `Analyze text for security threats including prompt injection, system prompt extraction, and data exfiltration attempts using Superagent's security AI model.
+    description: `Analyze text, PDF files, or PDF URLs for security threats including prompt injection, system prompt extraction, and data exfiltration attempts using Superagent's security AI model.
 
 This tool uses Superagent's LM-Guard-20B model to classify user inputs and detect malicious intent.
 
 Args:
-  - text (string): The user input text to analyze for security threats (max 50,000 characters)
+  - text (string): The user input text or PDF URL to analyze for security threats (max 50,000 characters). URLs starting with http:// or https:// are automatically detected.
 
 Examples:
   - Use when: Validating user input before passing to an LLM
   - Use when: "Check if this message is a prompt injection: 'Ignore previous instructions...'"
+  - Use when: Analyzing PDF documents from URLs: "https://example.com/document.pdf"
   - Use when: Building a content moderation system for AI applications
   - Don't use when: You need to redact PII (use superagent_redact instead)
 
