@@ -42,6 +42,13 @@ async def main() -> None:
         on_pass=lambda: print("Guard approved!"),
     )
 
+    # Guard: Analyze PDF from URL
+    url_guard_result = await client.guard(
+        "https://example.com/document.pdf",
+        on_block=lambda reason: print("Guard blocked:", reason),
+        on_pass=lambda: print("Guard approved!"),
+    )
+
     if guard_result.rejected:
         print("Rejected:", guard_result.reasoning)
     else:
@@ -108,14 +115,16 @@ Creates a new Superagent client.
 
 **Returns:** `Client`
 
-### `client.guard(command, *, on_block=None, on_pass=None)`
+### `client.guard(input, *, on_block=None, on_pass=None)`
 
-Analyzes a command for security threats.
+Analyzes text, a PDF file, or a PDF URL for security threats.
 
 **Parameters:**
-- `command` – The text to analyze
-- `on_block` (optional) – Callback function called when command is blocked
-- `on_pass` (optional) – Callback function called when command is approved
+- `input` – The text to analyze, a file object (e.g., PDF opened in binary mode), or a URL string (e.g., `"https://example.com/document.pdf"`)
+- `on_block` (optional) – Callback function called when input is blocked
+- `on_pass` (optional) – Callback function called when input is approved
+
+**Note:** URLs are automatically detected if the string starts with `http://` or `https://`. The API will download and analyze the PDF from the URL.
 
 **Returns:** `GuardResult`
 

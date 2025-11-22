@@ -215,11 +215,16 @@ class Client:
         on_block: Optional[BlockCallback] = None,
         on_pass: Optional[PassCallback] = None,
     ) -> GuardResult:
-        # Determine if input is a file or text
+        # Determine if input is a file or text/URL
         is_file = hasattr(input, 'read') or not isinstance(input, str)
+        
+        # Check if input string is a URL
+        is_url = isinstance(input, str) and (
+            input.startswith("http://") or input.startswith("https://")
+        )
 
         if not is_file and not input:
-            raise GuardError("input must be a non-empty string or file")
+            raise GuardError("input must be a non-empty string, file, or URL")
 
         try:
             if is_file:
@@ -237,6 +242,17 @@ class Client:
                     files=files,
                     data=data,
                     headers=headers,
+                    timeout=self._timeout,
+                )
+            elif is_url:
+                # Use JSON for URL input
+                response = await self._client.post(
+                    self._guard_endpoint,
+                    json={"url": input},
+                    headers={
+                        "Authorization": f"Bearer {self._api_key}",
+                        "x-superagent-api-key": self._api_key,
+                    },
                     timeout=self._timeout,
                 )
             else:

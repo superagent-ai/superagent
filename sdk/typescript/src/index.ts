@@ -290,7 +290,9 @@ export function createClient(options: CreateClientOptions): Client {
       input: string | File | Blob,
       callbacks: GuardCallbacks = {}
     ): Promise<GuardResult> {
-    // Determine if input is a file or text
+    const { onBlock, onPass } = callbacks;
+
+    // Determine if input is a file or text/URL
     // Check for File/Blob in a way that works in both browser and Node.js
     const isFile = typeof input !== 'string' && (
       (typeof File !== 'undefined' && input instanceof File) ||
@@ -299,8 +301,12 @@ export function createClient(options: CreateClientOptions): Client {
       (input && typeof input === 'object' && 'stream' in input)
     );
 
+    // Check if input string is a URL
+    const isUrl = typeof input === 'string' && 
+      (input.startsWith("http://") || input.startsWith("https://"));
+
     if (!isFile && (!input || typeof input !== "string")) {
-      throw new GuardError("input must be a non-empty string or file.");
+      throw new GuardError("input must be a non-empty string, file, or URL.");
     }
 
     const controller =
@@ -328,6 +334,18 @@ export function createClient(options: CreateClientOptions): Client {
           method: "POST",
           headers,
           body: formData,
+          signal: controller?.signal,
+        } satisfies RequestInit);
+      } else if (isUrl) {
+        // Use JSON for URL input
+        response = await fetcher(guardEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+            "x-superagent-api-key": apiKey,
+          },
+          body: JSON.stringify({ url: input }),
           signal: controller?.signal,
         } satisfies RequestInit);
       } else {
@@ -382,9 +400,9 @@ export function createClient(options: CreateClientOptions): Client {
     };
 
     if (rejected) {
-      await callbacks.onBlock?.(normalizedReason);
+      await onBlock?.(normalizedReason);
     } else {
-      await callbacks.onPass?.();
+      await onPass?.();
     }
 
     return result;
