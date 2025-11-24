@@ -1,0 +1,104 @@
+import os
+from github import Github
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente do arquivo .env
+load_dotenv()
+
+# Configurações
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+# O repositório onde o agente orquestrador está rodando e monitorando issues
+ORCHESTRATOR_REPO_NAME = os.getenv("ORCHESTRATOR_REPO_NAME", "zgplaysgamer22-prog/Autonomous-Orchestrator-Agent")
+# Repositórios dos agentes a serem orquestrados
+AGENT_REPOS = {
+    "agentgpt": os.getenv("AGENTGPT_REPO_NAME", "zgplaysgamer22-prog/AgentGPT"),
+    "autogen": os.getenv("AUTOGEN_REPO_NAME", "zgplaysgamer22-prog/autogen")
+}
+# Label que indica uma tarefa de orquestração
+ORCHESTRATION_LABEL = "orchestrate-task"
+
+def get_github_client():
+    """Inicializa e retorna o cliente GitHub."""
+    if not GITHUB_TOKEN:
+        print("Erro: GITHUB_TOKEN não configurado.")
+        return None
+    return Github(GITHUB_TOKEN)
+
+def monitor_and_orchestrate():
+    """Monitora o repositório em busca de novas issues de orquestração."""
+    g = get_github_client()
+    if not g:
+        return
+
+    try:
+        repo = g.get_repo(ORCHESTRATOR_REPO_NAME)
+    except Exception as e:
+        print(f"Erro ao acessar o repositório {ORCHESTRATOR_REPO_NAME}: {e}")
+        return
+
+    # Busca issues abertas com a label de orquestração
+    issues = repo.get_issues(state="open", labels=[ORCHESTRATION_LABEL])
+
+    for issue in issues:
+        print(f"Processando Issue #{issue.number}: {issue.title}")
+        
+        # O corpo da issue deve conter o comando de orquestração
+        # Formato esperado: [AGENT_NAME]: [TASK_DESCRIPTION]
+        # Ex: agentgpt: Pesquisar as 5 principais tendências de IA para 2025
+        
+        body = issue.body.strip()
+        if not body:
+            issue.create_comment("Erro de Orquestração: O corpo da Issue está vazio. Por favor, especifique o agente e a tarefa.")
+            issue.edit(state="closed")
+            continue
+
+        try:
+            agent_name, task_description = body.split(":", 1)
+            agent_name = agent_name.strip().lower()
+            task_description = task_description.strip()
+        except ValueError:
+            issue.create_comment("Erro de Orquestração: Formato inválido. Use: [agent_name]: [task_description]")
+            issue.edit(state="closed")
+            continue
+
+        if agent_name not in AGENT_REPOS:
+            issue.create_comment(f"Erro de Orquestração: Agente '{agent_name}' desconhecido. Agentes válidos: {', '.join(AGENT_REPOS.keys())}")
+            issue.edit(state="closed")
+            continue
+
+        target_repo_name = AGENT_REPOS[agent_name]
+        
+        # 1. Acionar a tarefa no repositório do agente
+        success = trigger_agent_task(g, target_repo_name, task_description, issue.html_url)
+        
+        # 2. Comentar e fechar a issue de orquestração
+        if success:
+            issue.create_comment(f"Tarefa de orquestração enviada com sucesso para o agente **{agent_name.upper()}** no repositório `{target_repo_name}`.\n\n**Tarefa:** {task_description}\n\nO resultado será reportado em uma nova Issue no repositório do agente.")
+            issue.edit(state="closed", labels=[])
+        else:
+            issue.create_comment(f"Erro ao tentar acionar a tarefa no repositório `{target_repo_name}`. Verifique se o repositório existe e se o token tem permissão para criar Issues.")
+            issue.edit(labels=[]) # Mantém aberta para re-tentativa ou investigação
+
+def trigger_agent_task(g, target_repo_name, task_description, source_issue_url):
+    """Cria uma nova Issue no repositório do agente para acionar a tarefa."""
+    try:
+        target_repo = g.get_repo(target_repo_name)
+        
+        new_issue_title = f"[ORQUESTRAÇÃO] Tarefa de: {task_description[:80]}..."
+        new_issue_body = f"**Tarefa Orquestrada:** {task_description}\n\n**Origem:** [Issue Orquestradora]({source_issue_url})\n\n**Ação:** O agente deve executar esta tarefa e reportar o resultado nesta Issue."
+        
+        target_repo.create_issue(
+            title=new_issue_title,
+            body=new_issue_body,
+            labels=["autonomous-task"] # Label para o agente saber que é uma tarefa a ser executada
+        )
+        print(f"Issue criada em {target_repo_name} para a tarefa: {task_description}")
+        return True
+    except Exception as e:
+        print(f"Erro ao criar Issue em {target_repo_name}: {e}")
+        return False
+
+if __name__ == "__main__":
+    print("Iniciando Agente Orquestrador Autônomo...")
+    monitor_and_orchestrate()
+    print("Execução do Agente Orquestrador concluída.")
