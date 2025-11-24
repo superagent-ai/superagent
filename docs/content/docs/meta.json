@@ -19,6 +19,7 @@
     "agent-frameworks/pydantic-ai",
     "agent-frameworks/vercel-ai-sdk",
     "---Examples---",
+    "examples/secure-rag-pipeline",
     "examples/redact-pdfs",
     "examples/scan-file-uploads",
     "examples/n8n-redact",
