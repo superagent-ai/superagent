@@ -84,7 +84,7 @@ Creates a new Superagent client.
 
 ### `client.guard(input, callbacks?)`
 
-Analyzes text or a PDF file for security threats.
+Analyzes text, a PDF file, or a PDF URL for security threats.
 
 import { TypeTable } from 'fumadocs-ui/components/type-table';
 
@@ -93,7 +93,7 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
 <TypeTable
   type={{
     input: {
-      description: 'String of text to analyze OR File/Blob object (e.g., PDF document)',
+      description: 'String of text to analyze, File/Blob object (e.g., PDF document), or URL string (e.g., "https://example.com/document.pdf"). URLs are automatically detected if the string starts with http:// or https://.',
       type: 'string | File | Blob',
     },
     callbacks: {
@@ -556,6 +556,51 @@ if (result.rejected) {
 - Validate PDF attachments for security threats
 - Screen documents for prompt injection attempts
 - Ensure document safety before feeding to AI models
+
+### Analyze PDF from URL
+
+You can also analyze PDF files from URLs. The SDK automatically detects URLs and downloads the PDF for analysis:
+
+```ts title="pdf-url-guard.ts"
+import { createClient } from "superagent-ai";
+
+const client = createClient({
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+
+// Analyze PDF from URL for security threats
+const result = await client.guard(
+  "https://example.com/document.pdf",  // Pass URL as string
+  {
+    onBlock: (reason) => console.warn("Guard blocked:", reason),
+    onPass: () => console.log("Guard approved!"),
+  }
+);
+
+// Check the analysis result
+if (result.rejected) {
+  console.log(`Document contains security threats: ${result.reasoning}`);
+  if (result.decision) {
+    console.log(`Violation types: ${result.decision.violation_types}`);
+    console.log(`CWE codes: ${result.decision.cwe_codes}`);
+  }
+} else {
+  console.log(`Document is safe: ${result.reasoning}`);
+}
+```
+
+**How it works:**
+- Pass a URL string (starting with `http://` or `https://`) as the first parameter
+- The SDK automatically detects it's a URL and sends it to the API
+- The API downloads the PDF from the URL and analyzes it for security threats
+- Returns JSON with `rejected`, `reasoning`, `decision`, and `usage` fields
+- You can use the `onBlock` and `onPass` callbacks to handle the analysis results
+
+**Use cases:**
+- Analyze documents from external sources without downloading them first
+- Validate PDF attachments from URLs before processing
+- Screen documents hosted on remote servers for security threats
+- Ensure document safety from URLs before feeding to AI models
 
 ## Error Handling
 

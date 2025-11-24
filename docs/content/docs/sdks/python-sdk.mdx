@@ -100,7 +100,7 @@ Creates a new Superagent client.
 
 ### `client.guard(input, *, on_block=None, on_pass=None)`
 
-Analyzes text or a PDF file for security threats.
+Analyzes text, a PDF file, or a PDF URL for security threats.
 
 import { TypeTable } from 'fumadocs-ui/components/type-table';
 
@@ -109,7 +109,7 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
 <TypeTable
   type={{
     input: {
-      description: 'String of text to analyze OR file object (e.g., PDF document opened in binary mode)',
+      description: 'String of text to analyze, file object (e.g., PDF document opened in binary mode), or URL string (e.g., "https://example.com/document.pdf"). URLs are automatically detected if the string starts with http:// or https://.',
       type: 'str | File',
     },
     on_block: {
@@ -552,6 +552,48 @@ asyncio.run(main())
 - Ensure document safety before feeding to AI models
 
 **Note:** The file should be opened in binary mode (`"rb"`). The SDK handles the proper encoding and content-type headers automatically.
+
+### Analyze PDF from URL
+
+You can also analyze PDF files from URLs. The SDK automatically detects URLs and downloads the PDF for analysis:
+
+```python title="pdf_url_guard.py"
+import asyncio
+from superagent_ai import create_client
+
+async def main() -> None:
+    async with create_client(api_key="sk-...") as client:
+        # Analyze PDF from URL for security threats
+        result = await client.guard(
+            "https://example.com/document.pdf",  # Pass URL as string
+            on_block=lambda reason: print("Guard blocked:", reason),
+            on_pass=lambda: print("Guard approved!"),
+        )
+
+        # Check the analysis result
+        if result.rejected:
+            print(f"Document contains security threats: {result.reasoning}")
+            if result.decision:
+                print(f"Violation types: {result.decision.get('violation_types', [])}")
+                print(f"CWE codes: {result.decision.get('cwe_codes', [])}")
+        else:
+            print(f"Document is safe: {result.reasoning}")
+
+asyncio.run(main())
+```
+
+**How it works:**
+- Pass a URL string (starting with `http://` or `https://`) as the first parameter
+- The SDK automatically detects it's a URL and sends it to the API
+- The API downloads the PDF from the URL and analyzes it for security threats
+- Returns JSON with `rejected`, `reasoning`, `decision`, and `usage` fields
+- You can use the `on_block` and `on_pass` callbacks to handle the analysis results
+
+**Use cases:**
+- Analyze documents from external sources without downloading them first
+- Validate PDF attachments from URLs before processing
+- Screen documents hosted on remote servers for security threats
+- Ensure document safety from URLs before feeding to AI models
 
 ## Error Handling
 

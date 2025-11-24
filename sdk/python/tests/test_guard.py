@@ -62,6 +62,28 @@ async def test_guard_block_triggers_on_block_with_reason() -> None:
 
 
 @pytest.mark.asyncio
+async def test_guard_accepts_url_string() -> None:
+    """Test that guard method accepts URL string and analyzes PDF from URL"""
+    client = create_client(api_base_url=API_BASE_URL, api_key=API_KEY)
+
+    # Use a publicly accessible PDF URL for testing
+    # Note: This test requires a valid PDF URL that the API can download
+    pdf_url = "https://arxiv.org/pdf/2511.05313"
+
+    result = await client.guard(pdf_url)
+
+    assert isinstance(result, GuardResult)
+    assert result.rejected is not None
+    assert isinstance(result.rejected, bool)
+    assert result.decision is not None
+    assert result.reasoning is not None
+    assert isinstance(result.reasoning, str)
+    assert result.usage is not None
+    assert result.usage["prompt_tokens"] > 0
+    assert result.raw["id"] is not None
+
+
+@pytest.mark.asyncio
 async def test_redact_method_redacts_data() -> None:
     """Test that redact method redacts data via API"""
     client = create_client(

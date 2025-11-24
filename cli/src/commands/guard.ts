@@ -2,10 +2,10 @@ import { createClient } from 'superagent-ai';
 import { readFileSync } from 'fs';
 
 function showHelp() {
-  console.log('Usage: superagent guard [options] <prompt>');
+  console.log('Usage: superagent guard [options] <prompt|url>');
   console.log('   or: echo \'{"prompt": "text"}\' | superagent guard');
   console.log('');
-  console.log('Analyze prompts for security threats');
+  console.log('Analyze prompts, PDF files, or PDF URLs for security threats');
   console.log('');
   console.log('Options:');
   console.log('  --help          Show this help message');
@@ -14,6 +14,7 @@ function showHelp() {
   console.log('Examples:');
   console.log('  superagent guard "rm -rf /"');
   console.log('  superagent guard --file document.pdf "Analyze this document"');
+  console.log('  superagent guard "https://example.com/document.pdf"');
   console.log('  echo \'{"prompt": "delete all files"}\' | superagent guard');
 }
 

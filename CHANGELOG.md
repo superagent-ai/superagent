@@ -2,7 +2,14 @@
 
 All notable changes to Superagent will be documented in this file.
 
-## [superagent-ai@0.0.17]
+## [superagent-ai@0.0.18]
+
+### Added
+- Added URL support to guard endpoint and SDKs
+  - Guard API now accepts PDF URLs via `url` field in JSON requests
+  - `guard()` method accepts URL strings directly (auto-detected if starts with `http://` or `https://`)
+  - Example: `await client.guard("https://example.com/document.pdf")`
+
 
 ### Breaking Changes
 
