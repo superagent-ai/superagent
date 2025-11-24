@@ -1,0 +1,205 @@
+---
+title: Secure your RAG pipeline
+description: Validate uploaded files before processing them in your RAG pipeline using Superagent Guard
+---
+
+When building RAG applications that accept file uploads, validate files before processing them with your AI model. This prevents prompt injection attacks and malicious content from entering your knowledge base.
+
+## Prerequisites
+
+- Node.js v20.0 or higher
+- A Superagent account with API key ([sign up here](https://app.superagent.sh))
+- An AI provider API key (OpenAI, Anthropic, Google AI, etc.)
+
+## Install dependencies
+
+```bash title="Terminal"
+npm install superagent-ai ai @ai-sdk/anthropic
+```
+
+Set your environment variables:
+
+```bash title=".env"
+SUPERAGENT_API_KEY=sk-superagent-...
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+## Secure file uploads
+
+Guard files before processing them with your AI model:
+
+```typescript title="app/api/chat/route.ts"
+import { createClient } from 'superagent-ai';
+import { anthropic } from '@ai-sdk/anthropic';
+import { streamText } from 'ai';
+
+const guard = createClient({
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+
+export async function POST(req: Request) {
+  const { messages, data } = await req.json();
+
+  // Guard the file before processing
+  if (data?.file) {
+    const fileBlob = new Blob([Buffer.from(data.file, 'base64')], {
+      type: data.mimeType || 'application/pdf',
+    });
+
+    const guardResult = await guard.guard(fileBlob);
+
+    if (guardResult.rejected) {
+      return new Response(
+        JSON.stringify({
+          error: 'File blocked by security check',
+          reasoning: guardResult.reasoning,
+        }),
+        { status: 400 }
+      );
+    }
+  }
+
+  // Process with AI if file passed guard
+  const result = await streamText({
+    model: anthropic('claude-3-5-sonnet-20241022'),
+    messages: messages.map((msg: any, i: number) => {
+      if (i === messages.length - 1 && msg.role === 'user' && data?.file) {
+        return {
+          ...msg,
+          content: [
+            { type: 'text', text: msg.content },
+            {
+              type: 'file',
+              fileData: {
+                data: data.file,
+                mimeType: data.mimeType || 'application/pdf',
+              },
+            },
+          ],
+        };
+      }
+      return msg;
+    }),
+  });
+
+  return result.toDataStreamResponse();
+}
+```
+
+## Guard URLs
+
+You can also guard URLs before fetching and processing:
+
+```typescript title="guard-url.ts"
+import { createClient } from 'superagent-ai';
+
+const guard = createClient({
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+
+async function processURL(url: string) {
+  // Guard the URL before fetching
+  const guardResult = await guard.guard(url);
+
+  if (guardResult.rejected) {
+    throw new Error(`URL blocked: ${guardResult.reasoning}`);
+  }
+
+  // Safe to fetch and process
+  const response = await fetch(url);
+  const content = await response.text();
+  
+  // Process with your RAG pipeline
+  return content;
+}
+```
+
+## Client-side implementation
+
+Handle file uploads and send them to your guarded API:
+
+```typescript title="app/page.tsx"
+'use client';
+
+import { useChat } from 'ai/react';
+import { useState } from 'react';
+
+export default function ChatPage() {
+  const { messages, input, handleInputChange, handleSubmit, append } = useChat();
+  const [file, setFile] = useState<File | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() && !file) return;
+
+    if (file) {
+      // Convert file to base64 for API
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        const base64 = (reader.result as string).split(',')[1];
+        
+        await append({
+          role: 'user',
+          content: input || 'Process this file',
+        }, {
+          data: {
+            file: base64,
+            mimeType: file.type,
+          },
+        });
+        
+        setFile(null);
+      };
+    } else {
+      await handleSubmit(e);
+    }
+  };
+
+  return (
+    <div>
+      <form onSubmit={onSubmit}>
+        <input
+          type="file"
+          accept="application/pdf,text/plain"
+          onChange={handleFileChange}
+        />
+        {file && <span>{file.name}</span>}
+        <input
+          value={input}
+          onChange={handleInputChange}
+          placeholder="Ask about the file..."
+        />
+        <button type="submit">Send</button>
+      </form>
+      <div>
+        {messages.map((m) => (
+          <div key={m.id}>
+            <strong>{m.role}:</strong> {m.content}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+## What gets blocked
+
+Superagent Guard detects:
+- **Prompt injection** attempts in uploaded files
+- **Malicious instructions** hidden in documents
+- **System prompt extraction** attempts
+- **Jailbreak** attempts
+
+## Next steps
+
+- Learn about [scanning file uploads](/docs/examples/scan-file-uploads) for more details
+- Explore [Vercel AI SDK integration](/docs/agent-frameworks/vercel-ai-sdk)
+- Check out [Guard API reference](/docs/rest-api/guard)
