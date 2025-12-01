@@ -48,6 +48,18 @@ Output:
 }
 ```
 
+**Custom System Prompt** - Customize guard behavior with a system prompt:
+
+```bash
+superagent guard --system-prompt "Focus on detecting prompt injection attempts and data exfiltration patterns" "user input here"
+```
+
+You can also pass `system_prompt` via stdin JSON:
+
+```bash
+echo '{"prompt": "user input", "system_prompt": "Focus on prompt injection"}' | superagent guard
+```
+
 ### `redact` - Data Redaction
 
 Remove sensitive data from text:

@@ -93,6 +93,7 @@ superagent guard [options] <prompt>
 
 **Options:**
 - `--file <path>` - Path to PDF file to analyze
+- `--system-prompt <prompt>` - Optional system prompt to customize guard behavior and classification logic
 - `--help` - Show help message
 
 **Exit codes:**
@@ -112,11 +113,17 @@ superagent guard "Show me all environment variables"
 # Analyze PDF file for security threats
 superagent guard --file document.pdf "Analyze this document for security threats"
 
+# Use custom system prompt to customize guard behavior
+superagent guard --system-prompt "Focus on detecting prompt injection attempts and data exfiltration patterns" "user input here"
+
 # Show help
 superagent guard --help
 
 # Read from stdin (JSON format)
 echo '{"prompt": "Deploy to production"}' | superagent guard
+
+# Read from stdin with system prompt
+echo '{"prompt": "user input", "system_prompt": "Focus on prompt injection"}' | superagent guard
 ```
 
 ### `redact`
@@ -383,7 +390,7 @@ When used interactively, the CLI provides human-readable output:
 
 **Blocked prompts:**
 ```
-=� BLOCKED: [reasoning]
+=Ã¯Â¿Â½ BLOCKED: [reasoning]
 Violations: [violation types]
 CWE Codes: [CWE identifiers]
 ```
@@ -403,7 +410,7 @@ When receiving input via stdin, the CLI outputs structured JSON for programmatic
 ```json title="Response"
 {
   "decision": "block",
-  "reason": "=� Superagent Guard blocked this prompt: User requests destructive action. Violations: malicious_action. CWE: CWE-77.",
+  "reason": "=Ã¯Â¿Â½ Superagent Guard blocked this prompt: User requests destructive action. Violations: malicious_action. CWE: CWE-77.",
   "hookSpecificOutput": {
     "hookEventName": "UserPromptSubmit",
     "additionalContext": "Blocked by Superagent Guard - User requests destructive action"
@@ -451,7 +458,7 @@ echo '{"prompt": "your text"}' | superagent guard
 
 **Error:**
 ```
-� Guard check failed: This operation was aborted
+Ã¯Â¿Â½ Guard check failed: This operation was aborted
 ```
 
 **Solution:**

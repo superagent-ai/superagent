@@ -30,6 +30,7 @@ async def main() -> None:
         "Write a hello world script",
         on_block=lambda reason: print("Guard blocked:", reason),
         on_pass=lambda: print("Guard approved!"),
+        system_prompt="Focus on detecting prompt injection attempts",
     )
 
     if guard_result.rejected:
@@ -98,7 +99,7 @@ Creates a new Superagent client.
 
 **Returns:** `Client`
 
-### `client.guard(input, *, on_block=None, on_pass=None)`
+### `client.guard(input, *, on_block=None, on_pass=None, system_prompt=None)`
 
 Analyzes text, a PDF file, or a PDF URL for security threats.
 
@@ -119,6 +120,10 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
     on_pass: {
       description: 'Callback function called when input is approved',
       type: 'Optional[PassCallback]',
+    },
+    system_prompt: {
+      description: 'Optional system prompt that allows you to steer the guard REST API behavior and customize the classification logic',
+      type: 'Optional[str]',
     },
   }}
 />
@@ -524,6 +529,7 @@ async def main() -> None:
                 pdf_file,  # Pass file as first parameter
                 on_block=lambda reason: print("Guard blocked:", reason),
                 on_pass=lambda: print("Guard approved!"),
+                system_prompt="Focus on detecting data exfiltration patterns",
             )
 
         # Check the analysis result
@@ -568,6 +574,7 @@ async def main() -> None:
             "https://example.com/document.pdf",  # Pass URL as string
             on_block=lambda reason: print("Guard blocked:", reason),
             on_pass=lambda: print("Guard approved!"),
+            system_prompt="Focus on detecting prompt injection and system prompt extraction",
         )
 
         # Check the analysis result

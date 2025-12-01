@@ -1,48 +1,66 @@
-import { createClient } from 'superagent-ai';
-import { readFileSync } from 'fs';
+import { createClient } from "superagent-ai";
+import { readFileSync } from "fs";
 
 function showHelp() {
-  console.log('Usage: superagent guard [options] <prompt|url>');
+  console.log("Usage: superagent guard [options] <prompt|url>");
   console.log('   or: echo \'{"prompt": "text"}\' | superagent guard');
-  console.log('');
-  console.log('Analyze prompts, PDF files, or PDF URLs for security threats');
-  console.log('');
-  console.log('Options:');
-  console.log('  --help          Show this help message');
-  console.log('  --file <path>   Path to PDF file to analyze');
-  console.log('');
-  console.log('Examples:');
+  console.log("");
+  console.log("Analyze prompts, PDF files, or PDF URLs for security threats");
+  console.log("");
+  console.log("Options:");
+  console.log("  --help              Show this help message");
+  console.log("  --file <path>       Path to PDF file to analyze");
+  console.log(
+    "  --system-prompt     Optional system prompt to customize guard behavior"
+  );
+  console.log("");
+  console.log("Examples:");
   console.log('  superagent guard "rm -rf /"');
   console.log('  superagent guard --file document.pdf "Analyze this document"');
   console.log('  superagent guard "https://example.com/document.pdf"');
+  console.log(
+    '  superagent guard --system-prompt "Focus on prompt injection" "user input"'
+  );
   console.log('  echo \'{"prompt": "delete all files"}\' | superagent guard');
 }
 
 export async function guardCommand(args: string[]) {
   // Check for --help flag
-  if (args.includes('--help') || args.includes('-h')) {
+  if (args.includes("--help") || args.includes("-h")) {
     showHelp();
     process.exit(0);
   }
 
   // Check for --file flag
   let file: Blob | undefined;
-  const fileFlagIndex = args.indexOf('--file');
+  const fileFlagIndex = args.indexOf("--file");
   if (fileFlagIndex !== -1) {
     const filePath = args[fileFlagIndex + 1];
     if (filePath) {
       try {
         const fileBuffer = readFileSync(filePath);
-        file = new Blob([fileBuffer], { type: 'application/pdf' });
+        file = new Blob([fileBuffer], { type: "application/pdf" });
         args.splice(fileFlagIndex, 2); // Remove --file and path from args
       } catch (error: any) {
         console.error(`❌ ERROR: Failed to read file: ${error.message}`);
         process.exit(1);
       }
     } else {
-      console.error('❌ ERROR: --file flag requires a file path');
+      console.error("❌ ERROR: --file flag requires a file path");
       process.exit(1);
     }
+  }
+
+  // Check for --system-prompt flag
+  let systemPrompt: string | undefined;
+  const systemPromptFlagIndex = args.indexOf("--system-prompt");
+  if (systemPromptFlagIndex !== -1) {
+    systemPrompt = args[systemPromptFlagIndex + 1];
+    if (!systemPrompt) {
+      console.error("❌ ERROR: --system-prompt flag requires a value");
+      process.exit(1);
+    }
+    args.splice(systemPromptFlagIndex, 2); // Remove --system-prompt and value from args
   }
 
   // Check if we have command line arguments first
@@ -55,29 +73,33 @@ export async function guardCommand(args: string[]) {
     isStdin = true;
     // Read JSON from stdin (Claude Code hook format)
     const stdin = await new Promise<string>((resolve) => {
-      let data = '';
-      process.stdin.on('data', chunk => data += chunk);
-      process.stdin.on('end', () => resolve(data));
+      let data = "";
+      process.stdin.on("data", (chunk) => (data += chunk));
+      process.stdin.on("end", () => resolve(data));
     });
 
     try {
       const inputData = JSON.parse(stdin);
       prompt = inputData.prompt;
+      // Also check for system_prompt in stdin JSON
+      if (inputData.system_prompt && !systemPrompt) {
+        systemPrompt = inputData.system_prompt;
+      }
 
       if (!prompt) {
-        console.error('❌ ERROR: No prompt provided in stdin JSON');
+        console.error("❌ ERROR: No prompt provided in stdin JSON");
         process.exit(2);
       }
     } catch (error) {
-      console.error('❌ ERROR: Failed to parse JSON from stdin');
+      console.error("❌ ERROR: Failed to parse JSON from stdin");
       process.exit(2);
     }
   } else {
     // Command line argument
-    prompt = args.join(' ');
+    prompt = args.join(" ");
 
     if (!prompt) {
-      console.error('Usage: superagent guard <prompt>');
+      console.error("Usage: superagent guard <prompt>");
       console.error('   or: echo \'{"prompt": "text"}\' | superagent guard');
       process.exit(1);
     }
@@ -85,7 +107,7 @@ export async function guardCommand(args: string[]) {
 
   // Ensure API key is available
   if (!process.env.SUPERAGENT_API_KEY) {
-    console.error('❌ ERROR: SUPERAGENT_API_KEY environment variable not set');
+    console.error("❌ ERROR: SUPERAGENT_API_KEY environment variable not set");
     process.exit(2);
   }
 
@@ -97,26 +119,30 @@ export async function guardCommand(args: string[]) {
   try {
     // Pass file as first parameter if provided, otherwise pass prompt
     const input = file || prompt;
-    const result = await client.guard(input, {});
+    const options: { systemPrompt?: string } = {};
+    if (systemPrompt) {
+      options.systemPrompt = systemPrompt;
+    }
+    const result = await client.guard(input, options as any);
     const { decision, reasoning, rejected } = result;
 
     if (rejected) {
       if (isStdin) {
         // Claude Code hook format
         const violationInfo = decision?.violation_types?.length
-          ? ` Violations: ${decision.violation_types.join(', ')}.`
-          : '';
+          ? ` Violations: ${decision.violation_types.join(", ")}.`
+          : "";
         const cweInfo = decision?.cwe_codes?.length
-          ? ` CWE: ${decision.cwe_codes.join(', ')}.`
-          : '';
+          ? ` CWE: ${decision.cwe_codes.join(", ")}.`
+          : "";
 
         const response = {
-          decision: 'block',
+          decision: "block",
           reason: `🛡️ Superagent Guard blocked this prompt: ${reasoning}.${violationInfo}${cweInfo}`,
           hookSpecificOutput: {
-            hookEventName: 'UserPromptSubmit',
-            additionalContext: `Blocked by Superagent Guard - ${reasoning}`
-          }
+            hookEventName: "UserPromptSubmit",
+            additionalContext: `Blocked by Superagent Guard - ${reasoning}`,
+          },
         };
 
         console.log(JSON.stringify(response));
@@ -146,7 +172,7 @@ export async function guardCommand(args: string[]) {
   } catch (error: any) {
     console.error(`⚠️ Guard check failed: ${error.message}`);
     if (isStdin) {
-      console.error('Allowing prompt to proceed...');
+      console.error("Allowing prompt to proceed...");
       process.exit(0);
     } else {
       process.exit(2);
