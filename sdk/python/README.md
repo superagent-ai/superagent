@@ -115,7 +115,7 @@ Creates a new Superagent client.
 
 **Returns:** `Client`
 
-### `client.guard(input, *, on_block=None, on_pass=None)`
+### `client.guard(input, *, on_block=None, on_pass=None, system_prompt=None)`
 
 Analyzes text, a PDF file, or a PDF URL for security threats.
 
@@ -123,6 +123,7 @@ Analyzes text, a PDF file, or a PDF URL for security threats.
 - `input` – The text to analyze, a file object (e.g., PDF opened in binary mode), or a URL string (e.g., `"https://example.com/document.pdf"`)
 - `on_block` (optional) – Callback function called when input is blocked
 - `on_pass` (optional) – Callback function called when input is approved
+- `system_prompt` (optional) – System prompt that allows you to steer the guard REST API behavior and customize the classification logic
 
 **Note:** URLs are automatically detected if the string starts with `http://` or `https://`. The API will download and analyze the PDF from the URL.
 

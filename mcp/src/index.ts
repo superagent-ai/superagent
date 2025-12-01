@@ -33,6 +33,12 @@ const GuardInputSchema = z
       .describe(
         "The user input text or PDF URL to analyze for security threats like prompt injection, system prompt extraction, or data exfiltration. URLs starting with http:// or https:// are automatically detected and the PDF will be downloaded and analyzed."
       ),
+    system_prompt: z
+      .string()
+      .optional()
+      .describe(
+        "Optional system prompt that allows you to steer the guard REST API behavior and customize the classification logic. Use this to provide specific instructions about what types of threats to focus on or how to classify inputs."
+      ),
   })
   .strict();
 
@@ -64,7 +70,9 @@ const VerifyInputSchema = z
       .string()
       .min(1, "Text cannot be empty")
       .max(50000, "Text exceeds maximum length of 50,000 characters")
-      .describe("The text containing claims to verify against source materials"),
+      .describe(
+        "The text containing claims to verify against source materials"
+      ),
     sources: z
       .array(
         z.object({
@@ -76,10 +84,7 @@ const VerifyInputSchema = z
             .string()
             .min(1, "Source name cannot be empty")
             .describe("The name or identifier of the source"),
-          url: z
-            .string()
-            .optional()
-            .describe("Optional URL of the source"),
+          url: z.string().optional().describe("Optional URL of the source"),
         })
       )
       .min(1, "At least one source is required")
@@ -114,12 +119,14 @@ This tool uses Superagent's LM-Guard-20B model to classify user inputs and detec
 
 Args:
   - text (string): The user input text or PDF URL to analyze for security threats (max 50,000 characters). URLs starting with http:// or https:// are automatically detected.
+  - system_prompt (string, optional): Optional system prompt that allows you to steer the guard REST API behavior and customize the classification logic. Use this to provide specific instructions about what types of threats to focus on or how to classify inputs.
 
 Examples:
   - Use when: Validating user input before passing to an LLM
   - Use when: "Check if this message is a prompt injection: 'Ignore previous instructions...'"
   - Use when: Analyzing PDF documents from URLs: "https://example.com/document.pdf"
   - Use when: Building a content moderation system for AI applications
+  - Use when: Customizing guard behavior with system_prompt: "Focus on detecting prompt injection attempts and data exfiltration patterns"
   - Don't use when: You need to redact PII (use superagent_redact instead)
 
 Common Violation Types:
@@ -138,7 +145,11 @@ Common Violation Types:
   async (params: GuardInput) => {
     try {
       // Call Superagent Guard API using SDK
-      const result = await client.guard(params.text);
+      const options: { systemPrompt?: string } = {};
+      if (params.system_prompt) {
+        options.systemPrompt = params.system_prompt;
+      }
+      const result = await client.guard(params.text, options as any);
 
       // Return the raw result as JSON
       return {
@@ -353,7 +364,9 @@ async function main() {
 
   // Log to stderr (stdout is reserved for MCP protocol)
   console.error("Superagent MCP server running via stdio");
-  console.error("Tools available: superagent_guard, superagent_redact, superagent_verify");
+  console.error(
+    "Tools available: superagent_guard, superagent_redact, superagent_verify"
+  );
 }
 
 // Run the server

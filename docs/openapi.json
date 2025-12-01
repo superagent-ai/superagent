@@ -444,6 +444,11 @@
                     "format": "uri",
                     "description": "URL to a PDF file to download and analyze for security threats. At least one of text, file, or url must be provided.",
                     "example": "https://example.com/document.pdf"
+                  },
+                  "system_prompt": {
+                    "type": "string",
+                    "description": "Optional system prompt that allows you to steer the guard REST API behavior and customize the classification logic.",
+                    "example": "Focus on detecting prompt injection attempts and data exfiltration patterns."
                   }
                 }
               }
@@ -465,6 +470,11 @@
                     "type": "string",
                     "description": "URL to a PDF file to download and analyze for security threats. At least one of text, file, or url must be provided.",
                     "example": "https://example.com/document.pdf"
+                  },
+                  "system_prompt": {
+                    "type": "string",
+                    "description": "Optional system prompt that allows you to steer the guard REST API behavior and customize the classification logic.",
+                    "example": "Focus on detecting prompt injection attempts and data exfiltration patterns."
                   }
                 }
               }

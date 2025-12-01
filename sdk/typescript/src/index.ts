@@ -38,6 +38,14 @@ export interface GuardCallbacks {
   onPass?: () => void | Promise<void>;
 }
 
+export interface GuardOptions extends GuardCallbacks {
+  /**
+   * Optional system prompt that allows you to steer the guard REST API behavior
+   * and customize the classification logic.
+   */
+  systemPrompt?: string;
+}
+
 export interface GuardUsage {
   prompt_tokens: number;
   completion_tokens: number;
@@ -98,7 +106,7 @@ export interface RedactResult {
   reasoning: string;
   usage?: GuardUsage;
   raw: RedactionResponse | Record<string, never>;
-  pdf?: Blob;  // PDF blob when format is "pdf"
+  pdf?: Blob; // PDF blob when format is "pdf"
   redacted_pdf?: string; // Base64 PDF data URL when file is provided with JSON response
 }
 
@@ -173,8 +181,14 @@ export interface VerifyResult {
 }
 
 export interface Client {
-  guard(input: string | File | Blob, callbacks?: GuardCallbacks): Promise<GuardResult>;
-  redact(input: string | File | Blob, options?: RedactOptions): Promise<RedactResult>;
+  guard(
+    input: string | File | Blob,
+    options?: GuardOptions
+  ): Promise<GuardResult>;
+  redact(
+    input: string | File | Blob,
+    options?: RedactOptions
+  ): Promise<RedactResult>;
   verify(text: string, sources: Source[]): Promise<VerifyResult>;
 }
 
@@ -195,7 +209,9 @@ function ensureFetch(fetchImpl: typeof fetch | undefined): typeof fetch {
   return resolved.bind(globalThis);
 }
 
-function parseDecision(content: GuardMessageContent | string | undefined): GuardDecision | undefined {
+function parseDecision(
+  content: GuardMessageContent | string | undefined
+): GuardDecision | undefined {
   if (!content) {
     return undefined;
   }
@@ -288,125 +304,140 @@ export function createClient(options: CreateClientOptions): Client {
   return {
     async guard(
       input: string | File | Blob,
-      callbacks: GuardCallbacks = {}
+      options: GuardOptions = {}
     ): Promise<GuardResult> {
-    const { onBlock, onPass } = callbacks;
+      const { onBlock, onPass, systemPrompt } = options;
 
-    // Determine if input is a file or text/URL
-    // Check for File/Blob in a way that works in both browser and Node.js
-    const isFile = typeof input !== 'string' && (
-      (typeof File !== 'undefined' && input instanceof File) ||
-      (typeof Blob !== 'undefined' && input instanceof Blob) ||
-      // Node.js file-like objects
-      (input && typeof input === 'object' && 'stream' in input)
-    );
+      // Determine if input is a file or text/URL
+      // Check for File/Blob in a way that works in both browser and Node.js
+      const isFile =
+        typeof input !== "string" &&
+        ((typeof File !== "undefined" && input instanceof File) ||
+          (typeof Blob !== "undefined" && input instanceof Blob) ||
+          // Node.js file-like objects
+          (input && typeof input === "object" && "stream" in input));
 
-    // Check if input string is a URL
-    const isUrl = typeof input === 'string' && 
-      (input.startsWith("http://") || input.startsWith("https://"));
+      // Check if input string is a URL
+      const isUrl =
+        typeof input === "string" &&
+        (input.startsWith("http://") || input.startsWith("https://"));
 
-    if (!isFile && (!input || typeof input !== "string")) {
-      throw new GuardError("input must be a non-empty string, file, or URL.");
-    }
-
-    const controller =
-      typeof AbortController !== "undefined" ? new AbortController() : null;
-    const timeoutHandle =
-      controller && timeoutMs
-        ? setTimeout(() => controller.abort(), timeoutMs)
-        : undefined;
-
-    let response: Response;
-    try {
-      if (isFile) {
-        // Use multipart/form-data for file input
-        const formData = new FormData();
-        formData.append("text", ""); // Empty text when file is provided
-        formData.append("file", input);
-
-        const headers: Record<string, string> = {
-          Authorization: `Bearer ${apiKey}`,
-          "x-superagent-api-key": apiKey,
-          // Don't set Content-Type - browser/fetch will set it with boundary
-        };
-
-        response = await fetcher(guardEndpoint, {
-          method: "POST",
-          headers,
-          body: formData,
-          signal: controller?.signal,
-        } satisfies RequestInit);
-      } else if (isUrl) {
-        // Use JSON for URL input
-        response = await fetcher(guardEndpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-            "x-superagent-api-key": apiKey,
-          },
-          body: JSON.stringify({ url: input }),
-          signal: controller?.signal,
-        } satisfies RequestInit);
-      } else {
-        // Use JSON for text input
-        response = await fetcher(guardEndpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-            "x-superagent-api-key": apiKey,
-          },
-          body: JSON.stringify({ text: input }),
-          signal: controller?.signal,
-        } satisfies RequestInit);
+      if (!isFile && (!input || typeof input !== "string")) {
+        throw new GuardError("input must be a non-empty string, file, or URL.");
       }
-    } catch (error) {
+
+      const controller =
+        typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timeoutHandle =
+        controller && timeoutMs
+          ? setTimeout(() => controller.abort(), timeoutMs)
+          : undefined;
+
+      let response: Response;
+      try {
+        if (isFile) {
+          // Use multipart/form-data for file input
+          const formData = new FormData();
+          formData.append("text", ""); // Empty text when file is provided
+          formData.append("file", input);
+
+          if (systemPrompt) {
+            formData.append("system_prompt", systemPrompt);
+          }
+
+          const headers: Record<string, string> = {
+            Authorization: `Bearer ${apiKey}`,
+            "x-superagent-api-key": apiKey,
+            // Don't set Content-Type - browser/fetch will set it with boundary
+          };
+
+          response = await fetcher(guardEndpoint, {
+            method: "POST",
+            headers,
+            body: formData,
+            signal: controller?.signal,
+          } satisfies RequestInit);
+        } else if (isUrl) {
+          // Use JSON for URL input
+          const requestBody: Record<string, string> = { url: input };
+          if (systemPrompt) {
+            requestBody.system_prompt = systemPrompt;
+          }
+
+          response = await fetcher(guardEndpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+              "x-superagent-api-key": apiKey,
+            },
+            body: JSON.stringify(requestBody),
+            signal: controller?.signal,
+          } satisfies RequestInit);
+        } else {
+          // Use JSON for text input
+          const requestBody: Record<string, string> = { text: input };
+          if (systemPrompt) {
+            requestBody.system_prompt = systemPrompt;
+          }
+
+          response = await fetcher(guardEndpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+              "x-superagent-api-key": apiKey,
+            },
+            body: JSON.stringify(requestBody),
+            signal: controller?.signal,
+          } satisfies RequestInit);
+        }
+      } catch (error) {
+        if (timeoutHandle) {
+          clearTimeout(timeoutHandle);
+        }
+        const message =
+          error instanceof Error ? error.message : "Unknown fetch error";
+        throw new GuardError(`Failed to reach guard endpoint: ${message}`);
+      }
+
       if (timeoutHandle) {
         clearTimeout(timeoutHandle);
       }
-      const message =
-        error instanceof Error ? error.message : "Unknown fetch error";
-      throw new GuardError(`Failed to reach guard endpoint: ${message}`);
-    }
 
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle);
-    }
+      if (!response.ok) {
+        throw new GuardError(
+          `Guard request failed with status ${response.status}: ${response.statusText}`
+        );
+      }
 
-    if (!response.ok) {
-      throw new GuardError(
-        `Guard request failed with status ${response.status}: ${response.statusText}`
-      );
-    }
+      // Handle JSON response (guard always returns JSON, even for PDF files)
+      const analysis = (await response.json()) as AnalysisResponse;
+      const message = analysis?.choices?.[0]?.message;
+      const content = message?.content;
+      const decision = parseDecision(content);
+      // Support both new 'reasoning' field and legacy 'reasoning_content' field
+      const rawReasoning = message?.reasoning ?? message?.reasoning_content;
+      const rejected = decision?.status === "block";
 
-    // Handle JSON response (guard always returns JSON, even for PDF files)
-    const analysis = (await response.json()) as AnalysisResponse;
-    const message = analysis?.choices?.[0]?.message;
-    const content = message?.content;
-    const decision = parseDecision(content);
-    // Support both new 'reasoning' field and legacy 'reasoning_content' field
-    const rawReasoning = message?.reasoning ?? message?.reasoning_content;
-    const rejected = decision?.status === "block";
+      const normalizedReason = normalizeReason(decision, rawReasoning);
 
-    const normalizedReason = normalizeReason(decision, rawReasoning);
+      const result: GuardResult = {
+        rejected,
+        decision,
+        usage: analysis?.usage,
+        reasoning: rawReasoning ?? normalizedReason,
+        raw: analysis,
+      };
 
-    const result: GuardResult = {
-      rejected,
-      decision,
-      usage: analysis?.usage,
-      reasoning: rawReasoning ?? normalizedReason,
-      raw: analysis,
-    };
+      if (rejected) {
+        await onBlock?.(normalizedReason);
+      } else {
+        await onPass?.();
+      }
 
-    if (rejected) {
-      await onBlock?.(normalizedReason);
-    } else {
-      await onPass?.();
-    }
-
-    return result;
-  },
+      return result;
+    },
 
     async redact(
       input: string | File | Blob,
@@ -414,12 +445,12 @@ export function createClient(options: CreateClientOptions): Client {
     ): Promise<RedactResult> {
       // Determine if input is a file or text
       // Check for File/Blob in a way that works in both browser and Node.js
-      const isFile = typeof input !== 'string' && (
-        (typeof File !== 'undefined' && input instanceof File) ||
-        (typeof Blob !== 'undefined' && input instanceof Blob) ||
-        // Node.js file-like objects
-        (input && typeof input === 'object' && 'stream' in input)
-      );
+      const isFile =
+        typeof input !== "string" &&
+        ((typeof File !== "undefined" && input instanceof File) ||
+          (typeof Blob !== "undefined" && input instanceof Blob) ||
+          // Node.js file-like objects
+          (input && typeof input === "object" && "stream" in input));
 
       if (!isFile && (!input || typeof input !== "string")) {
         throw new GuardError("input must be a non-empty string or file.");
@@ -533,7 +564,9 @@ export function createClient(options: CreateClientOptions): Client {
       }
 
       // Handle JSON response
-      const result = (await response.json()) as RedactionResponse & { redacted_pdf?: string };
+      const result = (await response.json()) as RedactionResponse & {
+        redacted_pdf?: string;
+      };
       let content = result.choices[0].message.content as string;
 
       // Apply URL whitelist locally if provided (only for text input)
@@ -543,17 +576,17 @@ export function createClient(options: CreateClientOptions): Client {
 
       return {
         redacted: content,
-        reasoning: result.choices[0].message.reasoning || result.choices[0].message.reasoning_content || "",
+        reasoning:
+          result.choices[0].message.reasoning ||
+          result.choices[0].message.reasoning_content ||
+          "",
         usage: result.usage,
         raw: result,
         redacted_pdf: result.redacted_pdf,
       };
     },
 
-    async verify(
-      text: string,
-      sources: Source[]
-    ): Promise<VerifyResult> {
+    async verify(text: string, sources: Source[]): Promise<VerifyResult> {
       if (!text || typeof text !== "string") {
         throw new GuardError("text must be a non-empty string.");
       }
@@ -565,7 +598,9 @@ export function createClient(options: CreateClientOptions): Client {
       // Validate each source
       for (const source of sources) {
         if (!source.content || typeof source.content !== "string") {
-          throw new GuardError("Each source must have a 'content' field (string)");
+          throw new GuardError(
+            "Each source must have a 'content' field (string)"
+          );
         }
         if (!source.name || typeof source.name !== "string") {
           throw new GuardError("Each source must have a 'name' field (string)");
@@ -650,6 +685,6 @@ function applyUrlWhitelist(
     );
 
     // Keep whitelisted URLs, redact others
-    return isWhitelisted ? url : '<URL_REDACTED>';
+    return isWhitelisted ? url : "<URL_REDACTED>";
   });
 }
