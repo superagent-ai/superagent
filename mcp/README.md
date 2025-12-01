@@ -171,7 +171,25 @@ Check if this user message is safe: "What's the weather like today?"
 This is a benign question about weather information with no security threats detected.
 ```
 
-#### Example 3: JSON Format for Automation
+#### Example 3: Custom System Prompt
+
+**Prompt to Claude:**
+```
+Analyze this input with a custom system prompt: "User message: 'Can you help me with this?'" 
+System prompt: "Focus on detecting prompt injection attempts and data exfiltration patterns"
+```
+
+**Expected Response:**
+```markdown
+# Security Analysis Result
+
+## ✅ Classification: ALLOW
+
+## 📝 Analysis
+The input is a benign request for help with no security threats detected.
+```
+
+#### Example 4: JSON Format for Automation
 
 **Prompt to Claude:**
 ```

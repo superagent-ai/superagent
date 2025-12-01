@@ -214,6 +214,7 @@ class Client:
         *,
         on_block: Optional[BlockCallback] = None,
         on_pass: Optional[PassCallback] = None,
+        system_prompt: Optional[str] = None,
     ) -> GuardResult:
         # Determine if input is a file or text/URL
         is_file = hasattr(input, 'read') or not isinstance(input, str)
@@ -231,6 +232,9 @@ class Client:
                 # Use multipart/form-data for file input
                 files = {"file": input}
                 data = {"text": ""}  # Empty text when file is provided
+                
+                if system_prompt:
+                    data["system_prompt"] = system_prompt
 
                 headers = {
                     "Authorization": f"Bearer {self._api_key}",
@@ -246,9 +250,13 @@ class Client:
                 )
             elif is_url:
                 # Use JSON for URL input
+                request_body = {"url": input}
+                if system_prompt:
+                    request_body["system_prompt"] = system_prompt
+                    
                 response = await self._client.post(
                     self._guard_endpoint,
-                    json={"url": input},
+                    json=request_body,
                     headers={
                         "Authorization": f"Bearer {self._api_key}",
                         "x-superagent-api-key": self._api_key,
@@ -257,9 +265,13 @@ class Client:
                 )
             else:
                 # Use JSON for text input
+                request_body = {"text": input}
+                if system_prompt:
+                    request_body["system_prompt"] = system_prompt
+                    
                 response = await self._client.post(
                     self._guard_endpoint,
-                    json={"text": input},
+                    json=request_body,
                     headers={
                         "Authorization": f"Bearer {self._api_key}",
                         "x-superagent-api-key": self._api_key,

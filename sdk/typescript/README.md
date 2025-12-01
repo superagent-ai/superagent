@@ -85,13 +85,16 @@ Creates a new Superagent client.
 - `fetch` (optional) – Custom fetch implementation (defaults to global `fetch`)
 - `timeoutMs` (optional) – Request timeout in milliseconds
 
-### `client.guard(input, callbacks?)`
+### `client.guard(input, options?)`
 
 Analyzes text, a PDF file, or a PDF URL for security threats.
 
 **Parameters:**
 - `input` – The text to analyze, a File/Blob object (e.g., PDF), or a URL string (e.g., `"https://example.com/document.pdf"`)
-- `callbacks` (optional) – Object with `onPass` and `onBlock` callbacks
+- `options` (optional) – Object with the following properties:
+  - `onPass` (optional) – Callback invoked when the guard approves the command
+  - `onBlock` (optional) – Callback invoked when the guard rejects the command
+  - `systemPrompt` (optional) – System prompt that allows you to steer the guard REST API behavior and customize the classification logic
 
 **Note:** URLs are automatically detected if the string starts with `http://` or `https://`. The API will download and analyze the PDF from the URL.
 

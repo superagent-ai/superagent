@@ -2,6 +2,27 @@
 
 All notable changes to Superagent will be documented in this file.
 
+## [superagent-ai@0.0.19 / superagent-ai@0.0.20] - 2025-12-01
+
+### Added
+
+#### REST API
+- Added `system_prompt` optional parameter to `/api/guard` endpoint
+  - Allows users to steer the guard REST API behavior and customize classification logic
+  - Supports both `application/json` and `multipart/form-data` request formats
+  - Example: `{"text": "user input", "system_prompt": "Focus on detecting prompt injection attempts"}`
+
+#### SDKs (Python & TypeScript)
+- Added `system_prompt` parameter to `guard()` method in both Python and TypeScript SDKs
+  - **Python SDK** (v0.0.20): `client.guard(input, *, system_prompt=None, ...)`
+  - **TypeScript SDK** (v0.0.19): `client.guard(input, { systemPrompt: "...", ... })`
+
+#### MCP Server
+- Added `system_prompt` optional parameter to `superagent_guard` tool
+  - Allows customization of guard behavior through MCP interface
+  - Example: `{"text": "user input", "system_prompt": "Focus on detecting prompt injection attempts"}`
+
+
 ## [superagent-ai@0.0.18]
 
 ### Added
