@@ -206,7 +206,14 @@ class Client:
 
     async def aclose(self) -> None:
         if self._owns_client:
-            await self._client.aclose()
+            try:
+                await self._client.aclose()
+            except RuntimeError as e:
+                # Suppress RuntimeErrors during cleanup when transport is already closed
+                # This is a known issue with httpx/httpcore + uvloop
+                if "handler is closed" not in str(e) and "TCPTransport closed" not in str(e):
+                    raise
+                # Otherwise, silently ignore the cleanup error
 
     async def guard(
         self,
