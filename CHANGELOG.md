@@ -2,7 +2,7 @@
 
 All notable changes to Superagent will be documented in this file.
 
-## [superagent-ai@0.0.20 / superagent-ai@0.0.22] - 2025-12-08
+## [superagent-ai@0.0.20 / superagent-ai@0.0.22 / @superagent-ai/cli@0.0.16 / @superagent-ai/mcp@0.0.8] - 2025-12-08
 
 ### Added
 
