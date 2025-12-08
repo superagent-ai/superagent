@@ -125,6 +125,12 @@ export interface RedactOptions {
    * Only applies to file input.
    */
   format?: "json" | "pdf";
+  /**
+   * When true, naturally rewrite content to remove sensitive information instead of using placeholders.
+   * For example, "Contact me at john@example.com" becomes "Contact me via email"
+   * instead of "Contact me at <EMAIL_REDACTED>".
+   */
+  rewrite?: boolean;
 }
 
 export interface Source {
@@ -479,6 +485,10 @@ export function createClient(options: CreateClientOptions): Client {
             formData.append("entities", JSON.stringify(options.entities));
           }
 
+          if (options?.rewrite) {
+            formData.append("rewrite", "true");
+          }
+
           const headers: Record<string, string> = {
             Authorization: `Bearer ${apiKey}`,
             "x-superagent-api-key": apiKey,
@@ -498,13 +508,22 @@ export function createClient(options: CreateClientOptions): Client {
           } satisfies RequestInit);
         } else {
           // Use JSON for text input
-          const requestBody: { text: string; entities?: string[] } = {
+          const requestBody: {
+            text: string;
+            entities?: string[];
+            rewrite?: boolean;
+          } = {
             text: input,
           };
 
           // Include entities in request body if provided
           if (options?.entities && options.entities.length > 0) {
             requestBody.entities = options.entities;
+          }
+
+          // Include rewrite in request body if provided
+          if (options?.rewrite) {
+            requestBody.rewrite = options.rewrite;
           }
 
           response = await fetcher(redactEndpoint, {

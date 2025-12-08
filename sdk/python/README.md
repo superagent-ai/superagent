@@ -145,7 +145,7 @@ class GuardDecision:
     cwe_codes: list[str]
 ```
 
-### `client.redact(text, *, url_whitelist=None, entities=None, file=None, format=None)`
+### `client.redact(text, *, url_whitelist=None, entities=None, format=None, rewrite=None)`
 
 Redacts sensitive data from text.
 
@@ -153,8 +153,8 @@ Redacts sensitive data from text.
 - `text` – The text to redact
 - `url_whitelist` (optional) – List of URL prefixes that should not be redacted
 - `entities` (optional) – List of custom entity types to redact (natural language descriptions)
-- `file` (optional) – File object to redact (e.g., PDF document)
-- `format` (optional) – Format of the file (currently only "PDF" is supported)
+- `format` (optional) – Output format: "json" (default) or "pdf" (for file input)
+- `rewrite` (optional) – When True, naturally rewrite content to remove sensitive information instead of using placeholders
 
 **Returns:** `RedactResult`
 
@@ -198,6 +198,22 @@ result = await client.redact(
 )
 # Output: "My credit card is <REDACTED> and employee ID is <REDACTED>"
 ```
+
+## Natural Rewrite Mode
+
+By default, sensitive information is replaced with placeholders like `<EMAIL_REDACTED>`. When `rewrite=True` is set, the API will naturally rewrite content to remove sensitive information while maintaining readability:
+
+```python
+client = create_client(api_key="sk-...")
+
+result = await client.redact(
+    "Contact me at john@example.com or call (555) 123-4567",
+    rewrite=True
+)
+# Output: "Contact me via email or call by phone"
+```
+
+This is useful when you want the output to read naturally without obvious redaction markers.
 
 ## URL Whitelisting
 

@@ -324,7 +324,8 @@ class Client:
         *,
         url_whitelist: Optional[list[str]] = None,
         entities: Optional[list[str]] = None,
-        format: Optional[str] = None
+        format: Optional[str] = None,
+        rewrite: Optional[bool] = None
     ) -> RedactResult:
         # Determine if input is a file or text
         is_file = hasattr(input, 'read') or not isinstance(input, str)
@@ -343,6 +344,9 @@ class Client:
 
                 if entities:
                     data["entities"] = json.dumps(entities)
+
+                if rewrite:
+                    data["rewrite"] = "true"
 
                 headers = {
                     "Authorization": f"Bearer {self._api_key}",
@@ -367,6 +371,10 @@ class Client:
                 # Include entities in request body if provided
                 if entities:
                     request_body["entities"] = entities
+
+                # Include rewrite in request body if provided
+                if rewrite:
+                    request_body["rewrite"] = rewrite
 
                 response = await self._client.post(
                     self._redact_endpoint,
