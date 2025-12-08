@@ -1,6 +1,6 @@
 {
   "name": "@superagent-ai/mcp",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "MCP server for Superagent.sh API integration - security guardrails, PII redaction, and claim verification",
   "type": "module",
   "main": "dist/index.js",
@@ -32,7 +32,7 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",
-    "superagent-ai": "^0.0.19",
+    "superagent-ai": "^0.0.20",
     "zod": "^3.23.8"
   },
   "devDependencies": {

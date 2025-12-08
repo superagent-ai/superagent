@@ -130,8 +130,8 @@ Redacts sensitive data from text.
 interface RedactOptions {
   urlWhitelist?: string[];  // URL prefixes to preserve
   entities?: string[];      // Custom entity types to redact (natural language)
-  file?: File | Blob;       // File to redact (e.g., PDF document)
-  format?: "PDF";           // Format of the file
+  format?: "json" | "pdf";  // Output format (only applies to file input)
+  rewrite?: boolean;        // When true, naturally rewrite instead of using placeholders
 }
 
 interface RedactResult {
@@ -171,6 +171,20 @@ const result = await client.redact(
 );
 // Output: "My credit card is <REDACTED> and employee ID is <REDACTED>"
 ```
+
+## Natural Rewrite Mode
+
+By default, sensitive information is replaced with placeholders like `<EMAIL_REDACTED>`. When `rewrite: true` is set, the API will naturally rewrite content to remove sensitive information while maintaining readability:
+
+```ts
+const result = await client.redact(
+  "Contact me at john@example.com or call (555) 123-4567",
+  { rewrite: true }
+);
+// Output: "Contact me via email or call by phone"
+```
+
+This is useful when you want the output to read naturally without obvious redaction markers.
 
 ## URL Whitelisting
 

@@ -3,6 +3,15 @@
 This is a Next.js application generated with
 [Create Fumadocs](https://github.com/fuma-nama/fumadocs).
 
+## Security Notice
+
+**CVE-2025-55182**: This project uses Next.js and React Server Components. To protect against CVE-2025-55182 (a critical remote code execution vulnerability in React Server Components), ensure you're using:
+
+- **React**: 19.0.1, 19.1.2, or 19.2.1 (or later)
+- **Next.js**: 15.0.5, 15.1.9, 15.2.6, 15.3.6, 15.4.8, 15.5.7 (or 16.0.7+ if not using fumadocs), or later
+
+The current versions in this project have been updated to patched versions. For more information, see the [Vercel security bulletin](https://vercel.com/changelog/cve-2025-55182).
+
 Run development server:
 
 ```bash

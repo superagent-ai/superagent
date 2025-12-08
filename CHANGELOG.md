@@ -2,6 +2,15 @@
 
 All notable changes to Superagent will be documented in this file.
 
+## [superagent-ai@0.0.20 / superagent-ai@0.0.22 / @superagent-ai/cli@0.0.16 / @superagent-ai/mcp@0.0.8] - 2025-12-08
+
+### Added
+
+- Added `rewrite` option to Redact API and SDKs
+  - When `rewrite: true`, content is naturally rewritten to remove sensitive information instead of using placeholders
+  - Example: "Contact me at john@example.com" becomes "Contact me via email" instead of "Contact me at <EMAIL_REDACTED>"
+  - Available in Python SDK, TypeScript SDK, and REST API
+
 ## [superagent-ai@0.0.19 / superagent-ai@0.0.20] - 2025-12-01
 
 ### Added

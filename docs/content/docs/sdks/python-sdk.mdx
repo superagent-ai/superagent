@@ -174,7 +174,7 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
   }}
 />
 
-### `client.redact(input, *, url_whitelist=None, entities=None, format=None)`
+### `client.redact(input, *, url_whitelist=None, entities=None, format=None, rewrite=None)`
 
 Redacts sensitive data from text or PDF files.
 
@@ -197,6 +197,10 @@ Redacts sensitive data from text or PDF files.
     format: {
       description: 'Output format: "json" (default) returns JSON with redacted text, "pdf" returns redacted PDF bytes (only applies to file input)',
       type: 'Optional[str]',
+    },
+    rewrite: {
+      description: 'When True, naturally rewrite content to remove sensitive information instead of using placeholders',
+      type: 'Optional[bool]',
     },
   }}
 />
@@ -412,6 +416,30 @@ result = await client.redact(
 - `["API keys", "passwords", "authentication tokens"]`
 - `["medical record numbers", "patient names"]`
 - `["company names", "project codenames"]`
+
+## Natural Rewrite Mode
+
+By default, sensitive information is replaced with placeholders like `<EMAIL_REDACTED>`. When `rewrite=True` is set, the API will naturally rewrite content to remove sensitive information while maintaining readability:
+
+```python title="natural_rewrite_example.py"
+client = create_client(api_key="sk-...")
+
+result = await client.redact(
+    "Contact me at john@example.com or call (555) 123-4567",
+    rewrite=True
+)
+# Output: "Contact me via email or call by phone"
+```
+
+**How it works:**
+- When `rewrite=True`, the AI rewrites the text to remove sensitive information naturally
+- The output reads like normal text without obvious redaction markers
+- Useful when you want human-readable output for end users
+
+**Use cases:**
+- Generating user-facing content that needs to be clean and readable
+- Creating summaries or reports without visible redaction markers
+- Preparing content for public display
 
 ## URL Whitelisting
 

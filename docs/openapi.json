@@ -58,6 +58,11 @@
                     },
                     "description": "Optional array of custom entity types to redact. If not provided, defaults to standard PII entities (SSNs, emails, phone numbers, etc.)",
                     "example": ["Email Addresses", "Social Security Numbers", "API Keys"]
+                  },
+                  "rewrite": {
+                    "type": "boolean",
+                    "description": "When true, naturally rewrite content to remove sensitive information instead of using placeholders. For example, 'Contact me at john@example.com' becomes 'Contact me via email' instead of 'Contact me at <EMAIL_REDACTED>'.",
+                    "default": false
                   }
                 }
               }
@@ -86,6 +91,12 @@
                     "enum": ["json", "pdf"],
                     "description": "Output format: 'json' returns JSON with redacted text (default), 'pdf' returns a redacted PDF file with redactions applied.",
                     "example": "pdf"
+                  },
+                  "rewrite": {
+                    "type": "string",
+                    "enum": ["true", "false"],
+                    "description": "When 'true', naturally rewrite content to remove sensitive information instead of using placeholders. For example, 'Contact me at john@example.com' becomes 'Contact me via email' instead of 'Contact me at <EMAIL_REDACTED>'.",
+                    "example": "true"
                   }
                 }
               }

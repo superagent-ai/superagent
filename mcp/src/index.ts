@@ -59,6 +59,12 @@ const RedactInputSchema = z
       .describe(
         "Optional array of custom entity types to redact. If not provided, defaults to standard PII entities (SSNs, emails, phone numbers, credit cards, etc.). Examples: ['EMAIL', 'SSN', 'PHONE_NUMBER', 'CREDIT_CARD', 'NAME', 'ADDRESS']"
       ),
+    rewrite: z
+      .boolean()
+      .optional()
+      .describe(
+        "When true, naturally rewrite content to remove sensitive information instead of using placeholders. For example, 'Contact me at john@example.com' becomes 'Contact me via email' instead of 'Contact me at <EMAIL_REDACTED>'."
+      ),
   })
   .strict();
 
@@ -192,10 +198,14 @@ Args:
   - entities (string[], optional): Custom entity types to redact. If not provided, defaults to standard PII entities.
     Standard entities include: SSN, EMAIL, PHONE_NUMBER, CREDIT_CARD, NAME, ADDRESS, DATE_OF_BIRTH, etc.
     Examples: ['EMAIL', 'SSN'], ['PHONE_NUMBER', 'CREDIT_CARD'], ['NAME', 'ADDRESS', 'EMAIL']
+  - rewrite (boolean, optional): When true, naturally rewrite content to remove sensitive information instead of using placeholders.
+    Example: "Contact me at john@example.com" becomes "Contact me via email" instead of "Contact me at <EMAIL_REDACTED>"
 
 Returns:
-  The redacted text as a string with sensitive information replaced by <ENTITY_REDACTED> tokens.
+  The redacted text as a string. When rewrite=false (default), sensitive information is replaced by <ENTITY_REDACTED> tokens.
   Example: "My email is <EMAIL_REDACTED> and SSN is <SSN_REDACTED>"
+  When rewrite=true, the text is naturally rewritten to remove sensitive information.
+  Example: "You can reach me by email and I've provided my social security number"
 
 Examples:
   - Use when: Processing user-submitted content that may contain PII
@@ -228,6 +238,7 @@ Common Entity Types:
       // Call Superagent Redact API using SDK
       const result = await client.redact(params.text, {
         entities: params.entities,
+        rewrite: params.rewrite,
       });
 
       // Return the redacted text from the result

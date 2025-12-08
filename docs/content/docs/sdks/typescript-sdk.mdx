@@ -204,6 +204,10 @@ Redacts sensitive data from text or PDF files.
       description: 'Output format: "json" (default) returns JSON with redacted text, "pdf" returns a redacted PDF file (only applies to file input)',
       type: '"json" | "pdf" | undefined',
     },
+    rewrite: {
+      description: 'When true, naturally rewrite content to remove sensitive information instead of using placeholders',
+      type: 'boolean | undefined',
+    },
   }}
 />
 
@@ -418,6 +422,32 @@ const result = await client.redact(
 - `["API keys", "passwords", "authentication tokens"]`
 - `["medical record numbers", "patient names"]`
 - `["company names", "project codenames"]`
+
+## Natural Rewrite Mode
+
+By default, sensitive information is replaced with placeholders like `<EMAIL_REDACTED>`. When `rewrite: true` is set, the API will naturally rewrite content to remove sensitive information while maintaining readability:
+
+```ts title="natural-rewrite-example.ts"
+const client = createClient({
+  apiKey: process.env.SUPERAGENT_API_KEY!,
+});
+
+const result = await client.redact(
+  "Contact me at john@example.com or call (555) 123-4567",
+  { rewrite: true }
+);
+// Output: "Contact me via email or call by phone"
+```
+
+**How it works:**
+- When `rewrite: true`, the AI rewrites the text to remove sensitive information naturally
+- The output reads like normal text without obvious redaction markers
+- Useful when you want human-readable output for end users
+
+**Use cases:**
+- Generating user-facing content that needs to be clean and readable
+- Creating summaries or reports without visible redaction markers
+- Preparing content for public display
 
 ## URL Whitelisting
 
