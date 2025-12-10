@@ -27,8 +27,8 @@ Removes sensitive data (PII, PHI, secrets) from text, logs, or documents in real
 
 Superagent fits into your workflow, no matter how you build:
 
-- **API**: [Documentation](https://docs.superagent.sh/api) — Send any payload and receive a guarded, verified, or redacted result. Supports JSON, text, or document inputs.
-- **SDKs**: [Python](https://docs.superagent.sh/python-sdk), [TypeScript](https://docs.superagent.sh/typescript-sdk) — Lightweight client libraries for embedding Guard, Verify, or Redact directly into your workflows and orchestration layers.
+- **API**: [Documentation](https://docs.superagent.sh/rest-api/guard) — Send any payload and receive a guarded, verified, or redacted result. Supports JSON, text, or document inputs.
+- **SDKs**: [Python](https://docs.superagent.sh/sdks/python-sdk), [TypeScript](https://docs.superagent.sh/sdks/typescript-sdk) — Lightweight client libraries for embedding Guard, Verify, or Redact directly into your workflows and orchestration layers.
 - **CLI**: [Documentation](https://docs.superagent.sh/cli) — Command-line tool for developers and ops teams to test, audit, or batch-process data locally.
 
 All access methods share the same core engine and authentication model — simple to integrate, fast to deploy, and ready for production from day one.
