@@ -1,0 +1,114 @@
+---
+title: Providers
+description: Supported LLM providers and configuration
+---
+
+# Providers
+
+Safety Agent works with any language model. Use the `provider/model` format when specifying models.
+
+## Supported Providers
+
+| Provider | Model Format | Required Env Variables |
+|----------|-------------|----------------------|
+| Anthropic | `anthropic/{model}` | `ANTHROPIC_API_KEY` |
+| AWS Bedrock | `bedrock/{model}` | `AWS_BEDROCK_API_KEY`<br/>`AWS_BEDROCK_REGION` (optional) |
+| Fireworks | `fireworks/{model}` | `FIREWORKS_API_KEY` |
+| Google | `google/{model}` | `GOOGLE_API_KEY` |
+| Groq | `groq/{model}` | `GROQ_API_KEY` |
+| OpenAI | `openai/{model}` | `OPENAI_API_KEY` |
+| OpenRouter | `openrouter/{provider}/{model}` | `OPENROUTER_API_KEY` |
+| Vercel AI Gateway | `vercel/{provider}/{model}` | `AI_GATEWAY_API_KEY` |
+
+## Environment Setup
+
+Set the appropriate API key environment variable for your chosen provider:
+
+```bash
+# OpenAI
+export OPENAI_API_KEY=sk-...
+
+# Anthropic
+export ANTHROPIC_API_KEY=sk-ant-...
+
+# Google
+export GOOGLE_API_KEY=...
+
+# Groq
+export GROQ_API_KEY=gsk_...
+
+# Fireworks
+export FIREWORKS_API_KEY=...
+
+# AWS Bedrock
+export AWS_BEDROCK_API_KEY=...
+export AWS_BEDROCK_REGION=us-east-1  # optional
+
+# OpenRouter
+export OPENROUTER_API_KEY=...
+
+# Vercel AI Gateway
+export AI_GATEWAY_API_KEY=...
+```
+
+## Usage Examples
+
+```typescript
+import { createClient } from "@superagent-ai/safety-agent";
+
+const client = createClient();
+
+// OpenAI
+await client.guard({
+  input: "user message",
+  model: "openai/gpt-4o-mini"
+});
+
+// Anthropic
+await client.guard({
+  input: "user message",
+  model: "anthropic/claude-3-5-sonnet-20241022"
+});
+
+// Google
+await client.guard({
+  input: "user message",
+  model: "google/gemini-1.5-pro"
+});
+
+// Groq
+await client.guard({
+  input: "user message",
+  model: "groq/llama-3.1-70b-versatile"
+});
+
+// OpenRouter (nested provider/model)
+await client.guard({
+  input: "user message",
+  model: "openrouter/anthropic/claude-3-5-sonnet"
+});
+```
+
+## Vision-Capable Models
+
+For image analysis, use a vision-capable model:
+
+| Provider | Vision Models |
+|----------|---------------|
+| **OpenAI** | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`, `gpt-4.1` |
+| **Anthropic** | `claude-3-*`, `claude-sonnet-4-*`, `claude-opus-4-*`, `claude-haiku-4-*` |
+| **Google** | `gemini-*` |
+
+Other providers (Fireworks, Groq, OpenRouter, Vercel, Bedrock) currently support text-only analysis.
+
+## Choosing a Model
+
+Consider these factors when selecting a model:
+
+- **Latency**: Smaller models like `gpt-4o-mini` or `claude-3-haiku` are faster
+- **Accuracy**: Larger models like `gpt-4o` or `claude-3-5-sonnet` may catch more edge cases
+- **Cost**: Varies significantly by provider and model size
+- **Compliance**: Some providers offer data residency or compliance certifications
+
+For most use cases, `openai/gpt-4o-mini` or `anthropic/claude-3-haiku-20240307` provide a good balance of speed, accuracy, and cost.
+

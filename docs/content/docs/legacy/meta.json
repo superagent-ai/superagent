@@ -1,0 +1,32 @@
+{
+  "title": "Legacy SDK/API",
+  "description": "Purpose-trained models available as standalone APIs",
+  "root": true,
+  "defaultOpen": false,
+  "pages": [
+    "quickstart",
+    "sdks",
+    "rest-api",
+    "mcp",
+    "cli",
+    "llms",
+    "---Guides---",
+    "agent-frameworks/langgraph",
+    "agent-frameworks/mastra",
+    "agent-frameworks/openai-agents-sdk",
+    "agent-frameworks/pydantic-ai",
+    "agent-frameworks/vercel-ai-sdk",
+    "---Examples---",
+    "examples/secure-rag-pipeline",
+    "examples/redact-pdfs",
+    "examples/scan-file-uploads",
+    "examples/n8n-redact",
+    "examples/mastra",
+    "examples/claude-code-userprompt",
+    "examples/e2b",
+    "examples/firecrawl",
+    "---Resources---",
+    "resources/rate-limits",
+    "resources/data-retention"
+  ]
+}
