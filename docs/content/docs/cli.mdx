@@ -3,7 +3,7 @@ title: CLI
 description: Command-line interface for interacting with Superagent
 ---
 
-<Callout>Sign up at [https://app.superagnet.sh](https://superagent.sh) to obtain an API Key</Callout>
+<Callout>Sign up at [https://app.superagent.sh](https://app.superagent.sh) to obtain an API Key</Callout>
 
 Command-line tool for validating prompts and commands with the Superagent endpoint.
 
@@ -390,7 +390,7 @@ When used interactively, the CLI provides human-readable output:
 
 **Blocked prompts:**
 ```
-=Ã¯Â¿Â½ BLOCKED: [reasoning]
+BLOCKED: [reasoning]
 Violations: [violation types]
 CWE Codes: [CWE identifiers]
 ```
@@ -410,7 +410,7 @@ When receiving input via stdin, the CLI outputs structured JSON for programmatic
 ```json title="Response"
 {
   "decision": "block",
-  "reason": "=Ã¯Â¿Â½ Superagent Guard blocked this prompt: User requests destructive action. Violations: malicious_action. CWE: CWE-77.",
+  "reason": "Superagent Guard blocked this prompt: User requests destructive action. Violations: malicious_action. CWE: CWE-77.",
   "hookSpecificOutput": {
     "hookEventName": "UserPromptSubmit",
     "additionalContext": "Blocked by Superagent Guard - User requests destructive action"
@@ -458,7 +458,7 @@ echo '{"prompt": "your text"}' | superagent guard
 
 **Error:**
 ```
-Ã¯Â¿Â½ Guard check failed: This operation was aborted
+Guard check failed: This operation was aborted
 ```
 
 **Solution:**
