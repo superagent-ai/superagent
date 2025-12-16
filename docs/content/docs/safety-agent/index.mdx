@@ -1,0 +1,112 @@
+---
+title: What is Superagent?
+description: Superagent helps developers make their AI apps safe
+---
+
+Modern AI apps rely on agents and LLM workflows that read data, follow instructions, call tools, and produce outputs users trust. These systems fail in ways traditional software does not—data leakage, prompt injections, unsafe tool actions, and workflow failures. Superagent helps developers make their AI apps safe.
+
+## Safety Agent SDK
+
+The **Safety Agent** is an SDK that teams embed directly into their AI app. Run it on inputs, outputs, or intermediate steps—depending on how your agent or workflow is designed. It works with **any language model**.
+
+```bash
+npm install @superagent-ai/safety-agent
+```
+
+<Cards className="grid-cols-3">
+  <IconCard
+    title="Guard"
+    href="/safety-agent/methods/guard"
+    description="Detect and block unsafe content: prompt injections, malicious instructions, and unsafe tool calls"
+    icon={<Shield className="size-4" />}
+  />
+  <IconCard
+    title="Redact"
+    href="/safety-agent/methods/redact"
+    description="Remove PII, PHI, and secrets from text automatically with placeholder or rewrite modes"
+    icon={<EyeOff className="size-4" />}
+  />
+  <IconCard
+    title="Analyze"
+    href="/safety-agent/methods/analyze"
+    description="Deep inspection of files and documents. Returns reasoning, findings, and suggested fixes"
+    icon={<Search className="size-4" />}
+  />
+</Cards>
+
+### Why Safety Agent
+
+- **Works with any model**: OpenAI, Anthropic, Google, Bedrock, Groq, Fireworks, and more
+- **Low latency**: Parallel processing for large inputs and multi-page documents
+- **File support**: Analyze PDFs, images, and URLs directly
+- **Flexible integration**: Run on inputs, outputs, or any intermediate step
+- **Custom prompts**: Override default behavior with your own classification logic
+- **Proven accuracy**: Up to 30% better Guard performance on the Browser Safe benchmark
+
+### Quick Example
+
+```typescript
+import { createClient } from "@superagent-ai/safety-agent";
+
+const client = createClient();
+
+// Guard - Classify input as safe or unsafe
+const guardResult = await client.guard({
+  input: "user message to analyze",
+  model: "openai/gpt-4o-mini" 
+});
+
+if (guardResult.classification === "block") {
+  console.log("Blocked:", guardResult.violation_types);
+}
+
+// Redact - Sanitize sensitive content
+const redactResult = await client.redact({
+  input: "My email is john@example.com and SSN is 123-45-6789",
+  model: "openai/gpt-4o-mini"
+});
+
+console.log(redactResult.redacted);
+// "My email is <EMAIL_REDACTED> and SSN is <SSN_REDACTED>"
+```
+
+## Get Started
+
+<Cards className="grid-cols-2">
+  <IconCard
+    title="Quickstart"
+    href="/safety-agent/quickstart"
+    description="Install the SDK and make your first call in minutes"
+    icon={<Rocket className="size-4" />}
+  />
+  <IconCard
+    title="Guard"
+    href="/safety-agent/methods/guard"
+    description="Detect prompt injections, malicious inputs, and unsafe tool calls"
+    icon={<Shield className="size-4" />}
+  />
+  <IconCard
+    title="Redact"
+    href="/safety-agent/methods/redact"
+    description="Remove PII, PHI, and secrets from text automatically"
+    icon={<EyeOff className="size-4" />}
+  />
+  <IconCard
+    title="Providers"
+    href="/safety-agent/providers"
+    description="Supported LLM providers and configuration"
+    icon={<Server className="size-4" />}
+  />
+</Cards>
+
+## Legacy API
+
+Looking for the hosted API with purpose-trained models? See the [Legacy SDK/API documentation](/legacy/quickstart).
+
+## Support
+
+Need help or have questions? Connect with us:
+
+- **X (Twitter)**: Follow [@superagent_ai](https://x.com/superagent_ai) for updates and announcements
+- **Discord**: Join our community at [discord.gg/spZ7MnqFT4](https://discord.gg/spZ7MnqFT4) for support and discussions
+- **GitHub**: Check out our source code and contribute at [github.com/superagent-ai/superagent](https://github.com/superagent-ai/superagent)

@@ -24,6 +24,7 @@ import {
   Activity,
   Check,
   EyeOff,
+  Search,
 } from "lucide-react";
 import { SiPython, SiTypescript } from "react-icons/si";
 
@@ -52,6 +53,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     Activity,
     Check,
     EyeOff,
+    Search,
     TypeScriptIcon: SiTypescript,
     PythonIcon: SiPython,
     img: (props) => <ImageZoom {...(props as any)} />,

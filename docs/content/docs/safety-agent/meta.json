@@ -1,0 +1,12 @@
+{
+  "title": "Safety Agent",
+  "description": "Embed safety directly into your AI app with any LLM",
+  "root": true,
+  "defaultOpen": true,
+  "pages": [
+    "index",
+    "quickstart",
+    "methods",
+    "providers"
+  ]
+}
