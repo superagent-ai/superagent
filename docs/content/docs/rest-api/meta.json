@@ -4,6 +4,6 @@
   "pages": [
     "guard",
     "redact",
-    "verify"
+    "analyze"
   ]
 }

@@ -50,25 +50,15 @@ const redactResult = await client.redact(
 console.log(redactResult.redacted);
 // Output: "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>"
 
-// Verify: Check claims against source materials
-const verifyResult = await client.verify(
-  "The company was founded in 2020 and has 500 employees",
-  [
-    {
-      name: "About Us",
-      content: "Founded in 2020, our company has grown rapidly...",
-      url: "https://example.com/about"
-    },
-    {
-      name: "Team Page",
-      content: "We currently have over 450 team members...",
-      url: "https://example.com/team"
-    }
-  ]
-);
+// Analyze: Deep inspection of files and documents
+// TODO: Update when Analyze API is finalized
+const analyzeResult = await client.analyze({
+  file: "{{ANALYZE_FILE_INPUT}}",  // e.g., PDF file, PR URL, or repo path
+  options: { /* {{ANALYZE_OPTIONS}} */ }
+});
 
-console.log(verifyResult.claims);
-// Output: Array of claim verifications with verdicts, evidence, and reasoning
+console.log(analyzeResult.findings);
+// Output: {{ANALYZE_FINDINGS}} - Array of findings with reasoning and suggestions
 ```
 
 ## API Reference
@@ -242,51 +232,42 @@ Redacts sensitive data from text or PDF files.
   }}
 />
 
-### `client.verify(text, sources)`
+### `client.analyze(options)`
 
-Verifies claims in text against provided source materials.
+{/* TODO: Update when Analyze API is finalized */}
+
+Deep inspection of files and documents (PDFs, PRs, repos). Returns reasoning, findings, and suggested fixes.
 
 **Parameters:**
 
 <TypeTable
   type={{
-    text: {
-      description: 'String containing claims to verify',
-      type: 'string',
+    file: {
+      description: '{{ANALYZE_FILE_PARAM}} - File to analyze (PDF, PR URL, or repo path)',
+      type: 'string | File | Blob',
     },
-    sources: {
-      description: 'Array of source materials to verify claims against',
-      type: 'Source[]',
-    },
-  }}
-/>
-
-**Source:**
-
-<TypeTable
-  type={{
-    content: {
-      description: 'The content of the source material',
-      type: 'string',
-    },
-    name: {
-      description: 'The name or identifier of the source',
-      type: 'string',
-    },
-    url: {
-      description: 'Optional URL of the source',
-      type: 'string | undefined',
+    options: {
+      description: '{{ANALYZE_OPTIONS_PARAM}} - Analysis configuration options',
+      type: 'AnalyzeOptions | undefined',
     },
   }}
 />
 
-**Returns:** `Promise<VerifyResult>`
+**Returns:** `Promise<AnalyzeResult>`
 
 <TypeTable
   type={{
-    claims: {
-      description: 'Array of verified claims with verdicts and evidence',
-      type: 'ClaimVerification[]',
+    findings: {
+      description: '{{ANALYZE_FINDINGS_DESC}} - List of findings from the analysis',
+      type: '{{ANALYZE_FINDINGS_TYPE}}',
+    },
+    reasoning: {
+      description: '{{ANALYZE_REASONING_DESC}} - Explanation of the analysis process',
+      type: 'string',
+    },
+    suggestions: {
+      description: '{{ANALYZE_SUGGESTIONS_DESC}} - Recommended fixes or actions',
+      type: '{{ANALYZE_SUGGESTIONS_TYPE}}',
     },
     usage: {
       description: 'Token usage statistics',
@@ -299,82 +280,40 @@ Verifies claims in text against provided source materials.
   }}
 />
 
-**ClaimVerification:**
+## Document Analysis
 
-<TypeTable
-  type={{
-    claim: {
-      description: 'The specific claim being verified from the input text',
-      type: 'string',
-    },
-    verdict: {
-      description: 'True if the claim is supported by the sources, false if contradicted or unverifiable',
-      type: 'boolean',
-    },
-    sources: {
-      description: 'List of sources used for this verification',
-      type: 'SourceReference[]',
-    },
-    evidence: {
-      description: 'Relevant quotes or excerpts from the sources',
-      type: 'string',
-    },
-    reasoning: {
-      description: 'Brief reasoning for the verdict',
-      type: 'string',
-    },
-  }}
-/>
+{/* TODO: Update when Analyze API is finalized */}
 
-## Claim Verification
+You can perform deep inspection of files and documents:
 
-You can verify claims in text against provided source materials:
-
-```ts title="verify-example.ts"
+```ts title="analyze-example.ts"
 const client = createClient({
   apiKey: process.env.SUPERAGENT_API_KEY!,
 });
 
-const result = await client.verify(
-  "The company was founded in 2020 and has 500 employees.",
-  [
-    {
-      name: "About Us",
-      content: "Founded in 2020, our company has grown rapidly...",
-      url: "https://example.com/about"
-    },
-    {
-      name: "Team Page",
-      content: "We currently have over 450 team members...",
-      url: "https://example.com/team"
-    }
-  ]
-);
+const result = await client.analyze({
+  file: "{{ANALYZE_FILE_INPUT}}",  // e.g., PDF file, PR URL, or repo path
+  options: { /* {{ANALYZE_OPTIONS}} */ }
+});
 
-// Iterate through claims to check verdicts
-for (const claim of result.claims) {
-  console.log(`Claim: ${claim.claim}`);
-  console.log(`Verdict: ${claim.verdict ? '✓ True' : '✗ False'}`);
-  console.log(`Evidence: ${claim.evidence}`);
-  console.log(`Reasoning: ${claim.reasoning}`);
-  console.log(`Sources: ${claim.sources.map(s => s.name).join(', ')}`);
-  console.log('---');
-}
+// Review findings
+console.log(`Findings: ${JSON.stringify(result.findings)}`);
+console.log(`Reasoning: ${result.reasoning}`);
+console.log(`Suggestions: ${JSON.stringify(result.suggestions)}`);
 ```
 
 **How it works:**
-- The `text` parameter contains the claims you want to verify
-- The `sources` array provides the reference materials against which claims are verified
-- The AI analyzes each claim and determines if it's supported, contradicted, or unverifiable
-- Returns detailed results with verdicts, evidence quotes, reasoning, and source references
-- Only uses information explicitly stated in the provided sources
+- The `file` parameter accepts a PDF file, PR URL, or repo path
+- The AI performs deep inspection and returns detailed findings
+- Returns reasoning, findings, and suggested fixes
+- Can optionally produce transformed artifacts (e.g., a redacted document)
 
 **Use cases:**
-- Fact-checking articles or content against authoritative sources
-- Verifying marketing claims against product documentation
-- Validating information in reports against source data
-- Checking consistency between different documents
-- Automated compliance verification
+- Deep inspection of PDF documents for security issues
+- Analyzing pull requests for vulnerabilities
+- Repository security audits
+- Document compliance checks
+- Producing transformed artifacts
 
 ## Detected PII/PHI Types
 

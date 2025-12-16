@@ -1,50 +1,50 @@
 ---
 title: What is Superagent?
-description: Purpose-trained models for secure and compliant AI applications
+description: Protect AI apps from data leakage, prompt injections, and unsafe tool actions
 ---
 
-Superagent provides three purpose-trained models — Guard, Verify, and Redact — available as standalone APIs that protect AI applications in real time. Each model is optimized for low-latency runtime protection in production environments.
+Superagent helps developers make their AI apps safe. The Safety Agent exposes three methods — Guard, Redact, and Analyze — that protect AI applications in real time.
 
 ## Capabilities
 
 <Cards className="grid-cols-3">
   <IconCard
     title="Guard"
-    description="Detects and blocks unsafe inputs, prompt injections, malicious tool calls, and backdoors before they reach your models"
+    description="Detect and block unsafe content and actions: prompt injections, malicious instructions, and unsafe tool calls"
     icon={<Shield className="size-4" />}
-  />
-  <IconCard
-    title="Verify"
-    description="Validates model outputs against enterprise sources and policies to ensure every generation is factual and compliant"
-    icon={<Check className="size-4" />}
   />
   <IconCard
     title="Redact"
     description="Removes sensitive data like PII, PHI, and secrets from text, logs, or documents automatically"
     icon={<EyeOff className="size-4" />}
   />
+  <IconCard
+    title="Analyze"
+    description="Deep inspection of files and documents (PDFs, PRs, repos). Returns reasoning, findings, and suggested fixes."
+    icon={<Check className="size-4" />}
+  />
 </Cards>
 
 ## Why Superagent
 
-- **Purpose-trained SLMs**: Low-latency, optimized models for runtime AI protection
-- **Agent-native**: Purpose-built to cover prompts, tool calls, function invocations, and file attachments
-- **Stops real threats**: Detects and blocks prompt injections, malicious calls, data exfiltration, and backdoors
-- **Complete visibility**: Stream structured logs, audits, and decisions into your existing security stack
+- **Developer-first**: Built for teams shipping AI apps
+- **Works with any model**: Choose based on latency, accuracy, cost, or compliance
+- **Protects where apps fail**: Inputs, outputs, tool calls, and intermediate steps
+- **Proven performance**: Up to 30% better Guard performance on the BrowseSafe benchmark
 
 ## Get Started
 
-Ready to secure your AI applications? [Get your API key](https://app.superagent.sh) and make your first call in minutes with our [quickstart guide](/quickstart). Test Guard, Verify, or Redact via API, SDK, or CLI.
+Ready to secure your AI applications? [Get your API key](https://app.superagent.sh) and make your first call in minutes with our [quickstart guide](/quickstart). Test Guard, Redact, or Analyze via API, SDK, or CLI.
 
 <Cards className="grid-cols-3">
   <IconCard
     title="API"
-    href="/api"
-    description="REST API for Guard, Verify, and Redact"
+    href="/rest-api"
+    description="REST API for Guard, Redact, and Analyze"
     icon={<Server className="size-4" />}
   />
   <IconCard
-    title="SDK"
+    title="Python SDK"
     href="/sdks/python-sdk"
     description="Typed Python bindings with OpenAI-compatible APIs"
     icon={<PythonIcon className="size-4" />}

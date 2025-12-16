@@ -3,7 +3,7 @@ title: CLI
 description: Command-line interface for interacting with Superagent
 ---
 
-<Callout>Sign up at [https://app.superagnet.sh](https://superagent.sh) to obtain an API Key</Callout>
+<Callout>Sign up at [app.superagent.sh](https://app.superagent.sh) to obtain an API Key</Callout>
 
 Command-line tool for validating prompts and commands with the Superagent endpoint.
 
@@ -294,88 +294,66 @@ Or if threats are detected:
 - Screen documents for prompt injection attempts
 - Ensure document safety before feeding to AI models
 
-### `verify`
+### `analyze`
 
-Verify claims in text against provided source materials.
+{/* TODO: Update when Analyze API is finalized */}
+
+Deep inspection of files and documents (PDFs, PRs, repos). Returns reasoning, findings, and suggested fixes.
 
 **Syntax:**
 ```bash title="Terminal"
-superagent verify [options] <text>
+superagent analyze [options] <file>
 ```
 
 **Arguments:**
-- `<text>` - The text containing claims to verify (can be omitted if using stdin)
+- `<file>` - The file or path to analyze (can be omitted if using stdin)
 
 **Options:**
-- `--sources <json>` - JSON string containing array of sources
+- `--file <path>` - Path to file to analyze (PDF, etc.)
 - `--help` - Show help message
 
-**Source format:**
-```json
-[
-  {
-    "name": "Source Name",
-    "content": "Content of the source material...",
-    "url": "https://example.com/source"
-  }
-]
-```
-
 **Exit codes:**
-- `0` - Verification successful
+- `0` - Analysis successful
 - `2` - Error occurred (API failure, configuration issue, etc.)
 
 **Examples:**
 
 ```bash title="Terminal"
-# Verify claims with sources
-superagent verify --sources '[{"name":"About","content":"Founded in 2020","url":"https://example.com/about"}]' "The company was founded in 2020"
+# Analyze a PDF document
+superagent analyze --file document.pdf
 
-# Read from stdin (JSON format)
-echo '{"text": "The company has 500 employees", "sources": [...]}' | superagent verify
+# Analyze from stdin (JSON format)
+echo '{"file": "{{ANALYZE_EXAMPLE_INPUT}}"}' | superagent analyze
 
 # Show help
-superagent verify --help
+superagent analyze --help
 ```
 
 **Output:**
 ```json title="Response"
 {
-  "claims": [
-    {
-      "claim": "The company was founded in 2020",
-      "verdict": true,
-      "sources": [
-        {
-          "name": "About",
-          "url": "https://example.com/about"
-        }
-      ],
-      "evidence": "Founded in 2020",
-      "reasoning": "The founding year is explicitly stated in the About source."
-    }
-  ],
+  "findings": "{{ANALYZE_FINDINGS}}",
+  "reasoning": "{{ANALYZE_REASONING}}",
+  "suggestions": "{{ANALYZE_SUGGESTIONS}}",
   "usage": {
-    "prompt_tokens": 250,
-    "completion_tokens": 150,
-    "total_tokens": 400
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "total_tokens": 0
   }
 }
 ```
 
 **How it works:**
-- The `--sources` flag accepts a JSON array of source materials
-- Each source must have `name` and `content` fields, and optionally a `url` field
-- The AI analyzes each claim in the text and verifies it against the provided sources
-- Returns detailed results with verdicts, evidence, reasoning, and source references
+- The `--file` flag accepts a path to a file (PDF, etc.)
+- The AI performs deep inspection and returns detailed findings
+- Returns reasoning, findings, and suggested fixes
 - Can also accept JSON input via stdin for programmatic integration
 
 **Use cases:**
-- Fact-checking content against authoritative sources
-- Verifying marketing claims against product documentation
-- Validating information in reports against source data
-- Checking consistency between different documents
-- Automated compliance verification in CI/CD pipelines
+- Deep inspection of PDF documents for security issues
+- Analyzing pull requests for vulnerabilities
+- Repository security audits
+- Document compliance checks
 
 ## Response format
 
