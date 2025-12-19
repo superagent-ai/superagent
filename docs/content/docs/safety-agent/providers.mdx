@@ -11,6 +11,7 @@ Safety Agent works with any language model. Use the `provider/model` format when
 
 | Provider | Model Format | Required Env Variables |
 |----------|-------------|----------------------|
+| **Superagent** | `superagent/{model}` | None (default for guard) |
 | Anthropic | `anthropic/{model}` | `ANTHROPIC_API_KEY` |
 | AWS Bedrock | `bedrock/{model}` | `AWS_BEDROCK_API_KEY`<br/>`AWS_BEDROCK_REGION` (optional) |
 | Fireworks | `fireworks/{model}` | `FIREWORKS_API_KEY` |
@@ -22,9 +23,12 @@ Safety Agent works with any language model. Use the `provider/model` format when
 
 ## Environment Setup
 
-Set the appropriate API key environment variable for your chosen provider:
+The Superagent guard model is used by default and requires no API keys. Set the appropriate API key environment variable only if you want to use a different provider or need the `redact()` method (which requires a model):
 
 ```bash
+# Superagent (optional - for usage tracking only)
+export SUPERGENT_API_KEY=your-key
+
 # OpenAI
 export OPENAI_API_KEY=sk-...
 
@@ -57,6 +61,18 @@ export AI_GATEWAY_API_KEY=...
 import { createClient } from "@superagent-ai/safety-agent";
 
 const client = createClient();
+
+// Superagent (default - no API key required)
+await client.guard({
+  input: "user message"
+  // model defaults to superagent/guard-0.6b
+});
+
+// Or specify Superagent model explicitly
+await client.guard({
+  input: "user message",
+  model: "superagent/guard-0.6b"
+});
 
 // OpenAI
 await client.guard({
@@ -103,12 +119,22 @@ Other providers (Fireworks, Groq, OpenRouter, Vercel, Bedrock) currently support
 
 ## Choosing a Model
 
-Consider these factors when selecting a model:
+### Default: Superagent Guard Model
+
+The default `superagent/guard-0.6b` model is recommended for most guard use cases:
+- **No API keys required** - works out of the box
+- **Low latency** - optimized for fast classification
+- **Proven accuracy** - purpose-trained for safety classification
+- **No cost** - free to use
+
+### Other Models
+
+Consider these factors when selecting a different model:
 
 - **Latency**: Smaller models like `gpt-4o-mini` or `claude-3-haiku` are faster
 - **Accuracy**: Larger models like `gpt-4o` or `claude-3-5-sonnet` may catch more edge cases
 - **Cost**: Varies significantly by provider and model size
 - **Compliance**: Some providers offer data residency or compliance certifications
 
-For most use cases, `openai/gpt-4o-mini` or `anthropic/claude-3-haiku-20240307` provide a good balance of speed, accuracy, and cost.
+For guard use cases where you need a different provider, `openai/gpt-4o-mini` or `anthropic/claude-3-haiku-20240307` provide a good balance of speed, accuracy, and cost.
 

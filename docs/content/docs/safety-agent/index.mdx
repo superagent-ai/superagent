@@ -36,6 +36,7 @@ npm install @superagent-ai/safety-agent
 
 ### Why Safety Agent
 
+- **Default Superagent model**: No API keys required for guard—works out of the box
 - **Works with any model**: OpenAI, Anthropic, Google, Bedrock, Groq, Fireworks, and more
 - **Low latency**: Parallel processing for large inputs and multi-page documents
 - **File support**: Analyze PDFs, images, and URLs directly
@@ -50,8 +51,13 @@ import { createClient } from "@superagent-ai/safety-agent";
 
 const client = createClient();
 
-// Guard - Classify input as safe or unsafe
+// Guard - Uses default Superagent model (no API keys required)
 const guardResult = await client.guard({
+  input: "user message to analyze"
+});
+
+// Or specify a different model explicitly
+const guardResultWithModel = await client.guard({
   input: "user message to analyze",
   model: "openai/gpt-4o-mini" 
 });
@@ -60,6 +66,8 @@ if (guardResult.classification === "block") {
   console.log("Blocked:", guardResult.violation_types);
 }
 
+console.log(`Tokens used: ${guardResult.usage.totalTokens}`);
+
 // Redact - Sanitize sensitive content
 const redactResult = await client.redact({
   input: "My email is john@example.com and SSN is 123-45-6789",
@@ -67,7 +75,7 @@ const redactResult = await client.redact({
 });
 
 console.log(redactResult.redacted);
-// "My email is <EMAIL_REDACTED> and SSN is <SSN_REDACTED>"
+// "My email is [REDACTED_EMAIL] and SSN is [REDACTED_SSN]"
 ```
 
 ## Get Started

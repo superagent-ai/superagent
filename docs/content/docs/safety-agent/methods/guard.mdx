@@ -14,14 +14,25 @@ import { createClient } from "@superagent-ai/safety-agent";
 
 const client = createClient();
 
+// Uses default Superagent model (no API keys required)
 const result = await client.guard({
-  input: "user message to analyze",
-  model: "openai/gpt-4o-mini"
+  input: "user message to analyze"
 });
 
 if (result.classification === "block") {
   console.log("Blocked:", result.violation_types);
 }
+
+console.log(`Tokens used: ${result.usage.totalTokens}`);
+```
+
+Or specify a different model explicitly:
+
+```typescript
+const result = await client.guard({
+  input: "user message to analyze",
+  model: "openai/gpt-4o-mini"
+});
 ```
 
 ## Options
@@ -29,9 +40,11 @@ if (result.classification === "block") {
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
 | `input` | `string \| Blob \| URL` | Yes | - | The input to analyze (text, URL, or Blob) |
-| `model` | `string` | Yes | - | Model in `provider/model` format (e.g., `openai/gpt-4o-mini`) |
+| `model` | `string` | No | `superagent/guard-0.6b` | Model in `provider/model` format (e.g., `openai/gpt-4o-mini`). If not specified, uses the default Superagent guard model (no API keys required) |
 | `systemPrompt` | `string` | No | - | Custom system prompt that replaces the default guard prompt |
 | `chunkSize` | `number` | No | `8000` | Characters per chunk. Set to `0` to disable chunking |
+
+**Default Model**: If no `model` is specified, uses `superagent/guard-0.6b` (no API keys required).
 
 ## Response
 
@@ -56,13 +69,18 @@ Guard supports multiple input types:
 Large inputs are automatically split into chunks and processed in parallel. Uses OR logic: blocks if ANY chunk contains a violation.
 
 ```typescript
-// Auto-chunking (default: 8000 chars)
+// Auto-chunking (default: 8000 chars) - uses default Superagent model
 const result = await client.guard({
-  input: veryLongDocument,
-  model: "openai/gpt-4o-mini"
+  input: veryLongDocument
 });
 
-// Custom chunk size
+// Custom chunk size with default model
+const result = await client.guard({
+  input: veryLongDocument,
+  chunkSize: 4000 // Smaller chunks
+});
+
+// Custom chunk size with specific model
 const result = await client.guard({
   input: veryLongDocument,
   model: "openai/gpt-4o-mini",
@@ -72,7 +90,6 @@ const result = await client.guard({
 // Disable chunking
 const result = await client.guard({
   input: shortText,
-  model: "openai/gpt-4o-mini",
   chunkSize: 0
 });
 ```
@@ -82,13 +99,12 @@ const result = await client.guard({
 Analyze content from a URL—the content is automatically fetched and processed:
 
 ```typescript
-// Analyze text from a URL
+// Analyze text from a URL (uses default Superagent model)
 const result = await client.guard({
-  input: "https://example.com/document.txt",
-  model: "openai/gpt-4o-mini"
+  input: "https://example.com/document.txt"
 });
 
-// Analyze JSON from an API
+// Analyze JSON from an API with specific model
 const result = await client.guard({
   input: "https://api.example.com/data.json",
   model: "openai/gpt-4o-mini"
@@ -97,8 +113,7 @@ const result = await client.guard({
 // Using a URL object
 const url = new URL("https://example.com/content");
 const result = await client.guard({
-  input: url,
-  model: "openai/gpt-4o-mini"
+  input: url
 });
 ```
 
@@ -107,13 +122,12 @@ const result = await client.guard({
 PDFs can be analyzed by providing a URL or Blob. Text is extracted from each page and analyzed in parallel for optimal performance.
 
 ```typescript
-// Analyze PDF from URL
+// Analyze PDF from URL (uses default Superagent model)
 const result = await client.guard({
-  input: "https://example.com/document.pdf",
-  model: "openai/gpt-4o-mini"
+  input: "https://example.com/document.pdf"
 });
 
-// Analyze PDF from Blob (browser)
+// Analyze PDF from Blob (browser) with specific model
 const pdfBlob = new Blob([pdfData], { type: 'application/pdf' });
 const result = await client.guard({
   input: pdfBlob,
@@ -175,6 +189,15 @@ Other providers (Fireworks, Groq, OpenRouter, Vercel, Bedrock) currently support
 Override the default classification behavior with your own prompt:
 
 ```typescript
+// With default Superagent model
+const result = await client.guard({
+  input: "user message",
+  systemPrompt: `You are a safety classifier. Block any requests for medical advice.
+  
+  Respond with JSON: { "classification": "pass" | "block", "violation_types": [], "cwe_codes": [] }`
+});
+
+// With specific model
 const result = await client.guard({
   input: "user message",
   model: "openai/gpt-4o-mini",
@@ -189,9 +212,9 @@ const result = await client.guard({
 The response includes token usage information:
 
 ```typescript
+// Uses default Superagent model
 const result = await client.guard({
-  input: "user message to analyze",
-  model: "openai/gpt-4o-mini"
+  input: "user message to analyze"
 });
 
 console.log(`Used ${result.usage.totalTokens} tokens`);
