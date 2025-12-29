@@ -1,0 +1,312 @@
+---
+title: Secure your RAG pipeline
+description: Validate uploaded files before processing them in your RAG pipeline using Safety Agent Guard
+---
+
+When building RAG applications that accept file uploads, validate files before processing them with your AI model. This prevents prompt injection attacks and malicious content from entering your knowledge base.
+
+## Prerequisites
+
+- Node.js v20.0 or higher
+- A Superagent account with API key ([sign up here](https://superagent.sh))
+
+## Install dependencies
+
+```bash title="Terminal"
+npm install @superagent-ai/safety-agent ai@^6.0.0 @ai-sdk/react @ai-sdk/anthropic
+```
+
+<Callout type="info">
+  This example uses AI SDK v6, which uses the `parts` array format for messages. If you're using an older version, you'll need to use the `content` array format instead.
+</Callout>
+
+Set your environment variables:
+
+```bash title=".env"
+SUPERGENT_API_KEY=your-key
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+## Secure file uploads
+
+Guard files before processing them with your AI model. Uses the default Superagent model. We'll check files on the client side using a Next.js server action before sending them to the chat API.
+
+### Server Action for File Guarding
+
+Create a server action to guard files:
+
+```typescript title="app/actions/guard-file.ts"
+'use server';
+
+import { createClient } from '@superagent-ai/safety-agent';
+
+const guard = createClient({
+  apiKey: process.env.SUPERGENT_API_KEY!,
+});
+
+export async function guardFile(fileData: string, mimeType: string) {
+  // Extract base64 from data URL format (data:mime/type;base64,...)
+  const base64Data = fileData.includes(',') 
+    ? fileData.split(',')[1] 
+    : fileData;
+  
+  const fileBuffer = Buffer.from(base64Data, 'base64');
+  const fileBlob = new Blob([fileBuffer], { type: mimeType });
+
+  // Uses default superagent/guard-0.6b model
+  const guardResult = await guard.guard({
+    input: fileBlob
+  });
+
+  if (guardResult.classification === "block") {
+    return {
+      success: false,
+      error: 'File blocked by security check',
+      violation_types: guardResult.violation_types,
+      cwe_codes: guardResult.cwe_codes,
+    };
+  }
+
+  return {
+    success: true,
+  };
+}
+```
+
+### Chat API Route
+
+Create a simple chat route following the AI SDK v6 cookbook pattern:
+
+```typescript title="app/api/chat/route.ts"
+import { convertToModelMessages, streamText, type UIMessage } from 'ai';
+import { anthropic } from '@ai-sdk/anthropic';
+
+export async function POST(req: Request) {
+  const { messages }: { messages: UIMessage[] } = await req.json();
+
+  const result = streamText({
+    model: anthropic('claude-sonnet-4'),
+    messages: await convertToModelMessages(messages),
+  });
+
+  return result.toUIMessageStreamResponse();
+}
+```
+
+## Guard URLs
+
+You can also guard URLs before fetching and processing:
+
+```typescript title="guard-url.ts"
+import { createClient } from '@superagent-ai/safety-agent';
+
+const guard = createClient({
+  apiKey: process.env.SUPERGENT_API_KEY!,
+});
+
+async function processURL(url: string) {
+  // Guard the URL before fetching (uses default Superagent model)
+  const guardResult = await guard.guard({
+    input: url
+  });
+
+  if (guardResult.classification === "block") {
+    throw new Error(`URL blocked: ${guardResult.violation_types.join(', ')}`);
+  }
+
+  // Safe to fetch and process
+  const response = await fetch(url);
+  const content = await response.text();
+  
+  // Process with your RAG pipeline
+  return content;
+}
+```
+
+## Client-side implementation
+
+Handle file uploads, guard them using the server action, and send them to your chat API:
+
+```typescript title="app/page.tsx"
+'use client';
+
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
+import { useRef, useState } from 'react';
+import { guardFile } from './actions/guard-file';
+
+async function convertFilesToDataURLs(
+  files: FileList,
+): Promise<
+  { type: 'file'; filename: string; mediaType: string; url: string }[]
+> {
+  return Promise.all(
+    Array.from(files).map(
+      file =>
+        new Promise<{
+          type: 'file';
+          filename: string;
+          mediaType: string;
+          url: string;
+        }>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve({
+              type: 'file',
+              filename: file.name,
+              mediaType: file.type,
+              url: reader.result as string, // Data URL
+            });
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        }),
+    ),
+  );
+}
+
+export default function Chat() {
+  const [input, setInput] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const { messages, sendMessage } = useChat({
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+    }),
+  });
+
+  const [files, setFiles] = useState<FileList | undefined>(undefined);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
+      {error && (
+        <div className="p-4 mb-4 text-red-600 bg-red-100 rounded">
+          {error}
+        </div>
+      )}
+
+      {messages.map(message => (
+        <div key={message.id} className="whitespace-pre-wrap">
+          {message.role === 'user' ? 'User: ' : 'AI: '}
+
+          {message.parts.map(part => {
+            if (part.type === 'text') {
+              return <div key={`${message.id}-text`}>{part.text}</div>;
+            }
+            if (part.type === 'file') {
+              return (
+                <div key={`${message.id}-file`} className="text-sm text-gray-500">
+                  📄 {part.filename}
+                </div>
+              );
+            }
+          })}
+
+          <div></div>
+        </div>
+      ))}
+
+      <form
+        className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl space-y-2"
+        onSubmit={async event => {
+          event.preventDefault();
+          setError(null);
+
+          const fileParts =
+            files && files.length > 0
+              ? await convertFilesToDataURLs(files)
+              : [];
+
+          // Guard files before sending
+          if (fileParts.length > 0) {
+            for (const filePart of fileParts) {
+              const guardResult = await guardFile(filePart.url, filePart.mediaType);
+              
+              if (!guardResult.success) {
+                setError(
+                  `File "${filePart.filename}" blocked: ${guardResult.violation_types?.join(', ')}`
+                );
+                setFiles(undefined);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
+                return;
+              }
+            }
+          }
+
+          sendMessage({
+            role: 'user',
+            parts: [{ type: 'text', text: input }, ...fileParts],
+          });
+
+          setFiles(undefined);
+          setInput('');
+
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        }}
+      >
+        <input
+          type="file"
+          accept="application/pdf"
+          onChange={event => {
+            if (event.target.files) {
+              setFiles(event.target.files);
+            }
+          }}
+          multiple
+          ref={fileInputRef}
+        />
+
+        <input
+          className="w-full p-2"
+          value={input}
+          placeholder="Say something..."
+          onChange={event => {
+            setInput(event.target.value);
+          }}
+        />
+
+        <button
+          type="submit"
+          className="w-full p-2 bg-blue-500 text-white rounded"
+        >
+          Send
+        </button>
+      </form>
+    </div>
+  );
+}
+```
+
+## What gets blocked
+
+Safety Agent Guard detects:
+- **Prompt injection** attempts in uploaded files
+- **Malicious instructions** hidden in documents
+- **System prompt extraction** attempts
+- **Jailbreak** attempts
+- **Unsafe tool calls** and workflow manipulations
+
+The guard method returns detailed information about violations:
+
+```typescript
+if (guardResult.classification === "block") {
+  console.log("Violation types:", guardResult.violation_types);
+  // e.g., ["prompt_injection", "system_prompt_extraction"]
+  
+  console.log("CWE codes:", guardResult.cwe_codes);
+  // e.g., ["CWE-77", "CWE-78"]
+  
+  console.log("Token usage:", guardResult.usage.totalTokens);
+}
+```
+
+## Next steps
+
+- Learn about the [Guard method](/safety-agent/methods/guard) for detailed API reference
+- Check out the [Quickstart guide](/safety-agent/quickstart) to get started quickly
+- Join our [Discord community](https://discord.gg/spZ7MnqFT4) for support
