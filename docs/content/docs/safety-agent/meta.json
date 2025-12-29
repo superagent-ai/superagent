@@ -9,6 +9,7 @@
     "methods",
     "providers",
     "---Examples---",
-    "examples/secure-rag-pipeline"
+    "examples/secure-rag-pipeline",
+    "examples/scan-image-uploads"
   ]
 }
