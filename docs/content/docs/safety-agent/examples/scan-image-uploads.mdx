@@ -24,7 +24,7 @@ npm install @superagent-ai/safety-agent ai@^6.0.0 @ai-sdk/react @ai-sdk/openai
 Set your environment variables:
 
 ```bash title=".env"
-SUPERGENT_API_KEY=your-key
+SUPERAGENT_API_KEY=your-key
 OPENAI_API_KEY=sk-...
 ```
 
@@ -42,7 +42,7 @@ Create a server action to guard images using GPT-4o:
 import { createClient } from '@superagent-ai/safety-agent';
 
 const guard = createClient({
-  apiKey: process.env.SUPERGENT_API_KEY!,
+  apiKey: process.env.SUPERAGENT_API_KEY!,
 });
 
 export async function guardImage(imageData: string, mimeType: string) {

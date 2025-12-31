@@ -10,6 +10,7 @@
     "providers",
     "---Examples---",
     "examples/secure-rag-pipeline",
-    "examples/scan-image-uploads"
+    "examples/scan-image-uploads",
+    "examples/cursor-hooks"
   ]
 }

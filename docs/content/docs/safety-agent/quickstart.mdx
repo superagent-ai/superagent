@@ -15,20 +15,20 @@ npm install @superagent-ai/safety-agent
 
 1. Sign up for an account at [superagent.sh](https://superagent.sh)
 2. Create an API key from your dashboard
-3. Set the `SUPERGENT_API_KEY` environment variable or pass it to `createClient()`
+3. Set the `SUPERAGENT_API_KEY` environment variable or pass it to `createClient()`
 
 <Callout type="info">
-  The Superagent guard model is used by default and requires no API keys. The `SUPERGENT_API_KEY` is optional and only used for usage tracking.
+  The Superagent guard model is used by default and requires no API keys. The `SUPERAGENT_API_KEY` is optional and only used for usage tracking.
 </Callout>
 
 ## Environment Setup
 
 ### Superagent (Default)
 
-No API keys required for the default guard model. Optionally set `SUPERGENT_API_KEY` for usage tracking:
+No API keys required for the default guard model. Optionally set `SUPERAGENT_API_KEY` for usage tracking:
 
 ```bash
-export SUPERGENT_API_KEY=your-key
+export SUPERAGENT_API_KEY=your-key
 ```
 
 ### Other Providers
@@ -60,7 +60,7 @@ Optionally pass a Superagent API key for usage tracking:
 
 ```typescript
 const client = createClient({
-  apiKey: process.env.SUPERGENT_API_KEY
+  apiKey: process.env.SUPERAGENT_API_KEY
 });
 ```
 
