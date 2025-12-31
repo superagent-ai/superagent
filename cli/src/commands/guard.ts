@@ -1,4 +1,4 @@
-import { createClient } from "superagent-ai";
+import { createClient } from "@superagent-ai/safety-agent";
 import { readFileSync } from "fs";
 
 function showHelp() {
@@ -119,29 +119,26 @@ export async function guardCommand(args: string[]) {
   try {
     // Pass file as first parameter if provided, otherwise pass prompt
     const input = file || prompt;
-    const options: { systemPrompt?: string } = {};
-    if (systemPrompt) {
-      options.systemPrompt = systemPrompt;
-    }
-    const result = await client.guard(input, options as any);
-    const { decision, reasoning, rejected } = result;
+    const result = await client.guard({ input, systemPrompt });
+    const { classification, violation_types, cwe_codes, usage } = result;
+    const isBlocked = classification === "block";
 
-    if (rejected) {
+    if (isBlocked) {
       if (isStdin) {
         // Claude Code hook format
-        const violationInfo = decision?.violation_types?.length
-          ? ` Violations: ${decision.violation_types.join(", ")}.`
+        const violationInfo = violation_types?.length
+          ? ` Violations: ${violation_types.join(", ")}.`
           : "";
-        const cweInfo = decision?.cwe_codes?.length
-          ? ` CWE: ${decision.cwe_codes.join(", ")}.`
+        const cweInfo = cwe_codes?.length
+          ? ` CWE: ${cwe_codes.join(", ")}.`
           : "";
 
         const response = {
           decision: "block",
-          reason: `🛡️ Superagent Guard blocked this prompt: ${reasoning}.${violationInfo}${cweInfo}`,
+          reason: `🛡️ Superagent Guard blocked this prompt.${violationInfo}${cweInfo}`,
           hookSpecificOutput: {
             hookEventName: "UserPromptSubmit",
-            additionalContext: `Blocked by Superagent Guard - ${reasoning}`,
+            additionalContext: `Blocked by Superagent Guard`,
           },
         };
 
@@ -149,9 +146,10 @@ export async function guardCommand(args: string[]) {
       } else {
         // CLI output - JSON format matching SDK
         const output = {
-          rejected: true,
-          decision,
-          reasoning,
+          classification,
+          violation_types,
+          cwe_codes,
+          usage,
         };
         console.log(JSON.stringify(output, null, 2));
         process.exit(1);
@@ -160,9 +158,10 @@ export async function guardCommand(args: string[]) {
       if (!isStdin) {
         // CLI output - JSON format matching SDK
         const output = {
-          rejected: false,
-          decision,
-          reasoning,
+          classification,
+          violation_types,
+          cwe_codes,
+          usage,
         };
         console.log(JSON.stringify(output, null, 2));
       }

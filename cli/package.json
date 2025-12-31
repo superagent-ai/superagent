@@ -39,6 +39,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "superagent-ai": "^0.0.20"
+    "@superagent-ai/safety-agent": "^0.1.6"
   }
 }

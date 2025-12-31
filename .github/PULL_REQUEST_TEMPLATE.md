@@ -1,9 +1,16 @@
 ## Description
-<!-- A brief summary of the changes in this pull request. -->
+<!-- Brief description of changes -->
 
-## Related Issue
-Fixes #<issue number>
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation update
+
+## Testing
+<!-- How was this tested? -->
 
 ## Checklist
-- [ ] I tested my changes
-- [ ] I reviewed my own code
+- [ ] Code follows project style guidelines
+- [ ] Tests pass locally
+- [ ] Documentation updated (if needed)
