@@ -25,7 +25,7 @@ npm install -g @superagent-ai/safety-agent
 Set your environment variables in your shell profile (`~/.zshrc` or `~/.bashrc`):
 
 ```bash title="~/.zshrc"
-export SUPERGENT_API_KEY=your-key
+export SUPERAGENT_API_KEY=your-key
 export OPENAI_API_KEY=sk-...
 ```
 
@@ -75,7 +75,7 @@ mkdir -p ~/.cursor/hooks
 import { createClient } from '@superagent-ai/safety-agent';
 
 const client = createClient({
-  apiKey: process.env.SUPERGENT_API_KEY,
+  apiKey: process.env.SUPERAGENT_API_KEY,
 });
 
 async function main() {
@@ -136,7 +136,7 @@ Create a hook script that redacts API keys and secrets from AI responses.
 import { createClient } from '@superagent-ai/safety-agent';
 
 const client = createClient({
-  apiKey: process.env.SUPERGENT_API_KEY,
+  apiKey: process.env.SUPERAGENT_API_KEY,
 });
 
 async function main() {
@@ -298,7 +298,7 @@ const result = await client.redact({
 
 ### Guard not blocking
 
-- Check that `SUPERGENT_API_KEY` is set in your environment
+- Check that `SUPERAGENT_API_KEY` is set in your environment
 - Verify the environment variable is available to Cursor (may need to restart terminal)
 
 ### Redact not working
