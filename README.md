@@ -92,7 +92,6 @@ export SUPERAGENT_API_KEY=your-key
 | **TypeScript SDK** | Embed guard and redact directly in your app | [sdk/typescript](sdk/typescript/README.md) |
 | **CLI** | Command-line tool for testing and automation | [cli](cli/README.md) |
 | **MCP Server** | Use with Claude Code and Claude Desktop | [mcp](mcp/README.md) |
-| **REST API** | Direct HTTP integration | [docs.superagent.sh](https://docs.superagent.sh) |
 
 ## Why Superagent?
 
