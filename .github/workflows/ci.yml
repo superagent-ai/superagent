@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    name: Test - ${{ matrix.package }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [sdk/typescript, cli, mcp]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.package }}
+        run: npm install
+
+      - name: Type check
+        working-directory: ${{ matrix.package }}
+        run: npx tsc --noEmit
+
+      - name: Build
+        working-directory: ${{ matrix.package }}
+        run: npm run build
+
+      - name: Run tests
+        working-directory: ${{ matrix.package }}
+        run: npm test
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          AWS_BEDROCK_API_KEY: ${{ secrets.AWS_BEDROCK_API_KEY }} 
+          AWS_BEDROCK_REGION: ${{ secrets.AWS_BEDROCK_REGION }}
+          AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          SUPERAGENT_API_KEY: ${{ secrets.SUPERAGENT_API_KEY }}

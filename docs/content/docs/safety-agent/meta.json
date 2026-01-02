@@ -6,7 +6,9 @@
   "pages": [
     "index",
     "quickstart",
-    "methods",
+    "sdk",
+    "mcp",
+    "cli",
     "providers",
     "---Examples---",
     "examples/secure-rag-pipeline",

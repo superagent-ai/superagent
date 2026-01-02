@@ -1,32 +1,46 @@
 {
-  "name": "superagent-ai",
-  "version": "0.0.20",
-  "description": "TypeScript SDK for Superagent.",
+  "name": "@superagent-ai/safety-agent",
+  "version": "0.1.6",
+  "description": "A lightweight TypeScript guardrail SDK for content safety",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc --project tsconfig.json",
-    "test": "vitest run --config vitest.config.ts"
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "superagent",
-    "guard",
-    "sdk",
-    "safety"
+    "guardrail",
+    "safety",
+    "llm",
+    "ai",
+    "content-moderation"
   ],
-  "author": "Superagent",
+  "author": "Superagent AI",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.11.0",
-    "dotenv": "^16.4.5",
-    "typescript": "^5.4.0",
-    "vitest": "^1.5.0"
+    "@types/node": "^24.10.1",
+    "dotenv": "^16.3.1",
+    "typescript": "^5.3.0",
+    "vitest": "^2.1.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "unpdf": "^1.4.0"
   }
 }

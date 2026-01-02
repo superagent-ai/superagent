@@ -1,6 +1,6 @@
 {
   "name": "@superagent-ai/cli",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "CLI for Superagent - validate prompts and tool calls for security",
   "type": "module",
   "main": "./dist/index.js",
@@ -14,6 +14,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
+    "test": "vitest run",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -33,12 +34,14 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
-    "typescript": "^5.4.0"
+    "dotenv": "^16.3.1",
+    "typescript": "^5.4.0",
+    "vitest": "^2.1.0"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "superagent-ai": "^0.0.20"
+    "@superagent-ai/safety-agent": "^0.1.6"
   }
 }

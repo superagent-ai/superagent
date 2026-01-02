@@ -1,10 +1,25 @@
-import { config as loadEnv } from "dotenv";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { config } from "dotenv";
+import { resolve } from "path";
+import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
-const projectRoot = resolve(__dirname, "../../..");
+// Load environment variables from root .env file
+config({ path: resolve(__dirname, "../../../.env") });
 
-loadEnv({ path: resolve(projectRoot, ".env") });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

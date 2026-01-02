@@ -1,15 +1,15 @@
 import { defineConfig } from "vitest/config";
-import { resolve } from "node:path";
 
 export default defineConfig({
   test: {
-    include: ["tests/**/*.test.ts"],
+    globals: true,
     environment: "node",
-    setupFiles: ["tests/setup.ts"],
-  },
-  resolve: {
-    alias: {
-      "superagent-ai": resolve(__dirname, "src/index.ts"),
-    },
+    setupFiles: ["./tests/setup.ts"],
+    testTimeout: 30000, // 30s timeout for live API calls
   },
 });
+
+
+
+
+

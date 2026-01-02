@@ -1,250 +1,371 @@
-# Superagent TypeScript SDK
+# Superagent Safety Agent
 
-A lightweight client for calling the Superagent Guard, Redact, and Verify endpoints from TypeScript or JavaScript projects.
+A lightweight TypeScript guardrail SDK for content safety with support for multiple LLM providers.
+
 
 ## Installation
 
 ```bash
-npm install superagent-ai
-# or
-pnpm add superagent-ai
-# or
-yarn add superagent-ai
+npm install @superagent-ai/safety-agent
 ```
 
-## Usage
+## Prerequisites
 
-```ts
-import { createClient } from "superagent-ai";
+1. Sign up for an account at [superagent.sh](https://superagent.sh)
+2. Create an API key from your dashboard
+3. Set the `SUPERAGENT_API_KEY` environment variable or pass it to `createClient()`
 
-const client = createClient({
-  apiBaseUrl: process.env.SUPERAGENT_API_BASE_URL, // Optional, defaults to https://app.superagent.sh/api
-  apiKey: process.env.SUPERAGENT_API_KEY!,
+## Quick Start
+
+```typescript
+import { createClient } from "@superagent-ai/safety-agent";
+
+const client = createClient();
+
+// Guard - Classify input as safe or unsafe (uses default Superagent model)
+const guardResult = await client.guard({
+  input: "user message to analyze"
 });
 
-// Guard: Analyze commands for security threats
-const guardResult = await client.guard("Write a hello world script", {
-  onBlock: (reason) => {
-    console.warn("Guard blocked command:", reason);
-  },
-  onPass: () => {
-    console.log("Guard approved command!");
-  },
+// Or specify a different model explicitly
+const guardResultWithModel = await client.guard({
+  input: "user message to analyze",
+  model: "openai/gpt-4o-mini" 
 });
 
-// Guard: Analyze PDF from URL
-const urlGuardResult = await client.guard("https://example.com/document.pdf", {
-  onBlock: (reason) => console.warn("Guard blocked:", reason),
-  onPass: () => console.log("Guard approved!"),
-});
-
-if (guardResult.rejected) {
-  console.log("Blocked:", guardResult.reasoning);
-} else {
-  console.log("Approved");
+if (guardResult.classification === "block") {
+  console.log("Blocked:", guardResult.violation_types);
 }
 
-// Redact: Remove sensitive data from text
-const redactResult = await client.redact(
-  "My email is john@example.com and SSN is 123-45-6789"
-);
+console.log(`Tokens used: ${guardResult.usage.totalTokens}`);
+
+// Redact - Sanitize sensitive content
+const redactResult = await client.redact({
+  input: "My email is john@example.com and SSN is 123-45-6789",
+  model: "openai/gpt-4o-mini"
+});
 
 console.log(redactResult.redacted);
-// Output: "My email is <REDACTED_EMAIL> and SSN is <REDACTED_SSN>"
-
-// Verify: Check claims against source materials
-const verifyResult = await client.verify(
-  "The company was founded in 2020 and has 500 employees",
-  [
-    {
-      name: "About Us",
-      content: "Founded in 2020, our company has grown rapidly...",
-      url: "https://example.com/about"
-    },
-    {
-      name: "Team Page",
-      content: "We currently have over 450 team members...",
-      url: "https://example.com/team"
-    }
-  ]
-);
-
-console.log(verifyResult.claims);
-// Output: Array of claim verifications with verdicts, evidence, and reasoning
+// "My email is [REDACTED_EMAIL] and SSN is [REDACTED_SSN]"
+console.log(`Tokens used: ${redactResult.usage.totalTokens}`);
 ```
+
+## Supported Providers
+
+Use the `provider/model` format when specifying models:
+
+| Provider | Model Format | Required Env Variables |
+|----------|-------------|----------------------|
+| **Superagent** | `superagent/{model}` | None (default for guard) |
+| Anthropic | `anthropic/{model}` | `ANTHROPIC_API_KEY` |
+| AWS Bedrock | `bedrock/{model}` | `AWS_BEDROCK_API_KEY`<br>`AWS_BEDROCK_REGION` (optional) |
+| Fireworks | `fireworks/{model}` | `FIREWORKS_API_KEY` |
+| Google | `google/{model}` | `GOOGLE_API_KEY` |
+| Groq | `groq/{model}` | `GROQ_API_KEY` |
+| OpenAI | `openai/{model}` | `OPENAI_API_KEY` |
+| OpenRouter | `openrouter/{provider}/{model}` | `OPENROUTER_API_KEY` |
+| Vercel AI Gateway | `vercel/{provider}/{model}` | `AI_GATEWAY_API_KEY` |
+
+
+Set the appropriate API key environment variable for your chosen provider. The Superagent guard model is used by default for `guard()` and requires no API keys.
+
+## File Support
+
+The `guard()` method supports analyzing various file types in addition to plain text.
+
+### PDF Support
+
+PDFs can be analyzed by providing a URL or Blob. Text is extracted from each page and analyzed in parallel for optimal performance.
+
+```typescript
+// Analyze PDF from URL
+const result = await client.guard({
+  input: "https://example.com/document.pdf",
+  model: "openai/gpt-4o-mini"
+});
+
+// Analyze PDF from Blob (browser)
+const pdfBlob = new Blob([pdfData], { type: 'application/pdf' });
+const result = await client.guard({
+  input: pdfBlob,
+  model: "openai/gpt-4o-mini"
+});
+```
+
+**Notes:**
+- Each page is analyzed in parallel for low latency
+- Uses OR logic: blocks if ANY page contains a violation
+- Text extraction only (no OCR for scanned PDFs)
+- Works with all text-capable models
+
+### Image Support
+
+Images can be analyzed using vision-capable models:
+- **URLs** (e.g., `https://example.com/image.png`) - automatically fetched and analyzed
+- **Blob/File objects** - processed based on MIME type
+
+#### Supported Providers for Images
+
+| Provider | Vision Models | Notes |
+|----------|---------------|-------|
+| **OpenAI** | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`, `gpt-4.1` | Full image support |
+| **Anthropic** | `claude-3-*`, `claude-sonnet-4-*`, `claude-opus-4-*`, `claude-haiku-4-*` | Full image support |
+| **Google** | `gemini-*` | Full image support |
+
+Other providers (Fireworks, Groq, OpenRouter, Vercel, Bedrock) currently support text-only analysis.
+
+#### Supported Image Formats
+
+- PNG (`image/png`)
+- JPEG (`image/jpeg`, `image/jpg`)
+- GIF (`image/gif`)
+- WebP (`image/webp`)
+
+See the [Image Input Examples](#example-image-input) section below for usage examples.
 
 ## API Reference
 
-### `createClient(options)`
+### `createClient(config)`
 
-Creates a new Superagent client.
+Creates a new safety agent client.
 
-**Options:**
-- `apiKey` (required) – API key provisioned in Superagent
-- `apiBaseUrl` (optional) – Base URL for the API (defaults to `https://app.superagent.sh/api`)
-- `fetch` (optional) – Custom fetch implementation (defaults to global `fetch`)
-- `timeoutMs` (optional) – Request timeout in milliseconds
-
-### `client.guard(input, options?)`
-
-Analyzes text, a PDF file, or a PDF URL for security threats.
-
-**Parameters:**
-- `input` – The text to analyze, a File/Blob object (e.g., PDF), or a URL string (e.g., `"https://example.com/document.pdf"`)
-- `options` (optional) – Object with the following properties:
-  - `onPass` (optional) – Callback invoked when the guard approves the command
-  - `onBlock` (optional) – Callback invoked when the guard rejects the command
-  - `systemPrompt` (optional) – System prompt that allows you to steer the guard REST API behavior and customize the classification logic
-
-**Note:** URLs are automatically detected if the string starts with `http://` or `https://`. The API will download and analyze the PDF from the URL.
-
-**Returns:** `Promise<GuardResult>`
-
-```ts
-interface GuardResult {
-  rejected: boolean;        // True if guard blocked the command
-  decision?: GuardDecision; // Parsed decision details
-  usage?: GuardUsage;       // Token usage statistics
-  reasoning: string;        // Explanation from the guard
-  raw: AnalysisResponse;    // Full API response
-}
-
-interface GuardDecision {
-  status: "pass" | "block";
-  violation_types?: string[];
-  cwe_codes?: string[];
-}
-```
-
-### `client.redact(text, options?)`
-
-Redacts sensitive data from text.
-
-**Parameters:**
-- `text` – The text to redact
-- `options` (optional) – Redaction options
-
-**Returns:** `Promise<RedactResult>`
-
-```ts
-interface RedactOptions {
-  urlWhitelist?: string[];  // URL prefixes to preserve
-  entities?: string[];      // Custom entity types to redact (natural language)
-  format?: "json" | "pdf";  // Output format (only applies to file input)
-  rewrite?: boolean;        // When true, naturally rewrite instead of using placeholders
-}
-
-interface RedactResult {
-  redacted: string;      // Text with sensitive data redacted
-  reasoning: string;     // Explanation of what was redacted
-  usage?: GuardUsage;    // Token usage statistics
-  raw: RedactionResponse; // Full API response
-}
-```
-
-## Detected PII/PHI Types
-
-The redaction feature detects and replaces:
-
-- **Email addresses** → `<REDACTED_EMAIL>`
-- **Social Security Numbers** → `<REDACTED_SSN>`
-- **Credit cards** (Visa, Mastercard, Amex) → `<REDACTED_CC>`
-- **Phone numbers** (US format) → `<REDACTED_PHONE>`
-- **IP addresses** (IPv4/IPv6) → `<REDACTED_IP>`
-- **API keys & tokens** → `<REDACTED_API_KEY>`
-- **AWS access keys** → `<REDACTED_AWS_KEY>`
-- **Bearer tokens** → `Bearer <REDACTED_TOKEN>`
-- **MAC addresses** → `<REDACTED_MAC>`
-- **Medical record numbers** → `<REDACTED_MRN>`
-- **Passport numbers** → `<REDACTED_PASSPORT>`
-- **IBAN** → `<REDACTED_IBAN>`
-- **ZIP codes** → `<REDACTED_ZIP>`
-
-## Custom Entity Redaction
-
-You can specify custom PII entities to redact using natural language:
-
-```ts
-const result = await client.redact(
-  "My credit card is 4532-1234-5678-9010 and employee ID is EMP-12345",
-  { entities: ["credit card numbers", "employee IDs"] }
-);
-// Output: "My credit card is <REDACTED> and employee ID is <REDACTED>"
-```
-
-## Natural Rewrite Mode
-
-By default, sensitive information is replaced with placeholders like `<EMAIL_REDACTED>`. When `rewrite: true` is set, the API will naturally rewrite content to remove sensitive information while maintaining readability:
-
-```ts
-const result = await client.redact(
-  "Contact me at john@example.com or call (555) 123-4567",
-  { rewrite: true }
-);
-// Output: "Contact me via email or call by phone"
-```
-
-This is useful when you want the output to read naturally without obvious redaction markers.
-
-## URL Whitelisting
-
-You can specify URLs that should not be redacted by passing the `urlWhitelist` option:
-
-```ts
+```typescript
 const client = createClient({
-  apiKey: process.env.SUPERAGENT_API_KEY!,
+  apiKey: "your-api-key"
+});
+```
+
+#### Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `apiKey` | `string` | No | `SUPERAGENT_API_KEY` env var | API key for Superagent usage tracking |
+
+---
+
+### `client.guard(options)`
+
+Classifies input content as `pass` or `block`.
+
+Supports multiple input types:
+- **Plain text**: Analyzed directly
+- **URLs** (starting with `http://` or `https://`): Automatically fetched and analyzed
+- **Blob/File**: Analyzed based on MIME type (images use vision models)
+- **URL objects**: Fetched and analyzed
+
+Automatically chunks large text inputs and processes them in parallel for low latency. Uses OR logic: blocks if ANY chunk contains a violation.
+
+**Default Model**: If no `model` is specified, uses `superagent/guard-0.6b` (no API keys required).
+
+#### Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `input` | `string \| Blob \| URL` | Yes | - | The input to analyze (text, URL, or Blob) |
+| `model` | `string` | No | `superagent/guard-0.6b` | Model in `provider/model` format (e.g., `openai/gpt-4o-mini`) |
+| `systemPrompt` | `string` | No | - | Custom system prompt that replaces the default guard prompt |
+| `chunkSize` | `number` | No | `8000` | Characters per chunk. Set to `0` to disable chunking |
+
+#### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `classification` | `"pass" \| "block"` | Whether the content passed or should be blocked |
+| `violation_types` | `string[]` | Types of violations detected |
+| `cwe_codes` | `string[]` | CWE codes associated with violations |
+| `usage` | `TokenUsage` | Token usage information |
+
+#### Example
+
+```typescript
+const result = await client.guard({
+  input: "user message to analyze",
+  model: "openai/gpt-4o-mini",
+  systemPrompt: `You are a safety classifier. Block any requests for medical advice.
+  
+  Respond with JSON: { "classification": "pass" | "block", "violation_types": [], "cwe_codes": [] }`
 });
 
-const result = await client.redact(
-  "Check out https://github.com/user/repo and https://secret.com/data",
-  { urlWhitelist: ["https://github.com", "https://example.com"] }
-);
-// Output: "Check out https://github.com/user/repo and <URL_REDACTED>"
-```
-
-The whitelist is applied locally after redaction - URLs matching the prefixes are preserved, while non-whitelisted URLs are replaced with `<URL_REDACTED>`.
-
-## PDF File Redaction
-
-You can redact sensitive information from PDF files:
-
-```ts
-import { readFileSync } from 'fs';
-
-const client = createClient({
-  apiKey: process.env.SUPERAGENT_API_KEY!,
-});
-
-// Read PDF file
-const pdfBuffer = readFileSync('sensitive-document.pdf');
-const pdfBlob = new Blob([pdfBuffer], { type: 'application/pdf' });
-
-// Redact the PDF
-const result = await client.redact(
-  "Analyze and redact PII from this document",
-  {
-    file: pdfBlob,
-    format: "PDF",
-    entities: ["SSN", "credit card numbers", "email addresses"]
-  }
-);
-
-console.log(result.redacted);  // Redacted text content from the PDF
-console.log(result.reasoning); // Explanation of what was redacted
-```
-
-**Note:** File redaction uses multipart/form-data encoding and currently supports PDF format only.
-
-## Error Handling
-
-```ts
-import { GuardError } from "superagent-ai";
-
-try {
-  const result = await client.guard("command");
-} catch (error) {
-  if (error instanceof GuardError) {
-    console.error("Guard error:", error.message);
-  }
+if (result.classification === "block") {
+  console.log("Blocked:", result.violation_types);
 }
 ```
+
+#### Example (Chunking)
+
+For large inputs, the guard method automatically splits content into chunks and processes them in parallel:
+
+```typescript
+// Auto-chunking (default: 8000 chars)
+const result = await client.guard({
+  input: veryLongDocument,
+  model: "openai/gpt-4o-mini"
+});
+
+// Custom chunk size
+const result = await client.guard({
+  input: veryLongDocument,
+  model: "openai/gpt-4o-mini",
+  chunkSize: 4000 // Smaller chunks
+});
+
+// Disable chunking
+const result = await client.guard({
+  input: shortText,
+  model: "openai/gpt-4o-mini",
+  chunkSize: 0
+});
+```
+
+#### Example (URL Input)
+
+Analyze content from a URL - the content is automatically fetched and processed:
+
+```typescript
+// Analyze text from a URL
+const result = await client.guard({
+  input: "https://example.com/document.txt",
+  model: "openai/gpt-4o-mini"
+});
+
+// Analyze JSON from an API
+const result = await client.guard({
+  input: "https://api.example.com/data.json",
+  model: "openai/gpt-4o-mini"
+});
+
+// Using a URL object
+const url = new URL("https://example.com/content");
+const result = await client.guard({
+  input: url,
+  model: "openai/gpt-4o-mini"
+});
+```
+
+#### Example (Image Input) {#example-image-input}
+
+Analyze images using vision-capable models. See [Image Support](#image-support) for supported providers and models.
+
+```typescript
+// Analyze image from URL (auto-detected by image extension or content-type)
+const result = await client.guard({
+  input: "https://example.com/image.png",
+  model: "openai/gpt-4o"  // Must be a vision-capable model
+});
+
+// Analyze image from Blob (browser)
+const imageBlob = new Blob([imageData], { type: 'image/png' });
+const result = await client.guard({
+  input: imageBlob,
+  model: "anthropic/claude-3-5-sonnet-20241022"
+});
+
+// Analyze uploaded file (browser)
+const file = document.getElementById('upload').files[0];
+const result = await client.guard({
+  input: file,
+  model: "google/gemini-1.5-pro"
+});
+```
+
+**Note:** Image analysis requires a vision-capable model from a supported provider (OpenAI, Anthropic, or Google). The SDK automatically detects image inputs and routes them to vision-capable models.
+
+---
+
+### `client.redact(options)`
+
+Redacts sensitive or dangerous content from text.
+
+#### Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `input` | `string` | Yes | - | The input text to redact |
+| `model` | `string` | Yes | - | Model in `provider/model` format (e.g., `openai/gpt-4o-mini`) |
+| `entities` | `string[]` | No | Default PII entities | List of entity types to redact (e.g., `["emails", "phone numbers"]`) |
+| `rewrite` | `boolean` | No | `false` | When `true`, rewrites text contextually instead of using placeholders |
+
+#### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `redacted` | `string` | The sanitized text with redactions applied |
+| `findings` | `string[]` | Descriptions of what was redacted |
+| `usage` | `TokenUsage` | Token usage information |
+
+#### Example (Placeholder Mode - Default)
+
+```typescript
+const result = await client.redact({
+  input: "My email is john@example.com and SSN is 123-45-6789",
+  model: "openai/gpt-4o-mini"
+});
+
+console.log(result.redacted);
+// "My email is <EMAIL_REDACTED> and SSN is <SSN_REDACTED>"
+```
+
+#### Example (Rewrite Mode)
+
+```typescript
+const result = await client.redact({
+  input: "My email is john@example.com and SSN is 123-45-6789",
+  model: "openai/gpt-4o-mini",
+  rewrite: true
+});
+
+console.log(result.redacted);
+// "My email is on file and my social security number has been provided"
+```
+
+#### Example (Custom Entities)
+
+```typescript
+const result = await client.redact({
+  input: "Contact john@example.com or call 555-123-4567",
+  model: "openai/gpt-4o-mini",
+  entities: ["email addresses"] // Only redact emails, keep phone numbers
+});
+
+console.log(result.redacted);
+// "Contact <EMAIL_REDACTED> or call 555-123-4567"
+```
+
+---
+
+### Token Usage
+
+Both `guard()` and `redact()` methods return token usage information in the `usage` field:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `promptTokens` | `number` | Number of tokens in the prompt/input |
+| `completionTokens` | `number` | Number of tokens in the completion/output |
+| `totalTokens` | `number` | Total tokens used (promptTokens + completionTokens) |
+
+#### Example
+
+```typescript
+const result = await client.guard({
+  input: "user message to analyze",
+  model: "openai/gpt-4o-mini"
+});
+
+console.log(`Used ${result.usage.totalTokens} tokens`);
+console.log(`Prompt: ${result.usage.promptTokens}, Completion: ${result.usage.completionTokens}`);
+```
+
+## Custom System Prompts
+
+Override default prompts for custom classification behavior:
+
+```typescript
+const result = await client.guard({
+  input: "user message",
+  model: "openai/gpt-4o-mini",
+  systemPrompt: `Your custom classification prompt here...
+  
+  Respond with JSON: { "classification": "pass" | "block", "violation_types": [], "cwe_codes": [] }`
+});
+```
+

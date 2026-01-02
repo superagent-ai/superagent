@@ -9,7 +9,7 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { createClient } from "superagent-ai";
+import { createClient } from "@superagent-ai/safety-agent";
 import { z } from "zod";
 
 // ============================================================================
@@ -70,37 +70,6 @@ const RedactInputSchema = z
 
 type RedactInput = z.infer<typeof RedactInputSchema>;
 
-const VerifyInputSchema = z
-  .object({
-    text: z
-      .string()
-      .min(1, "Text cannot be empty")
-      .max(50000, "Text exceeds maximum length of 50,000 characters")
-      .describe(
-        "The text containing claims to verify against source materials"
-      ),
-    sources: z
-      .array(
-        z.object({
-          content: z
-            .string()
-            .min(1, "Source content cannot be empty")
-            .describe("The content of the source material"),
-          name: z
-            .string()
-            .min(1, "Source name cannot be empty")
-            .describe("The name or identifier of the source"),
-          url: z.string().optional().describe("Optional URL of the source"),
-        })
-      )
-      .min(1, "At least one source is required")
-      .describe(
-        "Array of source materials to verify claims against. Each source must have 'content' and 'name' fields, and optionally a 'url' field."
-      ),
-  })
-  .strict();
-
-type VerifyInput = z.infer<typeof VerifyInputSchema>;
 
 // ============================================================================
 // MCP Server Setup
@@ -151,11 +120,10 @@ Common Violation Types:
   async (params: GuardInput) => {
     try {
       // Call Superagent Guard API using SDK
-      const options: { systemPrompt?: string } = {};
-      if (params.system_prompt) {
-        options.systemPrompt = params.system_prompt;
-      }
-      const result = await client.guard(params.text, options as any);
+      const result = await client.guard({
+        input: params.text,
+        systemPrompt: params.system_prompt,
+      });
 
       // Return the raw result as JSON
       return {
@@ -236,7 +204,9 @@ Common Entity Types:
   async (params: RedactInput) => {
     try {
       // Call Superagent Redact API using SDK
-      const result = await client.redact(params.text, {
+      const result = await client.redact({
+        input: params.text,
+        model: "openai/gpt-4o-mini",
         entities: params.entities,
         rewrite: params.rewrite,
       });
@@ -247,91 +217,6 @@ Common Entity Types:
           {
             type: "text",
             text: result.redacted,
-          },
-        ],
-      };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Error: ${errorMessage}`,
-          },
-        ],
-      };
-    }
-  }
-);
-
-// ============================================================================
-// Tool: superagent_verify
-// ============================================================================
-
-server.registerTool(
-  "superagent_verify",
-  {
-    title: "Superagent Claim Verification",
-    description: `Verify claims in text against provided source materials using Superagent's verification AI model.
-
-This tool uses Superagent's LM-Verify-20B model to analyze claims and determine whether they are supported, contradicted, or unverifiable based on the provided sources.
-
-Args:
-  - text (string): The text containing claims to verify (max 50,000 characters)
-  - sources (array): Array of source materials to verify claims against. Each source must have:
-    - content (string): The content of the source material
-    - name (string): The name or identifier of the source
-    - url (string, optional): URL of the source
-
-Returns:
-  JSON containing an array of verified claims, each with:
-  - claim: The specific claim being verified
-  - verdict: True if supported by sources, false if contradicted or unverifiable
-  - sources: List of sources used for verification (with name and URL)
-  - evidence: Relevant quotes or excerpts from the sources
-  - reasoning: Brief explanation for the verdict
-
-Examples:
-  - Use when: Fact-checking content against authoritative sources
-  - Use when: "Verify this claim: 'The company was founded in 2020' against the About Us page"
-  - Use when: Validating information in reports against source data
-  - Use when: Checking consistency between different documents
-  - Don't use when: You need to redact PII (use superagent_redact instead)
-  - Don't use when: You need to detect security threats (use superagent_guard instead)
-
-Verification Rules:
-  - Only uses information explicitly stated in the provided sources
-  - Returns true verdict if claim is directly backed by sources
-  - Returns false verdict if claim is contradicted or cannot be verified
-  - Provides specific source references and evidence for each claim
-  - Breaks down text into individual verifiable claims`,
-    inputSchema: VerifyInputSchema.shape,
-    annotations: {
-      readOnlyHint: true,
-      destructiveHint: false,
-      idempotentHint: true,
-      openWorldHint: true,
-    },
-  },
-  async (params: VerifyInput) => {
-    try {
-      // Call Superagent Verify API using SDK
-      const result = await client.verify(params.text, params.sources);
-
-      // Return the verification result as formatted JSON
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(
-              {
-                claims: result.claims,
-                usage: result.usage,
-              },
-              null,
-              2
-            ),
           },
         ],
       };
@@ -376,7 +261,7 @@ async function main() {
   // Log to stderr (stdout is reserved for MCP protocol)
   console.error("Superagent MCP server running via stdio");
   console.error(
-    "Tools available: superagent_guard, superagent_redact, superagent_verify"
+    "Tools available: superagent_guard, superagent_redact"
   );
 }
 
