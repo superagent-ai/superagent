@@ -53,8 +53,11 @@ jobs:
           retention-days: 1
 
   test:
-    name: Test
+    name: Test - ${{ matrix.package }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [sdk/typescript, cli, mcp]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -66,9 +69,11 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
+        working-directory: ${{ matrix.package }}
         run: npm ci
 
       - name: Run tests
+        working-directory: ${{ matrix.package }}
         run: npm test
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
