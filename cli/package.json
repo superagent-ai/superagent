@@ -1,6 +1,6 @@
 {
   "name": "@superagent-ai/cli",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "CLI for Superagent - validate prompts and tool calls for security",
   "type": "module",
   "main": "./dist/index.js",

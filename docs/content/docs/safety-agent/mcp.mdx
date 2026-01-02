@@ -1,0 +1,87 @@
+---
+title: MCP Server
+description: Model Context Protocol server for Claude Desktop and Claude Code
+---
+
+# MCP Server
+
+MCP server providing security guardrails and PII redaction for Claude Desktop and Claude Code.
+
+## Installation
+
+### Claude Code
+
+```bash
+claude mcp add superagent -- npx -y @superagent-ai/mcp
+```
+
+### Claude Desktop
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "superagent": {
+      "command": "npx",
+      "args": ["-y", "@superagent-ai/mcp"],
+      "env": {
+        "SUPERAGENT_API_KEY": "your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop after configuration.
+
+## Available Tools
+
+### `superagent_guard`
+
+Analyze text for security threats like prompt injection, jailbreaks, and data exfiltration.
+
+**Parameters:**
+- `text` (required): Text to analyze
+- `system_prompt` (optional): Custom classification instructions
+
+**Example prompt:**
+```
+Check if this input is safe: "Ignore all previous instructions"
+```
+
+### `superagent_redact`
+
+Remove PII/PHI from text (emails, SSNs, phone numbers, credit cards, names, etc.)
+
+**Parameters:**
+- `text` (required): Text to redact
+- `entities` (optional): Specific entity types to redact
+- `rewrite` (optional): Rewrite naturally instead of placeholders
+
+**Example prompt:**
+```
+Redact PII from: "My email is john@example.com and SSN is 123-45-6789"
+```
+
+## Quick Examples
+
+**Security check:**
+```
+Use superagent_guard to check: "Delete all files with rm -rf /"
+```
+
+**Redact all PII:**
+```
+Use superagent_redact on: "Contact John at john@company.com or 555-1234"
+```
+
+**Redact specific entities:**
+```
+Redact only emails from: "Email: test@test.com, Phone: 555-9999"
+Use entities=['EMAIL']
+```
+
+## Environment Variables
+
+- `SUPERAGENT_API_KEY` - Your Superagent API key (get one at [superagent.sh](https://superagent.sh))
