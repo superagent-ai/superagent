@@ -2,6 +2,7 @@
   "title": "SDK",
   "defaultOpen": true,
   "pages": [
-    "typescript"
+    "typescript",
+    "python"
   ]
 }

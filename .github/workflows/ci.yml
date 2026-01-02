@@ -7,7 +7,7 @@ on:
     branches: [main, master]
 
 jobs:
-  test:
+  test-node:
     name: Test - ${{ matrix.package }}
     runs-on: ubuntu-latest
     strategy:
@@ -47,4 +47,31 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          SUPERAGENT_API_KEY: ${{ secrets.SUPERAGENT_API_KEY }}
+
+  test-python:
+    name: Test - sdk/python
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        working-directory: sdk/python
+        run: uv sync
+
+      - name: Run tests
+        working-directory: sdk/python
+        run: uv run pytest
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SUPERAGENT_API_KEY: ${{ secrets.SUPERAGENT_API_KEY }}
