@@ -1,0 +1,175 @@
+---
+title: Python
+description: Python SDK for content safety - guard and redact methods
+---
+
+# Python SDK
+
+The `safety-agent` package provides two core methods: `guard()` for detecting threats and `redact()` for removing sensitive data.
+
+## Installation
+
+```bash
+uv add safety-agent
+```
+
+Or with pip:
+
+```bash
+pip install safety-agent
+```
+
+## Quick Start
+
+```python
+from safety_agent import create_client
+
+client = create_client()
+
+# Guard: Detect threats (uses default superagent/guard-1.7b model)
+result = await client.guard(input="user message to analyze")
+
+# Redact: Remove PII
+result = await client.redact(
+    input="My email is john@example.com",
+    model="openai/gpt-4o-mini"
+)
+```
+
+---
+
+## Guard
+
+The `guard()` method classifies input content as `pass` or `block`. It detects prompt injections, malicious instructions, and security threats.
+
+### Basic Usage
+
+```python
+result = await client.guard(input="user message to analyze")
+
+if result.classification == "block":
+    print("Blocked:", result.violation_types)
+```
+
+### Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `input` | `str \| bytes` | Yes | - | The input to analyze |
+| `model` | `str` | No | `superagent/guard-1.7b` | Model in `provider/model` format |
+| `system_prompt` | `str` | No | - | Custom system prompt |
+| `chunk_size` | `int` | No | `8000` | Characters per chunk (0 to disable) |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `classification` | `"pass" \| "block"` | Whether content passed or should be blocked |
+| `violation_types` | `list[str]` | Types of violations detected |
+| `cwe_codes` | `list[str]` | CWE codes associated with violations |
+| `usage` | `TokenUsage` | Token usage information |
+
+### Input Types
+
+Guard supports multiple input types:
+
+- **Plain text**: Analyzed directly
+- **URLs**: Automatically fetched and analyzed
+- **Bytes**: Analyzed based on content type
+- **PDFs**: Text extracted and analyzed per page
+- **Images**: Requires vision-capable model
+
+```python
+# URL input
+result = await client.guard(input="https://example.com/document.pdf")
+
+# File input
+with open("document.pdf", "rb") as f:
+    result = await client.guard(input=f.read())
+```
+
+---
+
+## Redact
+
+The `redact()` method removes sensitive content from text using placeholders or contextual rewriting.
+
+### Basic Usage
+
+```python
+result = await client.redact(
+    input="My email is john@example.com and SSN is 123-45-6789",
+    model="openai/gpt-4o-mini"
+)
+
+print(result.redacted)
+# "My email is <EMAIL_REDACTED> and SSN is <SSN_REDACTED>"
+```
+
+### Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `input` | `str` | Yes | - | The text to redact |
+| `model` | `str` | Yes | - | Model in `provider/model` format |
+| `entities` | `list[str]` | No | Default PII | Entity types to redact |
+| `rewrite` | `bool` | No | `False` | Rewrite contextually instead of placeholders |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `redacted` | `str` | Sanitized text with redactions |
+| `findings` | `list[str]` | What was redacted |
+| `usage` | `TokenUsage` | Token usage information |
+
+### Rewrite Mode
+
+Contextually rewrites text instead of using placeholders:
+
+```python
+result = await client.redact(
+    input="My email is john@example.com",
+    model="openai/gpt-4o-mini",
+    rewrite=True
+)
+
+print(result.redacted)
+# "My email is on file"
+```
+
+### Custom Entities
+
+Specify which entity types to redact:
+
+```python
+result = await client.redact(
+    input="Contact john@example.com or call 555-123-4567",
+    model="openai/gpt-4o-mini",
+    entities=["email addresses"]  # Only redact emails
+)
+```
+
+### Default Entities
+
+When `entities` is not specified:
+- SSNs, Driver's License, Passport Numbers
+- API Keys, Secrets, Passwords
+- Names, Addresses, Phone Numbers
+- Emails, Credit Card Numbers
+
+---
+
+## Environment Variables
+
+Configure provider API keys:
+
+```bash
+export SUPERAGENT_API_KEY=your-superagent-key
+export OPENAI_API_KEY=your-openai-key
+export ANTHROPIC_API_KEY=your-anthropic-key
+export GOOGLE_API_KEY=your-google-key
+export GROQ_API_KEY=your-groq-key
+export FIREWORKS_API_KEY=your-fireworks-key
+export OPENROUTER_API_KEY=your-openrouter-key
+```

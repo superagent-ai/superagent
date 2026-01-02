@@ -33,6 +33,8 @@ The Safety Agent integrates with your AI to stop attacks and protect sensitive d
 
 Block prompt injections, jailbreaks, and data exfiltration before they reach your models.
 
+**TypeScript:**
+
 ```typescript
 import { createClient } from "@superagent-ai/safety-agent";
 
@@ -47,9 +49,24 @@ if (result.classification === "block") {
 }
 ```
 
+**Python:**
+
+```python
+from safety_agent import create_client
+
+client = create_client()
+
+result = await client.guard(input=user_message)
+
+if result.classification == "block":
+    print("Blocked:", result.violation_types)
+```
+
 ### Redact
 
 Remove PII, PHI, and secrets from text in real-time. Enable privacy and compliance without manual review.
+
+**TypeScript:**
 
 ```typescript
 const result = await client.redact({
@@ -59,6 +76,18 @@ const result = await client.redact({
 
 console.log(result.redacted);
 // "My email is <EMAIL_REDACTED> and SSN is <SSN_REDACTED>"
+```
+
+**Python:**
+
+```python
+result = await client.redact(
+    input="My email is john@example.com and SSN is 123-45-6789",
+    model="openai/gpt-4o-mini"
+)
+
+print(result.redacted)
+# "My email is <EMAIL_REDACTED> and SSN is <SSN_REDACTED>"
 ```
 
 ## Safety Tests
@@ -77,9 +106,19 @@ A shareable page that shows your guardrails and test results. Close enterprise d
 
 Sign up at [superagent.sh](https://superagent.sh) to get your API key.
 
+**TypeScript:**
+
 ```bash
 npm install @superagent-ai/safety-agent
 ```
+
+**Python:**
+
+```bash
+uv add safety-agent
+```
+
+**Set your API key:**
 
 ```bash
 export SUPERAGENT_API_KEY=your-key
@@ -90,6 +129,7 @@ export SUPERAGENT_API_KEY=your-key
 | Option | Description | Link |
 |--------|-------------|------|
 | **TypeScript SDK** | Embed guard and redact directly in your app | [sdk/typescript](sdk/typescript/README.md) |
+| **Python SDK** | Embed guard and redact directly in Python apps | [sdk/python](sdk/python/README.md) |
 | **CLI** | Command-line tool for testing and automation | [cli](cli/README.md) |
 | **MCP Server** | Use with Claude Code and Claude Desktop | [mcp](mcp/README.md) |
 
