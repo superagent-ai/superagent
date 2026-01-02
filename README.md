@@ -1,63 +1,102 @@
-# 🥷 Superagent
+<p align="center">
+  <img src="https://avatars.githubusercontent.com/u/116883320" width="80" alt="Superagent" />
+</p>
 
-**Guard. Verify. Redact.**
+<h1 align="center">Superagent</h1>
 
-Purpose-trained models that secure your applications and keep them compliant — with low-latency, production-ready performance.
+<p align="center">
+  <strong>Make your AI safe. And prove it.</strong>
+</p>
 
-## What is Superagent?
+<p align="center">
+  <a href="https://superagent.sh">Website</a> ·
+  <a href="https://docs.superagent.sh">Docs</a> ·
+  <a href="https://discord.gg/spZ7MnqFT4">Discord</a> ·
+  <a href="https://huggingface.co/superagent-ai">HuggingFace</a>
+</p>
 
-Superagent provides the security and compliance capabilities you need to ship with confidence. We've built three purpose-trained models — Guard, Verify, and Redact — that work as standalone APIs to protect your applications in real time, without slowing you down.
+<p align="center">
+  <img src="https://img.shields.io/badge/Y%20Combinator-Backed-orange" alt="Y Combinator" />
+  <img src="https://img.shields.io/github/stars/superagent-ai/superagent?style=social" alt="GitHub stars" />
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" />
+</p>
 
-Whether you're building agents, chatbots, or workflows, Superagent gives you the tools to detect threats, validate outputs, and protect sensitive data before they become problems.
+---
 
-📚 [Read the full documentation](https://docs.superagent.sh)
+Superagent protects your AI applications against prompt injections, data leaks, and harmful outputs. Embed safety directly into your app and prove compliance to your customers.
 
-## Capabilities
+## Safety Agent
+
+The Safety Agent integrates with your AI to stop attacks and protect sensitive data in real-time.
 
 ### Guard
-Detects and blocks unsafe inputs, prompt injections, malicious tool calls, and backdoors before they reach your models or systems. With **98% threat detection accuracy**, Guard outperforms GPT-5, Gemini 2.5 Pro, and other frontier models — without the latency penalty.
 
-### Verify
-Grounds and validates model outputs against your enterprise sources, documents, or APIs. Every generation is factual, consistent, and policy-aligned. Stop hallucinations from reaching production.
+Block prompt injections, jailbreaks, and data exfiltration before they reach your models.
+
+```typescript
+import { createClient } from "@superagent-ai/safety-agent";
+
+const client = createClient();
+
+const result = await client.guard({
+  input: userMessage
+});
+
+if (result.classification === "block") {
+  console.log("Blocked:", result.violation_types);
+}
+```
 
 ### Redact
-Removes sensitive data (PII, PHI, secrets) from text, logs, or documents in real time. Enable privacy and compliance across AI inputs and outputs without manual review.
 
-## How to use it?
+Remove PII, PHI, and secrets from text in real-time. Enable privacy and compliance without manual review.
 
-Superagent fits into your workflow, no matter how you build:
+```typescript
+const result = await client.redact({
+  input: "My email is john@example.com and SSN is 123-45-6789",
+  model: "openai/gpt-4o-mini"
+});
 
-- **API**: [Documentation](https://docs.superagent.sh/rest-api/guard) — Send any payload and receive a guarded, verified, or redacted result. Supports JSON, text, or document inputs.
-- **SDKs**: [Python](https://docs.superagent.sh/sdks/python-sdk), [TypeScript](https://docs.superagent.sh/sdks/typescript-sdk) — Lightweight client libraries for embedding Guard, Verify, or Redact directly into your workflows and orchestration layers.
-- **CLI**: [Documentation](https://docs.superagent.sh/cli) — Command-line tool for developers and ops teams to test, audit, or batch-process data locally.
+console.log(result.redacted);
+// "My email is <EMAIL_REDACTED> and SSN is <SSN_REDACTED>"
+```
 
-All access methods share the same core engine and authentication model — simple to integrate, fast to deploy, and ready for production from day one.
+## Get Started
 
-### Get Started
+Sign up at [superagent.sh](https://superagent.sh) to get your API key.
 
-To use the API, sign up on [Superagent](https://app.superagent.sh) and get your API key. You'll be up and running in minutes.
+```bash
+npm install @superagent-ai/safety-agent
+```
+
+```bash
+export SUPERAGENT_API_KEY=your-key
+```
+
+## Integration Options
+
+| Option | Description | Link |
+|--------|-------------|------|
+| **TypeScript SDK** | Embed guard and redact directly in your app | [sdk/typescript](sdk/typescript/README.md) |
+| **CLI** | Command-line tool for testing and automation | [cli](cli/README.md) |
+| **MCP Server** | Use with Claude Code and Claude Desktop | [mcp](mcp/README.md) |
+| **REST API** | Direct HTTP integration | [docs.superagent.sh](https://docs.superagent.sh) |
 
 ## Why Superagent?
 
-- **Low-latency protection** — Optimized for runtime use without compromising security or performance
-- **Open source (MIT)** — Full transparency with 10K+ GitHub stars and community trust
-- **Framework-agnostic** — Works seamlessly with any LLM provider, agent framework, or orchestration layer
-- **Compliance-ready** — Maps to EU AI Act, ISO/IEC 42001, NIST AI RMF, GDPR, SOC 2, and HIPAA requirements
-- **Flexible deployment** — Choose hosted cloud or self-hosted infrastructure based on your needs
-- **Production-proven** — Battle-tested by Y Combinator companies and enterprises shipping AI at scale
-
-## Use Cases
-
-- **Customer-facing applications**: Protect chatbots and assistants from prompt injection and malicious inputs
-- **Enterprise workflows**: Validate outputs against internal knowledge bases and policy documents
-- **Data pipeline security**: Automatically redact PII/PHI from logs, documents, and datasets
-- **Agent safety**: Monitor and control autonomous agent actions before execution
-- **Compliance automation**: Build audit trails and ensure regulatory alignment across all models
+- **Low latency** — Optimized for runtime use without compromising performance
+- **Any LLM** — Works with OpenAI, Anthropic, Google, Groq, Bedrock, and more
+- **Open source** — MIT license with full transparency
+- **Compliance-ready** — Maps to EU AI Act, SOC 2, HIPAA, and GDPR requirements
+- **Production-proven** — Trusted by Y Combinator companies shipping AI at scale
 
 ## Resources
 
-- 🌐 [Superagent Website](https://superagent.sh)
-- 📚 [Documentation](https://docs.superagent.sh)
-- 🐙 [GitHub](https://github.com/superagent-ai/superagent)
-- 🤗 [HuggingFace](https://huggingface.co/superagent-ai)
-- 💬 [Discord](https://discord.gg/spZ7MnqFT4)
+- [Documentation](https://docs.superagent.sh)
+- [Discord Community](https://discord.gg/spZ7MnqFT4)
+- [HuggingFace Models](https://huggingface.co/superagent-ai)
+- [Twitter/X](https://x.com/superagent_ai)
+
+## License
+
+MIT
