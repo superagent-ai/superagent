@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://avatars.githubusercontent.com/u/116883320" width="80" alt="Superagent" />
+  <img src="logo.png" width="80" alt="Superagent" />
 </p>
 
 <h1 align="center">Superagent</h1>
@@ -60,6 +60,18 @@ const result = await client.redact({
 console.log(result.redacted);
 // "My email is <EMAIL_REDACTED> and SSN is <SSN_REDACTED>"
 ```
+
+## Safety Tests
+
+Adversarial tests that probe your AI for prompt injection weaknesses, data leakage paths, and failure modes. Find vulnerabilities before attackers do and get evidence for compliance.
+
+[Learn more →](https://superagent.sh/product/safety-tests)
+
+## Safety Page
+
+A shareable page that shows your guardrails and test results. Close enterprise deals without scrambling to answer security questionnaires.
+
+[Learn more →](https://superagent.sh/product/safety-page)
 
 ## Get Started
 
