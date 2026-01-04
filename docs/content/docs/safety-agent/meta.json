@@ -13,6 +13,7 @@
     "---Examples---",
     "examples/secure-rag-pipeline",
     "examples/scan-image-uploads",
-    "examples/cursor-hooks"
+    "examples/cursor-hooks",
+    "examples/claude-code-hooks"
   ]
 }

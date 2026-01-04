@@ -78,36 +78,6 @@ Output:
 superagent redact --rewrite "Contact me at john@example.com"
 ```
 
-## Claude Code Hook
-
-Validate all prompts before Claude processes them by adding to `~/.claude/settings.json`:
-
-```json
-{
-  "env": {
-    "SUPERAGENT_API_KEY": "your_api_key_here"
-  },
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "superagent guard"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-The CLI will:
-- Allow safe prompts to proceed
-- Block malicious prompts with detailed reasoning
-- Show violation types and CWE codes for blocked prompts
-
 ## Environment Variables
 
 - `SUPERAGENT_API_KEY` - Your Superagent API key (required)
