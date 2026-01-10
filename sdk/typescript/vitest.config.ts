@@ -7,6 +7,9 @@ export default defineConfig({
     setupFiles: ["./tests/setup.ts"],
     testTimeout: 30000, // 30s timeout for live API calls
   },
+  esbuild: {
+    target: "node18",
+  },
 });
 
 
