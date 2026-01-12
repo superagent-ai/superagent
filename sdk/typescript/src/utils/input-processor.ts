@@ -1,3 +1,5 @@
+import { lookup } from "node:dns/promises";
+import * as ipaddr from "ipaddr.js";
 import { getDocumentProxy } from "unpdf";
 import type { GuardInput, ProcessedInput } from "../types.js";
 
@@ -39,76 +41,102 @@ function isUrlString(input: string): boolean {
 }
 
 /**
- * Check if an IP address is private/internal
+ * Check if an IP address is private/internal using ipaddr.js
+ * Supports both IPv4 and IPv6 ranges
  */
-function isPrivateIp(hostname: string): boolean {
-  /**
-   * Check if a hostname resolves to a private/internal IP address.
-   *
-   * Blocks:
-   * - localhost and 127.0.0.0/8 (loopback)
-   * - 10.0.0.0/8 (private)
-   * - 172.16.0.0/12 (private)
-   * - 192.168.0.0/16 (private)
-   * - localhost hostname
-   */
+function isPrivateIpAddress(ip: string): boolean {
+  try {
+    const addr = ipaddr.process(ip);
+    
+    if (addr.kind() === "ipv4") {
+      const ipv4 = addr as ipaddr.IPv4;
+      
+      // Check IPv4 private ranges
+      return (
+        ipv4.range() === "private" || // 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+        ipv4.range() === "loopback" || // 127.0.0.0/8
+        ipv4.range() === "linkLocal" || // 169.254.0.0/16
+        ipv4.range() === "multicast" // 224.0.0.0/4
+      );
+    } else if (addr.kind() === "ipv6") {
+      const ipv6 = addr as ipaddr.IPv6;
+      
+      // Check for IPv4-mapped IPv6 addresses (::ffff:127.0.0.1)
+      if (ipv6.isIPv4MappedAddress()) {
+        const ipv4Mapped = ipv6.toIPv4Address();
+        return isPrivateIpAddress(ipv4Mapped.toString());
+      }
+      
+      // Check IPv6 private ranges
+      const range = ipv6.range();
+      return (
+        range === "uniqueLocal" || // fc00::/7 (ULA)
+        range === "linkLocal" || // fe80::/10
+        range === "loopback" || // ::1
+        range === "multicast" // ff00::/8
+      );
+    }
+    
+    return false;
+  } catch {
+    // If IP parsing fails, treat as private (fail-safe)
+    return true;
+  }
+}
+
+/**
+ * Check if a hostname resolves to a private/internal IP address.
+ * 
+ * This function performs DNS resolution to prevent SSRF attacks where
+ * a hostname like "attacker.com" resolves to 127.0.0.1.
+ * 
+ * Blocks:
+ * - IPv4: 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16, 224.0.0.0/4
+ * - IPv6: ::1, fc00::/7, fe80::/10, ::ffff:127.0.0.0/104, ff00::/8
+ * - localhost hostnames
+ * 
+ * If DNS resolution fails, treats as private (fail-safe security).
+ */
+async function isPrivateIp(hostname: string): Promise<boolean> {
   const lowerHostname = hostname.toLowerCase();
 
-  // Check for localhost hostname
-  if (lowerHostname === "localhost" || lowerHostname === "localhost.localdomain" || lowerHostname === "local") {
+  // Check for localhost hostname first (common case, no DNS needed)
+  if (
+    lowerHostname === "localhost" ||
+    lowerHostname === "localhost.localdomain" ||
+    lowerHostname === "local" ||
+    lowerHostname === "127.0.0.1" ||
+    lowerHostname === "::1"
+  ) {
     return true;
   }
 
-  // Check if it's a direct IP address
-  const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
-  const match = hostname.match(ipv4Regex);
-  
-  if (match) {
-    const octets = match.slice(1, 5).map(Number);
+  // Remove brackets from IPv6 addresses if present
+  const cleanHostname = hostname.replace(/^\[|\]$/g, "");
+
+  // Check if it's already a direct IP address (IPv4 or IPv6)
+  try {
+    // Try parsing as IP first (faster path)
+    if (ipaddr.isValid(cleanHostname)) {
+      return isPrivateIpAddress(cleanHostname);
+    }
+  } catch {
+    // Not a direct IP, continue to DNS resolution
+  }
+
+  // Perform DNS resolution to get actual IP address
+  // This prevents SSRF where hostname resolves to private IP
+  try {
+    const result = await lookup(cleanHostname, { all: false });
+    const resolvedIp = result.address;
     
-    // Validate octets are in valid range
-    if (octets.some((octet) => octet > 255)) {
-      return false;
-    }
-
-    // Check for loopback (127.0.0.0/8)
-    if (octets[0] === 127) {
-      return true;
-    }
-
-    // Check for private IP ranges
-    // 10.0.0.0/8
-    if (octets[0] === 10) {
-      return true;
-    }
-
-    // 172.16.0.0/12
-    if (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) {
-      return true;
-    }
-
-    // 192.168.0.0/16
-    if (octets[0] === 192 && octets[1] === 168) {
-      return true;
-    }
-
-    // Check for link-local (169.254.0.0/16)
-    if (octets[0] === 169 && octets[1] === 254) {
-      return true;
-    }
-
-    // Check for multicast (224.0.0.0/4)
-    if (octets[0] >= 224 && octets[0] <= 239) {
-      return true;
-    }
-  }
-
-  // Check for IPv6 loopback
-  if (hostname === "::1" || hostname.toLowerCase() === "localhost") {
+    // Check the resolved IP address
+    return isPrivateIpAddress(resolvedIp);
+  } catch (error) {
+    // DNS resolution failed - treat as private (fail-safe)
+    // This prevents bypasses where DNS fails but might resolve to private IP
     return true;
   }
-
-  return false;
 }
 
 /**
@@ -120,12 +148,12 @@ function isPrivateIp(hostname: string): boolean {
  * - URL format is valid
  * - Protocol is http or https only
  * - Hostname is not empty
- * - No private/internal IP addresses
+ * - No private/internal IP addresses (with DNS resolution)
  * - No localhost access
  * - No file:// protocol
  * - URL length is reasonable (max 2048 characters)
  */
-function validateUrl(url: string): void {
+async function validateUrl(url: string): Promise<void> {
   const MAX_URL_LENGTH = 2048;
 
   // Check URL length
@@ -160,8 +188,9 @@ function validateUrl(url: string): void {
     throw new Error("Invalid URL: hostname is required");
   }
 
-  // Check for private/internal IP addresses
-  if (isPrivateIp(hostname)) {
+  // Check for private/internal IP addresses (with DNS resolution)
+  const isPrivate = await isPrivateIp(hostname);
+  if (isPrivate) {
     const lowerHostname = hostname.toLowerCase();
     if (
       lowerHostname === "localhost" ||
@@ -264,7 +293,7 @@ async function extractPdfPages(buffer: ArrayBuffer): Promise<string[]> {
  */
 async function fetchUrl(url: string): Promise<ProcessedInput> {
   // Validate URL for security before making any network requests
-  validateUrl(url);
+  await validateUrl(url);
 
   const response = await fetch(url);
 
