@@ -3,6 +3,8 @@ Input processor for handling various input types (text, URLs, images, PDFs)
 """
 
 import base64
+import ipaddress
+import socket
 from urllib.parse import urlparse
 
 import httpx
@@ -37,6 +39,85 @@ TEXT_MIME_TYPES = [
 def _is_url_string(input_str: str) -> bool:
     """Check if a string looks like a URL."""
     return input_str.startswith("http://") or input_str.startswith("https://")
+
+
+def _is_private_ip(hostname: str) -> bool:
+    """
+    Check if a hostname resolves to a private/internal IP address.
+    
+    Blocks:
+    - localhost and 127.0.0.0/8 (loopback)
+    - 10.0.0.0/8 (private)
+    - 172.16.0.0/12 (private)
+    - 192.168.0.0/16 (private)
+    - localhost hostname
+    """
+    # Check for localhost hostname
+    if hostname.lower() in ("localhost", "localhost.localdomain", "local"):
+        return True
+    
+    # Try to resolve hostname to IP address
+    try:
+        # Get the first IP address from hostname
+        ip_str = socket.gethostbyname(hostname)
+        ip = ipaddress.ip_address(ip_str)
+        
+        # Check if it's a private IP
+        return ip.is_loopback or ip.is_private or ip.is_link_local or ip.is_multicast
+    except (socket.gaierror, socket.herror, ValueError):
+        # If hostname can't be resolved or is not a valid IP, check if it's a direct IP
+        try:
+            ip = ipaddress.ip_address(hostname)
+            return ip.is_loopback or ip.is_private or ip.is_link_local or ip.is_multicast
+        except ValueError:
+            # Not a valid IP address, but we'll allow it (could be a domain)
+            # The actual connection will fail if it's invalid
+            return False
+
+
+def _validate_url(url: str) -> None:
+    """
+    Validate URL for security concerns.
+    
+    Raises ValueError with descriptive message if URL is invalid or unsafe.
+    
+    Checks:
+    - URL format is valid
+    - Protocol is http or https only
+    - Hostname is not empty
+    - No private/internal IP addresses
+    - No localhost access
+    - No file:// protocol
+    - URL length is reasonable (max 2048 characters)
+    """
+    # Check URL length
+    MAX_URL_LENGTH = 2048
+    if len(url) > MAX_URL_LENGTH:
+        raise ValueError(f"Invalid URL: URL exceeds maximum length of {MAX_URL_LENGTH} characters")
+    
+    # Parse URL
+    try:
+        parsed = urlparse(url)
+    except Exception as e:
+        raise ValueError(f"Invalid URL: malformed URL format - {str(e)}")
+    
+    # Check protocol
+    protocol = parsed.scheme.lower()
+    if protocol not in ("http", "https"):
+        if protocol == "file":
+            raise ValueError("Invalid URL: file:// protocol is not allowed")
+        raise ValueError(f"Invalid URL: protocol must be http or https, got {protocol}")
+    
+    # Check hostname
+    hostname = parsed.hostname
+    if not hostname:
+        raise ValueError("Invalid URL: hostname is required")
+    
+    # Check for private/internal IP addresses
+    if _is_private_ip(hostname):
+        if hostname.lower() in ("localhost", "127.0.0.1", "::1") or hostname.startswith("127."):
+            raise ValueError("Invalid URL: localhost access is not allowed")
+        raise ValueError("Invalid URL: private/internal IP addresses are not allowed")
 
 
 def _is_image_mime_type(mime_type: str) -> bool:
@@ -108,6 +189,9 @@ async def _extract_pdf_pages(data: bytes) -> list[str]:
 
 async def _fetch_url(url: str) -> ProcessedInput:
     """Fetch content from a URL and return as ProcessedInput."""
+    # Validate URL for security before making any network requests
+    _validate_url(url)
+    
     async with httpx.AsyncClient() as client:
         response = await client.get(url, follow_redirects=True, timeout=30.0)
 

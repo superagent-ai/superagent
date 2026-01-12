@@ -39,6 +39,145 @@ function isUrlString(input: string): boolean {
 }
 
 /**
+ * Check if an IP address is private/internal
+ */
+function isPrivateIp(hostname: string): boolean {
+  /**
+   * Check if a hostname resolves to a private/internal IP address.
+   *
+   * Blocks:
+   * - localhost and 127.0.0.0/8 (loopback)
+   * - 10.0.0.0/8 (private)
+   * - 172.16.0.0/12 (private)
+   * - 192.168.0.0/16 (private)
+   * - localhost hostname
+   */
+  const lowerHostname = hostname.toLowerCase();
+
+  // Check for localhost hostname
+  if (lowerHostname === "localhost" || lowerHostname === "localhost.localdomain" || lowerHostname === "local") {
+    return true;
+  }
+
+  // Check if it's a direct IP address
+  const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+  const match = hostname.match(ipv4Regex);
+  
+  if (match) {
+    const octets = match.slice(1, 5).map(Number);
+    
+    // Validate octets are in valid range
+    if (octets.some((octet) => octet > 255)) {
+      return false;
+    }
+
+    // Check for loopback (127.0.0.0/8)
+    if (octets[0] === 127) {
+      return true;
+    }
+
+    // Check for private IP ranges
+    // 10.0.0.0/8
+    if (octets[0] === 10) {
+      return true;
+    }
+
+    // 172.16.0.0/12
+    if (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) {
+      return true;
+    }
+
+    // 192.168.0.0/16
+    if (octets[0] === 192 && octets[1] === 168) {
+      return true;
+    }
+
+    // Check for link-local (169.254.0.0/16)
+    if (octets[0] === 169 && octets[1] === 254) {
+      return true;
+    }
+
+    // Check for multicast (224.0.0.0/4)
+    if (octets[0] >= 224 && octets[0] <= 239) {
+      return true;
+    }
+  }
+
+  // Check for IPv6 loopback
+  if (hostname === "::1" || hostname.toLowerCase() === "localhost") {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Validate URL for security concerns.
+ *
+ * Throws Error with descriptive message if URL is invalid or unsafe.
+ *
+ * Checks:
+ * - URL format is valid
+ * - Protocol is http or https only
+ * - Hostname is not empty
+ * - No private/internal IP addresses
+ * - No localhost access
+ * - No file:// protocol
+ * - URL length is reasonable (max 2048 characters)
+ */
+function validateUrl(url: string): void {
+  const MAX_URL_LENGTH = 2048;
+
+  // Check URL length
+  if (url.length > MAX_URL_LENGTH) {
+    throw new Error(
+      `Invalid URL: URL exceeds maximum length of ${MAX_URL_LENGTH} characters`
+    );
+  }
+
+  // Parse URL
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch (e) {
+    throw new Error(`Invalid URL: malformed URL format - ${String(e)}`);
+  }
+
+  // Check protocol
+  const protocol = parsed.protocol.toLowerCase();
+  if (protocol !== "http:" && protocol !== "https:") {
+    if (protocol === "file:") {
+      throw new Error("Invalid URL: file:// protocol is not allowed");
+    }
+    throw new Error(
+      `Invalid URL: protocol must be http or https, got ${protocol}`
+    );
+  }
+
+  // Check hostname
+  const hostname = parsed.hostname;
+  if (!hostname) {
+    throw new Error("Invalid URL: hostname is required");
+  }
+
+  // Check for private/internal IP addresses
+  if (isPrivateIp(hostname)) {
+    const lowerHostname = hostname.toLowerCase();
+    if (
+      lowerHostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname === "::1" ||
+      hostname.startsWith("127.")
+    ) {
+      throw new Error("Invalid URL: localhost access is not allowed");
+    }
+    throw new Error(
+      "Invalid URL: private/internal IP addresses are not allowed"
+    );
+  }
+}
+
+/**
  * Check if MIME type is an image
  */
 function isImageMimeType(mimeType: string): boolean {
@@ -124,6 +263,9 @@ async function extractPdfPages(buffer: ArrayBuffer): Promise<string[]> {
  * Fetch content from a URL and return as ProcessedInput
  */
 async function fetchUrl(url: string): Promise<ProcessedInput> {
+  // Validate URL for security before making any network requests
+  validateUrl(url);
+
   const response = await fetch(url);
 
   if (!response.ok) {
