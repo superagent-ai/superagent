@@ -1,6 +1,6 @@
 {
   "name": "@superagent-ai/safety-agent",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "A lightweight TypeScript guardrail SDK for content safety",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -41,6 +41,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "ipaddr.js": "^2.3.0",
     "unpdf": "^1.4.0"
   }
 }
