@@ -140,7 +140,7 @@ describe("SSRF Protection - URL Validation", () => {
           input: "http://attacker.com/test.pdf",
           model: "openai/gpt-4o-mini",
         })
-      ).rejects.toThrow(/localhost access is not allowed/);
+      ).rejects.toThrow(/private\/internal IP addresses are not allowed/);
     });
 
     it("should block hostname that resolves to 10.x.x.x", async () => {

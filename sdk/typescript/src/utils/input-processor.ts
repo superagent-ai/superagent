@@ -37,7 +37,11 @@ const TEXT_MIME_TYPES = [
  * Check if a string looks like a URL
  */
 function isUrlString(input: string): boolean {
-  return input.startsWith("http://") || input.startsWith("https://");
+  return (
+    input.startsWith("http://") ||
+    input.startsWith("https://") ||
+    input.startsWith("file://")
+  );
 }
 
 /**
@@ -189,17 +193,23 @@ async function validateUrl(url: string): Promise<void> {
   }
 
   // Check for private/internal IP addresses (with DNS resolution)
+  const lowerHostname = hostname.toLowerCase();
+  const cleanHostname = hostname.replace(/^\[|\]$/g, "");
+
+  // Check for localhost hostname patterns first (before DNS resolution)
+  if (
+    lowerHostname === "localhost" ||
+    lowerHostname === "localhost.localdomain" ||
+    lowerHostname === "local" ||
+    cleanHostname === "127.0.0.1" ||
+    cleanHostname === "::1" ||
+    cleanHostname.startsWith("127.")
+  ) {
+    throw new Error("Invalid URL: localhost access is not allowed");
+  }
+
   const isPrivate = await isPrivateIp(hostname);
   if (isPrivate) {
-    const lowerHostname = hostname.toLowerCase();
-    if (
-      lowerHostname === "localhost" ||
-      hostname === "127.0.0.1" ||
-      hostname === "::1" ||
-      hostname.startsWith("127.")
-    ) {
-      throw new Error("Invalid URL: localhost access is not allowed");
-    }
     throw new Error(
       "Invalid URL: private/internal IP addresses are not allowed"
     );
