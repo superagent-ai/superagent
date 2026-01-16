@@ -49,6 +49,7 @@ result = await client.guard(input="user message to analyze")
 
 if result.classification == "block":
     print("Blocked:", result.violation_types)
+    print("Reason:", result.reasoning)
 ```
 
 ### Options
@@ -65,6 +66,7 @@ if result.classification == "block":
 | Field | Type | Description |
 |-------|------|-------------|
 | `classification` | `"pass" \| "block"` | Whether content passed or should be blocked |
+| `reasoning` | `str` | Explanation of why content was classified as pass or block |
 | `violation_types` | `list[str]` | Types of violations detected |
 | `cwe_codes` | `list[str]` | CWE codes associated with violations |
 | `usage` | `TokenUsage` | Token usage information |

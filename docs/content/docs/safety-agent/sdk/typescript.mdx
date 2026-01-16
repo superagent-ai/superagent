@@ -47,6 +47,7 @@ const result = await client.guard({
 
 if (result.classification === "block") {
   console.log("Blocked:", result.violation_types);
+  console.log("Reason:", result.reasoning);
 }
 ```
 
@@ -64,6 +65,7 @@ if (result.classification === "block") {
 | Field | Type | Description |
 |-------|------|-------------|
 | `classification` | `"pass" \| "block"` | Whether content passed or should be blocked |
+| `reasoning` | `string` | Explanation of why content was classified as pass or block |
 | `violation_types` | `string[]` | Types of violations detected |
 | `cwe_codes` | `string[]` | CWE codes associated with violations |
 | `usage` | `TokenUsage` | Token usage information |
