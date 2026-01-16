@@ -131,6 +131,9 @@ class GuardClassificationResult:
     classification: Literal["pass", "block"]
     """Whether the content passed or should be blocked."""
 
+    reasoning: str = ""
+    """Brief explanation of why the content was classified as pass or block."""
+
     violation_types: list[str] = field(default_factory=list)
     """Types of violations detected."""
 
@@ -196,6 +199,9 @@ class GuardResponse:
 
     classification: Literal["pass", "block"]
     """Whether the content passed or should be blocked."""
+
+    reasoning: str
+    """Brief explanation of why the content was classified as pass or block."""
 
     violation_types: list[str]
     """Types of violations detected."""

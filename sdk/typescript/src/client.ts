@@ -60,8 +60,16 @@ function chunkText(text: string, chunkSize: number): string[] {
 function aggregateGuardResults(results: GuardResponse[]): GuardResponse {
   const hasBlock = results.some((r) => r.classification === "block");
 
+  // Collect reasoning from blocked results, or from first result if all pass
+  const blockedResults = results.filter((r) => r.classification === "block");
+  const reasoning =
+    blockedResults.length > 0
+      ? blockedResults.map((r) => r.reasoning).join(" ")
+      : results[0]?.reasoning ?? "";
+
   return {
     classification: hasBlock ? "block" : "pass",
+    reasoning,
     violation_types: [...new Set(results.flatMap((r) => r.violation_types))],
     cwe_codes: [...new Set(results.flatMap((r) => r.cwe_codes))],
     usage: {
@@ -465,6 +473,7 @@ export class SafetyClient {
       const parsed = parseJsonResponse<GuardClassificationResult>(content);
       return {
         classification: parsed.classification,
+        reasoning: parsed.reasoning ?? "",
         violation_types: parsed.violation_types ?? [],
         cwe_codes: parsed.cwe_codes ?? [],
         usage: response.usage,
@@ -528,6 +537,7 @@ export class SafetyClient {
       const parsed = parseJsonResponse<GuardClassificationResult>(content);
       return {
         classification: parsed.classification,
+        reasoning: parsed.reasoning ?? "",
         violation_types: parsed.violation_types ?? [],
         cwe_codes: parsed.cwe_codes ?? [],
         usage: response.usage,
@@ -583,6 +593,7 @@ export class SafetyClient {
         // PDF has no extractable text, return pass
         const emptyResult: GuardResponse = {
           classification: "pass",
+          reasoning: "PDF contains no extractable text content to analyze.",
           violation_types: [],
           cwe_codes: [],
           usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },

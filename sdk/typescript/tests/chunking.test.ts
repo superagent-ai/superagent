@@ -338,6 +338,7 @@ describe("Guard Chunking", () => {
       });
 
       expect(response.classification).toBe("pass");
+      expect(typeof response.reasoning).toBe("string");
       expect(response.usage.promptTokens).toBeGreaterThan(0);
     });
 
@@ -352,6 +353,7 @@ describe("Guard Chunking", () => {
       });
 
       expect(response.classification).toBe("pass");
+      expect(typeof response.reasoning).toBe("string");
       expect(response.usage.promptTokens).toBeGreaterThan(0);
       expect(response.usage.totalTokens).toBeGreaterThan(0);
     });
@@ -371,6 +373,7 @@ describe("Guard Chunking", () => {
       });
 
       expect(response.classification).toBe("block");
+      expect(typeof response.reasoning).toBe("string");
       expect(response.violation_types.length).toBeGreaterThan(0);
     });
 

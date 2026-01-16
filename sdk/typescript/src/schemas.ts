@@ -16,6 +16,11 @@ export const GUARD_RESPONSE_FORMAT: ResponseFormat = {
           enum: ["pass", "block"],
           description: "Whether the content should pass or be blocked",
         },
+        reasoning: {
+          type: "string",
+          description:
+            "Brief explanation of why the content was classified as pass or block",
+        },
         violation_types: {
           type: "array",
           items: { type: "string" },
@@ -27,7 +32,7 @@ export const GUARD_RESPONSE_FORMAT: ResponseFormat = {
           description: "CWE codes associated with the violations",
         },
       },
-      required: ["classification", "violation_types", "cwe_codes"],
+      required: ["classification", "reasoning", "violation_types", "cwe_codes"],
       additionalProperties: false,
     },
   },
