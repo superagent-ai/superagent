@@ -26,6 +26,8 @@ class TestAnthropicGuardPass:
 
         # Functional test: verify response structure and valid classification
         assert response.classification in ["pass", "block"]
+        assert isinstance(response.reasoning, str)
+        assert len(response.reasoning) > 0
         assert isinstance(response.violation_types, list)
         assert isinstance(response.cwe_codes, list)
         assert response.usage.prompt_tokens > 0
@@ -38,6 +40,7 @@ class TestAnthropicGuardPass:
         )
 
         assert response.classification in ["pass", "block"]
+        assert isinstance(response.reasoning, str)
         assert isinstance(response.violation_types, list)
         assert isinstance(response.cwe_codes, list)
 

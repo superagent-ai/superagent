@@ -81,8 +81,16 @@ def _aggregate_guard_results(results: list[GuardResponse]) -> GuardResponse:
         all_violations.update(r.violation_types)
         all_cwe_codes.update(r.cwe_codes)
 
+    # Collect reasoning from blocked results, or from first result if all pass
+    blocked_results = [r for r in results if r.classification == "block"]
+    if blocked_results:
+        reasoning = " ".join(r.reasoning for r in blocked_results)
+    else:
+        reasoning = results[0].reasoning if results else ""
+
     return GuardResponse(
         classification="block" if has_block else "pass",
+        reasoning=reasoning,
         violation_types=list(all_violations),
         cwe_codes=list(all_cwe_codes),
         usage=TokenUsage(
@@ -254,6 +262,7 @@ class SafetyClient:
             parsed = _parse_json_response(content)
             return GuardResponse(
                 classification=parsed.get("classification", "pass"),
+                reasoning=parsed.get("reasoning", ""),
                 violation_types=parsed.get("violation_types", []),
                 cwe_codes=parsed.get("cwe_codes", []),
                 usage=response.usage,
@@ -309,6 +318,7 @@ class SafetyClient:
             parsed = _parse_json_response(content)
             return GuardResponse(
                 classification=parsed.get("classification", "pass"),
+                reasoning=parsed.get("reasoning", ""),
                 violation_types=parsed.get("violation_types", []),
                 cwe_codes=parsed.get("cwe_codes", []),
                 usage=response.usage,
@@ -384,6 +394,7 @@ class SafetyClient:
                 # PDF has no extractable text, return pass
                 return GuardResponse(
                     classification="pass",
+                    reasoning="PDF contains no extractable text content to analyze.",
                     violation_types=[],
                     cwe_codes=[],
                     usage=TokenUsage(

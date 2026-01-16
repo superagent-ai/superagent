@@ -861,6 +861,8 @@ export interface RedactOptions {
 export interface GuardClassificationResult {
   /** Whether the content passed or should be blocked */
   classification: "pass" | "block";
+  /** Brief explanation of why the content was classified as pass or block */
+  reasoning: string;
   /** Types of violations detected */
   violation_types: string[];
   /** CWE codes associated with violations */

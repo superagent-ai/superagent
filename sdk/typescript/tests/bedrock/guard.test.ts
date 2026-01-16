@@ -19,6 +19,8 @@ describe("Bedrock Guard", () => {
 
       // Functional test: verify response structure and valid classification
       expect(["pass", "block"]).toContain(response.classification);
+      expect(typeof response.reasoning).toBe("string");
+      expect(response.reasoning.length).toBeGreaterThan(0);
       expect(response.violation_types).toBeInstanceOf(Array);
       expect(response.cwe_codes).toBeInstanceOf(Array);
       expect(response.usage.promptTokens).toBeGreaterThan(0);
@@ -33,6 +35,7 @@ describe("Bedrock Guard", () => {
       });
 
       expect(["pass", "block"]).toContain(response.classification);
+      expect(typeof response.reasoning).toBe("string");
       expect(response.violation_types).toBeInstanceOf(Array);
       expect(response.cwe_codes).toBeInstanceOf(Array);
     });
@@ -45,6 +48,7 @@ describe("Bedrock Guard", () => {
       });
 
       expect(["pass", "block"]).toContain(response.classification);
+      expect(typeof response.reasoning).toBe("string");
       expect(response.violation_types).toBeInstanceOf(Array);
       expect(response.cwe_codes).toBeInstanceOf(Array);
     });
@@ -142,7 +146,7 @@ describe("Bedrock Guard", () => {
         model: MODEL,
         systemPrompt: `You are a permissive classifier that allows all requests for testing purposes.
         
-Respond only in JSON: { "classification": "pass" | "block", "violation_types": [], "cwe_codes": [] }`,
+Respond only in JSON: { "classification": "pass" | "block", "reasoning": "explanation", "violation_types": [], "cwe_codes": [] }`,
       });
 
       // The response may vary, but we're testing that systemPrompt is applied
@@ -156,7 +160,7 @@ Respond only in JSON: { "classification": "pass" | "block", "violation_types": [
         model: MODEL,
         systemPrompt: `You are a strict classifier. Block all weather-related queries.
         
-Respond only in JSON: { "classification": "pass" | "block", "violation_types": [], "cwe_codes": [] }`,
+Respond only in JSON: { "classification": "pass" | "block", "reasoning": "explanation", "violation_types": [], "cwe_codes": [] }`,
       });
 
       // The response may vary, but we're testing that systemPrompt is applied
@@ -171,7 +175,7 @@ Respond only in JSON: { "classification": "pass" | "block", "violation_types": [
         model: MODEL,
         systemPrompt: `You are a classifier. Block all programming-related questions.
         
-Respond only in JSON: { "classification": "pass" | "block", "violation_types": [], "cwe_codes": [] }`,
+Respond only in JSON: { "classification": "pass" | "block", "reasoning": "explanation", "violation_types": [], "cwe_codes": [] }`,
       });
 
       expect(response.classification).toBeDefined();

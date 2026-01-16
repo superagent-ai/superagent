@@ -24,6 +24,8 @@ class TestSuperagentGuardPass:
 
         # Functional test: verify response structure and valid classification
         assert response.classification in ["pass", "block"]
+        assert isinstance(response.reasoning, str)
+        assert len(response.reasoning) > 0
         assert isinstance(response.violation_types, list)
         assert isinstance(response.cwe_codes, list)
 
@@ -34,6 +36,7 @@ class TestSuperagentGuardPass:
         )
 
         assert response.classification in ["pass", "block"]
+        assert isinstance(response.reasoning, str)
         assert isinstance(response.violation_types, list)
         assert isinstance(response.cwe_codes, list)
 
@@ -44,6 +47,7 @@ class TestSuperagentGuardPass:
         )
 
         assert response.classification in ["pass", "block"]
+        assert isinstance(response.reasoning, str)
         assert isinstance(response.violation_types, list)
         assert isinstance(response.cwe_codes, list)
 
