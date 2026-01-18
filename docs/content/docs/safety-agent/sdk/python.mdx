@@ -162,6 +162,84 @@ When `entities` is not specified:
 
 ---
 
+## Scan
+
+The `scan()` method analyzes a repository for AI agent-targeted attacks. It clones the repository into a secure Modal sandbox and uses OpenCode to detect threats like repo poisoning, prompt injections, and malicious instructions.
+
+### Basic Usage
+
+```python
+result = await client.scan(repo="https://github.com/user/repo")
+
+if result.classification == "unsafe":
+    print("Found issues:", result.findings)
+    print("Summary:", result.summary)
+```
+
+### Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `repo` | `str` | Yes | - | Git repository URL (https:// or git@) |
+| `branch` | `str` | No | Default branch | Branch, tag, or commit to checkout |
+| `model` | `str` | No | `anthropic/claude-sonnet-4-5` | Model for OpenCode analysis |
+| `prompt` | `str` | No | Security prompt | Custom scanning prompt |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `classification` | `"safe" \| "unsafe" \| "error"` | Overall repository classification |
+| `reasoning` | `str` | Summary explanation of findings |
+| `findings` | `list[ScanFinding]` | List of security findings |
+| `summary` | `ScanSummary` | Count of findings by severity |
+| `scanned_files` | `int` | Number of files scanned |
+| `usage` | `TokenUsage` | Token usage information |
+| `error` | `str` | Error message if scan failed |
+
+### Finding Structure
+
+```python
+@dataclass
+class ScanFinding:
+    file: str        # Path to the file
+    line: int        # Line number
+    severity: Literal["critical", "high", "medium", "low"]
+    category: ScanCategory
+    description: str # What was found
+    snippet: str     # Code snippet
+    remediation: str # How to fix
+```
+
+### Threat Categories
+
+| Category | Description |
+|----------|-------------|
+| `repo_poisoning` | Malicious code in build scripts, hidden backdoors |
+| `prompt_injection` | Hidden instructions for AI agents in comments/docs |
+| `malicious_instruction` | Code comments directing AI to bypass security |
+| `suspicious_dependency` | Typosquatted packages, unusual scripts |
+| `data_exfiltration` | Patterns that leak secrets or environment variables |
+
+### Example: Scanning a Branch
+
+```python
+result = await client.scan(
+    repo="https://github.com/user/repo",
+    branch="feature-branch",
+    model="openai/gpt-4o"
+)
+
+# Check severity summary
+if result.summary.critical > 0 or result.summary.high > 0:
+    print("Critical/high severity issues found!")
+    for finding in result.findings:
+        if finding.severity in ("critical", "high"):
+            print(f"{finding.file}:{finding.line} - {finding.description}")
+```
+
+---
+
 ## Environment Variables
 
 Configure provider API keys:
@@ -174,4 +252,8 @@ export GOOGLE_API_KEY=your-google-key
 export GROQ_API_KEY=your-groq-key
 export FIREWORKS_API_KEY=your-fireworks-key
 export OPENROUTER_API_KEY=your-openrouter-key
+
+# Required for scan()
+export MODAL_TOKEN_ID=your-modal-token-id
+export MODAL_TOKEN_SECRET=your-modal-token-secret
 ```

@@ -2,10 +2,13 @@ import type {
   ClientConfig,
   GuardOptions,
   RedactOptions,
+  ScanOptions,
   GuardClassificationResult,
   RedactResult,
   GuardResponse,
   RedactResponse,
+  ScanResponse,
+  ScanFinding,
   ChatMessage,
   TokenUsage,
   MultimodalContentPart,
@@ -20,6 +23,7 @@ import {
   buildRedactSystemPrompt,
   buildRedactUserMessage,
 } from "./prompts/redact.js";
+import { SCAN_SYSTEM_PROMPT } from "./prompts/scan.js";
 import { GUARD_RESPONSE_FORMAT, REDACT_RESPONSE_FORMAT } from "./schemas.js";
 import { processInput, isVisionModel } from "./utils/input-processor.js";
 
@@ -674,6 +678,215 @@ export class SafetyClient {
     } catch {
       throw new Error(`Failed to parse redact response: ${content}`);
     }
+  }
+
+  /**
+   * Scan method - Scans a repository for AI agent-targeted attacks
+   *
+   * This method clones a repository into a Modal sandbox, runs OpenCode
+   * with a security-focused prompt to detect threats like repo poisoning,
+   * prompt injections, and malicious instructions.
+   *
+   * @param options Scan options including repo URL, branch, and model
+   * @returns Response with classification, findings, and summary
+   *
+   * @example
+   * ```typescript
+   * const result = await client.scan({
+   *   repo: "https://github.com/user/repo",
+   *   branch: "main",
+   * });
+   *
+   * if (result.classification === "unsafe") {
+   *   console.log("Found issues:", result.findings);
+   * }
+   * ```
+   */
+  async scan(options: ScanOptions): Promise<ScanResponse> {
+    const {
+      repo,
+      branch,
+      model = "anthropic/claude-sonnet-4-5",
+      prompt = SCAN_SYSTEM_PROMPT,
+    } = options;
+
+    // Validate repo URL
+    if (!repo || typeof repo !== "string") {
+      throw new Error("Repository URL is required");
+    }
+
+    if (!repo.startsWith("https://") && !repo.startsWith("git@")) {
+      throw new Error(
+        "Repository URL must start with https:// or git@"
+      );
+    }
+
+    // Run scan in Daytona sandbox
+    const scanResult = await this.callDaytonaScan(repo, branch, prompt, model);
+
+    // Parse and normalize the result
+    const scanResponse = this.parseScanResult(scanResult);
+
+    // Track usage if available
+    if (scanResponse.usage) {
+      this.postUsage(scanResponse.usage);
+    }
+
+    return scanResponse;
+  }
+
+  /**
+   * Run a security scan in a Daytona sandbox
+   */
+  private async callDaytonaScan(
+    repo: string,
+    branch: string | undefined,
+    prompt: string,
+    model: string
+  ): Promise<unknown> {
+    // Dynamic import to avoid bundling issues
+    const { Daytona } = await import("@daytonaio/sdk");
+
+    // Daytona SDK uses DAYTONA_API_KEY env var automatically
+    const apiKey = process.env.DAYTONA_API_KEY;
+    if (!apiKey) {
+      throw new Error(
+        "Daytona API key required. Set DAYTONA_API_KEY environment variable."
+      );
+    }
+
+    const daytona = new Daytona();
+
+    // Create sandbox with TypeScript runtime
+    const sandbox = await daytona.create({
+      language: "typescript",
+    });
+
+    try {
+      // Install OpenCode CLI via npm
+      await sandbox.process.executeCommand("npm i -g opencode-ai@latest");
+
+      // Clone repository using native Git integration (use relative path)
+      // API: clone(url, path, branch?, commitId?, username?, password?)
+      const repoPath = "repo";
+      await sandbox.git.clone(repo, repoPath, branch);
+
+      // Escape the prompt for shell command
+      const escapedPrompt = prompt.replace(/"/g, '\\"').replace(/\$/g, "\\$");
+
+      // Run OpenCode scan using the run command with JSON output
+      const result = await sandbox.process.executeCommand(
+        `cd ${repoPath} && opencode run --model ${model} --format json "${escapedPrompt}"`
+      );
+
+      // Parse JSON output - OpenCode outputs NDJSON (newline-delimited JSON)
+      if (result.exitCode !== 0) {
+        return {
+          error: `OpenCode scan failed (exit ${result.exitCode}): ${result.result}`,
+          classification: "error",
+          findings: [],
+        };
+      }
+
+      // Try to extract JSON from output (may have multiple lines or extra text)
+      const output = result.result.trim();
+      
+      // Try parsing as single JSON first
+      try {
+        return JSON.parse(output);
+      } catch {
+        // Try to find JSON objects in NDJSON format
+        const lines = output.split('\n').filter(line => line.trim().startsWith('{'));
+        if (lines.length > 0) {
+          // Return the last JSON object (usually the final result)
+          const lastJson = lines[lines.length - 1];
+          return JSON.parse(lastJson);
+        }
+        
+        // Return raw output as reasoning if no JSON found
+        return {
+          classification: "error",
+          reasoning: `OpenCode output (no JSON found): ${output.substring(0, 500)}`,
+          findings: [],
+        };
+      }
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        return {
+          error: `Failed to parse scan output: ${error.message}`,
+          classification: "error",
+          findings: [],
+        };
+      }
+      return {
+        error: `Scan failed: ${error instanceof Error ? error.message : String(error)}`,
+        classification: "error",
+        findings: [],
+      };
+    } finally {
+      // Always clean up the sandbox
+      try {
+        await sandbox.delete();
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
+  }
+
+  /**
+   * Parse and normalize the scan result from Daytona sandbox
+   */
+  private parseScanResult(result: unknown): ScanResponse {
+    const data = result as Record<string, unknown>;
+
+    // Handle error case
+    if (data.error) {
+      return {
+        classification: "error",
+        reasoning: String(data.error),
+        findings: [],
+        summary: { critical: 0, high: 0, medium: 0, low: 0 },
+        scannedFiles: 0,
+        usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        error: String(data.error),
+      };
+    }
+
+    // Parse findings
+    const findings = Array.isArray(data.findings)
+      ? (data.findings as ScanFinding[])
+      : [];
+
+    // Calculate summary if not provided
+    const summary = (data.summary as Record<string, number>) || {
+      critical: findings.filter((f) => f.severity === "critical").length,
+      high: findings.filter((f) => f.severity === "high").length,
+      medium: findings.filter((f) => f.severity === "medium").length,
+      low: findings.filter((f) => f.severity === "low").length,
+    };
+
+    // Determine classification
+    const classification =
+      (data.classification as "safe" | "unsafe" | "error") ||
+      (findings.length > 0 ? "unsafe" : "safe");
+
+    return {
+      classification,
+      reasoning: String(data.reasoning || ""),
+      findings,
+      summary: {
+        critical: summary.critical || 0,
+        high: summary.high || 0,
+        medium: summary.medium || 0,
+        low: summary.low || 0,
+      },
+      scannedFiles: Number(data.scannedFiles) || 0,
+      usage: {
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+      },
+    };
   }
 }
 

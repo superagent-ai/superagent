@@ -41,6 +41,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@daytonaio/sdk": "^0.26.0",
     "ipaddr.js": "^2.3.0",
     "unpdf": "^1.4.0"
   }

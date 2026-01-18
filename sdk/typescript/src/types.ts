@@ -895,6 +895,89 @@ export interface RedactResponse extends RedactResult {
   usage: TokenUsage;
 }
 
+// =============================================================================
+// Scan Types (AI Agent Security Scanning)
+// =============================================================================
+
+/**
+ * Categories of AI agent-targeted attacks
+ */
+export type ScanCategory =
+  | "repo_poisoning"
+  | "prompt_injection"
+  | "malicious_instruction"
+  | "suspicious_dependency"
+  | "data_exfiltration";
+
+/**
+ * Severity levels for scan findings
+ */
+export type ScanSeverity = "critical" | "high" | "medium" | "low";
+
+/**
+ * Options for the scan method
+ */
+export interface ScanOptions {
+  /** Git repository URL to scan */
+  repo: string;
+  /** Optional branch, tag, or commit to checkout */
+  branch?: string;
+  /** Model for OpenCode to use (provider/model format). Default: anthropic/claude-sonnet-4-5 */
+  model?: SupportedModel;
+  /** Custom scanning prompt (overrides default security prompt) */
+  prompt?: string;
+}
+
+/**
+ * A single finding from the security scan
+ */
+export interface ScanFinding {
+  /** File path where the issue was found */
+  file: string;
+  /** Line number in the file */
+  line: number;
+  /** Severity of the finding */
+  severity: ScanSeverity;
+  /** Category of AI agent attack */
+  category: ScanCategory;
+  /** Description of what was found */
+  description: string;
+  /** Code snippet showing the issue */
+  snippet: string;
+  /** Recommended remediation */
+  remediation: string;
+}
+
+/**
+ * Summary of findings by severity
+ */
+export interface ScanSummary {
+  critical: number;
+  high: number;
+  medium: number;
+  low: number;
+}
+
+/**
+ * Response from scan method
+ */
+export interface ScanResponse {
+  /** Overall classification of the repository */
+  classification: "safe" | "unsafe" | "error";
+  /** Summary explanation of the scan results */
+  reasoning: string;
+  /** List of security findings */
+  findings: ScanFinding[];
+  /** Count of findings by severity */
+  summary: ScanSummary;
+  /** Number of files scanned */
+  scannedFiles: number;
+  /** Token usage information */
+  usage: TokenUsage;
+  /** Error message if scan failed */
+  error?: string;
+}
+
 /**
  * Token usage information
  */

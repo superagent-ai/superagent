@@ -261,3 +261,99 @@ class ParsedModel:
 
     provider: str
     model: str
+
+
+# =============================================================================
+# Scan Types (AI Agent Security Scanning)
+# =============================================================================
+
+ScanCategory = Literal[
+    "repo_poisoning",
+    "prompt_injection",
+    "malicious_instruction",
+    "suspicious_dependency",
+    "data_exfiltration",
+]
+"""Categories of AI agent-targeted attacks."""
+
+ScanSeverity = Literal["critical", "high", "medium", "low"]
+"""Severity levels for scan findings."""
+
+
+@dataclass
+class ScanOptions:
+    """Options for the scan method."""
+
+    repo: str
+    """Git repository URL to scan."""
+
+    branch: str | None = None
+    """Optional branch, tag, or commit to checkout."""
+
+    model: str = "anthropic/claude-sonnet-4-5"
+    """Model for OpenCode to use (provider/model format)."""
+
+    prompt: str | None = None
+    """Custom scanning prompt (overrides default security prompt)."""
+
+
+@dataclass
+class ScanFinding:
+    """A single finding from the security scan."""
+
+    file: str
+    """File path where the issue was found."""
+
+    line: int
+    """Line number in the file."""
+
+    severity: ScanSeverity
+    """Severity of the finding."""
+
+    category: ScanCategory
+    """Category of AI agent attack."""
+
+    description: str
+    """Description of what was found."""
+
+    snippet: str
+    """Code snippet showing the issue."""
+
+    remediation: str
+    """Recommended remediation."""
+
+
+@dataclass
+class ScanSummary:
+    """Summary of findings by severity."""
+
+    critical: int = 0
+    high: int = 0
+    medium: int = 0
+    low: int = 0
+
+
+@dataclass
+class ScanResponse:
+    """Response from scan method."""
+
+    classification: Literal["safe", "unsafe", "error"]
+    """Overall classification of the repository."""
+
+    reasoning: str
+    """Summary explanation of the scan results."""
+
+    findings: list[ScanFinding]
+    """List of security findings."""
+
+    summary: ScanSummary
+    """Count of findings by severity."""
+
+    scanned_files: int
+    """Number of files scanned."""
+
+    usage: TokenUsage
+    """Token usage information."""
+
+    error: str | None = None
+    """Error message if scan failed."""
