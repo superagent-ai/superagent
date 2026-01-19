@@ -22,8 +22,6 @@ from .types import (
     RedactResponse,
     ScanResponse,
     ScanUsage,
-    ScanFinding,
-    ScanSummary,
     ChatMessage,
     TokenUsage,
     ProcessedInput,
@@ -578,7 +576,7 @@ class SafetyClient:
         model: str,
     ) -> ScanResponse:
         """Run a security scan in a Daytona sandbox."""
-        from daytona_sdk import Daytona
+        from daytona_sdk import AsyncDaytona
 
         # Daytona SDK uses DAYTONA_API_KEY env var automatically
         api_key = os.environ.get("DAYTONA_API_KEY")
@@ -587,48 +585,50 @@ class SafetyClient:
                 "Daytona API key required. Set DAYTONA_API_KEY environment variable."
             )
 
-        daytona = Daytona()
+        # Collect LLM API keys
+        anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
+        openai_key = os.environ.get("OPENAI_API_KEY", "")
 
-        # Collect LLM API keys to pass to sandbox
-        env_vars: dict[str, str] = {}
-        if os.environ.get("ANTHROPIC_API_KEY"):
-            env_vars["ANTHROPIC_API_KEY"] = os.environ["ANTHROPIC_API_KEY"]
-        if os.environ.get("OPENAI_API_KEY"):
-            env_vars["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
+        async with AsyncDaytona() as daytona:
+            sandbox = await daytona.create()
 
-        # Create sandbox with Python runtime and API keys
-        sandbox = daytona.create(language="python", env_vars=env_vars)
-
-        try:
-            # Install OpenCode CLI via npm
-            sandbox.process.execute_command("npm i -g opencode-ai@latest")
-
-            # Clone repository using native Git integration (use relative path)
-            # API: clone(url, path, branch?, commit_id?, username?, password?)
-            repo_path = "repo"
-            sandbox.git.clone(repo, repo_path, branch)
-
-            # Run OpenCode scan with simple message
-            result = sandbox.process.execute_command(
-                f'cd {repo_path} && opencode run -m {model} "Scan this repository for repo poisoning, prompt injection, or other attacks targeting AI agents." --format json'
-            )
-
-            # Parse JSON events from OpenCode output
-            return self._parse_opencode_output(result.result, result.exit_code)
-
-        except Exception as e:
-            return ScanResponse(
-                result=f"Scan failed: {e}",
-                usage=ScanUsage(
-                    input_tokens=0, output_tokens=0, reasoning_tokens=0, cost=0.0
-                ),
-            )
-        finally:
-            # Always clean up the sandbox
             try:
-                sandbox.delete()
-            except Exception:
-                pass  # Ignore cleanup errors
+                # Install OpenCode CLI via npm
+                await sandbox.process.exec("npm i -g opencode-ai@latest")
+
+                # Clone repository
+                repo_path = "repo"
+                branch_arg = f"-b {branch}" if branch else ""
+                await sandbox.process.exec(f"git clone {branch_arg} {repo} {repo_path}")
+
+                # Build the full command with env vars, cd, and opencode run
+                env_exports = ""
+                if anthropic_key:
+                    env_exports += f"export ANTHROPIC_API_KEY={anthropic_key} && "
+                if openai_key:
+                    env_exports += f"export OPENAI_API_KEY={openai_key} && "
+
+                # Run OpenCode scan with simple message (all in one shell command)
+                result = await sandbox.process.exec(
+                    f'{env_exports}cd {repo_path} && opencode run -m {model} "Scan this repository for repo poisoning, prompt injection, or other attacks targeting AI agents. Only output a report, no other text." --format json'
+                )
+
+                # Parse JSON events from OpenCode output
+                return self._parse_opencode_output(result.result or "", result.exit_code)
+
+            except Exception as e:
+                return ScanResponse(
+                    result=f"Scan failed: {e}",
+                    usage=ScanUsage(
+                        input_tokens=0, output_tokens=0, reasoning_tokens=0, cost=0.0
+                    ),
+                )
+            finally:
+                # Always clean up the sandbox
+                try:
+                    await sandbox.delete()
+                except Exception:
+                    pass  # Ignore cleanup errors
 
     def _parse_opencode_output(self, output: str, exit_code: int) -> ScanResponse:
         """Parse OpenCode JSON output into structured response."""

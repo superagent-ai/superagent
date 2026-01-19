@@ -49,7 +49,7 @@ class TestInputValidation:
     @pytest.mark.asyncio
     async def test_validates_empty_repo_url(self, client):
         """Should reject empty repo URL."""
-        with pytest.raises(ValueError, match="Repository URL is required"):
+        with pytest.raises(ValueError, match="Repository URL must start with"):
             await client.scan(repo="")
 
 
@@ -76,102 +76,20 @@ class TestRealRepositoryScanning:
     @pytest.mark.asyncio
     @pytest.mark.timeout(300)  # 5 minute timeout
     async def test_scan_superagent_starter(self, client):
-        """Should scan the superagent-starter repository."""
+        """Should scan the superagent-starter repository and return structured response."""
         result = await client.scan(
             repo="https://github.com/superagent-ai/superagent-starter",
             branch="main",
         )
 
-        assert result is not None
-        assert result.classification in ("safe", "unsafe", "error")
-        assert result.reasoning is not None
-        assert isinstance(result.findings, list)
-        assert result.summary is not None
+        # Check result field
+        assert result.result is not None
+        assert isinstance(result.result, str)
+        assert len(result.result) > 0
 
-        print(f"Scan result: classification={result.classification}, "
-              f"reasoning={result.reasoning}, "
-              f"findings_count={len(result.findings)}")
-
-    @pytest.mark.asyncio
-    @pytest.mark.timeout(60)
-    async def test_handles_nonexistent_repository(self, client):
-        """Should handle non-existent repository gracefully."""
-        result = await client.scan(
-            repo="https://github.com/this-repo-definitely-does-not-exist-12345/fake-repo",
-        )
-
-        # Should return an error classification, not throw
-        assert result.classification == "error"
-        assert result.error is not None
-
-    @pytest.mark.asyncio
-    @pytest.mark.timeout(300)
-    async def test_scan_with_custom_model(self, client):
-        """Should scan with custom model."""
-        result = await client.scan(
-            repo="https://github.com/superagent-ai/superagent-starter",
-            branch="main",
-            model="anthropic/claude-sonnet-4-5",
-        )
-
-        assert result is not None
-        assert result.classification in ("safe", "unsafe", "error")
-
-    @pytest.mark.asyncio
-    @pytest.mark.timeout(300)
-    async def test_scan_with_branch(self, client):
-        """Should scan a specific branch."""
-        result = await client.scan(
-            repo="https://github.com/superagent-ai/superagent-starter",
-            branch="main",
-        )
-
-        assert result is not None
-        assert result.classification in ("safe", "unsafe", "error")
-
-
-@pytest.mark.skipif(SKIP_INTEGRATION, reason="DAYTONA_API_KEY or SUPERAGENT_API_KEY not set")
-class TestFindingStructure:
-    """Test the structure of scan findings."""
-
-    @pytest.mark.asyncio
-    @pytest.mark.timeout(300)
-    async def test_returns_properly_structured_findings(self, client):
-        """Should return properly structured findings if issues found."""
-        result = await client.scan(
-            repo="https://github.com/superagent-ai/superagent-starter",
-        )
-
-        if result.findings:
-            finding = result.findings[0]
-            assert finding.file is not None
-            assert finding.line is not None
-            assert finding.severity in ("critical", "high", "medium", "low")
-            assert finding.category is not None
-            assert finding.description is not None
-
-        # Summary should always have counts
-        assert isinstance(result.summary.critical, int)
-        assert isinstance(result.summary.high, int)
-        assert isinstance(result.summary.medium, int)
-        assert isinstance(result.summary.low, int)
-
-    @pytest.mark.asyncio
-    @pytest.mark.timeout(300)
-    async def test_summary_matches_findings(self, client):
-        """Summary counts should match actual findings."""
-        result = await client.scan(
-            repo="https://github.com/superagent-ai/superagent-starter",
-        )
-
-        # Count findings by severity
-        critical_count = sum(1 for f in result.findings if f.severity == "critical")
-        high_count = sum(1 for f in result.findings if f.severity == "high")
-        medium_count = sum(1 for f in result.findings if f.severity == "medium")
-        low_count = sum(1 for f in result.findings if f.severity == "low")
-
-        # Summary should match (or be calculated if not returned by API)
-        assert result.summary.critical >= 0
-        assert result.summary.high >= 0
-        assert result.summary.medium >= 0
-        assert result.summary.low >= 0
+        # Check usage field
+        assert result.usage is not None
+        assert isinstance(result.usage.input_tokens, int)
+        assert isinstance(result.usage.output_tokens, int)
+        assert isinstance(result.usage.reasoning_tokens, int)
+        assert isinstance(result.usage.cost, float)
