@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Scan Method**: Analyze repositories for AI agent-targeted attacks (repo poisoning, prompt injection, malicious instructions). Runs in secure Daytona sandboxes with OpenCode.
 - **Reasoning Field**: Guard responses now include a `reasoning` field explaining why content was classified as pass or block
 
 ### Security

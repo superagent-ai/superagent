@@ -1,11 +1,11 @@
 ---
 title: Python
-description: Python SDK for content safety - guard and redact methods
+description: Python SDK for content safety - guard, redact, and scan methods
 ---
 
 # Python SDK
 
-The `safety-agent` package provides two core methods: `guard()` for detecting threats and `redact()` for removing sensitive data.
+The `safety-agent` package provides three core methods: `guard()` for detecting threats, `redact()` for removing sensitive data, and `scan()` for analyzing repositories for AI agent-targeted attacks.
 
 ## Installation
 
@@ -34,6 +34,9 @@ result = await client.redact(
     input="My email is john@example.com",
     model="openai/gpt-4o-mini"
 )
+
+# Scan: Analyze repository for AI agent attacks
+result = await client.scan(repo="https://github.com/user/repo")
 ```
 
 ---
@@ -162,6 +165,60 @@ When `entities` is not specified:
 
 ---
 
+## Scan
+
+The `scan()` method analyzes a repository for AI agent-targeted attacks. It clones the repository into a secure Daytona sandbox and uses OpenCode to detect threats like repo poisoning, prompt injections, and malicious instructions.
+
+### Basic Usage
+
+```python
+response = await client.scan(repo="https://github.com/user/repo")
+
+print(response.result)  # Security report
+print(f"Cost: ${response.usage.cost:.4f}")
+```
+
+### Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `repo` | `str` | Yes | - | Git repository URL (https:// or git@) |
+| `branch` | `str` | No | Default branch | Branch, tag, or commit to checkout |
+| `model` | `str` | No | `anthropic/claude-sonnet-4-5` | Model for OpenCode analysis |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `result` | `str` | Security report from OpenCode |
+| `usage` | `ScanUsage` | Token usage metrics |
+
+### ScanUsage
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `input_tokens` | `int` | Total input tokens used |
+| `output_tokens` | `int` | Total output tokens used |
+| `reasoning_tokens` | `int` | Reasoning tokens (if applicable) |
+| `cost` | `float` | Total cost in USD |
+
+### Example: Scanning a Branch
+
+```python
+response = await client.scan(
+    repo="https://github.com/user/repo",
+    branch="feature-branch",
+    model="anthropic/claude-sonnet-4-5"
+)
+
+print("Security Report:")
+print(response.result)
+print(f"\nTokens: {response.usage.input_tokens} in, {response.usage.output_tokens} out")
+print(f"Cost: ${response.usage.cost:.4f}")
+```
+
+---
+
 ## Environment Variables
 
 Configure provider API keys:
@@ -174,4 +231,7 @@ export GOOGLE_API_KEY=your-google-key
 export GROQ_API_KEY=your-groq-key
 export FIREWORKS_API_KEY=your-fireworks-key
 export OPENROUTER_API_KEY=your-openrouter-key
+
+# Required for scan()
+export DAYTONA_API_KEY=your-daytona-api-key
 ```
