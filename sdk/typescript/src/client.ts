@@ -8,13 +8,16 @@ import type {
   GuardResponse,
   RedactResponse,
   ScanResponse,
-  ScanFinding,
   ChatMessage,
   TokenUsage,
   MultimodalContentPart,
   ProcessedInput,
 } from "./types.js";
-import { callProvider, parseModel, DEFAULT_GUARD_MODEL } from "./providers/index.js";
+import {
+  callProvider,
+  parseModel,
+  DEFAULT_GUARD_MODEL,
+} from "./providers/index.js";
 import {
   buildGuardUserMessage,
   buildGuardSystemPrompt,
@@ -23,7 +26,6 @@ import {
   buildRedactSystemPrompt,
   buildRedactUserMessage,
 } from "./prompts/redact.js";
-import { SCAN_SYSTEM_PROMPT } from "./prompts/scan.js";
 import { GUARD_RESPONSE_FORMAT, REDACT_RESPONSE_FORMAT } from "./schemas.js";
 import { processInput, isVisionModel } from "./utils/input-processor.js";
 
@@ -451,7 +453,7 @@ export class SafetyClient {
     const isSuperagent = model.startsWith("superagent/");
     // Use default system prompt for superagent if none provided, otherwise use custom or default
     const finalSystemPrompt = isSuperagent
-      ? (systemPrompt || buildGuardSystemPrompt())
+      ? systemPrompt || buildGuardSystemPrompt()
       : buildGuardSystemPrompt(systemPrompt);
 
     const messages: ChatMessage[] = [];
@@ -508,7 +510,7 @@ export class SafetyClient {
     const isSuperagent = model.startsWith("superagent/");
     // Use default system prompt for superagent if none provided, otherwise use custom or default
     const finalSystemPrompt = isSuperagent
-      ? (systemPrompt || buildGuardSystemPrompt())
+      ? systemPrompt || buildGuardSystemPrompt()
       : buildGuardSystemPrompt(systemPrompt);
 
     // Build multimodal content for image analysis
@@ -697,18 +699,11 @@ export class SafetyClient {
    *   branch: "main",
    * });
    *
-   * if (result.classification === "unsafe") {
-   *   console.log("Found issues:", result.findings);
-   * }
+   * console.log(report);
    * ```
    */
   async scan(options: ScanOptions): Promise<ScanResponse> {
-    const {
-      repo,
-      branch,
-      model = "anthropic/claude-sonnet-4-5",
-      prompt = SCAN_SYSTEM_PROMPT,
-    } = options;
+    const { repo, branch, model = "anthropic/claude-sonnet-4-5" } = options;
 
     // Validate repo URL
     if (!repo || typeof repo !== "string") {
@@ -716,23 +711,11 @@ export class SafetyClient {
     }
 
     if (!repo.startsWith("https://") && !repo.startsWith("git@")) {
-      throw new Error(
-        "Repository URL must start with https:// or git@"
-      );
+      throw new Error("Repository URL must start with https:// or git@");
     }
 
-    // Run scan in Daytona sandbox
-    const scanResult = await this.callDaytonaScan(repo, branch, prompt, model);
-
-    // Parse and normalize the result
-    const scanResponse = this.parseScanResult(scanResult);
-
-    // Track usage if available
-    if (scanResponse.usage) {
-      this.postUsage(scanResponse.usage);
-    }
-
-    return scanResponse;
+    // Run scan in Daytona sandbox and return the report string
+    return await this.callDaytonaScan(repo, branch, model);
   }
 
   /**
@@ -741,9 +724,8 @@ export class SafetyClient {
   private async callDaytonaScan(
     repo: string,
     branch: string | undefined,
-    prompt: string,
     model: string
-  ): Promise<unknown> {
+  ): Promise<ScanResponse> {
     // Dynamic import to avoid bundling issues
     const { Daytona } = await import("@daytonaio/sdk");
 
@@ -757,9 +739,19 @@ export class SafetyClient {
 
     const daytona = new Daytona();
 
-    // Create sandbox with TypeScript runtime
+    // Collect LLM API keys to pass to sandbox
+    const envVars: Record<string, string> = {};
+    if (process.env.ANTHROPIC_API_KEY) {
+      envVars.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+    }
+    if (process.env.OPENAI_API_KEY) {
+      envVars.OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    }
+
+    // Create sandbox with TypeScript runtime and API keys
     const sandbox = await daytona.create({
       language: "typescript",
+      envVars,
     });
 
     try {
@@ -771,57 +763,19 @@ export class SafetyClient {
       const repoPath = "repo";
       await sandbox.git.clone(repo, repoPath, branch);
 
-      // Escape the prompt for shell command
-      const escapedPrompt = prompt.replace(/"/g, '\\"').replace(/\$/g, "\\$");
-
-      // Run OpenCode scan using the run command with JSON output
+      // Run OpenCode scan with simple message
       const result = await sandbox.process.executeCommand(
-        `cd ${repoPath} && opencode run --model ${model} --format json "${escapedPrompt}"`
+        `cd ${repoPath} && opencode run -m ${model} "Scan this repository for repo poisoning, prompt injection, or other attacks targeting AI agents. Only output a report, no other text." --format json`
       );
 
-      // Parse JSON output - OpenCode outputs NDJSON (newline-delimited JSON)
-      if (result.exitCode !== 0) {
-        return {
-          error: `OpenCode scan failed (exit ${result.exitCode}): ${result.result}`,
-          classification: "error",
-          findings: [],
-        };
-      }
-
-      // Try to extract JSON from output (may have multiple lines or extra text)
-      const output = result.result.trim();
-      
-      // Try parsing as single JSON first
-      try {
-        return JSON.parse(output);
-      } catch {
-        // Try to find JSON objects in NDJSON format
-        const lines = output.split('\n').filter(line => line.trim().startsWith('{'));
-        if (lines.length > 0) {
-          // Return the last JSON object (usually the final result)
-          const lastJson = lines[lines.length - 1];
-          return JSON.parse(lastJson);
-        }
-        
-        // Return raw output as reasoning if no JSON found
-        return {
-          classification: "error",
-          reasoning: `OpenCode output (no JSON found): ${output.substring(0, 500)}`,
-          findings: [],
-        };
-      }
+      // Parse JSON events from OpenCode output
+      return this.parseOpenCodeOutput(result.result, result.exitCode);
     } catch (error) {
-      if (error instanceof SyntaxError) {
-        return {
-          error: `Failed to parse scan output: ${error.message}`,
-          classification: "error",
-          findings: [],
-        };
-      }
       return {
-        error: `Scan failed: ${error instanceof Error ? error.message : String(error)}`,
-        classification: "error",
-        findings: [],
+        result: `Scan failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        usage: { inputTokens: 0, outputTokens: 0, reasoningTokens: 0, cost: 0 },
       };
     } finally {
       // Always clean up the sandbox
@@ -834,57 +788,63 @@ export class SafetyClient {
   }
 
   /**
-   * Parse and normalize the scan result from Daytona sandbox
+   * Parse OpenCode JSON output into structured response
    */
-  private parseScanResult(result: unknown): ScanResponse {
-    const data = result as Record<string, unknown>;
+  private parseOpenCodeOutput(output: string, exitCode: number): ScanResponse {
+    const textParts: string[] = [];
+    let totalInputTokens = 0;
+    let totalOutputTokens = 0;
+    let totalReasoningTokens = 0;
+    let totalCost = 0;
 
-    // Handle error case
-    if (data.error) {
-      return {
-        classification: "error",
-        reasoning: String(data.error),
-        findings: [],
-        summary: { critical: 0, high: 0, medium: 0, low: 0 },
-        scannedFiles: 0,
-        usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-        error: String(data.error),
-      };
+    // Split output into lines and parse each JSON event
+    const lines = output.trim().split("\n");
+    for (const line of lines) {
+      if (!line.trim()) continue;
+
+      try {
+        const event = JSON.parse(line);
+
+        // Extract text content from text events
+        if (event.type === "text" && event.part?.text) {
+          textParts.push(event.part.text);
+        }
+
+        // Extract usage metrics from step_finish events
+        if (event.type === "step_finish" && event.part) {
+          const { cost, tokens } = event.part;
+          if (typeof cost === "number") {
+            totalCost += cost;
+          }
+          if (tokens) {
+            totalInputTokens += tokens.input || 0;
+            totalOutputTokens += tokens.output || 0;
+            totalReasoningTokens += tokens.reasoning || 0;
+          }
+        }
+      } catch {
+        // Not a JSON line, could be error output
+        if (exitCode !== 0) {
+          textParts.push(line);
+        }
+      }
     }
 
-    // Parse findings
-    const findings = Array.isArray(data.findings)
-      ? (data.findings as ScanFinding[])
-      : [];
-
-    // Calculate summary if not provided
-    const summary = (data.summary as Record<string, number>) || {
-      critical: findings.filter((f) => f.severity === "critical").length,
-      high: findings.filter((f) => f.severity === "high").length,
-      medium: findings.filter((f) => f.severity === "medium").length,
-      low: findings.filter((f) => f.severity === "low").length,
-    };
-
-    // Determine classification
-    const classification =
-      (data.classification as "safe" | "unsafe" | "error") ||
-      (findings.length > 0 ? "unsafe" : "safe");
+    // If no text was extracted and there was an error, use raw output
+    const resultText =
+      textParts.length > 0
+        ? textParts.join("\n\n")
+        : exitCode !== 0
+        ? `Scan Error (exit ${exitCode}):\n${output}`
+        : output;
 
     return {
-      classification,
-      reasoning: String(data.reasoning || ""),
-      findings,
-      summary: {
-        critical: summary.critical || 0,
-        high: summary.high || 0,
-        medium: summary.medium || 0,
-        low: summary.low || 0,
-      },
-      scannedFiles: Number(data.scannedFiles) || 0,
+      result: resultText,
       usage: {
-        promptTokens: 0,
-        completionTokens: 0,
-        totalTokens: 0,
+        inputTokens: totalInputTokens,
+        outputTokens: totalOutputTokens,
+        reasoningTokens: totalReasoningTokens,
+        cost: totalCost,
       },
     };
   }

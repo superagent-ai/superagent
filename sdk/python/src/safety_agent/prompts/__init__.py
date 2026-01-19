@@ -1,5 +1,5 @@
 """
-Prompt templates for guard, redact, and scan methods
+Prompt templates for guard and redact methods
 """
 
 from .guard import (
@@ -12,10 +12,6 @@ from .redact import (
     build_redact_user_message,
     build_redact_system_prompt,
 )
-from .scan import (
-    SCAN_SYSTEM_PROMPT,
-    build_scan_user_message,
-)
 
 __all__ = [
     "GUARD_SYSTEM_PROMPT",
@@ -24,6 +20,4 @@ __all__ = [
     "REDACT_SYSTEM_PROMPT",
     "build_redact_user_message",
     "build_redact_system_prompt",
-    "SCAN_SYSTEM_PROMPT",
-    "build_scan_user_message",
 ]

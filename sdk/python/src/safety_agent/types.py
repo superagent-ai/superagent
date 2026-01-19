@@ -267,19 +267,6 @@ class ParsedModel:
 # Scan Types (AI Agent Security Scanning)
 # =============================================================================
 
-ScanCategory = Literal[
-    "repo_poisoning",
-    "prompt_injection",
-    "malicious_instruction",
-    "suspicious_dependency",
-    "data_exfiltration",
-]
-"""Categories of AI agent-targeted attacks."""
-
-ScanSeverity = Literal["critical", "high", "medium", "low"]
-"""Severity levels for scan findings."""
-
-
 @dataclass
 class ScanOptions:
     """Options for the scan method."""
@@ -293,67 +280,30 @@ class ScanOptions:
     model: str = "anthropic/claude-sonnet-4-5"
     """Model for OpenCode to use (provider/model format)."""
 
-    prompt: str | None = None
-    """Custom scanning prompt (overrides default security prompt)."""
-
 
 @dataclass
-class ScanFinding:
-    """A single finding from the security scan."""
+class ScanUsage:
+    """Token usage metrics from OpenCode scan."""
 
-    file: str
-    """File path where the issue was found."""
+    input_tokens: int
+    """Total input tokens used."""
 
-    line: int
-    """Line number in the file."""
+    output_tokens: int
+    """Total output tokens used."""
 
-    severity: ScanSeverity
-    """Severity of the finding."""
+    reasoning_tokens: int
+    """Total reasoning tokens used (if applicable)."""
 
-    category: ScanCategory
-    """Category of AI agent attack."""
-
-    description: str
-    """Description of what was found."""
-
-    snippet: str
-    """Code snippet showing the issue."""
-
-    remediation: str
-    """Recommended remediation."""
-
-
-@dataclass
-class ScanSummary:
-    """Summary of findings by severity."""
-
-    critical: int = 0
-    high: int = 0
-    medium: int = 0
-    low: int = 0
+    cost: float
+    """Total cost in USD."""
 
 
 @dataclass
 class ScanResponse:
     """Response from scan method."""
 
-    classification: Literal["safe", "unsafe", "error"]
-    """Overall classification of the repository."""
+    result: str
+    """The security report text from OpenCode."""
 
-    reasoning: str
-    """Summary explanation of the scan results."""
-
-    findings: list[ScanFinding]
-    """List of security findings."""
-
-    summary: ScanSummary
-    """Count of findings by severity."""
-
-    scanned_files: int
-    """Number of files scanned."""
-
-    usage: TokenUsage
-    """Token usage information."""
-
-    error: str | None = None
-    """Error message if scan failed."""
+    usage: ScanUsage
+    """Token usage metrics."""

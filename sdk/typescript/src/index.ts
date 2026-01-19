@@ -18,10 +18,7 @@ export type {
   GuardResponse,
   RedactResponse,
   ScanResponse,
-  ScanFinding,
-  ScanSummary,
-  ScanCategory,
-  ScanSeverity,
+  ScanUsage,
   ChatMessage,
   MultimodalContentPart,
   ProcessedInput,
@@ -56,4 +53,3 @@ export {
   buildRedactUserMessage,
   buildRedactSystemPrompt,
 } from "./prompts/redact.js";
-export { SCAN_SYSTEM_PROMPT, buildScanUserMessage } from "./prompts/scan.js";

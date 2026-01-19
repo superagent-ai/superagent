@@ -21,6 +21,7 @@ from .types import (
     GuardResponse,
     RedactResponse,
     ScanResponse,
+    ScanUsage,
     ScanFinding,
     ScanSummary,
     ChatMessage,
@@ -31,7 +32,6 @@ from .types import (
 from .providers import call_provider, parse_model, DEFAULT_GUARD_MODEL
 from .prompts.guard import build_guard_user_message, build_guard_system_prompt
 from .prompts.redact import build_redact_system_prompt, build_redact_user_message
-from .prompts.scan import SCAN_SYSTEM_PROMPT
 from .schemas import GUARD_RESPONSE_FORMAT, REDACT_RESPONSE_FORMAT
 from .utils.input_processor import process_input, is_vision_model
 
@@ -521,14 +521,13 @@ class SafetyClient:
         *,
         branch: str | None = None,
         model: str = "anthropic/claude-sonnet-4-5",
-        prompt: str | None = None,
         # Also accept ScanOptions-style kwargs
         **kwargs: Any,
     ) -> ScanResponse:
         """
         Scan method - Scans a repository for AI agent-targeted attacks.
 
-        This method clones a repository into a Modal sandbox, runs OpenCode
+        This method clones a repository into a Daytona sandbox, runs OpenCode
         with a security-focused prompt to detect threats like repo poisoning,
         prompt injections, and malicious instructions.
 
@@ -537,10 +536,9 @@ class SafetyClient:
             branch: Optional branch, tag, or commit to checkout
             model: Model for OpenCode to use (provider/model format).
                    Default: anthropic/claude-sonnet-4-5
-            prompt: Custom scanning prompt (overrides default security prompt)
 
         Returns:
-            Response with classification, findings, and summary
+            Response with result (security report) and usage metrics
 
         Example:
             ```python
@@ -549,8 +547,8 @@ class SafetyClient:
                 branch="main",
             )
 
-            if result.classification == "unsafe":
-                print("Found issues:", result.findings)
+            print(result.result)  # The security report
+            print(f"Cost: ${result.usage.cost:.4f}")
             ```
         """
         # Handle ScanOptions passed as first argument
@@ -559,7 +557,6 @@ class SafetyClient:
             repo = options.repo
             branch = branch or options.branch
             model = options.model or model
-            prompt = prompt or options.prompt
 
         # Handle repo passed via kwargs
         if repo is None:
@@ -571,29 +568,15 @@ class SafetyClient:
         if not repo.startswith("https://") and not repo.startswith("git@"):
             raise ValueError("Repository URL must start with https:// or git@")
 
-        # Use default prompt if not provided
-        if prompt is None:
-            prompt = SCAN_SYSTEM_PROMPT
-
         # Run scan in Daytona sandbox
-        scan_result = await self._call_daytona_scan(repo, branch, prompt, model)
-
-        # Parse and normalize the result
-        scan_response = self._parse_scan_result(scan_result)
-
-        # Track usage if available
-        if scan_response.usage:
-            self._post_usage(scan_response.usage)
-
-        return scan_response
+        return await self._call_daytona_scan(repo, branch, model)
 
     async def _call_daytona_scan(
         self,
         repo: str,
         branch: str | None,
-        prompt: str,
         model: str,
-    ) -> dict[str, Any]:
+    ) -> ScanResponse:
         """Run a security scan in a Daytona sandbox."""
         from daytona_sdk import Daytona
 
@@ -606,8 +589,15 @@ class SafetyClient:
 
         daytona = Daytona()
 
-        # Create sandbox with Python runtime
-        sandbox = daytona.create(language="python")
+        # Collect LLM API keys to pass to sandbox
+        env_vars: dict[str, str] = {}
+        if os.environ.get("ANTHROPIC_API_KEY"):
+            env_vars["ANTHROPIC_API_KEY"] = os.environ["ANTHROPIC_API_KEY"]
+        if os.environ.get("OPENAI_API_KEY"):
+            env_vars["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
+
+        # Create sandbox with Python runtime and API keys
+        sandbox = daytona.create(language="python", env_vars=env_vars)
 
         try:
             # Install OpenCode CLI via npm
@@ -618,54 +608,21 @@ class SafetyClient:
             repo_path = "repo"
             sandbox.git.clone(repo, repo_path, branch)
 
-            # Escape the prompt for shell command
-            escaped_prompt = prompt.replace('"', '\\"').replace("$", "\\$")
-
-            # Run OpenCode scan using the run command with JSON output
+            # Run OpenCode scan with simple message
             result = sandbox.process.execute_command(
-                f'cd {repo_path} && opencode run --model {model} --format json "{escaped_prompt}"'
+                f'cd {repo_path} && opencode run -m {model} "Scan this repository for repo poisoning, prompt injection, or other attacks targeting AI agents." --format json'
             )
 
-            # Parse JSON output - OpenCode outputs NDJSON (newline-delimited JSON)
-            if result.exit_code != 0:
-                return {
-                    "error": f"OpenCode scan failed (exit {result.exit_code}): {result.result}",
-                    "classification": "error",
-                    "findings": [],
-                }
+            # Parse JSON events from OpenCode output
+            return self._parse_opencode_output(result.result, result.exit_code)
 
-            # Try to extract JSON from output (may have multiple lines or extra text)
-            output = result.result.strip()
-            
-            # Try parsing as single JSON first
-            try:
-                return json.loads(output)
-            except json.JSONDecodeError:
-                # Try to find JSON objects in NDJSON format
-                lines = [line for line in output.split('\n') if line.strip().startswith('{')]
-                if lines:
-                    # Return the last JSON object (usually the final result)
-                    return json.loads(lines[-1])
-                
-                # Return raw output as reasoning if no JSON found
-                return {
-                    "classification": "error",
-                    "reasoning": f"OpenCode output (no JSON found): {output[:500]}",
-                    "findings": [],
-                }
-
-        except json.JSONDecodeError as e:
-            return {
-                "error": f"Failed to parse scan output: {e}",
-                "classification": "error",
-                "findings": [],
-            }
         except Exception as e:
-            return {
-                "error": f"Scan failed: {e}",
-                "classification": "error",
-                "findings": [],
-            }
+            return ScanResponse(
+                result=f"Scan failed: {e}",
+                usage=ScanUsage(
+                    input_tokens=0, output_tokens=0, reasoning_tokens=0, cost=0.0
+                ),
+            )
         finally:
             # Always clean up the sandbox
             try:
@@ -673,69 +630,57 @@ class SafetyClient:
             except Exception:
                 pass  # Ignore cleanup errors
 
-    def _parse_scan_result(self, result: dict[str, Any]) -> ScanResponse:
-        """Parse and normalize the scan result from Daytona sandbox."""
-        # Handle error case
-        if "error" in result:
-            return ScanResponse(
-                classification="error",
-                reasoning=str(result["error"]),
-                findings=[],
-                summary=ScanSummary(),
-                scanned_files=0,
-                usage=TokenUsage(
-                    prompt_tokens=0, completion_tokens=0, total_tokens=0
-                ),
-                error=str(result["error"]),
-            )
+    def _parse_opencode_output(self, output: str, exit_code: int) -> ScanResponse:
+        """Parse OpenCode JSON output into structured response."""
+        text_parts: list[str] = []
+        total_input_tokens = 0
+        total_output_tokens = 0
+        total_reasoning_tokens = 0
+        total_cost = 0.0
 
-        # Parse findings
-        raw_findings = result.get("findings", [])
-        findings: list[ScanFinding] = []
-        for f in raw_findings:
-            if isinstance(f, dict):
-                findings.append(
-                    ScanFinding(
-                        file=f.get("file", ""),
-                        line=f.get("line", 0),
-                        severity=f.get("severity", "low"),
-                        category=f.get("category", "repo_poisoning"),
-                        description=f.get("description", ""),
-                        snippet=f.get("snippet", ""),
-                        remediation=f.get("remediation", ""),
-                    )
-                )
+        # Split output into lines and parse each JSON event
+        lines = output.strip().split("\n")
+        for line in lines:
+            if not line.strip():
+                continue
 
-        # Calculate summary if not provided
-        raw_summary = result.get("summary", {})
-        if not raw_summary:
-            raw_summary = {
-                "critical": sum(1 for f in findings if f.severity == "critical"),
-                "high": sum(1 for f in findings if f.severity == "high"),
-                "medium": sum(1 for f in findings if f.severity == "medium"),
-                "low": sum(1 for f in findings if f.severity == "low"),
-            }
+            try:
+                event = json.loads(line)
 
-        summary = ScanSummary(
-            critical=raw_summary.get("critical", 0),
-            high=raw_summary.get("high", 0),
-            medium=raw_summary.get("medium", 0),
-            low=raw_summary.get("low", 0),
-        )
+                # Extract text content from text events
+                if event.get("type") == "text" and event.get("part", {}).get("text"):
+                    text_parts.append(event["part"]["text"])
 
-        # Determine classification
-        classification = result.get("classification")
-        if classification not in ("safe", "unsafe", "error"):
-            classification = "unsafe" if findings else "safe"
+                # Extract usage metrics from step_finish events
+                if event.get("type") == "step_finish" and event.get("part"):
+                    part = event["part"]
+                    cost = part.get("cost")
+                    if isinstance(cost, (int, float)):
+                        total_cost += cost
+                    tokens = part.get("tokens", {})
+                    total_input_tokens += tokens.get("input", 0)
+                    total_output_tokens += tokens.get("output", 0)
+                    total_reasoning_tokens += tokens.get("reasoning", 0)
+            except json.JSONDecodeError:
+                # Not a JSON line, could be error output
+                if exit_code != 0:
+                    text_parts.append(line)
+
+        # If no text was extracted and there was an error, use raw output
+        if text_parts:
+            result_text = "\n\n".join(text_parts)
+        elif exit_code != 0:
+            result_text = f"Scan Error (exit {exit_code}):\n{output}"
+        else:
+            result_text = output
 
         return ScanResponse(
-            classification=classification,
-            reasoning=str(result.get("reasoning", "")),
-            findings=findings,
-            summary=summary,
-            scanned_files=int(result.get("scannedFiles", 0)),
-            usage=TokenUsage(
-                prompt_tokens=0, completion_tokens=0, total_tokens=0
+            result=result_text,
+            usage=ScanUsage(
+                input_tokens=total_input_tokens,
+                output_tokens=total_output_tokens,
+                reasoning_tokens=total_reasoning_tokens,
+                cost=total_cost,
             ),
         )
 
