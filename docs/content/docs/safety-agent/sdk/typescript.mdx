@@ -1,11 +1,11 @@
 ---
 title: TypeScript
-description: TypeScript SDK for content safety - guard and redact methods
+description: TypeScript SDK for content safety - guard, redact, and scan methods
 ---
 
 # TypeScript SDK
 
-The `@superagent-ai/safety-agent` package provides two core methods: `guard()` for detecting threats and `redact()` for removing sensitive data.
+The `@superagent-ai/safety-agent` package provides three core methods: `guard()` for detecting threats, `redact()` for removing sensitive data, and `scan()` for analyzing repositories for AI agent-targeted attacks.
 
 ## Installation
 
@@ -29,6 +29,11 @@ const guardResult = await client.guard({
 const redactResult = await client.redact({
   input: "My email is john@example.com",
   model: "openai/gpt-4o-mini"
+});
+
+// Scan: Analyze repository for AI agent attacks
+const scanResult = await client.scan({
+  repo: "https://github.com/user/repo"
 });
 ```
 
@@ -167,19 +172,17 @@ When `entities` is not specified:
 
 ## Scan
 
-The `scan()` method analyzes a repository for AI agent-targeted attacks. It clones the repository into a secure Modal sandbox and uses OpenCode to detect threats like repo poisoning, prompt injections, and malicious instructions.
+The `scan()` method analyzes a repository for AI agent-targeted attacks. It clones the repository into a secure Daytona sandbox and uses OpenCode to detect threats like repo poisoning, prompt injections, and malicious instructions.
 
 ### Basic Usage
 
 ```typescript
-const result = await client.scan({
+const response = await client.scan({
   repo: "https://github.com/user/repo"
 });
 
-if (result.classification === "unsafe") {
-  console.log("Found issues:", result.findings);
-  console.log("Summary:", result.summary);
-}
+console.log(response.result);  // Security report
+console.log(`Cost: $${response.usage.cost.toFixed(4)}`);
 ```
 
 ### Options
@@ -189,65 +192,45 @@ if (result.classification === "unsafe") {
 | `repo` | `string` | Yes | - | Git repository URL (https:// or git@) |
 | `branch` | `string` | No | Default branch | Branch, tag, or commit to checkout |
 | `model` | `string` | No | `anthropic/claude-sonnet-4-5` | Model for OpenCode analysis |
-| `prompt` | `string` | No | Security prompt | Custom scanning prompt |
 
 ### Response
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `classification` | `"safe" \| "unsafe" \| "error"` | Overall repository classification |
-| `reasoning` | `string` | Summary explanation of findings |
-| `findings` | `ScanFinding[]` | List of security findings |
-| `summary` | `ScanSummary` | Count of findings by severity |
-| `scannedFiles` | `number` | Number of files scanned |
-| `usage` | `TokenUsage` | Token usage information |
-| `error` | `string` | Error message if scan failed |
+| `result` | `string` | Security report from OpenCode |
+| `usage` | `ScanUsage` | Token usage metrics |
 
-### Finding Structure
+### ScanUsage
 
-```typescript
-interface ScanFinding {
-  file: string;        // Path to the file
-  line: number;        // Line number
-  severity: "critical" | "high" | "medium" | "low";
-  category: ScanCategory;
-  description: string; // What was found
-  snippet: string;     // Code snippet
-  remediation: string; // How to fix
-}
-```
-
-### Threat Categories
-
-| Category | Description |
-|----------|-------------|
-| `repo_poisoning` | Malicious code in build scripts, hidden backdoors |
-| `prompt_injection` | Hidden instructions for AI agents in comments/docs |
-| `malicious_instruction` | Code comments directing AI to bypass security |
-| `suspicious_dependency` | Typosquatted packages, unusual scripts |
-| `data_exfiltration` | Patterns that leak secrets or environment variables |
+| Field | Type | Description |
+|-------|------|-------------|
+| `inputTokens` | `number` | Total input tokens used |
+| `outputTokens` | `number` | Total output tokens used |
+| `reasoningTokens` | `number` | Reasoning tokens (if applicable) |
+| `cost` | `number` | Total cost in USD |
 
 ### Environment Variables
 
 ```bash
 # Required for scan()
-export MODAL_TOKEN_ID=your-modal-token-id
-export MODAL_TOKEN_SECRET=your-modal-token-secret
+export DAYTONA_API_KEY=your-daytona-api-key
+
+# Required for the model (at least one)
+export ANTHROPIC_API_KEY=your-anthropic-key
+export OPENAI_API_KEY=your-openai-key
 ```
 
 ### Example: Scanning a Branch
 
 ```typescript
-const result = await client.scan({
+const response = await client.scan({
   repo: "https://github.com/user/repo",
   branch: "feature-branch",
-  model: "openai/gpt-4o"
+  model: "anthropic/claude-sonnet-4-5"
 });
 
-// Check severity summary
-if (result.summary.critical > 0 || result.summary.high > 0) {
-  console.error("Critical/high severity issues found!");
-  result.findings
-    .filter(f => f.severity === "critical" || f.severity === "high")
-    .forEach(f => console.log(`${f.file}:${f.line} - ${f.description}`));
+console.log("Security Report:");
+console.log(response.result);
+console.log(`\nTokens: ${response.usage.inputTokens} in, ${response.usage.outputTokens} out`);
+console.log(`Cost: $${response.usage.cost.toFixed(4)}`);
 }

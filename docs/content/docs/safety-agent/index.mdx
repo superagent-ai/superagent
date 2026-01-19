@@ -16,20 +16,20 @@ npm install @superagent-ai/safety-agent
 <Cards className="grid-cols-3">
   <IconCard
     title="Guard"
-    href="/safety-agent/methods/guard"
+    href="/safety-agent/sdk/typescript#guard"
     description="Detect and block unsafe content: prompt injections, malicious instructions, and unsafe tool calls"
     icon={<Shield className="size-4" />}
   />
   <IconCard
     title="Redact"
-    href="/safety-agent/methods/redact"
+    href="/safety-agent/sdk/typescript#redact"
     description="Remove PII, PHI, and secrets from text automatically with placeholder or rewrite modes"
     icon={<EyeOff className="size-4" />}
   />
   <IconCard
-    title="Analyze"
-    href="/safety-agent/methods/analyze"
-    description="Deep inspection of files and documents. Returns reasoning, findings, and suggested fixes"
+    title="Scan"
+    href="/safety-agent/sdk/typescript#scan"
+    description="Scan repositories for AI agent-targeted attacks like repo poisoning and prompt injection"
     icon={<Search className="size-4" />}
   />
 </Cards>
@@ -89,15 +89,21 @@ console.log(redactResult.redacted);
   />
   <IconCard
     title="Guard"
-    href="/safety-agent/methods/guard"
+    href="/safety-agent/sdk/typescript#guard"
     description="Detect prompt injections, malicious inputs, and unsafe tool calls"
     icon={<Shield className="size-4" />}
   />
   <IconCard
     title="Redact"
-    href="/safety-agent/methods/redact"
+    href="/safety-agent/sdk/typescript#redact"
     description="Remove PII, PHI, and secrets from text automatically"
     icon={<EyeOff className="size-4" />}
+  />
+  <IconCard
+    title="Scan"
+    href="/safety-agent/sdk/typescript#scan"
+    description="Scan repositories for AI agent-targeted attacks"
+    icon={<Search className="size-4" />}
   />
   <IconCard
     title="Providers"

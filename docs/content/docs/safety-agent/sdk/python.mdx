@@ -1,11 +1,11 @@
 ---
 title: Python
-description: Python SDK for content safety - guard and redact methods
+description: Python SDK for content safety - guard, redact, and scan methods
 ---
 
 # Python SDK
 
-The `safety-agent` package provides two core methods: `guard()` for detecting threats and `redact()` for removing sensitive data.
+The `safety-agent` package provides three core methods: `guard()` for detecting threats, `redact()` for removing sensitive data, and `scan()` for analyzing repositories for AI agent-targeted attacks.
 
 ## Installation
 
@@ -34,6 +34,9 @@ result = await client.redact(
     input="My email is john@example.com",
     model="openai/gpt-4o-mini"
 )
+
+# Scan: Analyze repository for AI agent attacks
+result = await client.scan(repo="https://github.com/user/repo")
 ```
 
 ---
@@ -164,16 +167,15 @@ When `entities` is not specified:
 
 ## Scan
 
-The `scan()` method analyzes a repository for AI agent-targeted attacks. It clones the repository into a secure Modal sandbox and uses OpenCode to detect threats like repo poisoning, prompt injections, and malicious instructions.
+The `scan()` method analyzes a repository for AI agent-targeted attacks. It clones the repository into a secure Daytona sandbox and uses OpenCode to detect threats like repo poisoning, prompt injections, and malicious instructions.
 
 ### Basic Usage
 
 ```python
-result = await client.scan(repo="https://github.com/user/repo")
+response = await client.scan(repo="https://github.com/user/repo")
 
-if result.classification == "unsafe":
-    print("Found issues:", result.findings)
-    print("Summary:", result.summary)
+print(response.result)  # Security report
+print(f"Cost: ${response.usage.cost:.4f}")
 ```
 
 ### Options
@@ -183,59 +185,36 @@ if result.classification == "unsafe":
 | `repo` | `str` | Yes | - | Git repository URL (https:// or git@) |
 | `branch` | `str` | No | Default branch | Branch, tag, or commit to checkout |
 | `model` | `str` | No | `anthropic/claude-sonnet-4-5` | Model for OpenCode analysis |
-| `prompt` | `str` | No | Security prompt | Custom scanning prompt |
 
 ### Response
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `classification` | `"safe" \| "unsafe" \| "error"` | Overall repository classification |
-| `reasoning` | `str` | Summary explanation of findings |
-| `findings` | `list[ScanFinding]` | List of security findings |
-| `summary` | `ScanSummary` | Count of findings by severity |
-| `scanned_files` | `int` | Number of files scanned |
-| `usage` | `TokenUsage` | Token usage information |
-| `error` | `str` | Error message if scan failed |
+| `result` | `str` | Security report from OpenCode |
+| `usage` | `ScanUsage` | Token usage metrics |
 
-### Finding Structure
+### ScanUsage
 
-```python
-@dataclass
-class ScanFinding:
-    file: str        # Path to the file
-    line: int        # Line number
-    severity: Literal["critical", "high", "medium", "low"]
-    category: ScanCategory
-    description: str # What was found
-    snippet: str     # Code snippet
-    remediation: str # How to fix
-```
-
-### Threat Categories
-
-| Category | Description |
-|----------|-------------|
-| `repo_poisoning` | Malicious code in build scripts, hidden backdoors |
-| `prompt_injection` | Hidden instructions for AI agents in comments/docs |
-| `malicious_instruction` | Code comments directing AI to bypass security |
-| `suspicious_dependency` | Typosquatted packages, unusual scripts |
-| `data_exfiltration` | Patterns that leak secrets or environment variables |
+| Field | Type | Description |
+|-------|------|-------------|
+| `input_tokens` | `int` | Total input tokens used |
+| `output_tokens` | `int` | Total output tokens used |
+| `reasoning_tokens` | `int` | Reasoning tokens (if applicable) |
+| `cost` | `float` | Total cost in USD |
 
 ### Example: Scanning a Branch
 
 ```python
-result = await client.scan(
+response = await client.scan(
     repo="https://github.com/user/repo",
     branch="feature-branch",
-    model="openai/gpt-4o"
+    model="anthropic/claude-sonnet-4-5"
 )
 
-# Check severity summary
-if result.summary.critical > 0 or result.summary.high > 0:
-    print("Critical/high severity issues found!")
-    for finding in result.findings:
-        if finding.severity in ("critical", "high"):
-            print(f"{finding.file}:{finding.line} - {finding.description}")
+print("Security Report:")
+print(response.result)
+print(f"\nTokens: {response.usage.input_tokens} in, {response.usage.output_tokens} out")
+print(f"Cost: ${response.usage.cost:.4f}")
 ```
 
 ---
@@ -254,6 +233,5 @@ export FIREWORKS_API_KEY=your-fireworks-key
 export OPENROUTER_API_KEY=your-openrouter-key
 
 # Required for scan()
-export MODAL_TOKEN_ID=your-modal-token-id
-export MODAL_TOKEN_SECRET=your-modal-token-secret
+export DAYTONA_API_KEY=your-daytona-api-key
 ```
