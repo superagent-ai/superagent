@@ -6,7 +6,7 @@ A lightweight TypeScript guardrail SDK for content safety with support for multi
 ## Installation
 
 ```bash
-npm install @superagent-ai/safety-agent
+npm install safety-agent
 ```
 
 ## Prerequisites
@@ -18,7 +18,7 @@ npm install @superagent-ai/safety-agent
 ## Quick Start
 
 ```typescript
-import { createClient } from "@superagent-ai/safety-agent";
+import { createClient } from "safety-agent";
 
 const client = createClient();
 

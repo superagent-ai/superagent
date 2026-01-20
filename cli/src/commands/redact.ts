@@ -1,4 +1,4 @@
-import { createClient } from "@superagent-ai/safety-agent";
+import { createClient } from "safety-agent";
 
 export async function redactCommand(args: string[]) {
   // Check for --entities flag

@@ -1,5 +1,5 @@
 /**
- * @superagent-ai/safety-agent
+ * safety-agent
  * A lightweight TypeScript guardrail SDK for content safety
  */
 

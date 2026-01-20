@@ -9,7 +9,7 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { createClient } from "@superagent-ai/safety-agent";
+import { createClient } from "safety-agent";
 import { z } from "zod";
 
 // ============================================================================

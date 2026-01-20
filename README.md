@@ -36,7 +36,7 @@ Block prompt injections, jailbreaks, and data exfiltration before they reach you
 **TypeScript:**
 
 ```typescript
-import { createClient } from "@superagent-ai/safety-agent";
+import { createClient } from "safety-agent";
 
 const client = createClient();
 
@@ -133,7 +133,7 @@ Sign up at [superagent.sh](https://superagent.sh) to get your API key.
 **TypeScript:**
 
 ```bash
-npm install @superagent-ai/safety-agent
+npm install safety-agent
 ```
 
 **Python:**
