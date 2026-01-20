@@ -78,8 +78,53 @@ Output:
 superagent redact --rewrite "Contact me at john@example.com"
 ```
 
+### `scan` - Repository Security Scanning
+
+Scan Git repositories for AI agent-targeted attacks:
+
+```bash
+superagent scan --repo https://github.com/user/repo
+```
+
+Output:
+```json
+{
+  "result": "Security report detailing findings...",
+  "usage": {
+    "inputTokens": 5000,
+    "outputTokens": 1500,
+    "reasoningTokens": 0,
+    "cost": 0.025
+  }
+}
+```
+
+Scan a specific branch:
+
+```bash
+superagent scan --repo https://github.com/user/repo --branch main
+```
+
+Use a different model:
+
+```bash
+superagent scan --repo https://github.com/user/repo --model openai/gpt-4o
+```
+
+**Options:**
+- `--repo <url>` - Repository URL to scan (required)
+- `--branch <ref>` - Branch, tag, or commit to checkout
+- `--model <id>` - Model to use (default: anthropic/claude-sonnet-4-5)
+
+**Threat Types Detected:**
+- Repo poisoning attacks
+- Prompt injection in code/docs
+- Data exfiltration patterns
+- Malicious instructions targeting AI agents
+
 ## Environment Variables
 
 - `SUPERAGENT_API_KEY` - Your Superagent API key (required)
+- `DAYTONA_API_KEY` - Required for the `scan` command (get one at [daytona.io](https://daytona.io))
 
 Get your API key at [superagent.sh](https://superagent.sh)
