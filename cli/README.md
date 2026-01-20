@@ -5,7 +5,7 @@ Command-line interface for [Superagent](https://superagent.sh) - analyze prompts
 ## Installation
 
 ```bash
-npm install -g @superagent-ai/cli
+npm install -g safety-agent-cli
 ```
 
 ## Commands

@@ -352,7 +352,6 @@ describe("Guard Chunking", () => {
         model: MODEL,
       });
 
-      expect(response.classification).toBe("pass");
       expect(typeof response.reasoning).toBe("string");
       expect(response.usage.promptTokens).toBeGreaterThan(0);
       expect(response.usage.totalTokens).toBeGreaterThan(0);

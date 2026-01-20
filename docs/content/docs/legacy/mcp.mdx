@@ -10,7 +10,7 @@ description: MCP server providing security guardrails and PII redaction for AI a
 ```bash title="Terminal"
 claude mcp add --transport stdio superagent \
   --env SUPERAGENT_API_KEY=your_api_key_here \
-  -- npx -y @superagent-ai/mcp@latest
+  -- npx -y safety-agent-mcp@latest
 ```
 
 ### Claude Desktop
@@ -22,7 +22,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
   "mcpServers": {
     "superagent": {
       "command": "npx",
-      "args": ["-y", "@superagent-ai/mcp@latest"],
+      "args": ["-y", "safety-agent-mcp@latest"],
       "env": {
         "SUPERAGENT_API_KEY": "your_api_key_here"
       }

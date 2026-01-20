@@ -1,6 +1,6 @@
 {
-  "name": "@superagent-ai/mcp",
-  "version": "0.0.9",
+  "name": "safety-agent-mcp",
+  "version": "0.1.0",
   "description": "MCP server for Superagent.sh API integration - security guardrails, PII redaction, and claim verification",
   "type": "module",
   "main": "dist/index.js",
