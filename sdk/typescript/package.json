@@ -1,7 +1,7 @@
 {
-  "name": "@superagent-ai/safety-agent",
-  "version": "0.1.7",
-  "description": "A lightweight TypeScript guardrail SDK for content safety",
+  "name": "safety-agent",
+  "version": "0.1.0",
+  "description": "An open-source SDK for AI agent safety",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -31,6 +31,10 @@
   ],
   "author": "Superagent AI",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/superagent-ai/superagent"
+  },
   "devDependencies": {
     "@types/node": "^24.10.1",
     "dotenv": "^16.3.1",
