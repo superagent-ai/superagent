@@ -1,0 +1,56 @@
+---
+title: Scan MCP Servers for Security Threats
+description: Audit MCP servers for malicious tool definitions before installing
+---
+
+MCP servers can contain hidden instructions in tool descriptions that manipulate AI behavior. Scan them before adding to Claude.
+
+## Quick Start
+
+```bash
+# Scan an MCP server repo before installing
+superagent scan --repo https://github.com/user/mcp-server
+```
+
+## What It Detects
+
+- Hidden instructions in tool descriptions
+- Prompt injection in README/docs
+- Malicious default configurations
+- Data exfiltration patterns in tool implementations
+
+## Example Workflow
+
+```bash
+# 1. Find an MCP server you want to use
+MCP_REPO="https://github.com/someone/cool-mcp-server"
+
+# 2. Scan it first
+superagent scan --repo $MCP_REPO
+
+# 3. Review the report, then install if clean
+claude mcp add cool-server -- npx -y cool-mcp-server
+```
+
+## Programmatic Usage
+
+```typescript
+import { createClient } from "safety-agent";
+
+const client = createClient();
+
+async function auditMcpServer(repoUrl: string) {
+  const { result, usage } = await client.scan({ repo: repoUrl });
+  
+  if (result.toLowerCase().includes("no issues found")) {
+    console.log("✅ Safe to install");
+  } else {
+    console.log("⚠️ Review findings:", result);
+  }
+}
+```
+
+## Environment Variables
+
+- `SUPERAGENT_API_KEY` - Required
+- `DAYTONA_API_KEY` - Required for sandbox execution

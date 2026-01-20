@@ -11,6 +11,7 @@
     "cli",
     "providers",
     "---Examples---",
+    "examples/scan-mcp-servers",
     "examples/secure-rag-pipeline",
     "examples/scan-image-uploads",
     "examples/cursor-hooks",
