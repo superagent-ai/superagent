@@ -40,15 +40,12 @@ import { createClient } from "safety-agent";
 const client = createClient();
 
 async function auditMcpServer(repoUrl: string) {
-  const { result, usage } = await client.scan({ repo: repoUrl });
-  
-  if (result.toLowerCase().includes("no issues found")) {
-    console.log("✅ Safe to install");
-  } else {
-    console.log("⚠️ Review findings:", result);
-  }
+  const { result } = await client.scan({ repo: repoUrl });
+  return result;
 }
 ```
+
+The `result` is a comprehensive natural language report that can be passed directly to a downstream model for interpretation or decision-making.
 
 ## Environment Variables
 
