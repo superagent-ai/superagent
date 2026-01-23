@@ -3,9 +3,11 @@ Safety Agent Client
 """
 
 import asyncio
+import inspect
 import json
 import os
 import re
+import time
 from typing import Any
 
 import httpx
@@ -14,6 +16,13 @@ from .types import (
     ClientConfig,
     GuardInput,
     GuardOptions,
+    GuardHooks,
+    GuardStartEvent,
+    GuardSegmentEvent,
+    GuardResultEvent,
+    GuardErrorEvent,
+    GuardSegmentKind,
+    GuardInputUnits,
     RedactOptions,
     GuardClassificationResult,
     RedactResult,
@@ -91,6 +100,107 @@ def _aggregate_guard_results(results: list[GuardResponse]) -> GuardResponse:
             total_tokens=sum(r.usage.total_tokens for r in results),
         ),
     )
+
+
+def _get_guard_input_sizing(
+    processed: ProcessedInput,
+) -> tuple[int, GuardInputUnits, int | None]:
+    if processed.type == "image":
+        return len(processed.image_base64 or ""), "base64", None
+
+    if processed.type == "pdf":
+        pages = processed.pages or []
+        size = sum(len(page) for page in pages)
+        return size, "chars", len(pages)
+
+    return len(processed.text or ""), "chars", None
+
+
+def _build_guard_start_event(
+    processed: ProcessedInput,
+    model: str,
+    chunk_size: int,
+    segment_count: int,
+) -> GuardStartEvent:
+    input_size, input_units, page_count = _get_guard_input_sizing(processed)
+    return GuardStartEvent(
+        model=model,
+        chunk_size=chunk_size,
+        input_type=processed.type,
+        input_size=input_size,
+        input_units=input_units,
+        segment_count=segment_count,
+        page_count=page_count,
+        timestamp=time.time() * 1000,
+    )
+
+
+def _build_guard_segment_event(
+    *,
+    kind: GuardSegmentKind,
+    index: int,
+    count: int,
+    input_type: ProcessedInput,
+    segment_size: int,
+    segment_units: GuardInputUnits,
+    result: GuardResponse,
+    duration_ms: float,
+) -> GuardSegmentEvent:
+    return GuardSegmentEvent(
+        kind=kind,
+        index=index,
+        count=count,
+        input_type=input_type.type,
+        segment_size=segment_size,
+        segment_units=segment_units,
+        result=result,
+        duration_ms=duration_ms,
+        timestamp=time.time() * 1000,
+    )
+
+
+def _build_guard_result_event(
+    result: GuardResponse,
+    input_type: ProcessedInput,
+    segment_count: int,
+    duration_ms: float,
+) -> GuardResultEvent:
+    return GuardResultEvent(
+        result=result,
+        input_type=input_type.type,
+        segment_count=segment_count,
+        duration_ms=duration_ms,
+        timestamp=time.time() * 1000,
+    )
+
+
+def _build_guard_error_event(
+    error: Exception,
+    duration_ms: float,
+    *,
+    input_type: ProcessedInput | None = None,
+    segment_index: int | None = None,
+    segment_kind: GuardSegmentKind | None = None,
+) -> GuardErrorEvent:
+    return GuardErrorEvent(
+        error=error,
+        input_type=input_type.type if input_type else None,
+        segment_index=segment_index,
+        segment_kind=segment_kind,
+        duration_ms=duration_ms,
+        timestamp=time.time() * 1000,
+    )
+
+
+def _mark_guard_hooked(error: Exception) -> None:
+    try:
+        setattr(error, "_guard_hooked", True)
+    except Exception:
+        pass
+
+
+def _is_guard_hooked(error: Exception) -> bool:
+    return bool(getattr(error, "_guard_hooked", False))
 
 
 def _parse_json_response(content: str) -> dict[str, Any]:
@@ -213,6 +323,17 @@ class SafetyClient:
         except Exception:
             pass  # Fire and forget - ignore errors
 
+    def _emit_hook(self, hook: Any, event: Any) -> None:
+        if hook is None:
+            return
+        try:
+            result = hook(event)
+            if inspect.isawaitable(result):
+                asyncio.create_task(result)
+        except Exception:
+            # Swallow hook errors to avoid impacting guard execution
+            pass
+
     async def _guard_single_text(
         self,
         input_text: str,
@@ -323,6 +444,7 @@ class SafetyClient:
         model: str | None = None,
         system_prompt: str | None = None,
         chunk_size: int = 8000,
+        hooks: GuardHooks | None = None,
         # Also accept GuardOptions-style kwargs
         **kwargs: Any,
     ) -> GuardResponse:
@@ -342,6 +464,7 @@ class SafetyClient:
             model: Model in "provider/model" format. Defaults to superagent/guard-1.7b
             system_prompt: Optional custom system prompt
             chunk_size: Characters per chunk. Default: 8000. Set to 0 to disable chunking.
+            hooks: Optional observability hooks for guard execution
 
         Returns:
             Response with classification result and token usage
@@ -353,6 +476,7 @@ class SafetyClient:
             model = model or options.model
             system_prompt = system_prompt or options.system_prompt
             chunk_size = options.chunk_size
+            hooks = hooks or options.hooks
 
         # Handle input passed via kwargs
         if input is None:
@@ -362,70 +486,275 @@ class SafetyClient:
             raise ValueError("input is required")
 
         model = model or DEFAULT_GUARD_MODEL
+        started_at = time.perf_counter()
+        processed: ProcessedInput | None = None
 
-        # Validate chunk_size is non-negative
-        if chunk_size < 0:
-            raise ValueError(f"chunk_size must be non-negative, got {chunk_size}")
+        try:
+            # Validate chunk_size is non-negative
+            if chunk_size < 0:
+                raise ValueError(f"chunk_size must be non-negative, got {chunk_size}")
 
-        # Process the input (handle URLs, bytes, etc.)
-        processed = await process_input(input)
+            # Process the input (handle URLs, bytes, etc.)
+            processed = await process_input(input)
 
-        # Handle image inputs with vision models
-        if processed.type == "image":
-            result = await self._guard_image(processed, system_prompt, model)
-            self._post_usage(result.usage)
-            return result
+            # Handle image inputs with vision models
+            if processed.type == "image":
+                self._emit_hook(
+                    hooks.on_start if hooks else None,
+                    _build_guard_start_event(processed, model, chunk_size, 1),
+                )
+                segment_start = time.perf_counter()
+                try:
+                    result = await self._guard_image(processed, system_prompt, model)
+                except Exception as error:
+                    _mark_guard_hooked(error)
+                    self._emit_hook(
+                        hooks.on_error if hooks else None,
+                        _build_guard_error_event(
+                            error,
+                            (time.perf_counter() - started_at) * 1000,
+                            input_type=processed,
+                            segment_index=0,
+                            segment_kind="image",
+                        ),
+                    )
+                    raise
 
-        # Handle PDF inputs - analyze each page in parallel
-        if processed.type == "pdf" and processed.pages:
-            non_empty_pages = [p for p in processed.pages if p.strip()]
+                self._emit_hook(
+                    hooks.on_segment if hooks else None,
+                    _build_guard_segment_event(
+                        kind="image",
+                        index=0,
+                        count=1,
+                        input_type=processed,
+                        segment_size=len(processed.image_base64 or ""),
+                        segment_units="base64",
+                        result=result,
+                        duration_ms=(time.perf_counter() - segment_start) * 1000,
+                    ),
+                )
+                self._emit_hook(
+                    hooks.on_result if hooks else None,
+                    _build_guard_result_event(
+                        result,
+                        processed,
+                        1,
+                        (time.perf_counter() - started_at) * 1000,
+                    ),
+                )
+                self._post_usage(result.usage)
+                return result
 
-            if not non_empty_pages:
-                # PDF has no extractable text, return pass
-                return GuardResponse(
-                    classification="pass",
-                    violation_types=[],
-                    cwe_codes=[],
-                    usage=TokenUsage(
-                        prompt_tokens=0, completion_tokens=0, total_tokens=0
+            # Handle PDF inputs - analyze each page in parallel
+            if processed.type == "pdf" and processed.pages:
+                non_empty_pages = [p for p in processed.pages if p.strip()]
+                segment_count = len(non_empty_pages)
+
+                self._emit_hook(
+                    hooks.on_start if hooks else None,
+                    _build_guard_start_event(
+                        processed, model, chunk_size, segment_count
                     ),
                 )
 
-            # Analyze each page in parallel
+                if segment_count == 0:
+                    # PDF has no extractable text, return pass
+                    empty_result = GuardResponse(
+                        classification="pass",
+                        violation_types=[],
+                        cwe_codes=[],
+                        usage=TokenUsage(
+                            prompt_tokens=0, completion_tokens=0, total_tokens=0
+                        ),
+                    )
+                    self._emit_hook(
+                        hooks.on_result if hooks else None,
+                        _build_guard_result_event(
+                            empty_result,
+                            processed,
+                            0,
+                            (time.perf_counter() - started_at) * 1000,
+                        ),
+                    )
+                    return empty_result
+
+                async def _run_page(page_text: str, index: int) -> GuardResponse:
+                    segment_start = time.perf_counter()
+                    try:
+                        result = await self._guard_single_text(
+                            page_text, system_prompt, model
+                        )
+                    except Exception as error:
+                        _mark_guard_hooked(error)
+                        self._emit_hook(
+                            hooks.on_error if hooks else None,
+                            _build_guard_error_event(
+                                error,
+                                (time.perf_counter() - started_at) * 1000,
+                                input_type=processed,
+                                segment_index=index,
+                                segment_kind="page",
+                            ),
+                        )
+                        raise
+
+                    self._emit_hook(
+                        hooks.on_segment if hooks else None,
+                        _build_guard_segment_event(
+                            kind="page",
+                            index=index,
+                            count=segment_count,
+                            input_type=processed,
+                            segment_size=len(page_text),
+                            segment_units="chars",
+                            result=result,
+                            duration_ms=(time.perf_counter() - segment_start) * 1000,
+                        ),
+                    )
+                    return result
+
+                # Analyze each page in parallel
+                results = await asyncio.gather(
+                    *[
+                        _run_page(page_text, index)
+                        for index, page_text in enumerate(non_empty_pages)
+                    ]
+                )
+
+                # Aggregate with OR logic
+                aggregated = _aggregate_guard_results(list(results))
+                self._emit_hook(
+                    hooks.on_result if hooks else None,
+                    _build_guard_result_event(
+                        aggregated,
+                        processed,
+                        segment_count,
+                        (time.perf_counter() - started_at) * 1000,
+                    ),
+                )
+                self._post_usage(aggregated.usage)
+                return aggregated
+
+            # Handle text inputs (including document text)
+            text = processed.text or ""
+
+            # Skip chunking if disabled (chunk_size=0) or input is small enough
+            if chunk_size == 0 or len(text) <= chunk_size:
+                self._emit_hook(
+                    hooks.on_start if hooks else None,
+                    _build_guard_start_event(processed, model, chunk_size, 1),
+                )
+                segment_start = time.perf_counter()
+                try:
+                    result = await self._guard_single_text(text, system_prompt, model)
+                except Exception as error:
+                    _mark_guard_hooked(error)
+                    self._emit_hook(
+                        hooks.on_error if hooks else None,
+                        _build_guard_error_event(
+                            error,
+                            (time.perf_counter() - started_at) * 1000,
+                            input_type=processed,
+                            segment_index=0,
+                            segment_kind="input",
+                        ),
+                    )
+                    raise
+
+                self._emit_hook(
+                    hooks.on_segment if hooks else None,
+                    _build_guard_segment_event(
+                        kind="input",
+                        index=0,
+                        count=1,
+                        input_type=processed,
+                        segment_size=len(text),
+                        segment_units="chars",
+                        result=result,
+                        duration_ms=(time.perf_counter() - segment_start) * 1000,
+                    ),
+                )
+                self._emit_hook(
+                    hooks.on_result if hooks else None,
+                    _build_guard_result_event(
+                        result,
+                        processed,
+                        1,
+                        (time.perf_counter() - started_at) * 1000,
+                    ),
+                )
+                self._post_usage(result.usage)
+                return result
+
+            # Chunk and process in parallel
+            chunks = _chunk_text(text, chunk_size)
+            segment_count = len(chunks)
+            self._emit_hook(
+                hooks.on_start if hooks else None,
+                _build_guard_start_event(processed, model, chunk_size, segment_count),
+            )
+
+            async def _run_chunk(chunk: str, index: int) -> GuardResponse:
+                segment_start = time.perf_counter()
+                try:
+                    result = await self._guard_single_text(chunk, system_prompt, model)
+                except Exception as error:
+                    _mark_guard_hooked(error)
+                    self._emit_hook(
+                        hooks.on_error if hooks else None,
+                        _build_guard_error_event(
+                            error,
+                            (time.perf_counter() - started_at) * 1000,
+                            input_type=processed,
+                            segment_index=index,
+                            segment_kind="chunk",
+                        ),
+                    )
+                    raise
+
+                self._emit_hook(
+                    hooks.on_segment if hooks else None,
+                    _build_guard_segment_event(
+                        kind="chunk",
+                        index=index,
+                        count=segment_count,
+                        input_type=processed,
+                        segment_size=len(chunk),
+                        segment_units="chars",
+                        result=result,
+                        duration_ms=(time.perf_counter() - segment_start) * 1000,
+                    ),
+                )
+                return result
+
             results = await asyncio.gather(
-                *[
-                    self._guard_single_text(page_text, system_prompt, model)
-                    for page_text in non_empty_pages
-                ]
+                *[_run_chunk(chunk, index) for index, chunk in enumerate(chunks)]
             )
 
             # Aggregate with OR logic
             aggregated = _aggregate_guard_results(list(results))
+            self._emit_hook(
+                hooks.on_result if hooks else None,
+                _build_guard_result_event(
+                    aggregated,
+                    processed,
+                    segment_count,
+                    (time.perf_counter() - started_at) * 1000,
+                ),
+            )
             self._post_usage(aggregated.usage)
             return aggregated
-
-        # Handle text inputs (including document text)
-        text = processed.text or ""
-
-        # Skip chunking if disabled (chunk_size=0) or input is small enough
-        if chunk_size == 0 or len(text) <= chunk_size:
-            result = await self._guard_single_text(text, system_prompt, model)
-            self._post_usage(result.usage)
-            return result
-
-        # Chunk and process in parallel
-        chunks = _chunk_text(text, chunk_size)
-        results = await asyncio.gather(
-            *[
-                self._guard_single_text(chunk, system_prompt, model)
-                for chunk in chunks
-            ]
-        )
-
-        # Aggregate with OR logic
-        aggregated = _aggregate_guard_results(list(results))
-        self._post_usage(aggregated.usage)
-        return aggregated
+        except Exception as error:
+            if not _is_guard_hooked(error):
+                self._emit_hook(
+                    hooks.on_error if hooks else None,
+                    _build_guard_error_event(
+                        error,
+                        (time.perf_counter() - started_at) * 1000,
+                        input_type=processed,
+                    ),
+                )
+            raise
 
     async def redact(
         self,

@@ -3,7 +3,7 @@ Type definitions for the Safety Agent SDK
 """
 
 from dataclasses import dataclass, field
-from typing import Literal, Union, TypedDict
+from typing import Literal, Union, TypedDict, Callable, Any
 
 
 # =============================================================================
@@ -122,6 +122,75 @@ class GuardOptions:
 
     chunk_size: int = 8000
     """Characters per chunk. Default: 8000. Set to 0 to disable chunking."""
+
+    hooks: "GuardHooks | None" = None
+    """Optional observability hooks for guard execution."""
+
+
+GuardInputUnits = Literal["chars", "bytes", "base64"]
+GuardSegmentKind = Literal["input", "chunk", "page", "image"]
+
+
+@dataclass
+class GuardStartEvent:
+    """Guard observability event - start."""
+
+    model: SupportedModel
+    chunk_size: int
+    input_type: Literal["text", "image", "document", "pdf"]
+    input_size: int
+    input_units: GuardInputUnits
+    segment_count: int
+    page_count: int | None
+    timestamp: float
+
+
+@dataclass
+class GuardSegmentEvent:
+    """Guard observability event - segment completed."""
+
+    kind: GuardSegmentKind
+    index: int
+    count: int
+    input_type: Literal["text", "image", "document", "pdf"]
+    segment_size: int
+    segment_units: GuardInputUnits
+    result: "GuardResponse"
+    duration_ms: float
+    timestamp: float
+
+
+@dataclass
+class GuardResultEvent:
+    """Guard observability event - final result."""
+
+    result: "GuardResponse"
+    input_type: Literal["text", "image", "document", "pdf"]
+    segment_count: int
+    duration_ms: float
+    timestamp: float
+
+
+@dataclass
+class GuardErrorEvent:
+    """Guard observability event - error."""
+
+    error: Exception
+    input_type: Literal["text", "image", "document", "pdf"] | None
+    segment_index: int | None
+    segment_kind: GuardSegmentKind | None
+    duration_ms: float
+    timestamp: float
+
+
+@dataclass
+class GuardHooks:
+    """Observability hooks for guard execution."""
+
+    on_start: Callable[[GuardStartEvent], Any] | None = None
+    on_segment: Callable[[GuardSegmentEvent], Any] | None = None
+    on_result: Callable[[GuardResultEvent], Any] | None = None
+    on_error: Callable[[GuardErrorEvent], Any] | None = None
 
 
 @dataclass

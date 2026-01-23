@@ -165,6 +165,7 @@ Automatically chunks large text inputs and processes them in parallel for low la
 | `model` | `string` | No | `superagent/guard-0.6b` | Model in `provider/model` format (e.g., `openai/gpt-4o-mini`) |
 | `systemPrompt` | `string` | No | - | Custom system prompt that replaces the default guard prompt |
 | `chunkSize` | `number` | No | `8000` | Characters per chunk. Set to `0` to disable chunking |
+| `hooks` | `GuardHooks` | No | - | Observability hooks for guard execution (start, segment, result, error) |
 
 #### Response
 
@@ -214,6 +215,21 @@ const result = await client.guard({
   input: shortText,
   model: "openai/gpt-4o-mini",
   chunkSize: 0
+});
+```
+
+#### Example (Observability Hooks)
+
+```typescript
+const result = await client.guard({
+  input: "user message to analyze",
+  model: "openai/gpt-4o-mini",
+  hooks: {
+    onStart: (event) => console.log("Guard start:", event),
+    onSegment: (event) => console.log("Segment result:", event),
+    onResult: (event) => console.log("Guard result:", event),
+    onError: (event) => console.warn("Guard error:", event),
+  },
 });
 ```
 
