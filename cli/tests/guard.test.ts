@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient } from "@superagent-ai/safety-agent";
+import { createClient } from "safety-agent";
 
 const client = createClient();
 

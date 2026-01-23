@@ -935,6 +935,8 @@ export interface RedactOptions {
 export interface GuardClassificationResult {
   /** Whether the content passed or should be blocked */
   classification: "pass" | "block";
+  /** Brief explanation of why the content was classified as pass or block */
+  reasoning: string;
   /** Types of violations detected */
   violation_types: string[];
   /** CWE codes associated with violations */
@@ -965,6 +967,46 @@ export interface GuardResponse extends GuardClassificationResult {
 export interface RedactResponse extends RedactResult {
   /** Token usage information */
   usage: TokenUsage;
+}
+
+// =============================================================================
+// Scan Types (AI Agent Security Scanning)
+// =============================================================================
+
+/**
+ * Options for the scan method
+ */
+export interface ScanOptions {
+  /** Git repository URL to scan */
+  repo: string;
+  /** Optional branch, tag, or commit to checkout */
+  branch?: string;
+  /** Model for OpenCode to use (provider/model format). Default: anthropic/claude-sonnet-4-5 */
+  model?: SupportedModel;
+}
+
+/**
+ * Token usage metrics from OpenCode scan
+ */
+export interface ScanUsage {
+  /** Total input tokens used */
+  inputTokens: number;
+  /** Total output tokens used */
+  outputTokens: number;
+  /** Total reasoning tokens used (if applicable) */
+  reasoningTokens: number;
+  /** Total cost in USD */
+  cost: number;
+}
+
+/**
+ * Response from scan method
+ */
+export interface ScanResponse {
+  /** The security report text from OpenCode */
+  result: string;
+  /** Token usage metrics */
+  usage: ScanUsage;
 }
 
 /**

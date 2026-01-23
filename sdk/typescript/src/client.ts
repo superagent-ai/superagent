@@ -2,10 +2,12 @@ import type {
   ClientConfig,
   GuardOptions,
   RedactOptions,
+  ScanOptions,
   GuardClassificationResult,
   RedactResult,
   GuardResponse,
   RedactResponse,
+  ScanResponse,
   ChatMessage,
   TokenUsage,
   MultimodalContentPart,
@@ -18,7 +20,11 @@ import type {
   GuardSegmentKind,
   GuardInputUnits,
 } from "./types.js";
-import { callProvider, parseModel, DEFAULT_GUARD_MODEL } from "./providers/index.js";
+import {
+  callProvider,
+  parseModel,
+  DEFAULT_GUARD_MODEL,
+} from "./providers/index.js";
 import {
   buildGuardUserMessage,
   buildGuardSystemPrompt,
@@ -67,8 +73,16 @@ function chunkText(text: string, chunkSize: number): string[] {
 function aggregateGuardResults(results: GuardResponse[]): GuardResponse {
   const hasBlock = results.some((r) => r.classification === "block");
 
+  // Collect reasoning from blocked results, or from first result if all pass
+  const blockedResults = results.filter((r) => r.classification === "block");
+  const reasoning =
+    blockedResults.length > 0
+      ? blockedResults.map((r) => r.reasoning).join(" ")
+      : results[0]?.reasoning ?? "";
+
   return {
     classification: hasBlock ? "block" : "pass",
+    reasoning,
     violation_types: [...new Set(results.flatMap((r) => r.violation_types))],
     cwe_codes: [...new Set(results.flatMap((r) => r.cwe_codes))],
     usage: {
@@ -566,7 +580,7 @@ export class SafetyClient {
     const isSuperagent = model.startsWith("superagent/");
     // Use default system prompt for superagent if none provided, otherwise use custom or default
     const finalSystemPrompt = isSuperagent
-      ? (systemPrompt || buildGuardSystemPrompt())
+      ? systemPrompt || buildGuardSystemPrompt()
       : buildGuardSystemPrompt(systemPrompt);
 
     const messages: ChatMessage[] = [];
@@ -592,6 +606,7 @@ export class SafetyClient {
       const parsed = parseJsonResponse<GuardClassificationResult>(content);
       return {
         classification: parsed.classification,
+        reasoning: parsed.reasoning ?? "",
         violation_types: parsed.violation_types ?? [],
         cwe_codes: parsed.cwe_codes ?? [],
         usage: response.usage,
@@ -622,7 +637,7 @@ export class SafetyClient {
     const isSuperagent = model.startsWith("superagent/");
     // Use default system prompt for superagent if none provided, otherwise use custom or default
     const finalSystemPrompt = isSuperagent
-      ? (systemPrompt || buildGuardSystemPrompt())
+      ? systemPrompt || buildGuardSystemPrompt()
       : buildGuardSystemPrompt(systemPrompt);
 
     // Build multimodal content for image analysis
@@ -655,6 +670,7 @@ export class SafetyClient {
       const parsed = parseJsonResponse<GuardClassificationResult>(content);
       return {
         classification: parsed.classification,
+        reasoning: parsed.reasoning ?? "",
         violation_types: parsed.violation_types ?? [],
         cwe_codes: parsed.cwe_codes ?? [],
         usage: response.usage,
@@ -769,6 +785,7 @@ export class SafetyClient {
           // PDF has no extractable text, return pass
           const emptyResult: GuardResponse = {
             classification: "pass",
+            reasoning: "PDF contains no extractable text content to analyze.",
             violation_types: [],
             cwe_codes: [],
             usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
@@ -994,6 +1011,173 @@ export class SafetyClient {
     } catch {
       throw new Error(`Failed to parse redact response: ${content}`);
     }
+  }
+
+  /**
+   * Scan method - Scans a repository for AI agent-targeted attacks
+   *
+   * This method clones a repository into a Modal sandbox, runs OpenCode
+   * with a security-focused prompt to detect threats like repo poisoning,
+   * prompt injections, and malicious instructions.
+   *
+   * @param options Scan options including repo URL, branch, and model
+   * @returns Response with classification, findings, and summary
+   *
+   * @example
+   * ```typescript
+   * const result = await client.scan({
+   *   repo: "https://github.com/user/repo",
+   *   branch: "main",
+   * });
+   *
+   * console.log(report);
+   * ```
+   */
+  async scan(options: ScanOptions): Promise<ScanResponse> {
+    const { repo, branch, model = "anthropic/claude-sonnet-4-5" } = options;
+
+    // Validate repo URL
+    if (!repo || typeof repo !== "string") {
+      throw new Error("Repository URL is required");
+    }
+
+    if (!repo.startsWith("https://") && !repo.startsWith("git@")) {
+      throw new Error("Repository URL must start with https:// or git@");
+    }
+
+    // Run scan in Daytona sandbox and return the report string
+    return await this.callDaytonaScan(repo, branch, model);
+  }
+
+  /**
+   * Run a security scan in a Daytona sandbox
+   */
+  private async callDaytonaScan(
+    repo: string,
+    branch: string | undefined,
+    model: string
+  ): Promise<ScanResponse> {
+    // Dynamic import to avoid bundling issues
+    const { Daytona } = await import("@daytonaio/sdk");
+
+    // Daytona SDK uses DAYTONA_API_KEY env var automatically
+    const apiKey = process.env.DAYTONA_API_KEY;
+    if (!apiKey) {
+      throw new Error(
+        "Daytona API key required. Set DAYTONA_API_KEY environment variable."
+      );
+    }
+
+    const daytona = new Daytona();
+
+    // Collect LLM API keys to pass to sandbox
+    const envVars: Record<string, string> = {};
+    if (process.env.ANTHROPIC_API_KEY) {
+      envVars.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+    }
+    if (process.env.OPENAI_API_KEY) {
+      envVars.OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    }
+
+    // Create sandbox with TypeScript runtime and API keys
+    const sandbox = await daytona.create({
+      language: "typescript",
+      envVars,
+    });
+
+    try {
+      // Install OpenCode CLI via npm
+      await sandbox.process.executeCommand("npm i -g opencode-ai@latest");
+
+      // Clone repository using native Git integration (use relative path)
+      // API: clone(url, path, branch?, commitId?, username?, password?)
+      const repoPath = "repo";
+      await sandbox.git.clone(repo, repoPath, branch);
+
+      // Run OpenCode scan with simple message
+      const result = await sandbox.process.executeCommand(
+        `cd ${repoPath} && opencode run -m ${model} "Scan this repository for repo poisoning, prompt injection, or other attacks targeting AI agents. Only output a report, no other text." --format json`
+      );
+
+      // Parse JSON events from OpenCode output
+      return this.parseOpenCodeOutput(result.result, result.exitCode);
+    } catch (error) {
+      return {
+        result: `Scan failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        usage: { inputTokens: 0, outputTokens: 0, reasoningTokens: 0, cost: 0 },
+      };
+    } finally {
+      // Always clean up the sandbox
+      try {
+        await sandbox.delete();
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
+  }
+
+  /**
+   * Parse OpenCode JSON output into structured response
+   */
+  private parseOpenCodeOutput(output: string, exitCode: number): ScanResponse {
+    const textParts: string[] = [];
+    let totalInputTokens = 0;
+    let totalOutputTokens = 0;
+    let totalReasoningTokens = 0;
+    let totalCost = 0;
+
+    // Split output into lines and parse each JSON event
+    const lines = output.trim().split("\n");
+    for (const line of lines) {
+      if (!line.trim()) continue;
+
+      try {
+        const event = JSON.parse(line);
+
+        // Extract text content from text events
+        if (event.type === "text" && event.part?.text) {
+          textParts.push(event.part.text);
+        }
+
+        // Extract usage metrics from step_finish events
+        if (event.type === "step_finish" && event.part) {
+          const { cost, tokens } = event.part;
+          if (typeof cost === "number") {
+            totalCost += cost;
+          }
+          if (tokens) {
+            totalInputTokens += tokens.input || 0;
+            totalOutputTokens += tokens.output || 0;
+            totalReasoningTokens += tokens.reasoning || 0;
+          }
+        }
+      } catch {
+        // Not a JSON line, could be error output
+        if (exitCode !== 0) {
+          textParts.push(line);
+        }
+      }
+    }
+
+    // If no text was extracted and there was an error, use raw output
+    const resultText =
+      textParts.length > 0
+        ? textParts.join("\n\n")
+        : exitCode !== 0
+        ? `Scan Error (exit ${exitCode}):\n${output}`
+        : output;
+
+    return {
+      result: resultText,
+      usage: {
+        inputTokens: totalInputTokens,
+        outputTokens: totalOutputTokens,
+        reasoningTokens: totalReasoningTokens,
+        cost: totalCost,
+      },
+    };
   }
 }
 

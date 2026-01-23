@@ -14,7 +14,7 @@ Visual prompt injections are attacks where malicious text instructions are embed
 ## Install dependencies
 
 ```bash title="Terminal"
-npm install @superagent-ai/safety-agent ai@^6.0.0 @ai-sdk/react @ai-sdk/openai
+npm install safety-agent ai@^6.0.0 @ai-sdk/react @ai-sdk/openai
 ```
 
 <Callout type="info">
@@ -39,7 +39,7 @@ Create a server action to guard images using GPT-4o:
 ```typescript title="app/actions/guard-image.ts"
 'use server';
 
-import { createClient } from '@superagent-ai/safety-agent';
+import { createClient } from 'safety-agent';
 
 const guard = createClient({
   apiKey: process.env.SUPERAGENT_API_KEY!,

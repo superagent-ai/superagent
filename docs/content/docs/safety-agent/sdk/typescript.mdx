@@ -1,22 +1,22 @@
 ---
 title: TypeScript
-description: TypeScript SDK for content safety - guard and redact methods
+description: TypeScript SDK for content safety - guard, redact, and scan methods
 ---
 
 # TypeScript SDK
 
-The `@superagent-ai/safety-agent` package provides two core methods: `guard()` for detecting threats and `redact()` for removing sensitive data.
+The `safety-agent` package provides three core methods: `guard()` for detecting threats, `redact()` for removing sensitive data, and `scan()` for analyzing repositories for AI agent-targeted attacks.
 
 ## Installation
 
 ```bash
-npm install @superagent-ai/safety-agent
+npm install safety-agent
 ```
 
 ## Quick Start
 
 ```typescript
-import { createClient } from "@superagent-ai/safety-agent";
+import { createClient } from "safety-agent";
 
 const client = createClient();
 
@@ -29,6 +29,11 @@ const guardResult = await client.guard({
 const redactResult = await client.redact({
   input: "My email is john@example.com",
   model: "openai/gpt-4o-mini"
+});
+
+// Scan: Analyze repository for AI agent attacks
+const scanResult = await client.scan({
+  repo: "https://github.com/user/repo"
 });
 ```
 
@@ -47,6 +52,7 @@ const result = await client.guard({
 
 if (result.classification === "block") {
   console.log("Blocked:", result.violation_types);
+  console.log("Reason:", result.reasoning);
 }
 ```
 
@@ -64,6 +70,7 @@ if (result.classification === "block") {
 | Field | Type | Description |
 |-------|------|-------------|
 | `classification` | `"pass" \| "block"` | Whether content passed or should be blocked |
+| `reasoning` | `string` | Explanation of why content was classified as pass or block |
 | `violation_types` | `string[]` | Types of violations detected |
 | `cwe_codes` | `string[]` | CWE codes associated with violations |
 | `usage` | `TokenUsage` | Token usage information |
@@ -160,3 +167,70 @@ When `entities` is not specified:
 - API Keys, Secrets, Passwords
 - Names, Addresses, Phone Numbers
 - Emails, Credit Card Numbers
+
+---
+
+## Scan
+
+The `scan()` method analyzes a repository for AI agent-targeted attacks. It clones the repository into a secure Daytona sandbox and uses OpenCode to detect threats like repo poisoning, prompt injections, and malicious instructions.
+
+### Basic Usage
+
+```typescript
+const response = await client.scan({
+  repo: "https://github.com/user/repo"
+});
+
+console.log(response.result);  // Security report
+console.log(`Cost: $${response.usage.cost.toFixed(4)}`);
+```
+
+### Options
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `repo` | `string` | Yes | - | Git repository URL (https:// or git@) |
+| `branch` | `string` | No | Default branch | Branch, tag, or commit to checkout |
+| `model` | `string` | No | `anthropic/claude-sonnet-4-5` | Model for OpenCode analysis |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `result` | `string` | Security report from OpenCode |
+| `usage` | `ScanUsage` | Token usage metrics |
+
+### ScanUsage
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `inputTokens` | `number` | Total input tokens used |
+| `outputTokens` | `number` | Total output tokens used |
+| `reasoningTokens` | `number` | Reasoning tokens (if applicable) |
+| `cost` | `number` | Total cost in USD |
+
+### Environment Variables
+
+```bash
+# Required for scan()
+export DAYTONA_API_KEY=your-daytona-api-key
+
+# Required for the model (at least one)
+export ANTHROPIC_API_KEY=your-anthropic-key
+export OPENAI_API_KEY=your-openai-key
+```
+
+### Example: Scanning a Branch
+
+```typescript
+const response = await client.scan({
+  repo: "https://github.com/user/repo",
+  branch: "feature-branch",
+  model: "anthropic/claude-sonnet-4-5"
+});
+
+console.log("Security Report:");
+console.log(response.result);
+console.log(`\nTokens: ${response.usage.inputTokens} in, ${response.usage.outputTokens} out`);
+console.log(`Cost: $${response.usage.cost.toFixed(4)}`);
+}

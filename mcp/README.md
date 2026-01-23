@@ -16,7 +16,7 @@ Install using the Claude Code MCP command:
 ```bash
 claude mcp add --transport stdio superagent \
   --env SUPERAGENT_API_KEY=your_api_key_here \
-  -- npx -y @superagent-ai/mcp
+  -- npx -y safety-agent-mcp
 ```
 
 This will automatically configure the server at the appropriate scope (local, project, or user).
@@ -34,7 +34,7 @@ No installation required! Just configure Claude Desktop:
   "mcpServers": {
     "superagent": {
       "command": "npx",
-      "args": ["-y", "@superagent-ai/mcp"],
+      "args": ["-y", "safety-agent-mcp"],
       "env": {
         "SUPERAGENT_API_KEY": "your_api_key_here"
       }
@@ -48,7 +48,7 @@ No installation required! Just configure Claude Desktop:
 #### Global Installation
 
 ```bash
-npm install -g @superagent-ai/mcp
+npm install -g safety-agent-mcp
 ```
 
 Then configure Claude Desktop:

@@ -1,0 +1,56 @@
+---
+title: Dependency Auditing
+description: Scan third-party repositories before adding them as dependencies
+---
+
+# Dependency Auditing
+
+Audit open source repositories for AI-targeted attacks before adding them to your project.
+
+## Quick Scan
+
+```bash
+# Before: npm install some-ai-helper
+# First: scan the source repo
+superagent scan --repo https://github.com/unknown-author/some-ai-helper
+```
+
+## Why This Matters
+
+AI coding assistants read your `node_modules`, `requirements.txt`, and other dependency files. Malicious packages can contain:
+
+- Hidden instructions in comments
+- Prompt injection in docstrings
+- Poisoned training data in examples
+- Exfiltration code triggered by AI analysis
+
+## Batch Scanning
+
+```bash
+#!/bin/bash
+# scan-deps.sh - Scan multiple repos
+
+REPOS=(
+  "https://github.com/author1/lib1"
+  "https://github.com/author2/lib2"
+)
+
+for repo in "${REPOS[@]}"; do
+  echo "Scanning: $repo"
+  superagent scan --repo "$repo"
+  echo "---"
+done
+```
+
+## Programmatic Usage
+
+```typescript
+import { createClient } from "safety-agent";
+
+const client = createClient();
+
+async function auditBeforeInstall(npmPackage: string, repoUrl: string) {
+  const { result } = await client.scan({ repo: repoUrl });
+  console.log(`Audit for ${npmPackage}:`, result);
+}
+```

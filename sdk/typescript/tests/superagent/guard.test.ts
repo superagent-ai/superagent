@@ -19,6 +19,8 @@ describe("Superagent Guard", () => {
 
       // Functional test: verify response structure and valid classification
       expect(["pass", "block"]).toContain(response.classification);
+      expect(typeof response.reasoning).toBe("string");
+      expect(response.reasoning.length).toBeGreaterThan(0);
       expect(response.violation_types).toBeInstanceOf(Array);
       expect(response.cwe_codes).toBeInstanceOf(Array);
       expect(response.usage.promptTokens).toBeGreaterThan(0);
@@ -33,6 +35,7 @@ describe("Superagent Guard", () => {
       });
 
       expect(["pass", "block"]).toContain(response.classification);
+      expect(typeof response.reasoning).toBe("string");
       expect(response.violation_types).toBeInstanceOf(Array);
       expect(response.cwe_codes).toBeInstanceOf(Array);
     });
@@ -45,6 +48,7 @@ describe("Superagent Guard", () => {
       });
 
       expect(["pass", "block"]).toContain(response.classification);
+      expect(typeof response.reasoning).toBe("string");
       expect(response.violation_types).toBeInstanceOf(Array);
       expect(response.cwe_codes).toBeInstanceOf(Array);
     });
@@ -128,6 +132,8 @@ describe("Superagent Guard 1.7B", () => {
 
       // Functional test: verify response structure and valid classification
       expect(["pass", "block"]).toContain(response.classification);
+      expect(typeof response.reasoning).toBe("string");
+      expect(response.reasoning.length).toBeGreaterThan(0);
       expect(response.violation_types).toBeInstanceOf(Array);
       expect(response.cwe_codes).toBeInstanceOf(Array);
       expect(response.usage.promptTokens).toBeGreaterThan(0);
@@ -142,6 +148,7 @@ describe("Superagent Guard 1.7B", () => {
       });
 
       expect(["pass", "block"]).toContain(response.classification);
+      expect(typeof response.reasoning).toBe("string");
       expect(response.violation_types).toBeInstanceOf(Array);
       expect(response.cwe_codes).toBeInstanceOf(Array);
     });
@@ -154,6 +161,7 @@ describe("Superagent Guard 1.7B", () => {
       });
 
       expect(["pass", "block"]).toContain(response.classification);
+      expect(typeof response.reasoning).toBe("string");
       expect(response.violation_types).toBeInstanceOf(Array);
       expect(response.cwe_codes).toBeInstanceOf(Array);
     });
@@ -207,6 +215,8 @@ describe("Superagent Guard 4B", () => {
 
       // Functional test: verify response structure and valid classification
       expect(["pass", "block"]).toContain(response.classification);
+      expect(typeof response.reasoning).toBe("string");
+      expect(response.reasoning.length).toBeGreaterThan(0);
       expect(response.violation_types).toBeInstanceOf(Array);
       expect(response.cwe_codes).toBeInstanceOf(Array);
       expect(response.usage.promptTokens).toBeGreaterThan(0);
@@ -221,6 +231,7 @@ describe("Superagent Guard 4B", () => {
       });
 
       expect(["pass", "block"]).toContain(response.classification);
+      expect(typeof response.reasoning).toBe("string");
       expect(response.violation_types).toBeInstanceOf(Array);
       expect(response.cwe_codes).toBeInstanceOf(Array);
     });
@@ -233,6 +244,7 @@ describe("Superagent Guard 4B", () => {
       });
 
       expect(["pass", "block"]).toContain(response.classification);
+      expect(typeof response.reasoning).toBe("string");
       expect(response.violation_types).toBeInstanceOf(Array);
       expect(response.cwe_codes).toBeInstanceOf(Array);
     });

@@ -1,4 +1,4 @@
-import { createClient } from "@superagent-ai/safety-agent";
+import { createClient } from "safety-agent";
 import { readFileSync } from "fs";
 
 function showHelp() {

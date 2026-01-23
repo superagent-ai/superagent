@@ -1,0 +1,53 @@
+---
+title: CI/CD Pre-merge Scanning
+description: Block suspicious pull requests with automated repository scanning
+---
+
+# CI/CD Pre-merge Scanning
+
+Automatically scan pull requests for AI-targeted attacks before merging.
+
+## GitHub Actions
+
+```yaml
+name: Security Scan
+on: [pull_request]
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scan PR for AI attacks
+        env:
+          SUPERAGENT_API_KEY: ${{ secrets.SUPERAGENT_API_KEY }}
+          DAYTONA_API_KEY: ${{ secrets.DAYTONA_API_KEY }}
+        run: |
+          npx safety-agent-cli scan \
+            --repo ${{ github.event.pull_request.head.repo.clone_url }} \
+            --branch ${{ github.head_ref }}
+```
+
+## What It Catches
+
+- Repo poisoning in contributed code
+- Prompt injection in documentation
+- Malicious AI config files (.cursorrules, AGENTS.md)
+- Hidden instructions in comments
+
+## Fail on Threats
+
+```yaml
+- name: Scan and fail on issues
+  run: |
+    RESULT=$(npx safety-agent-cli scan --repo $REPO --branch $BRANCH)
+    if echo "$RESULT" | grep -qi "threat\|injection\|malicious"; then
+      echo "❌ Security issues detected"
+      exit 1
+    fi
+```
+
+## Environment Variables
+
+Add to GitHub Secrets:
+- `SUPERAGENT_API_KEY`
+- `DAYTONA_API_KEY`

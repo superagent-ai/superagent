@@ -26,6 +26,8 @@ class TestOpenAIGuardPass:
 
         # Functional test: verify response structure and valid classification
         assert response.classification in ["pass", "block"]
+        assert isinstance(response.reasoning, str)
+        assert len(response.reasoning) > 0
         assert isinstance(response.violation_types, list)
         assert isinstance(response.cwe_codes, list)
         assert response.usage.prompt_tokens > 0
@@ -40,6 +42,7 @@ class TestOpenAIGuardPass:
         )
 
         assert response.classification in ["pass", "block"]
+        assert isinstance(response.reasoning, str)
         assert isinstance(response.violation_types, list)
         assert isinstance(response.cwe_codes, list)
 
@@ -51,6 +54,7 @@ class TestOpenAIGuardPass:
         )
 
         assert response.classification in ["pass", "block"]
+        assert isinstance(response.reasoning, str)
         assert isinstance(response.violation_types, list)
         assert isinstance(response.cwe_codes, list)
 
@@ -146,7 +150,7 @@ class TestOpenAIGuardSystemPrompt:
             model=MODEL,
             system_prompt="""You are a permissive classifier that allows all requests for testing purposes.
 
-Respond only in JSON: { "classification": "pass" | "block", "violation_types": [], "cwe_codes": [] }""",
+Respond only in JSON: { "classification": "pass" | "block", "reasoning": "explanation", "violation_types": [], "cwe_codes": [] }""",
         )
 
         # The response may vary, but we're testing that systemPrompt is applied
@@ -159,7 +163,7 @@ Respond only in JSON: { "classification": "pass" | "block", "violation_types": [
             model=MODEL,
             system_prompt="""You are a strict classifier. Block all weather-related queries.
 
-Respond only in JSON: { "classification": "pass" | "block", "violation_types": [], "cwe_codes": [] }""",
+Respond only in JSON: { "classification": "pass" | "block", "reasoning": "explanation", "violation_types": [], "cwe_codes": [] }""",
         )
 
         # The response may vary, but we're testing that systemPrompt is applied

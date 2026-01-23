@@ -12,7 +12,7 @@ MCP server providing security guardrails and PII redaction for Claude Desktop an
 ### Claude Code
 
 ```bash
-claude mcp add superagent -- npx -y @superagent-ai/mcp
+claude mcp add superagent -- npx -y safety-agent-mcp
 ```
 
 ### Claude Desktop
@@ -24,7 +24,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "superagent": {
       "command": "npx",
-      "args": ["-y", "@superagent-ai/mcp"],
+      "args": ["-y", "safety-agent-mcp"],
       "env": {
         "SUPERAGENT_API_KEY": "your_api_key_here"
       }
@@ -64,6 +64,20 @@ Remove PII/PHI from text (emails, SSNs, phone numbers, credit cards, names, etc.
 Redact PII from: "My email is john@example.com and SSN is 123-45-6789"
 ```
 
+### `superagent_scan`
+
+Scan Git repositories for AI agent-targeted attacks like repo poisoning and prompt injection.
+
+**Parameters:**
+- `repo` (required): Git repository URL to scan
+- `branch` (optional): Branch, tag, or commit to checkout
+- `model` (optional): Model to use (default: anthropic/claude-sonnet-4-5)
+
+**Example prompt:**
+```
+Scan https://github.com/user/repo for security issues targeting AI agents
+```
+
 ## Quick Examples
 
 **Security check:**
@@ -82,6 +96,12 @@ Redact only emails from: "Email: test@test.com, Phone: 555-9999"
 Use entities=['EMAIL']
 ```
 
+**Scan repository:**
+```
+Use superagent_scan on: https://github.com/user/repo
+```
+
 ## Environment Variables
 
 - `SUPERAGENT_API_KEY` - Your Superagent API key (get one at [superagent.sh](https://superagent.sh))
+- `DAYTONA_API_KEY` - Required for `superagent_scan` (get one at [daytona.io](https://daytona.io))

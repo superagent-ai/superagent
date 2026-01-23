@@ -1,5 +1,5 @@
 /**
- * @superagent-ai/safety-agent
+ * safety-agent
  * A lightweight TypeScript guardrail SDK for content safety
  */
 
@@ -19,10 +19,13 @@ export type {
   GuardSegmentKind,
   GuardInputUnits,
   RedactOptions,
+  ScanOptions,
   GuardClassificationResult,
   RedactResult,
   GuardResponse,
   RedactResponse,
+  ScanResponse,
+  ScanUsage,
   ChatMessage,
   MultimodalContentPart,
   ProcessedInput,

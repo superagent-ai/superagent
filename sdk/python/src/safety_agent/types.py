@@ -200,6 +200,9 @@ class GuardClassificationResult:
     classification: Literal["pass", "block"]
     """Whether the content passed or should be blocked."""
 
+    reasoning: str = ""
+    """Brief explanation of why the content was classified as pass or block."""
+
     violation_types: list[str] = field(default_factory=list)
     """Types of violations detected."""
 
@@ -266,6 +269,9 @@ class GuardResponse:
     classification: Literal["pass", "block"]
     """Whether the content passed or should be blocked."""
 
+    reasoning: str
+    """Brief explanation of why the content was classified as pass or block."""
+
     violation_types: list[str]
     """Types of violations detected."""
 
@@ -324,3 +330,49 @@ class ParsedModel:
 
     provider: str
     model: str
+
+
+# =============================================================================
+# Scan Types (AI Agent Security Scanning)
+# =============================================================================
+
+@dataclass
+class ScanOptions:
+    """Options for the scan method."""
+
+    repo: str
+    """Git repository URL to scan."""
+
+    branch: str | None = None
+    """Optional branch, tag, or commit to checkout."""
+
+    model: str = "anthropic/claude-sonnet-4-5"
+    """Model for OpenCode to use (provider/model format)."""
+
+
+@dataclass
+class ScanUsage:
+    """Token usage metrics from OpenCode scan."""
+
+    input_tokens: int
+    """Total input tokens used."""
+
+    output_tokens: int
+    """Total output tokens used."""
+
+    reasoning_tokens: int
+    """Total reasoning tokens used (if applicable)."""
+
+    cost: float
+    """Total cost in USD."""
+
+
+@dataclass
+class ScanResponse:
+    """Response from scan method."""
+
+    result: str
+    """The security report text from OpenCode."""
+
+    usage: ScanUsage
+    """Token usage metrics."""

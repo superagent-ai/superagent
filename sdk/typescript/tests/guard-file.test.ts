@@ -21,6 +21,7 @@ describe("OpenAI Guard - File/URL Input", () => {
       });
 
       expect(response.classification).toBe("pass");
+      expect(typeof response.reasoning).toBe("string");
       expect(response.usage.promptTokens).toBeGreaterThan(0);
       expect(response.usage.totalTokens).toBeGreaterThan(0);
     }, 30000);
@@ -33,6 +34,7 @@ describe("OpenAI Guard - File/URL Input", () => {
       });
 
       expect(response.classification).toBe("pass");
+      expect(typeof response.reasoning).toBe("string");
       expect(response.usage.promptTokens).toBeGreaterThan(0);
     }, 30000);
 
@@ -44,6 +46,7 @@ describe("OpenAI Guard - File/URL Input", () => {
       });
 
       expect(response.classification).toBe("pass");
+      expect(typeof response.reasoning).toBe("string");
       expect(response.usage.promptTokens).toBeGreaterThan(0);
     }, 30000);
   });
@@ -56,6 +59,7 @@ describe("OpenAI Guard - File/URL Input", () => {
       });
 
       expect(response.classification).toBe("pass");
+      expect(typeof response.reasoning).toBe("string");
       expect(response.violation_types).toEqual([]);
     });
 
@@ -66,20 +70,21 @@ describe("OpenAI Guard - File/URL Input", () => {
       });
 
       expect(response.classification).toBe("block");
+      expect(typeof response.reasoning).toBe("string");
       expect(response.violation_types.length).toBeGreaterThan(0);
     });
   });
 
   describe("image URL input", () => {
     it("should analyze safe image from URL", async () => {
-      // Simple safe image URL
+      // Simple safe image URL (picsum.photos is reliable for testing)
       const response = await client.guard({
-        input:
-          "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/300px-PNG_transparency_demonstration_1.png",
+        input: "https://picsum.photos/id/237/300/300.jpg",
         model: VISION_MODEL,
       });
 
       expect(response.classification).toBe("pass");
+      expect(typeof response.reasoning).toBe("string");
       expect(response.usage.promptTokens).toBeGreaterThan(0);
       expect(response.usage.totalTokens).toBeGreaterThan(0);
     }, 60000);
@@ -89,8 +94,7 @@ describe("OpenAI Guard - File/URL Input", () => {
     it("should throw error for non-vision model with image", async () => {
       await expect(
         client.guard({
-          input:
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/300px-PNG_transparency_demonstration_1.png",
+          input: "https://picsum.photos/id/237/300/300.jpg",
           model: "openai/gpt-3.5-turbo", // gpt-3.5-turbo does not support vision
         })
       ).rejects.toThrow(/does not support vision/);

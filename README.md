@@ -36,7 +36,7 @@ Block prompt injections, jailbreaks, and data exfiltration before they reach you
 **TypeScript:**
 
 ```typescript
-import { createClient } from "@superagent-ai/safety-agent";
+import { createClient } from "safety-agent";
 
 const client = createClient();
 
@@ -90,6 +90,30 @@ print(result.redacted)
 # "My email is <EMAIL_REDACTED> and SSN is <SSN_REDACTED>"
 ```
 
+### Scan
+
+Analyze repositories for AI agent-targeted attacks like repo poisoning, prompt injections, and malicious instructions. Runs in a secure Daytona sandbox.
+
+**TypeScript:**
+
+```typescript
+const result = await client.scan({
+  repo: "https://github.com/user/repo"
+});
+
+console.log(result.result);  // Security report
+console.log(`Cost: $${result.usage.cost.toFixed(4)}`);
+```
+
+**Python:**
+
+```python
+result = await client.scan(repo="https://github.com/user/repo")
+
+print(result.result)  # Security report
+print(f"Cost: ${result.usage.cost:.4f}")
+```
+
 ## Safety Tests
 
 Adversarial tests that probe your AI for prompt injection weaknesses, data leakage paths, and failure modes. Find vulnerabilities before attackers do and get evidence for compliance.
@@ -109,7 +133,7 @@ Sign up at [superagent.sh](https://superagent.sh) to get your API key.
 **TypeScript:**
 
 ```bash
-npm install @superagent-ai/safety-agent
+npm install safety-agent
 ```
 
 **Python:**
@@ -128,8 +152,8 @@ export SUPERAGENT_API_KEY=your-key
 
 | Option | Description | Link |
 |--------|-------------|------|
-| **TypeScript SDK** | Embed guard and redact directly in your app | [sdk/typescript](sdk/typescript/README.md) |
-| **Python SDK** | Embed guard and redact directly in Python apps | [sdk/python](sdk/python/README.md) |
+| **TypeScript SDK** | Embed guard, redact, and scan directly in your app | [sdk/typescript](sdk/typescript/README.md) |
+| **Python SDK** | Embed guard, redact, and scan directly in Python apps | [sdk/python](sdk/python/README.md) |
 | **CLI** | Command-line tool for testing and automation | [cli](cli/README.md) |
 | **MCP Server** | Use with Claude Code and Claude Desktop | [mcp](mcp/README.md) |
 

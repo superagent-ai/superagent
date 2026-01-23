@@ -9,7 +9,7 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { createClient } from "@superagent-ai/safety-agent";
+import { createClient } from "safety-agent";
 import { z } from "zod";
 
 // ============================================================================
@@ -70,6 +70,30 @@ const RedactInputSchema = z
 
 type RedactInput = z.infer<typeof RedactInputSchema>;
 
+const ScanInputSchema = z
+  .object({
+    repo: z
+      .string()
+      .min(1, "Repository URL cannot be empty")
+      .describe(
+        "The Git repository URL to scan for AI agent-targeted attacks. Must start with https:// or git@. Examples: 'https://github.com/user/repo', 'git@github.com:user/repo.git'"
+      ),
+    branch: z
+      .string()
+      .optional()
+      .describe(
+        "Optional branch, tag, or commit SHA to checkout. If not provided, defaults to the repository's default branch."
+      ),
+    model: z
+      .string()
+      .optional()
+      .describe(
+        "Optional model to use for analysis in 'provider/model' format. Default: 'anthropic/claude-sonnet-4-5'. Examples: 'openai/gpt-4o', 'anthropic/claude-3-opus'"
+      ),
+  })
+  .strict();
+
+type ScanInput = z.infer<typeof ScanInputSchema>;
 
 // ============================================================================
 // MCP Server Setup
@@ -236,6 +260,91 @@ Common Entity Types:
 );
 
 // ============================================================================
+// Tool: superagent_scan
+// ============================================================================
+
+server.registerTool(
+  "superagent_scan",
+  {
+    title: "Superagent Repository Scanner",
+    description: `Scan a Git repository for AI agent-targeted attacks like repo poisoning, prompt injection, and malicious instructions using Superagent's security scanning.
+
+This tool clones a repository into a secure sandbox and uses AI to analyze its contents for security threats that could exploit AI agents or coding assistants.
+
+Args:
+  - repo (string): The Git repository URL to scan. Must start with https:// or git@.
+  - branch (string, optional): Branch, tag, or commit to checkout. Defaults to the repository's default branch.
+  - model (string, optional): Model to use for analysis (provider/model format). Default: 'anthropic/claude-sonnet-4-5'.
+
+Returns:
+  A security report containing findings about potential threats in the repository, along with usage metrics.
+
+Examples:
+  - Use when: Evaluating a third-party repository before integrating it
+  - Use when: "Scan https://github.com/user/repo for security issues"
+  - Use when: Checking for malicious code that could poison AI training or exploit AI agents
+  - Use when: Auditing dependencies for prompt injection attacks
+  - Don't use when: You need real-time input validation (use superagent_guard instead)
+
+Threat Types Detected:
+  - repo_poisoning: Malicious code designed to exploit AI agents or training data
+  - prompt_injection: Hidden instructions that could manipulate AI behavior
+  - data_exfiltration: Code that attempts to steal data through AI interactions
+  - malicious_instructions: Concealed commands in comments, docs, or configuration`,
+    inputSchema: ScanInputSchema.shape,
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
+  },
+  async (params: ScanInput) => {
+    try {
+      // Check for DAYTONA_API_KEY
+      if (!process.env.DAYTONA_API_KEY) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "Error: DAYTONA_API_KEY environment variable is required for repository scanning. Get your API key at https://daytona.io",
+            },
+          ],
+        };
+      }
+
+      // Call Superagent Scan API using SDK
+      const result = await client.scan({
+        repo: params.repo,
+        branch: params.branch,
+        model: params.model as any,
+      });
+
+      // Return the scan result as JSON
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error: ${errorMessage}`,
+          },
+        ],
+      };
+    }
+  }
+);
+
+// ============================================================================
 // Main Function
 // ============================================================================
 
@@ -261,7 +370,7 @@ async function main() {
   // Log to stderr (stdout is reserved for MCP protocol)
   console.error("Superagent MCP server running via stdio");
   console.error(
-    "Tools available: superagent_guard, superagent_redact"
+    "Tools available: superagent_guard, superagent_redact, superagent_scan"
   );
 }
 

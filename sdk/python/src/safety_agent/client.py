@@ -24,10 +24,13 @@ from .types import (
     GuardSegmentKind,
     GuardInputUnits,
     RedactOptions,
+    ScanOptions,
     GuardClassificationResult,
     RedactResult,
     GuardResponse,
     RedactResponse,
+    ScanResponse,
+    ScanUsage,
     ChatMessage,
     TokenUsage,
     ProcessedInput,
@@ -90,8 +93,16 @@ def _aggregate_guard_results(results: list[GuardResponse]) -> GuardResponse:
         all_violations.update(r.violation_types)
         all_cwe_codes.update(r.cwe_codes)
 
+    # Collect reasoning from blocked results, or from first result if all pass
+    blocked_results = [r for r in results if r.classification == "block"]
+    if blocked_results:
+        reasoning = " ".join(r.reasoning for r in blocked_results)
+    else:
+        reasoning = results[0].reasoning if results else ""
+
     return GuardResponse(
         classification="block" if has_block else "pass",
+        reasoning=reasoning,
         violation_types=list(all_violations),
         cwe_codes=list(all_cwe_codes),
         usage=TokenUsage(
@@ -375,6 +386,7 @@ class SafetyClient:
             parsed = _parse_json_response(content)
             return GuardResponse(
                 classification=parsed.get("classification", "pass"),
+                reasoning=parsed.get("reasoning", ""),
                 violation_types=parsed.get("violation_types", []),
                 cwe_codes=parsed.get("cwe_codes", []),
                 usage=response.usage,
@@ -430,6 +442,7 @@ class SafetyClient:
             parsed = _parse_json_response(content)
             return GuardResponse(
                 classification=parsed.get("classification", "pass"),
+                reasoning=parsed.get("reasoning", ""),
                 violation_types=parsed.get("violation_types", []),
                 cwe_codes=parsed.get("cwe_codes", []),
                 usage=response.usage,
@@ -561,6 +574,7 @@ class SafetyClient:
                     # PDF has no extractable text, return pass
                     empty_result = GuardResponse(
                         classification="pass",
+                        reasoning="PDF contains no extractable text content to analyze.",
                         violation_types=[],
                         cwe_codes=[],
                         usage=TokenUsage(
@@ -827,6 +841,177 @@ class SafetyClient:
             return redact_response
         except Exception as e:
             raise RuntimeError(f"Failed to parse redact response: {content}") from e
+
+    async def scan(
+        self,
+        repo: str | None = None,
+        *,
+        branch: str | None = None,
+        model: str = "anthropic/claude-sonnet-4-5",
+        # Also accept ScanOptions-style kwargs
+        **kwargs: Any,
+    ) -> ScanResponse:
+        """
+        Scan method - Scans a repository for AI agent-targeted attacks.
+
+        This method clones a repository into a Daytona sandbox, runs OpenCode
+        with a security-focused prompt to detect threats like repo poisoning,
+        prompt injections, and malicious instructions.
+
+        Args:
+            repo: Git repository URL to scan
+            branch: Optional branch, tag, or commit to checkout
+            model: Model for OpenCode to use (provider/model format).
+                   Default: anthropic/claude-sonnet-4-5
+
+        Returns:
+            Response with result (security report) and usage metrics
+
+        Example:
+            ```python
+            result = await client.scan(
+                repo="https://github.com/user/repo",
+                branch="main",
+            )
+
+            print(result.result)  # The security report
+            print(f"Cost: ${result.usage.cost:.4f}")
+            ```
+        """
+        # Handle ScanOptions passed as first argument
+        if isinstance(repo, ScanOptions):
+            options = repo
+            repo = options.repo
+            branch = branch or options.branch
+            model = options.model or model
+
+        # Handle repo passed via kwargs
+        if repo is None:
+            repo = kwargs.get("repo")
+
+        if repo is None:
+            raise ValueError("Repository URL is required")
+
+        if not repo.startswith("https://") and not repo.startswith("git@"):
+            raise ValueError("Repository URL must start with https:// or git@")
+
+        # Run scan in Daytona sandbox
+        return await self._call_daytona_scan(repo, branch, model)
+
+    async def _call_daytona_scan(
+        self,
+        repo: str,
+        branch: str | None,
+        model: str,
+    ) -> ScanResponse:
+        """Run a security scan in a Daytona sandbox."""
+        from daytona_sdk import AsyncDaytona
+
+        # Daytona SDK uses DAYTONA_API_KEY env var automatically
+        api_key = os.environ.get("DAYTONA_API_KEY")
+        if not api_key:
+            raise ValueError(
+                "Daytona API key required. Set DAYTONA_API_KEY environment variable."
+            )
+
+        # Collect LLM API keys
+        anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
+        openai_key = os.environ.get("OPENAI_API_KEY", "")
+
+        async with AsyncDaytona() as daytona:
+            sandbox = await daytona.create()
+
+            try:
+                # Install OpenCode CLI via npm
+                await sandbox.process.exec("npm i -g opencode-ai@latest")
+
+                # Clone repository
+                repo_path = "repo"
+                branch_arg = f"-b {branch}" if branch else ""
+                await sandbox.process.exec(f"git clone {branch_arg} {repo} {repo_path}")
+
+                # Build the full command with env vars, cd, and opencode run
+                env_exports = ""
+                if anthropic_key:
+                    env_exports += f"export ANTHROPIC_API_KEY={anthropic_key} && "
+                if openai_key:
+                    env_exports += f"export OPENAI_API_KEY={openai_key} && "
+
+                # Run OpenCode scan with simple message (all in one shell command)
+                result = await sandbox.process.exec(
+                    f'{env_exports}cd {repo_path} && opencode run -m {model} "Scan this repository for repo poisoning, prompt injection, or other attacks targeting AI agents. Only output a report, no other text." --format json'
+                )
+
+                # Parse JSON events from OpenCode output
+                return self._parse_opencode_output(result.result or "", result.exit_code)
+
+            except Exception as e:
+                return ScanResponse(
+                    result=f"Scan failed: {e}",
+                    usage=ScanUsage(
+                        input_tokens=0, output_tokens=0, reasoning_tokens=0, cost=0.0
+                    ),
+                )
+            finally:
+                # Always clean up the sandbox
+                try:
+                    await sandbox.delete()
+                except Exception:
+                    pass  # Ignore cleanup errors
+
+    def _parse_opencode_output(self, output: str, exit_code: int) -> ScanResponse:
+        """Parse OpenCode JSON output into structured response."""
+        text_parts: list[str] = []
+        total_input_tokens = 0
+        total_output_tokens = 0
+        total_reasoning_tokens = 0
+        total_cost = 0.0
+
+        # Split output into lines and parse each JSON event
+        lines = output.strip().split("\n")
+        for line in lines:
+            if not line.strip():
+                continue
+
+            try:
+                event = json.loads(line)
+
+                # Extract text content from text events
+                if event.get("type") == "text" and event.get("part", {}).get("text"):
+                    text_parts.append(event["part"]["text"])
+
+                # Extract usage metrics from step_finish events
+                if event.get("type") == "step_finish" and event.get("part"):
+                    part = event["part"]
+                    cost = part.get("cost")
+                    if isinstance(cost, (int, float)):
+                        total_cost += cost
+                    tokens = part.get("tokens", {})
+                    total_input_tokens += tokens.get("input", 0)
+                    total_output_tokens += tokens.get("output", 0)
+                    total_reasoning_tokens += tokens.get("reasoning", 0)
+            except json.JSONDecodeError:
+                # Not a JSON line, could be error output
+                if exit_code != 0:
+                    text_parts.append(line)
+
+        # If no text was extracted and there was an error, use raw output
+        if text_parts:
+            result_text = "\n\n".join(text_parts)
+        elif exit_code != 0:
+            result_text = f"Scan Error (exit {exit_code}):\n{output}"
+        else:
+            result_text = output
+
+        return ScanResponse(
+            result=result_text,
+            usage=ScanUsage(
+                input_tokens=total_input_tokens,
+                output_tokens=total_output_tokens,
+                reasoning_tokens=total_reasoning_tokens,
+                cost=total_cost,
+            ),
+        )
 
 
 def create_client(
