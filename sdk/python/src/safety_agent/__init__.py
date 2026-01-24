@@ -8,6 +8,13 @@ from .types import (
     ClientConfig,
     GuardInput,
     GuardOptions,
+    GuardHooks,
+    GuardStartEvent,
+    GuardSegmentEvent,
+    GuardResultEvent,
+    GuardErrorEvent,
+    GuardSegmentKind,
+    GuardInputUnits,
     RedactOptions,
     ScanOptions,
     GuardClassificationResult,
@@ -23,6 +30,7 @@ from .types import (
     TokenUsage,
     ParsedModel,
 )
+from .observability import create_otel_guard_hooks
 
 __version__ = "0.1.0"
 
@@ -34,6 +42,13 @@ __all__ = [
     "ClientConfig",
     "GuardInput",
     "GuardOptions",
+    "GuardHooks",
+    "GuardStartEvent",
+    "GuardSegmentEvent",
+    "GuardResultEvent",
+    "GuardErrorEvent",
+    "GuardSegmentKind",
+    "GuardInputUnits",
     "RedactOptions",
     "ScanOptions",
     "GuardClassificationResult",
@@ -48,4 +63,5 @@ __all__ = [
     "AnalysisResponse",
     "TokenUsage",
     "ParsedModel",
+    "create_otel_guard_hooks",
 ]

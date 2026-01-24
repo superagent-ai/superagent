@@ -12,6 +12,13 @@ import type {
   TokenUsage,
   MultimodalContentPart,
   ProcessedInput,
+  GuardHooks,
+  GuardStartEvent,
+  GuardSegmentEvent,
+  GuardResultEvent,
+  GuardErrorEvent,
+  GuardSegmentKind,
+  GuardInputUnits,
 } from "./types.js";
 import {
   callProvider,
@@ -87,6 +94,111 @@ function aggregateGuardResults(results: GuardResponse[]): GuardResponse {
       totalTokens: results.reduce((sum, r) => sum + r.usage.totalTokens, 0),
     },
   };
+}
+
+function getGuardInputSizing(
+  processed: ProcessedInput
+): { size: number; units: GuardInputUnits; pageCount?: number } {
+  if (processed.type === "image") {
+    return {
+      size: processed.imageBase64?.length ?? 0,
+      units: "base64",
+    };
+  }
+
+  if (processed.type === "pdf") {
+    const pages = processed.pages ?? [];
+    const size = pages.reduce((sum, page) => sum + page.length, 0);
+    return { size, units: "chars", pageCount: pages.length };
+  }
+
+  return {
+    size: processed.text?.length ?? 0,
+    units: "chars",
+  };
+}
+
+function buildGuardStartEvent(
+  processed: ProcessedInput,
+  model: GuardStartEvent["model"],
+  chunkSize: number,
+  segmentCount: number
+): GuardStartEvent {
+  const sizing = getGuardInputSizing(processed);
+  return {
+    model,
+    chunkSize,
+    inputType: processed.type,
+    inputSize: sizing.size,
+    inputUnits: sizing.units,
+    segmentCount,
+    pageCount: sizing.pageCount,
+    timestamp: Date.now(),
+  };
+}
+
+function buildGuardSegmentEvent(
+  params: {
+    kind: GuardSegmentKind;
+    index: number;
+    count: number;
+    inputType: ProcessedInput["type"];
+    segmentSize: number;
+    segmentUnits: GuardInputUnits;
+    result: GuardResponse;
+    durationMs: number;
+  }
+): GuardSegmentEvent {
+  return {
+    ...params,
+    timestamp: Date.now(),
+  };
+}
+
+function buildGuardResultEvent(
+  result: GuardResponse,
+  inputType: ProcessedInput["type"],
+  segmentCount: number,
+  durationMs: number
+): GuardResultEvent {
+  return {
+    result,
+    inputType,
+    segmentCount,
+    durationMs,
+    timestamp: Date.now(),
+  };
+}
+
+function buildGuardErrorEvent(
+  error: unknown,
+  durationMs: number,
+  details: {
+    inputType?: ProcessedInput["type"];
+    segmentIndex?: number;
+    segmentKind?: GuardSegmentKind;
+  } = {}
+): GuardErrorEvent {
+  return {
+    error,
+    durationMs,
+    ...details,
+    timestamp: Date.now(),
+  };
+}
+
+function markGuardHooked(error: unknown): void {
+  if (typeof error === "object" && error !== null) {
+    (error as { __guardHooked?: boolean }).__guardHooked = true;
+  }
+}
+
+function isGuardHooked(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as { __guardHooked?: boolean }).__guardHooked === true
+  );
 }
 
 /**
@@ -438,6 +550,21 @@ export class SafetyClient {
     }).catch(() => {}); // Fire and forget - ignore errors
   }
 
+  private emitHook<T>(
+    hook: ((event: T) => void | Promise<void>) | undefined,
+    event: T
+  ): void {
+    if (!hook) return;
+    try {
+      const result = hook(event);
+      if (result && typeof (result as Promise<void>).catch === "function") {
+        (result as Promise<void>).catch(() => {});
+      }
+    } catch {
+      // Swallow hook errors to avoid impacting guard execution
+    }
+  }
+
   /**
    * Guard a single chunk of text input (internal method)
    * @param input The input text to analyze
@@ -566,80 +693,284 @@ export class SafetyClient {
    * @returns Response with classification result and token usage
    */
   async guard(options: GuardOptions): Promise<GuardResponse> {
+    const startedAt = Date.now();
     const {
       input,
       systemPrompt,
       model = DEFAULT_GUARD_MODEL,
       chunkSize = 8000,
+      hooks,
     } = options;
 
-    // Validate chunkSize is non-negative
-    if (chunkSize < 0) {
-      throw new Error(`chunkSize must be non-negative, got ${chunkSize}`);
-    }
+    let processed: ProcessedInput | undefined;
 
-    // Process the input (handle URLs, Blobs, etc.)
-    const processed = await processInput(input);
-
-    // Handle image inputs with vision models
-    if (processed.type === "image") {
-      const result = await this.guardImage(processed, systemPrompt, model);
-      this.postUsage(result.usage);
-      return result;
-    }
-
-    // Handle PDF inputs - analyze each page in parallel
-    if (processed.type === "pdf" && processed.pages) {
-      // Filter out empty pages
-      const nonEmptyPages = processed.pages.filter(
-        (page) => page.trim().length > 0
-      );
-
-      if (nonEmptyPages.length === 0) {
-        // PDF has no extractable text, return pass
-        const emptyResult: GuardResponse = {
-          classification: "pass",
-          reasoning: "PDF contains no extractable text content to analyze.",
-          violation_types: [],
-          cwe_codes: [],
-          usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-        };
-        return emptyResult;
+    try {
+      // Validate chunkSize is non-negative
+      if (chunkSize < 0) {
+        throw new Error(`chunkSize must be non-negative, got ${chunkSize}`);
       }
 
-      // Analyze each page in parallel (similar to chunking strategy)
+      // Process the input (handle URLs, Blobs, etc.)
+      processed = await processInput(input);
+      const processedInput = processed;
+      if (!processedInput) {
+        throw new Error("Failed to process input");
+      }
+
+      // Handle image inputs with vision models
+      if (processedInput.type === "image") {
+        this.emitHook(
+          hooks?.onStart,
+          buildGuardStartEvent(processedInput, model, chunkSize, 1)
+        );
+        const segmentStart = Date.now();
+        const result = await this.guardImage(
+          processedInput,
+          systemPrompt,
+          model
+        ).catch(
+          (error) => {
+            markGuardHooked(error);
+            this.emitHook(
+              hooks?.onError,
+              buildGuardErrorEvent(error, Date.now() - startedAt, {
+                inputType: processedInput.type,
+                segmentKind: "image",
+                segmentIndex: 0,
+              })
+            );
+            throw error;
+          }
+        );
+        this.emitHook(
+          hooks?.onSegment,
+          buildGuardSegmentEvent({
+            kind: "image",
+            index: 0,
+            count: 1,
+            inputType: processedInput.type,
+            segmentSize: processedInput.imageBase64?.length ?? 0,
+            segmentUnits: "base64",
+            result,
+            durationMs: Date.now() - segmentStart,
+          })
+        );
+        this.emitHook(
+          hooks?.onResult,
+          buildGuardResultEvent(
+            result,
+            processedInput.type,
+            1,
+            Date.now() - startedAt
+          )
+        );
+        this.postUsage(result.usage);
+        return result;
+      }
+
+      // Handle PDF inputs - analyze each page in parallel
+      if (processedInput.type === "pdf" && processedInput.pages) {
+        // Filter out empty pages
+        const nonEmptyPages = processedInput.pages.filter(
+          (page) => page.trim().length > 0
+        );
+
+        const segmentCount = nonEmptyPages.length;
+        this.emitHook(
+          hooks?.onStart,
+          buildGuardStartEvent(processedInput, model, chunkSize, segmentCount)
+        );
+
+        if (segmentCount === 0) {
+          // PDF has no extractable text, return pass
+          const emptyResult: GuardResponse = {
+            classification: "pass",
+            reasoning: "PDF contains no extractable text content to analyze.",
+            violation_types: [],
+            cwe_codes: [],
+            usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+          };
+          this.emitHook(
+            hooks?.onResult,
+            buildGuardResultEvent(
+              emptyResult,
+              processedInput.type,
+              0,
+              Date.now() - startedAt
+            )
+          );
+          return emptyResult;
+        }
+
+        // Analyze each page in parallel (similar to chunking strategy)
+        const results = await Promise.all(
+          nonEmptyPages.map(async (pageText, index) => {
+            const segmentStart = Date.now();
+            try {
+              const result = await this.guardSingleText(
+                pageText,
+                systemPrompt,
+                model
+              );
+              this.emitHook(
+                hooks?.onSegment,
+                buildGuardSegmentEvent({
+                  kind: "page",
+                  index,
+                  count: segmentCount,
+                  inputType: processedInput.type,
+                  segmentSize: pageText.length,
+                  segmentUnits: "chars",
+                  result,
+                  durationMs: Date.now() - segmentStart,
+                })
+              );
+              return result;
+            } catch (error) {
+              markGuardHooked(error);
+              this.emitHook(
+                hooks?.onError,
+                buildGuardErrorEvent(error, Date.now() - startedAt, {
+                  inputType: processedInput.type,
+                  segmentKind: "page",
+                  segmentIndex: index,
+                })
+              );
+              throw error;
+            }
+          })
+        );
+
+        // Aggregate with OR logic - block if ANY page contains violation
+        const aggregated = aggregateGuardResults(results);
+        this.emitHook(
+          hooks?.onResult,
+          buildGuardResultEvent(
+            aggregated,
+            processedInput.type,
+            segmentCount,
+            Date.now() - startedAt
+          )
+        );
+        this.postUsage(aggregated.usage);
+        return aggregated;
+      }
+
+      // Handle text inputs (including document text)
+      const text = processedInput.text ?? "";
+
+      // Skip chunking if disabled (chunkSize=0) or input is small enough
+      if (chunkSize === 0 || text.length <= chunkSize) {
+        this.emitHook(
+          hooks?.onStart,
+          buildGuardStartEvent(processedInput, model, chunkSize, 1)
+        );
+        const segmentStart = Date.now();
+        const result = await this.guardSingleText(text, systemPrompt, model).catch(
+          (error) => {
+            markGuardHooked(error);
+            this.emitHook(
+              hooks?.onError,
+              buildGuardErrorEvent(error, Date.now() - startedAt, {
+                inputType: processedInput.type,
+                segmentKind: "input",
+                segmentIndex: 0,
+              })
+            );
+            throw error;
+          }
+        );
+        this.emitHook(
+          hooks?.onSegment,
+          buildGuardSegmentEvent({
+            kind: "input",
+            index: 0,
+            count: 1,
+            inputType: processedInput.type,
+            segmentSize: text.length,
+            segmentUnits: "chars",
+            result,
+            durationMs: Date.now() - segmentStart,
+          })
+        );
+        this.emitHook(
+          hooks?.onResult,
+          buildGuardResultEvent(
+            result,
+            processedInput.type,
+            1,
+            Date.now() - startedAt
+          )
+        );
+        this.postUsage(result.usage);
+        return result;
+      }
+
+      // Chunk and process in parallel
+      const chunks = chunkText(text, chunkSize);
+      const segmentCount = chunks.length;
+      this.emitHook(
+        hooks?.onStart,
+        buildGuardStartEvent(processedInput, model, chunkSize, segmentCount)
+      );
       const results = await Promise.all(
-        nonEmptyPages.map((pageText) =>
-          this.guardSingleText(pageText, systemPrompt, model)
-        )
+        chunks.map(async (chunk, index) => {
+          const segmentStart = Date.now();
+          try {
+            const result = await this.guardSingleText(chunk, systemPrompt, model);
+            this.emitHook(
+              hooks?.onSegment,
+              buildGuardSegmentEvent({
+                kind: "chunk",
+                index,
+                count: segmentCount,
+                inputType: processedInput.type,
+                segmentSize: chunk.length,
+                segmentUnits: "chars",
+                result,
+                durationMs: Date.now() - segmentStart,
+              })
+            );
+            return result;
+          } catch (error) {
+            markGuardHooked(error);
+            this.emitHook(
+              hooks?.onError,
+              buildGuardErrorEvent(error, Date.now() - startedAt, {
+                inputType: processedInput.type,
+                segmentKind: "chunk",
+                segmentIndex: index,
+              })
+            );
+            throw error;
+          }
+        })
       );
 
-      // Aggregate with OR logic - block if ANY page contains violation
+      // Aggregate with OR logic
       const aggregated = aggregateGuardResults(results);
+      this.emitHook(
+        hooks?.onResult,
+        buildGuardResultEvent(
+          aggregated,
+          processedInput.type,
+          segmentCount,
+          Date.now() - startedAt
+        )
+      );
       this.postUsage(aggregated.usage);
       return aggregated;
+    } catch (error) {
+      if (!isGuardHooked(error)) {
+        this.emitHook(
+          hooks?.onError,
+          buildGuardErrorEvent(error, Date.now() - startedAt, {
+            inputType: processed?.type,
+          })
+        );
+      }
+      throw error;
     }
-
-    // Handle text inputs (including document text)
-    const text = processed.text ?? "";
-
-    // Skip chunking if disabled (chunkSize=0) or input is small enough
-    if (chunkSize === 0 || text.length <= chunkSize) {
-      const result = await this.guardSingleText(text, systemPrompt, model);
-      this.postUsage(result.usage);
-      return result;
-    }
-
-    // Chunk and process in parallel
-    const chunks = chunkText(text, chunkSize);
-    const results = await Promise.all(
-      chunks.map((chunk) => this.guardSingleText(chunk, systemPrompt, model))
-    );
-
-    // Aggregate with OR logic
-    const aggregated = aggregateGuardResults(results);
-    this.postUsage(aggregated.usage);
-    return aggregated;
   }
 
   /**

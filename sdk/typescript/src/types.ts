@@ -828,6 +828,78 @@ export interface ProcessedInput {
 }
 
 /**
+ * Guard input sizing units for observability hooks
+ */
+export type GuardInputUnits = "chars" | "bytes" | "base64";
+
+/**
+ * Guard segment kinds for observability hooks
+ */
+export type GuardSegmentKind = "input" | "chunk" | "page" | "image";
+
+/**
+ * Guard observability hooks
+ */
+export interface GuardHooks {
+  onStart?: (event: GuardStartEvent) => void | Promise<void>;
+  onSegment?: (event: GuardSegmentEvent) => void | Promise<void>;
+  onResult?: (event: GuardResultEvent) => void | Promise<void>;
+  onError?: (event: GuardErrorEvent) => void | Promise<void>;
+}
+
+/**
+ * Guard observability event - start
+ */
+export interface GuardStartEvent {
+  model: SupportedModel;
+  chunkSize: number;
+  inputType: ProcessedInput["type"];
+  inputSize: number;
+  inputUnits: GuardInputUnits;
+  segmentCount: number;
+  pageCount?: number;
+  timestamp: number;
+}
+
+/**
+ * Guard observability event - segment completed
+ */
+export interface GuardSegmentEvent {
+  kind: GuardSegmentKind;
+  index: number;
+  count: number;
+  inputType: ProcessedInput["type"];
+  segmentSize: number;
+  segmentUnits: GuardInputUnits;
+  result: GuardResponse;
+  durationMs: number;
+  timestamp: number;
+}
+
+/**
+ * Guard observability event - final result
+ */
+export interface GuardResultEvent {
+  result: GuardResponse;
+  inputType: ProcessedInput["type"];
+  segmentCount: number;
+  durationMs: number;
+  timestamp: number;
+}
+
+/**
+ * Guard observability event - error
+ */
+export interface GuardErrorEvent {
+  error: unknown;
+  inputType?: ProcessedInput["type"];
+  segmentIndex?: number;
+  segmentKind?: GuardSegmentKind;
+  durationMs: number;
+  timestamp: number;
+}
+
+/**
  * Options for the guard method
  */
 export interface GuardOptions {
@@ -839,6 +911,8 @@ export interface GuardOptions {
   model?: SupportedModel;
   /** Characters per chunk. Default: 8000. Set to 0 to disable chunking. */
   chunkSize?: number;
+  /** Optional observability hooks for guard execution */
+  hooks?: GuardHooks;
 }
 
 /**

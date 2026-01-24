@@ -14,6 +14,7 @@
     "examples/scan-mcp-servers",
     "examples/secure-rag-pipeline",
     "examples/scan-image-uploads",
+    "examples/opentelemetry-hooks",
     "examples/cursor-hooks",
     "examples/claude-code-hooks"
   ]
