@@ -233,6 +233,24 @@ const result = await client.guard({
 });
 ```
 
+#### Example (OpenTelemetry)
+
+```typescript
+import { trace } from "@opentelemetry/api";
+import { createOtelGuardHooks } from "safety-agent";
+
+const tracer = trace.getTracer("my-app");
+
+const result = await client.guard({
+  input: "user message to analyze",
+  model: "openai/gpt-4o-mini",
+  hooks: createOtelGuardHooks(tracer, {
+    spanName: "safety_agent.guard",
+    includeSegmentEvents: true,
+  }),
+});
+```
+
 #### Example (URL Input)
 
 Analyze content from a URL - the content is automatically fetched and processed:

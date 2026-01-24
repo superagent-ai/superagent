@@ -81,6 +81,21 @@ result = await client.guard(
 )
 ```
 
+### OpenTelemetry
+
+```python
+from opentelemetry import trace
+from safety_agent import create_otel_guard_hooks
+
+tracer = trace.get_tracer("my-app")
+
+result = await client.guard(
+    input="user message to analyze",
+    model="openai/gpt-4o-mini",
+    hooks=create_otel_guard_hooks(tracer, include_segment_events=True),
+)
+```
+
 ### Input Types
 
 Guard supports multiple input types:

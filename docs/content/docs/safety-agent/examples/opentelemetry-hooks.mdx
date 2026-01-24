@@ -1,0 +1,44 @@
+---
+title: OpenTelemetry Hooks
+description: Emit OpenTelemetry spans from Safety Agent guard hooks
+---
+
+# OpenTelemetry Hooks
+
+The Safety Agent guard hooks are provider-agnostic. You can pipe them into OpenTelemetry
+by using the helper adapter in each SDK.
+
+## TypeScript
+
+```ts
+import { trace } from "@opentelemetry/api";
+import { createClient, createOtelGuardHooks } from "safety-agent";
+
+const client = createClient();
+const tracer = trace.getTracer("my-app");
+
+const result = await client.guard({
+  input: "user message to analyze",
+  model: "openai/gpt-4o-mini",
+  hooks: createOtelGuardHooks(tracer, {
+    spanName: "safety_agent.guard",
+    includeSegmentEvents: true,
+  }),
+});
+```
+
+## Python
+
+```python
+from opentelemetry import trace
+from safety_agent import create_client, create_otel_guard_hooks
+
+client = create_client()
+tracer = trace.get_tracer("my-app")
+
+result = await client.guard(
+    input="user message to analyze",
+    model="openai/gpt-4o-mini",
+    hooks=create_otel_guard_hooks(tracer, include_segment_events=True),
+)
+```

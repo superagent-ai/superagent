@@ -60,3 +60,7 @@ export {
   buildRedactUserMessage,
   buildRedactSystemPrompt,
 } from "./prompts/redact.js";
+
+// Observability helpers
+export { createOtelGuardHooks } from "./observability/otel.js";
+export type { OtelGuardHookOptions, OtelTracerLike, OtelSpanLike } from "./observability/otel.js";
