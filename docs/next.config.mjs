@@ -9,8 +9,13 @@ const config = {
     return [
       {
         source: '/',
-        destination: '/safety-agent',
+        destination: '/sdk',
         permanent: false,
+      },
+      {
+        source: '/safety-agent/:path*',
+        destination: '/sdk/:path*',
+        permanent: true,
       },
     ];
   },

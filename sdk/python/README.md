@@ -1,6 +1,6 @@
-# Safety Agent Python SDK
+# Superagent SDK (Python)
 
-A lightweight Python guardrail SDK for content safety. Guard against prompt injections, jailbreaks, and data exfiltration. Redact PII, PHI, and secrets from text.
+An open-source SDK for AI agent safety. Guard against prompt injections, redact sensitive data, and scan repositories for threats.
 
 ## Installation
 

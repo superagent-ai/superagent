@@ -4,7 +4,7 @@
   "icon": "Building",
   "root": true,
   "pages": [
-    "safety-agent",
+    "sdk",
     "legacy"
   ]
 }

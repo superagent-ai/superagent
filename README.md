@@ -2,10 +2,10 @@
   <img src="logo.png" width="80" alt="Superagent" />
 </p>
 
-<h1 align="center">Superagent</h1>
+<h1 align="center">Superagent SDK</h1>
 
 <p align="center">
-  <strong>Make your AI safe. And prove it.</strong>
+  <strong>Make your AI apps safe.</strong>
 </p>
 
 <p align="center">
@@ -23,15 +23,13 @@
 
 ---
 
-Superagent protects your AI applications against prompt injections, data leaks, and harmful outputs. Embed safety directly into your app and prove compliance to your customers.
+An open-source SDK for AI agent safety. Block prompt injections, redact PII and secrets, scan repositories for threats, and run red team scenarios against your agent.
 
-## Safety Agent
-
-The Safety Agent integrates with your AI to stop attacks and protect sensitive data in real-time.
+## Features
 
 ### Guard
 
-Block prompt injections, jailbreaks, and data exfiltration before they reach your models.
+Detect and block prompt injections, malicious instructions, and unsafe tool calls at runtime.
 
 **TypeScript:**
 
@@ -64,7 +62,7 @@ if result.classification == "block":
 
 ### Redact
 
-Remove PII, PHI, and secrets from text in real-time. Enable privacy and compliance without manual review.
+Remove PII, PHI, and secrets from text automatically.
 
 **TypeScript:**
 
@@ -92,7 +90,7 @@ print(result.redacted)
 
 ### Scan
 
-Analyze repositories for AI agent-targeted attacks like repo poisoning, prompt injections, and malicious instructions. Runs in a secure Daytona sandbox.
+Analyze repositories for AI agent-targeted attacks such as repo poisoning and malicious instructions.
 
 **TypeScript:**
 
@@ -114,17 +112,18 @@ print(result.result)  # Security report
 print(f"Cost: ${result.usage.cost:.4f}")
 ```
 
-## Safety Tests
+### Test
 
-Adversarial tests that probe your AI for prompt injection weaknesses, data leakage paths, and failure modes. Find vulnerabilities before attackers do and get evidence for compliance.
+Run red team scenarios against your production agent. *(Coming soon)*
 
-[Learn more →](https://superagent.sh/product/safety-tests)
+```typescript
+const result = await client.test({
+  endpoint: "https://your-agent.com/chat",
+  scenarios: ["prompt_injection", "data_exfiltration"]
+});
 
-## Safety Page
-
-A shareable page that shows your guardrails and test results. Close enterprise deals without scrambling to answer security questionnaires.
-
-[Learn more →](https://superagent.sh/product/safety-page)
+console.log(result.findings);  // Vulnerabilities discovered
+```
 
 ## Get Started
 
@@ -157,13 +156,24 @@ export SUPERAGENT_API_KEY=your-key
 | **CLI** | Command-line tool for testing and automation | [cli](cli/README.md) |
 | **MCP Server** | Use with Claude Code and Claude Desktop | [mcp](mcp/README.md) |
 
-## Why Superagent?
+## Why Superagent SDK?
 
-- **Low latency** — Optimized for runtime use without compromising performance
-- **Any LLM** — Works with OpenAI, Anthropic, Google, Groq, Bedrock, and more
+- **Works with any model** — OpenAI, Anthropic, Google, Groq, Bedrock, and more
+- **Open-weight models** — Run Guard on your infrastructure with 50-100ms latency
+- **Low latency** — Optimized for runtime use
 - **Open source** — MIT license with full transparency
-- **Compliance-ready** — Maps to EU AI Act, SOC 2, HIPAA, and GDPR requirements
-- **Production-proven** — Trusted by Y Combinator companies shipping AI at scale
+
+## Open-Weight Models
+
+Run Guard on your own infrastructure. No API calls, no data leaving your environment.
+
+| Model | Parameters | Use Case |
+|-------|------------|----------|
+| [superagent-guard-0.6b](https://huggingface.co/superagent-ai/superagent-guard-0.6b) | 0.6B | Fast inference, edge deployment |
+| [superagent-guard-1.7b](https://huggingface.co/superagent-ai/superagent-guard-1.7b) | 1.7B | Balanced speed and accuracy |
+| [superagent-guard-4b](https://huggingface.co/superagent-ai/superagent-guard-4b) | 4B | Maximum accuracy |
+
+GGUF versions for CPU: [0.6b-gguf](https://huggingface.co/superagent-ai/superagent-guard-0.6b-gguf) · [1.7b-gguf](https://huggingface.co/superagent-ai/superagent-guard-1.7b-gguf) · [4b-gguf](https://huggingface.co/superagent-ai/superagent-guard-4b-gguf)
 
 ## Resources
 

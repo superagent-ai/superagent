@@ -1,0 +1,124 @@
+---
+title: What is Superagent SDK?
+description: An open-source SDK for AI agent safety
+---
+
+Modern AI apps rely on agents that read data, follow instructions, call tools, and produce outputs users trust. These systems fail in ways traditional software does not: prompt injections, data leakage, unsafe tool actions, and workflow failures. Superagent SDK helps developers make their AI apps safe.
+
+## Core Methods
+
+The SDK provides four core methods that teams embed directly into their AI app. Run them on inputs, outputs, or intermediate steps. Works with **any language model**.
+
+```bash
+npm install safety-agent
+```
+
+<Cards className="grid-cols-4">
+  <IconCard
+    title="Guard"
+    href="/sdk/sdk/typescript#guard"
+    description="Detect and block prompt injections, malicious instructions, and unsafe tool calls"
+    icon={<Shield className="size-4" />}
+  />
+  <IconCard
+    title="Redact"
+    href="/sdk/sdk/typescript#redact"
+    description="Remove PII, PHI, and secrets from text automatically"
+    icon={<EyeOff className="size-4" />}
+  />
+  <IconCard
+    title="Scan"
+    href="/sdk/sdk/typescript#scan"
+    description="Analyze repositories for AI agent-targeted attacks"
+    icon={<Search className="size-4" />}
+  />
+  <IconCard
+    title="Test"
+    href="/sdk/quickstart#test"
+    description="Run red team scenarios against your production agent"
+    icon={<FlaskConical className="size-4" />}
+  />
+</Cards>
+
+### Why Superagent SDK
+
+- **Free guard model**: No API keys required for guard out of the box
+- **Works with any model**: OpenAI, Anthropic, Google, Bedrock, Groq, Fireworks, and more
+- **Open-weight models**: [Run Guard on your own infrastructure](/sdk/models) with 50-100ms latency
+- **Low latency**: Parallel processing for large inputs and multi-page documents
+- **File support**: Analyze PDFs, images, and URLs directly
+- **Flexible integration**: Run on inputs, outputs, or any intermediate step
+
+### Quick Example
+
+```typescript
+import { createClient } from "safety-agent";
+
+const client = createClient();
+
+// Guard - Uses default Superagent model (no API keys required)
+const guardResult = await client.guard({
+  input: "user message to analyze"
+});
+
+if (guardResult.classification === "block") {
+  console.log("Blocked:", guardResult.violation_types);
+}
+
+// Redact - Remove sensitive data
+const redactResult = await client.redact({
+  input: "My email is john@example.com and SSN is 123-45-6789",
+  model: "openai/gpt-4o-mini"
+});
+
+console.log(redactResult.redacted);
+// "My email is <EMAIL_REDACTED> and SSN is <SSN_REDACTED>"
+
+// Scan - Check repos for threats
+const scanResult = await client.scan({
+  repo: "https://github.com/user/repo"
+});
+
+console.log(scanResult.result);  // Security report
+```
+
+## Get Started
+
+<Cards className="grid-cols-2">
+  <IconCard
+    title="Quickstart"
+    href="/sdk/quickstart"
+    description="Install the SDK and make your first call in minutes"
+    icon={<Rocket className="size-4" />}
+  />
+  <IconCard
+    title="TypeScript SDK"
+    href="/sdk/sdk/typescript"
+    description="Full API reference for TypeScript"
+    icon={<Code className="size-4" />}
+  />
+  <IconCard
+    title="Python SDK"
+    href="/sdk/sdk/python"
+    description="Full API reference for Python"
+    icon={<Code className="size-4" />}
+  />
+  <IconCard
+    title="Providers"
+    href="/sdk/providers"
+    description="Supported LLM providers and configuration"
+    icon={<Server className="size-4" />}
+  />
+</Cards>
+
+## Legacy API
+
+Looking for the hosted API with purpose-trained models? See the [Legacy documentation](/legacy/quickstart).
+
+## Support
+
+Need help or have questions? Connect with us:
+
+- **X (Twitter)**: Follow [@superagent_ai](https://x.com/superagent_ai) for updates and announcements
+- **Discord**: Join our community at [discord.gg/spZ7MnqFT4](https://discord.gg/spZ7MnqFT4) for support and discussions
+- **GitHub**: Check out our source code and contribute at [github.com/superagent-ai/superagent](https://github.com/superagent-ai/superagent)

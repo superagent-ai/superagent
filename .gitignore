@@ -116,3 +116,4 @@ temp/
 
 # Coding agents
 .claude/
+AGENTS.md

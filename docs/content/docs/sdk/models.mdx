@@ -1,0 +1,50 @@
+---
+title: Open-Weight Models
+description: Run Guard on your own infrastructure with no API calls
+---
+
+# Open-Weight Models
+
+We publish Guard models on HuggingFace that you can run on your own infrastructure. No API calls, no data leaving your environment. 50-100ms latency on CPU or GPU.
+
+## Available Models
+
+| Model | Parameters | Format | Use Case |
+|-------|------------|--------|----------|
+| [superagent-guard-0.6b](https://huggingface.co/superagent-ai/superagent-guard-0.6b) | 0.6B | Safetensors | Fast inference, edge deployment |
+| [superagent-guard-1.7b](https://huggingface.co/superagent-ai/superagent-guard-1.7b) | 1.7B | Safetensors | Balanced speed and accuracy |
+| [superagent-guard-4b](https://huggingface.co/superagent-ai/superagent-guard-4b) | 4B | Safetensors | Maximum accuracy |
+
+## GGUF (CPU Inference)
+
+Quantized versions optimized for CPU inference with llama.cpp:
+
+| Model | Parameters | Download |
+|-------|------------|----------|
+| superagent-guard-0.6b-gguf | 0.6B | [HuggingFace](https://huggingface.co/superagent-ai/superagent-guard-0.6b-gguf) |
+| superagent-guard-1.7b-gguf | 1.7B | [HuggingFace](https://huggingface.co/superagent-ai/superagent-guard-1.7b-gguf) |
+| superagent-guard-4b-gguf | 4B | [HuggingFace](https://huggingface.co/superagent-ai/superagent-guard-4b-gguf) |
+
+## When to Self-Host
+
+Self-host the models when you need:
+
+- **Data residency**: Keep all data on your infrastructure
+- **Air-gapped environments**: No external API calls
+- **Cost control**: No per-request pricing at scale
+- **Latency guarantees**: Predictable inference times
+
+## Getting Started
+
+Download a model from HuggingFace and run it with your preferred inference framework (vLLM, llama.cpp, Transformers, etc.).
+
+```bash
+# Clone a model
+git lfs install
+git clone https://huggingface.co/superagent-ai/superagent-guard-1.7b
+
+# Or download GGUF for CPU
+huggingface-cli download superagent-ai/superagent-guard-1.7b-gguf
+```
+
+Browse all models: [huggingface.co/superagent-ai](https://huggingface.co/superagent-ai)
