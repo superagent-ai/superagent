@@ -1,6 +1,6 @@
 ---
 title: Quickstart
-description: Get started with Safety Agent in minutes
+description: Get started with Superagent SDK in minutes
 ---
 
 # Quickstart
@@ -46,7 +46,7 @@ export ANTHROPIC_API_KEY=your-key
 export GOOGLE_API_KEY=your-key
 ```
 
-See [Providers](/safety-agent/providers) for the full list of supported providers and their environment variables.
+See [Providers](/sdk/providers) for the full list of supported providers and their environment variables.
 
 ## Initialize the Client
 
@@ -115,24 +115,34 @@ console.log(result.findings);
 // ["Email address", "Phone number"]
 ```
 
-## Analyze
+## Test
 
-Deep inspection of files and documents—PDFs, code repositories, and pull requests. Returns reasoning, findings, and suggested fixes.
+Run red team scenarios against your production agent. Find vulnerabilities before attackers do.
 
 <Callout type="info">
-  The `analyze()` method is coming soon. See the [Analyze](/safety-agent/methods/analyze) page for details.
+  The `test()` method is coming soon.
 </Callout>
+
+```typescript
+// Coming soon
+const result = await client.test({
+  endpoint: "https://your-agent.com/chat",
+  scenarios: ["prompt_injection", "data_exfiltration"]
+});
+
+console.log(result.findings);  // Vulnerabilities discovered
+```
 
 ## Next Steps
 
 <Cards>
-  <Card title="Guard" href="/safety-agent/methods/guard">
-    Full API reference for detecting unsafe content
+  <Card title="TypeScript SDK" href="/sdk/sdk/typescript">
+    Full API reference for TypeScript
   </Card>
-  <Card title="Redact" href="/safety-agent/methods/redact">
-    Full API reference for removing sensitive data
+  <Card title="Python SDK" href="/sdk/sdk/python">
+    Full API reference for Python
   </Card>
-  <Card title="Providers" href="/safety-agent/providers">
+  <Card title="Providers" href="/sdk/providers">
     Supported LLM providers and configuration
   </Card>
 </Cards>

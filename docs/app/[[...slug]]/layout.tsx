@@ -3,6 +3,25 @@ import { baseOptions } from '@/lib/layout.shared';
 import { source } from '@/lib/source';
 import Image from 'next/image';
 
+function SuperagentSdkIcon() {
+  return (
+    <div className="size-5 relative">
+      <Image
+        src="/superagent-logo-square-flat-favicon.webp"
+        alt="Superagent SDK"
+        fill
+        className="rounded object-contain dark:hidden"
+      />
+      <Image
+        src="/superagent-logo-square-flat-favicon-dark.webp"
+        alt="Superagent SDK"
+        fill
+        className="rounded object-contain hidden dark:block"
+      />
+    </div>
+  );
+}
+
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <DocsLayout 
@@ -11,19 +30,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       sidebar={{
         tabs: {
           transform: (option, node) => {
-            if (option.url?.includes('safety-agent')) {
+            if (option.url?.includes('/sdk')) {
               return {
                 ...option,
-                icon: (
-                  <div className="size-5 relative">
-                    <Image
-                      src="/logo.png"
-                      alt="Safety Agent"
-                      fill
-                      className="rounded object-contain"
-                    />
-                  </div>
-                ),
+                icon: <SuperagentSdkIcon />,
               };
             }
             if (option.url?.includes('legacy')) {

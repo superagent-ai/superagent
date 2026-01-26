@@ -1,6 +1,6 @@
-# Superagent Safety Agent
+# Superagent SDK (TypeScript)
 
-A lightweight TypeScript guardrail SDK for content safety with support for multiple LLM providers.
+An open-source SDK for AI agent safety. Guard against prompt injections, redact sensitive data, and scan repositories for threats.
 
 
 ## Installation

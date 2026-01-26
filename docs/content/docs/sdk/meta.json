@@ -1,12 +1,13 @@
 {
-  "title": "Safety Agent",
-  "description": "Embed safety directly into your AI app with any LLM",
+  "title": "Superagent SDK",
+  "description": "An open-source SDK for AI agent safety",
   "root": true,
   "defaultOpen": true,
   "pages": [
     "index",
     "quickstart",
     "sdk",
+    "models",
     "mcp",
     "cli",
     "providers",
