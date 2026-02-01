@@ -136,6 +136,12 @@ def _supports_structured_output(model_string: str) -> bool:
     if provider == "openai":
         return True
 
+    if provider == "openai-compatible":
+        flag = os.environ.get("OPENAI_COMPATIBLE_SUPPORTS_STRUCTURED_OUTPUT", "")
+        if not flag:
+            return False
+        return not re.match(r"^(false|0|no|off)$", flag.strip(), re.IGNORECASE)
+
     if provider == "vercel":
         return True
 

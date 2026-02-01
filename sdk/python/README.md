@@ -99,6 +99,7 @@ print(result.findings)
 ## Supported Providers
 
 - OpenAI (`openai/gpt-4o`, `openai/gpt-4o-mini`, etc.)
+- OpenAI Compatible (`openai-compatible/my-model`, etc.)
 - Anthropic (`anthropic/claude-3-5-sonnet-20241022`, etc.)
 - Google (`google/gemini-2.0-flash`, etc.)
 - AWS Bedrock (`bedrock/us.anthropic.claude-3-5-sonnet-20241022-v2:0`, etc.)
@@ -115,6 +116,8 @@ Configure provider API keys:
 ```bash
 export SUPERAGENT_API_KEY=your-superagent-key
 export OPENAI_API_KEY=your-openai-key
+export OPENAI_COMPATIBLE_API_KEY=your-openai-compatible-key
+export OPENAI_COMPATIBLE_BASE_URL=https://your-endpoint/v1
 export ANTHROPIC_API_KEY=your-anthropic-key
 export GOOGLE_API_KEY=your-google-key
 export GROQ_API_KEY=your-groq-key

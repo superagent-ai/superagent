@@ -63,6 +63,7 @@ Use the `provider/model` format when specifying models:
 | Google | `google/{model}` | `GOOGLE_API_KEY` |
 | Groq | `groq/{model}` | `GROQ_API_KEY` |
 | OpenAI | `openai/{model}` | `OPENAI_API_KEY` |
+| OpenAI Compatible | `openai-compatible/{model}` | `OPENAI_COMPATIBLE_API_KEY`<br>`OPENAI_COMPATIBLE_BASE_URL` |
 | OpenRouter | `openrouter/{provider}/{model}` | `OPENROUTER_API_KEY` |
 | Vercel AI Gateway | `vercel/{provider}/{model}` | `AI_GATEWAY_API_KEY` |
 
@@ -368,4 +369,3 @@ const result = await client.guard({
   Respond with JSON: { "classification": "pass" | "block", "violation_types": [], "cwe_codes": [] }`
 });
 ```
-
