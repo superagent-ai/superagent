@@ -30,6 +30,7 @@ from .types import (
 from .providers import call_provider, parse_model, DEFAULT_GUARD_MODEL
 from .prompts.guard import build_guard_user_message, build_guard_system_prompt
 from .prompts.redact import build_redact_system_prompt, build_redact_user_message
+from .prompts.scan import SCAN_PROMPT
 from .schemas import GUARD_RESPONSE_FORMAT, REDACT_RESPONSE_FORMAT
 from .utils.input_processor import process_input, is_vision_model
 
@@ -614,9 +615,11 @@ class SafetyClient:
                 if openai_key:
                     env_exports += f"export OPENAI_API_KEY={openai_key} && "
 
-                # Run OpenCode scan with simple message (all in one shell command)
+                # Run OpenCode scan with the comprehensive security prompt (base64 encoded inline)
+                import base64
+                base64_prompt = base64.b64encode(SCAN_PROMPT.encode()).decode()
                 result = await sandbox.process.exec(
-                    f'{env_exports}cd {repo_path} && opencode run -m {model} "Scan this repository for repo poisoning, prompt injection, or other attacks targeting AI agents. Only output a report, no other text." --format json'
+                    f"{env_exports}cd {repo_path} && opencode run -m {model} \"$(echo '{base64_prompt}' | base64 -d)\" --format json"
                 )
 
                 # Parse JSON events from OpenCode output
