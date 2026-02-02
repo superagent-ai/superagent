@@ -1,6 +1,6 @@
 {
   "name": "safety-agent-cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "CLI for Superagent - validate prompts and tool calls for security",
   "type": "module",
   "main": "./dist/index.js",
