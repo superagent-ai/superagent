@@ -118,6 +118,12 @@ function supportsStructuredOutput(modelString: string): boolean {
     return true;
   }
 
+  if (provider === "openai-compatible") {
+    const flag = process.env.OPENAI_COMPATIBLE_SUPPORTS_STRUCTURED_OUTPUT;
+    if (!flag) return false;
+    return !/^(false|0|no|off)$/i.test(flag.trim().toLowerCase());
+  }
+
   // Vercel AI Gateway uses OpenAI-compatible API format with structured output support
   if (provider === "vercel") {
     return true;

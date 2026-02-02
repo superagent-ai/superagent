@@ -16,6 +16,7 @@ from .bedrock import bedrock_provider
 from .groq import groq_provider
 from .fireworks import fireworks_provider
 from .openrouter import openrouter_provider
+from .openai_compatible import openai_compatible_provider
 from .vercel import vercel_provider
 from .superagent import superagent_provider
 
@@ -25,6 +26,7 @@ DEFAULT_GUARD_MODEL = "superagent/guard-1.7b"
 # Registry of supported providers
 providers: dict[str, Any] = {
     "openai": openai_provider,
+    "openai-compatible": openai_compatible_provider,
     "anthropic": anthropic_provider,
     "google": google_provider,
     "bedrock": bedrock_provider,

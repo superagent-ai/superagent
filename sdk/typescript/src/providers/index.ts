@@ -9,6 +9,7 @@ import { groqProvider } from "./groq.js";
 import { fireworksProvider } from "./fireworks.js";
 import { openrouterProvider } from "./openrouter.js";
 import { superagentProvider } from "./superagent.js";
+import { openaiCompatibleProvider } from "./openai-compatible.js";
 
 /**
  * Default model for guard() when no model is specified
@@ -20,6 +21,7 @@ export const DEFAULT_GUARD_MODEL = "superagent/guard-1.7b";
  */
 export const providers: Record<string, ProviderConfig> = {
   openai: openaiProvider,
+  "openai-compatible": openaiCompatibleProvider,
   anthropic: anthropicProvider,
   google: googleProvider,
   bedrock: bedrockProvider,

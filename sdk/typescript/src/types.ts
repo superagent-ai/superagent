@@ -44,6 +44,12 @@ type OpenAIModel =
   | "openai/o4-mini-deep-research";
 
 /**
+ * OpenAI-compatible model identifiers
+ * Accepts any model name under the openai-compatible provider
+ */
+type OpenAICompatibleModel = `openai-compatible/${string}`;
+
+/**
  * Anthropic model identifiers
  */
 type AnthropicModel =
@@ -776,6 +782,7 @@ type SuperagentModel =
  */
 export type SupportedModel =
   | OpenAIModel
+  | OpenAICompatibleModel
   | AnthropicModel
   | GoogleModel
   | BedrockModel
