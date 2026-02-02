@@ -20,6 +20,20 @@ export async function redactCommand(args: string[]) {
     }
   }
 
+  // Check for --model flag
+  const modelFlagIndex = args.indexOf("--model");
+  let model: string | undefined;
+
+  if (modelFlagIndex !== -1) {
+    model = args[modelFlagIndex + 1];
+    if (!model || model.startsWith("--")) {
+      console.error("❌ ERROR: --model flag requires a value");
+      process.exit(1);
+    }
+    // Remove --model and its value from args
+    args.splice(modelFlagIndex, 2);
+  }
+
   // Check for --rewrite flag
   const rewriteFlagIndex = args.indexOf("--rewrite");
   let rewrite: boolean | undefined;
@@ -68,10 +82,10 @@ export async function redactCommand(args: string[]) {
 
     if (!text) {
       console.error(
-        "Usage: superagent redact [--entities <entity1,entity2>] [--rewrite] <text>"
+        "Usage: superagent redact [--entities <entity1,entity2>] [--rewrite] [--model <id>] <text>"
       );
       console.error(
-        '   or: echo \'{"text": "..."}\' | superagent redact [--entities <entity1,entity2>] [--rewrite]'
+        '   or: echo \'{"text": "..."}\' | superagent redact [--entities <entity1,entity2>] [--rewrite] [--model <id>]'
       );
       console.error("");
       console.error("Options:");
@@ -81,6 +95,9 @@ export async function redactCommand(args: string[]) {
       console.error(
         "  --rewrite                 Naturally rewrite content instead of using placeholders"
       );
+      console.error(
+        "  --model <id>              Model to use (default: openai/gpt-4o-mini)"
+      );
       console.error("");
       console.error("Examples:");
       console.error('  superagent redact "My email is john@example.com"');
@@ -89,6 +106,9 @@ export async function redactCommand(args: string[]) {
       );
       console.error(
         '  superagent redact --rewrite "Contact me at john@example.com"'
+      );
+      console.error(
+        '  superagent redact --model openai/gpt-4o "My email is john@example.com"'
       );
       process.exit(1);
     }
@@ -108,7 +128,7 @@ export async function redactCommand(args: string[]) {
   try {
     const result = await client.redact({
       input: text,
-      model: "openai/gpt-4o-mini",
+      model: (model as any) || "openai/gpt-4o-mini",
       entities,
       rewrite,
     });

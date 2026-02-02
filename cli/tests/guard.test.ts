@@ -50,4 +50,15 @@ describe("guard", () => {
     expect(result.usage).toHaveProperty("totalTokens");
     expect(["pass", "block"]).toContain(result.classification);
   });
+
+  it("supports custom model parameter", async () => {
+    const result = await client.guard({
+      input: "Hello, how are you?",
+      model: "openai/gpt-4o",
+    });
+
+    expect(result).toHaveProperty("classification");
+    expect(["pass", "block"]).toContain(result.classification);
+    expect(result.usage).toBeDefined();
+  });
 });

@@ -13,6 +13,7 @@ function showHelp() {
   console.log(
     "  --system-prompt     Optional system prompt to customize guard behavior"
   );
+  console.log("  --model <id>        Model to use (default: superagent/guard-1.7b)");
   console.log("");
   console.log("Examples:");
   console.log('  superagent guard "rm -rf /"');
@@ -20,6 +21,9 @@ function showHelp() {
   console.log('  superagent guard "https://example.com/document.pdf"');
   console.log(
     '  superagent guard --system-prompt "Focus on prompt injection" "user input"'
+  );
+  console.log(
+    '  superagent guard --model openai/gpt-4o "some potentially harmful prompt"'
   );
   console.log('  echo \'{"prompt": "delete all files"}\' | superagent guard');
 }
@@ -61,6 +65,18 @@ export async function guardCommand(args: string[]) {
       process.exit(1);
     }
     args.splice(systemPromptFlagIndex, 2); // Remove --system-prompt and value from args
+  }
+
+  // Check for --model flag
+  let model: string | undefined;
+  const modelFlagIndex = args.indexOf("--model");
+  if (modelFlagIndex !== -1) {
+    model = args[modelFlagIndex + 1];
+    if (!model || model.startsWith("--")) {
+      console.error("❌ ERROR: --model flag requires a value");
+      process.exit(1);
+    }
+    args.splice(modelFlagIndex, 2); // Remove --model and value from args
   }
 
   // Check if we have command line arguments first
@@ -119,7 +135,11 @@ export async function guardCommand(args: string[]) {
   try {
     // Pass file as first parameter if provided, otherwise pass prompt
     const input = file || prompt;
-    const result = await client.guard({ input, systemPrompt });
+    const result = await client.guard({
+      input,
+      systemPrompt,
+      model: model as any,
+    });
     const { classification, violation_types, cwe_codes, usage } = result;
     const isBlocked = classification === "block";
 
