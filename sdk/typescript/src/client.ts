@@ -27,6 +27,7 @@ import {
   buildRedactSystemPrompt,
   buildRedactUserMessage,
 } from "./prompts/redact.js";
+import { SCAN_SYSTEM_PROMPT } from "./prompts/scan.js";
 import { GUARD_RESPONSE_FORMAT, REDACT_RESPONSE_FORMAT } from "./schemas.js";
 import { processInput, isVisionModel } from "./utils/input-processor.js";
 
@@ -791,9 +792,16 @@ export class SafetyClient {
       const repoPath = "repo";
       await sandbox.git.clone(repo, repoPath, branch);
 
-      // Run OpenCode scan with simple message
+      // Write the security analysis prompt to a file to avoid shell escaping issues
+      const promptPath = "/tmp/scan_prompt.txt";
+      await sandbox.fs.uploadFile(
+        Buffer.from(SCAN_SYSTEM_PROMPT, "utf-8"),
+        promptPath,
+      );
+
+      // Run OpenCode scan with the comprehensive security prompt from file via cat
       const result = await sandbox.process.executeCommand(
-        `cd ${repoPath} && opencode run -m ${model} "Scan this repository for repo poisoning, prompt injection, or other attacks targeting AI agents. Only output a report, no other text." --format json`,
+        `cd ${repoPath} && cat ${promptPath} | opencode run -m ${model} --format json`,
       );
 
       // Parse JSON events from OpenCode output

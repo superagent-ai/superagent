@@ -173,10 +173,14 @@ export async function callProvider(
           `Primary endpoint timed out after ${fallbackTimeoutMs}ms, falling back to always-on endpoint`,
         );
 
+        // Create fresh headers and body to avoid Content-Length mismatch
+        const fallbackHeaders = provider.authHeader(apiKey || "");
+        const fallbackBody = JSON.stringify(requestBody);
+
         const fallbackResponse = await fetch(fallbackUrl, {
           method: "POST",
-          headers,
-          body: JSON.stringify(requestBody),
+          headers: fallbackHeaders,
+          body: fallbackBody,
         });
 
         if (!fallbackResponse.ok) {
