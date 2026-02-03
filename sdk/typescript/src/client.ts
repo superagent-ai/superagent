@@ -17,6 +17,7 @@ import {
   callProvider,
   parseModel,
   DEFAULT_GUARD_MODEL,
+  FallbackOptions,
 } from "./providers/index.js";
 import {
   buildGuardUserMessage,
@@ -420,6 +421,7 @@ function supportsStructuredOutput(modelString: string): boolean {
  */
 export class SafetyClient {
   private apiKey: string;
+  private fallbackOptions: FallbackOptions;
 
   constructor(config?: ClientConfig) {
     const apiKey = config?.apiKey ?? process.env.SUPERAGENT_API_KEY;
@@ -429,6 +431,11 @@ export class SafetyClient {
       );
     }
     this.apiKey = apiKey;
+    this.fallbackOptions = {
+      enableFallback: config?.enableFallback,
+      fallbackTimeoutMs: config?.fallbackTimeoutMs,
+      fallbackUrl: config?.fallbackUrl,
+    };
   }
 
   /**
@@ -475,7 +482,12 @@ export class SafetyClient {
     const responseFormat = supportsStructuredOutput(model)
       ? GUARD_RESPONSE_FORMAT
       : undefined;
-    const response = await callProvider(model, messages, responseFormat);
+    const response = await callProvider(
+      model,
+      messages,
+      responseFormat,
+      this.fallbackOptions,
+    );
     const content = response.choices[0]?.message?.content;
 
     if (!content) {
@@ -539,7 +551,12 @@ export class SafetyClient {
     const responseFormat = supportsStructuredOutput(model)
       ? GUARD_RESPONSE_FORMAT
       : undefined;
-    const response = await callProvider(model, messages, responseFormat);
+    const response = await callProvider(
+      model,
+      messages,
+      responseFormat,
+      this.fallbackOptions,
+    );
     const content = response.choices[0]?.message?.content;
 
     if (!content) {
@@ -668,7 +685,12 @@ export class SafetyClient {
     const responseFormat = supportsStructuredOutput(model)
       ? REDACT_RESPONSE_FORMAT
       : undefined;
-    const response = await callProvider(model, messages, responseFormat);
+    const response = await callProvider(
+      model,
+      messages,
+      responseFormat,
+      this.fallbackOptions,
+    );
     const content = response.choices[0]?.message?.content;
 
     if (!content) {

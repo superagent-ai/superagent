@@ -27,7 +27,7 @@ from .types import (
     ProcessedInput,
     MultimodalContentPart,
 )
-from .providers import call_provider, parse_model, DEFAULT_GUARD_MODEL
+from .providers import call_provider, parse_model, DEFAULT_GUARD_MODEL, FallbackOptions
 from .prompts.guard import build_guard_user_message, build_guard_system_prompt
 from .prompts.redact import build_redact_system_prompt, build_redact_user_message
 from .prompts.scan import SCAN_SYSTEM_PROMPT
@@ -215,6 +215,11 @@ class SafetyClient:
             )
 
         self._api_key = api_key
+        self._fallback_options = FallbackOptions(
+            enable_fallback=config.enable_fallback if config else None,
+            fallback_timeout=config.fallback_timeout if config else None,
+            fallback_url=config.fallback_url if config else None,
+        )
 
     def _post_usage(self, usage: TokenUsage) -> None:
         """Post usage metrics to Superagent dashboard (fire and forget)."""
@@ -259,7 +264,9 @@ class SafetyClient:
         response_format = (
             GUARD_RESPONSE_FORMAT if _supports_structured_output(model) else None
         )
-        response = await call_provider(model, messages, response_format)
+        response = await call_provider(
+            model, messages, response_format, self._fallback_options
+        )
         content = response.choices[0].message.content
 
         if not content:
@@ -315,7 +322,9 @@ class SafetyClient:
         response_format = (
             GUARD_RESPONSE_FORMAT if _supports_structured_output(model) else None
         )
-        response = await call_provider(model, messages, response_format)
+        response = await call_provider(
+            model, messages, response_format, self._fallback_options
+        )
         content = response.choices[0].message.content
 
         if not content:
@@ -499,7 +508,9 @@ class SafetyClient:
         response_format = (
             REDACT_RESPONSE_FORMAT if _supports_structured_output(model) else None
         )
-        response = await call_provider(model, messages, response_format)
+        response = await call_provider(
+            model, messages, response_format, self._fallback_options
+        )
         content = response.choices[0].message.content
 
         if not content:
@@ -703,6 +714,9 @@ def create_client(
     api_key: str | None = None,
     *,
     config: ClientConfig | None = None,
+    enable_fallback: bool | None = None,
+    fallback_timeout: float | None = None,
+    fallback_url: str | None = None,
 ) -> SafetyClient:
     """
     Create a new Safety Agent client.
@@ -710,10 +724,27 @@ def create_client(
     Args:
         api_key: API key for Superagent usage tracking
         config: Optional client configuration
+        enable_fallback: Enable fallback to always-on endpoint on cold start timeout.
+            Default: True for superagent provider.
+        fallback_timeout: Timeout in seconds before falling back. Default: 5.0.
+        fallback_url: Custom fallback URL. If not provided, uses env var or default.
 
     Returns:
         SafetyClient instance
     """
-    if api_key:
-        config = ClientConfig(api_key=api_key)
+    if config is None:
+        config = ClientConfig(
+            api_key=api_key,
+            enable_fallback=enable_fallback,
+            fallback_timeout=fallback_timeout,
+            fallback_url=fallback_url,
+        )
+    elif api_key:
+        # Override api_key if provided directly
+        config = ClientConfig(
+            api_key=api_key,
+            enable_fallback=enable_fallback or config.enable_fallback,
+            fallback_timeout=fallback_timeout or config.fallback_timeout,
+            fallback_url=fallback_url or config.fallback_url,
+        )
     return SafetyClient(config)

@@ -3,6 +3,7 @@ Superagent provider configuration (Ollama-style API)
 """
 
 import json
+import os
 import re
 from typing import Any
 
@@ -15,6 +16,23 @@ MODEL_ENDPOINTS = {
     "guard-1.7b": "https://superagent-guard-small-408394858807.us-central1.run.app/api/chat",
     "guard-4b": "https://superagent-guard-medium-408394858807.us-central1.run.app/api/chat",
 }
+
+# Default fallback URL for cold start mitigation.
+# This always-on endpoint handles requests when the primary endpoint has a cold start.
+DEFAULT_FALLBACK_URL = "https://superagent.sh/api/fallback"
+
+# Default timeout in seconds before falling back to the always-on endpoint.
+DEFAULT_FALLBACK_TIMEOUT = 5.0
+
+
+def get_fallback_url(client_option: str | None = None) -> str:
+    """
+    Get the fallback URL based on priority:
+    1. Client option (highest priority)
+    2. Environment variable SUPERAGENT_FALLBACK_URL
+    3. Default constant (lowest priority)
+    """
+    return client_option or os.environ.get("SUPERAGENT_FALLBACK_URL") or DEFAULT_FALLBACK_URL
 
 
 class SuperagentProvider:

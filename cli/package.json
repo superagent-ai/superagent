@@ -1,6 +1,6 @@
 {
   "name": "safety-agent-cli",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "CLI for Superagent - validate prompts and tool calls for security",
   "type": "module",
   "main": "./dist/index.js",
@@ -42,6 +42,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "safety-agent": "^0.1.3"
+    "safety-agent": "^0.1.4"
   }
 }
