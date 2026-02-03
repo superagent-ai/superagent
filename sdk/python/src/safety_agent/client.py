@@ -30,6 +30,7 @@ from .types import (
 from .providers import call_provider, parse_model, DEFAULT_GUARD_MODEL
 from .prompts.guard import build_guard_user_message, build_guard_system_prompt
 from .prompts.redact import build_redact_system_prompt, build_redact_user_message
+from .prompts.scan import SCAN_SYSTEM_PROMPT
 from .schemas import GUARD_RESPONSE_FORMAT, REDACT_RESPONSE_FORMAT
 from .utils.input_processor import process_input, is_vision_model
 
@@ -607,6 +608,13 @@ class SafetyClient:
                 branch_arg = f"-b {branch}" if branch else ""
                 await sandbox.process.exec(f"git clone {branch_arg} {repo} {repo_path}")
 
+                # Write the security analysis prompt to a file to avoid shell escaping issues
+                prompt_path = "/tmp/scan_prompt.txt"
+                await sandbox.fs.upload_file(
+                    SCAN_SYSTEM_PROMPT.encode("utf-8"),
+                    prompt_path
+                )
+
                 # Build the full command with env vars, cd, and opencode run
                 env_exports = ""
                 if anthropic_key:
@@ -614,9 +622,9 @@ class SafetyClient:
                 if openai_key:
                     env_exports += f"export OPENAI_API_KEY={openai_key} && "
 
-                # Run OpenCode scan with simple message (all in one shell command)
+                # Run OpenCode scan with the comprehensive security prompt from file via cat
                 result = await sandbox.process.exec(
-                    f'{env_exports}cd {repo_path} && opencode run -m {model} "Scan this repository for repo poisoning, prompt injection, or other attacks targeting AI agents. Only output a report, no other text." --format json'
+                    f"{env_exports}cd {repo_path} && cat {prompt_path} | opencode run -m {model} --format json"
                 )
 
                 # Parse JSON events from OpenCode output
