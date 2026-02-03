@@ -17,6 +17,7 @@ import {
   callProvider,
   parseModel,
   DEFAULT_GUARD_MODEL,
+  FallbackOptions,
 } from "./providers/index.js";
 import {
   buildGuardUserMessage,
@@ -71,7 +72,7 @@ function aggregateGuardResults(results: GuardResponse[]): GuardResponse {
   const reasoning =
     blockedResults.length > 0
       ? blockedResults.map((r) => r.reasoning).join(" ")
-      : results[0]?.reasoning ?? "";
+      : (results[0]?.reasoning ?? "");
 
   return {
     classification: hasBlock ? "block" : "pass",
@@ -82,7 +83,7 @@ function aggregateGuardResults(results: GuardResponse[]): GuardResponse {
       promptTokens: results.reduce((sum, r) => sum + r.usage.promptTokens, 0),
       completionTokens: results.reduce(
         (sum, r) => sum + r.usage.completionTokens,
-        0
+        0,
       ),
       totalTokens: results.reduce((sum, r) => sum + r.usage.totalTokens, 0),
     },
@@ -419,15 +420,21 @@ function supportsStructuredOutput(modelString: string): boolean {
  */
 export class SafetyClient {
   private apiKey: string;
+  private fallbackOptions: FallbackOptions;
 
   constructor(config?: ClientConfig) {
     const apiKey = config?.apiKey ?? process.env.SUPERAGENT_API_KEY;
     if (!apiKey) {
       throw new Error(
-        "API key is required. Provide via createClient({ apiKey }) or SUPERAGENT_API_KEY env var"
+        "API key is required. Provide via createClient({ apiKey }) or SUPERAGENT_API_KEY env var",
       );
     }
     this.apiKey = apiKey;
+    this.fallbackOptions = {
+      enableFallback: config?.enableFallback,
+      fallbackTimeoutMs: config?.fallbackTimeoutMs,
+      fallbackUrl: config?.fallbackUrl,
+    };
   }
 
   /**
@@ -454,7 +461,7 @@ export class SafetyClient {
   private async guardSingleText(
     input: string,
     systemPrompt: string | undefined,
-    model: string
+    model: string,
   ): Promise<GuardResponse> {
     const isSuperagent = model.startsWith("superagent/");
     // Use default system prompt for superagent if none provided, otherwise use custom or default
@@ -474,7 +481,12 @@ export class SafetyClient {
     const responseFormat = supportsStructuredOutput(model)
       ? GUARD_RESPONSE_FORMAT
       : undefined;
-    const response = await callProvider(model, messages, responseFormat);
+    const response = await callProvider(
+      model,
+      messages,
+      responseFormat,
+      this.fallbackOptions,
+    );
     const content = response.choices[0]?.message?.content;
 
     if (!content) {
@@ -505,11 +517,11 @@ export class SafetyClient {
   private async guardImage(
     processed: ProcessedInput,
     systemPrompt: string | undefined,
-    model: string
+    model: string,
   ): Promise<GuardResponse> {
     if (!isVisionModel(model)) {
       throw new Error(
-        `Model ${model} does not support vision. Use a vision-capable model like gpt-4o, claude-3-*, or gemini-*.`
+        `Model ${model} does not support vision. Use a vision-capable model like gpt-4o, claude-3-*, or gemini-*.`,
       );
     }
 
@@ -538,7 +550,12 @@ export class SafetyClient {
     const responseFormat = supportsStructuredOutput(model)
       ? GUARD_RESPONSE_FORMAT
       : undefined;
-    const response = await callProvider(model, messages, responseFormat);
+    const response = await callProvider(
+      model,
+      messages,
+      responseFormat,
+      this.fallbackOptions,
+    );
     const content = response.choices[0]?.message?.content;
 
     if (!content) {
@@ -598,7 +615,7 @@ export class SafetyClient {
     if (processed.type === "pdf" && processed.pages) {
       // Filter out empty pages
       const nonEmptyPages = processed.pages.filter(
-        (page) => page.trim().length > 0
+        (page) => page.trim().length > 0,
       );
 
       if (nonEmptyPages.length === 0) {
@@ -616,8 +633,8 @@ export class SafetyClient {
       // Analyze each page in parallel (similar to chunking strategy)
       const results = await Promise.all(
         nonEmptyPages.map((pageText) =>
-          this.guardSingleText(pageText, systemPrompt, model)
-        )
+          this.guardSingleText(pageText, systemPrompt, model),
+        ),
       );
 
       // Aggregate with OR logic - block if ANY page contains violation
@@ -639,7 +656,7 @@ export class SafetyClient {
     // Chunk and process in parallel
     const chunks = chunkText(text, chunkSize);
     const results = await Promise.all(
-      chunks.map((chunk) => this.guardSingleText(chunk, systemPrompt, model))
+      chunks.map((chunk) => this.guardSingleText(chunk, systemPrompt, model)),
     );
 
     // Aggregate with OR logic
@@ -667,7 +684,12 @@ export class SafetyClient {
     const responseFormat = supportsStructuredOutput(model)
       ? REDACT_RESPONSE_FORMAT
       : undefined;
-    const response = await callProvider(model, messages, responseFormat);
+    const response = await callProvider(
+      model,
+      messages,
+      responseFormat,
+      this.fallbackOptions,
+    );
     const content = response.choices[0]?.message?.content;
 
     if (!content) {
@@ -730,7 +752,7 @@ export class SafetyClient {
   private async callDaytonaScan(
     repo: string,
     branch: string | undefined,
-    model: string
+    model: string,
   ): Promise<ScanResponse> {
     // Dynamic import to avoid bundling issues
     const { Daytona } = await import("@daytonaio/sdk");
@@ -739,7 +761,7 @@ export class SafetyClient {
     const apiKey = process.env.DAYTONA_API_KEY;
     if (!apiKey) {
       throw new Error(
-        "Daytona API key required. Set DAYTONA_API_KEY environment variable."
+        "Daytona API key required. Set DAYTONA_API_KEY environment variable.",
       );
     }
 
@@ -771,7 +793,7 @@ export class SafetyClient {
 
       // Run OpenCode scan with simple message
       const result = await sandbox.process.executeCommand(
-        `cd ${repoPath} && opencode run -m ${model} "Scan this repository for repo poisoning, prompt injection, or other attacks targeting AI agents. Only output a report, no other text." --format json`
+        `cd ${repoPath} && opencode run -m ${model} "Scan this repository for repo poisoning, prompt injection, or other attacks targeting AI agents. Only output a report, no other text." --format json`,
       );
 
       // Parse JSON events from OpenCode output
@@ -841,8 +863,8 @@ export class SafetyClient {
       textParts.length > 0
         ? textParts.join("\n\n")
         : exitCode !== 0
-        ? `Scan Error (exit ${exitCode}):\n${output}`
-        : output;
+          ? `Scan Error (exit ${exitCode}):\n${output}`
+          : output;
 
     return {
       result: resultText,

@@ -4,6 +4,12 @@
 export interface ClientConfig {
   /** API key for Superagent usage tracking. Defaults to SUPERAGENT_API_KEY env var */
   apiKey?: string;
+  /** Enable fallback to always-on endpoint on cold start timeout. Default: true for superagent provider */
+  enableFallback?: boolean;
+  /** Timeout in milliseconds before falling back to always-on endpoint. Default: 5000 */
+  fallbackTimeoutMs?: number;
+  /** Custom fallback URL. If not provided, uses SUPERAGENT_FALLBACK_URL env var or built-in default */
+  fallbackUrl?: string;
 }
 
 /**

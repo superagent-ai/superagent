@@ -6,6 +6,35 @@ import type {
 } from "./types.js";
 
 /**
+ * Default fallback URL for cold start mitigation.
+ * This always-on endpoint handles requests when the primary endpoint has a cold start.
+ */
+export const DEFAULT_FALLBACK_URL = "https://superagent.sh/api/fallback";
+
+/**
+ * Default timeout in milliseconds before falling back to the always-on endpoint.
+ * If the primary endpoint doesn't respond within this time, the request is
+ * cancelled and retried on the fallback endpoint.
+ */
+export const DEFAULT_FALLBACK_TIMEOUT_MS = 5000;
+
+/**
+ * Get the fallback URL based on priority:
+ * 1. Client option (highest priority)
+ * 2. Environment variable SUPERAGENT_FALLBACK_URL
+ * 3. Default constant (lowest priority)
+ */
+export function getFallbackUrl(clientOption?: string): string {
+  return (
+    clientOption ||
+    (typeof process !== "undefined"
+      ? process.env?.SUPERAGENT_FALLBACK_URL
+      : undefined) ||
+    DEFAULT_FALLBACK_URL
+  );
+}
+
+/**
  * Ollama-style response from Superagent API
  */
 interface SuperagentResponse {
@@ -49,7 +78,7 @@ export const superagentProvider: ProviderConfig = {
   transformRequest: (
     model: string,
     messages: ChatMessage[],
-    responseFormat?: ResponseFormat
+    responseFormat?: ResponseFormat,
   ): SuperagentRequestBody => {
     // Convert model format: "guard-0.6b" -> "superagent-guard-0.6b-Q8_0"
     const modelName = `superagent-${model}-Q8_0`;
@@ -114,7 +143,7 @@ export const superagentProvider: ProviderConfig = {
       parsedContent.findings !== undefined
     ) {
       throw new Error(
-        `Superagent model does not support redaction. The model is trained for guard/classification only. Response: ${content}`
+        `Superagent model does not support redaction. The model is trained for guard/classification only. Response: ${content}`,
       );
     }
 
@@ -124,7 +153,7 @@ export const superagentProvider: ProviderConfig = {
       parsedContent.classification !== "block"
     ) {
       throw new Error(
-        `Invalid classification: ${parsedContent.classification}. Response: ${content}`
+        `Invalid classification: ${parsedContent.classification}. Response: ${content}`,
       );
     }
 

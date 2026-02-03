@@ -18,6 +18,15 @@ class ClientConfig:
     api_key: str | None = None
     """API key for Superagent usage tracking. Defaults to SUPERAGENT_API_KEY env var."""
 
+    enable_fallback: bool | None = None
+    """Enable fallback to always-on endpoint on cold start timeout. Default: True for superagent provider."""
+
+    fallback_timeout: float | None = None
+    """Timeout in seconds before falling back to always-on endpoint. Default: 5.0."""
+
+    fallback_url: str | None = None
+    """Custom fallback URL. If not provided, uses SUPERAGENT_FALLBACK_URL env var or built-in default."""
+
 
 # =============================================================================
 # Model Types
