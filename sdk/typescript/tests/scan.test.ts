@@ -11,6 +11,7 @@ describe.skipIf(skipIfNoCredentials)("Scan Method", () => {
 
   it(
     "should scan superagent-starter repository and return structured response",
+    { timeout: 300000 },
     async () => {
       const response = await client.scan({
         repo: "https://github.com/superagent-ai/superagent-starter",
@@ -29,6 +30,5 @@ describe.skipIf(skipIfNoCredentials)("Scan Method", () => {
       expect(typeof response.usage.reasoningTokens).toBe("number");
       expect(typeof response.usage.cost).toBe("number");
     },
-    { timeout: 300000 }
   );
 });

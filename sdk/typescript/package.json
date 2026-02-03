@@ -1,6 +1,6 @@
 {
   "name": "safety-agent",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "An open-source SDK for AI agent safety",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -39,14 +39,17 @@
     "@types/node": "^24.10.1",
     "dotenv": "^16.3.1",
     "typescript": "^5.3.0",
-    "vitest": "^2.1.0"
+    "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@daytonaio/sdk": "^0.26.0",
+    "@daytonaio/sdk": "^0.138.0",
     "ipaddr.js": "^2.3.0",
     "unpdf": "^1.4.0"
+  },
+  "overrides": {
+    "fast-xml-parser": "^5.3.4"
   }
 }
