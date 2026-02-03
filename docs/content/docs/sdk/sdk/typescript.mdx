@@ -39,6 +39,39 @@ const scanResult = await client.scan({
 
 ---
 
+## Client Configuration
+
+### Basic Configuration
+
+```typescript
+const client = createClient({
+  apiKey: "your-api-key" // Or set SUPERAGENT_API_KEY env var
+});
+```
+
+### Fallback Configuration
+
+The SDK supports automatic fallback to an always-on endpoint when the primary Superagent model experiences cold starts. This is useful for production environments where latency consistency is critical.
+
+```typescript
+const client = createClient({
+  enableFallback: true,           // Enable fallback (default: true)
+  fallbackTimeoutMs: 5000,        // Timeout before fallback (default: 5000ms)
+  fallbackUrl: "https://..."      // Custom fallback URL (optional)
+});
+```
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `apiKey` | `string` | `SUPERAGENT_API_KEY` env | Your Superagent API key |
+| `enableFallback` | `boolean` | `true` | Enable automatic fallback on timeout |
+| `fallbackTimeoutMs` | `number` | `5000` | Milliseconds to wait before falling back |
+| `fallbackUrl` | `string` | Built-in URL | Custom fallback endpoint URL |
+
+The fallback URL can also be set via the `SUPERAGENT_FALLBACK_URL` environment variable.
+
+---
+
 ## Guard
 
 The `guard()` method classifies input content as `pass` or `block`. It detects prompt injections, malicious instructions, and security threats.

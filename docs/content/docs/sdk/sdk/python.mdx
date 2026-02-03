@@ -41,6 +41,37 @@ result = await client.scan(repo="https://github.com/user/repo")
 
 ---
 
+## Client Configuration
+
+### Basic Configuration
+
+```python
+client = create_client(api_key="your-api-key")  # Or set SUPERAGENT_API_KEY env var
+```
+
+### Fallback Configuration
+
+The SDK supports automatic fallback to an always-on endpoint when the primary Superagent model experiences cold starts. This is useful for production environments where latency consistency is critical.
+
+```python
+client = create_client(
+    enable_fallback=True,           # Enable fallback (default: True)
+    fallback_timeout=5.0,           # Timeout before fallback in seconds (default: 5.0)
+    fallback_url="https://..."      # Custom fallback URL (optional)
+)
+```
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `api_key` | `str` | `SUPERAGENT_API_KEY` env | Your Superagent API key |
+| `enable_fallback` | `bool` | `True` | Enable automatic fallback on timeout |
+| `fallback_timeout` | `float` | `5.0` | Seconds to wait before falling back |
+| `fallback_url` | `str` | Built-in URL | Custom fallback endpoint URL |
+
+The fallback URL can also be set via the `SUPERAGENT_FALLBACK_URL` environment variable.
+
+---
+
 ## Guard
 
 The `guard()` method classifies input content as `pass` or `block`. It detects prompt injections, malicious instructions, and security threats.
