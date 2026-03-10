@@ -850,6 +850,8 @@ export interface GuardOptions {
   systemPrompt?: string;
   /** Model in "provider/model" format, e.g. "openai/gpt-4o". Defaults to superagent/guard-1.7b if not specified. */
   model?: SupportedModel;
+  /** Fallback model to use when the primary model returns a retryable error (429/500/502/503) */
+  fallbackModel?: SupportedModel;
   /** Characters per chunk. Default: 8000. Set to 0 to disable chunking. */
   chunkSize?: number;
 }
@@ -864,6 +866,8 @@ export interface RedactOptions {
   entities?: string[];
   /** Model in "provider/model" format, e.g. "openai/gpt-4o" */
   model: SupportedModel;
+  /** Fallback model to use when the primary model returns a retryable error (429/500/502/503) */
+  fallbackModel?: SupportedModel;
   /** When true, rewrites text contextually instead of using placeholders (default: false) */
   rewrite?: boolean;
 }
@@ -922,6 +926,8 @@ export interface ScanOptions {
   branch?: string;
   /** Model for OpenCode to use (provider/model format). Default: anthropic/claude-sonnet-4-5 */
   model?: SupportedModel;
+  /** Fallback model to use when the primary model returns a retryable error (429/500/502/503) */
+  fallbackModel?: SupportedModel;
 }
 
 /**

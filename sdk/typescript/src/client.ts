@@ -463,6 +463,7 @@ export class SafetyClient {
     input: string,
     systemPrompt: string | undefined,
     model: string,
+    fallbackModel?: string,
   ): Promise<GuardResponse> {
     const isSuperagent = model.startsWith("superagent/");
     // Use default system prompt for superagent if none provided, otherwise use custom or default
@@ -487,6 +488,7 @@ export class SafetyClient {
       messages,
       responseFormat,
       this.fallbackOptions,
+      fallbackModel,
     );
     const content = response.choices[0]?.message?.content;
 
@@ -519,6 +521,7 @@ export class SafetyClient {
     processed: ProcessedInput,
     systemPrompt: string | undefined,
     model: string,
+    fallbackModel?: string,
   ): Promise<GuardResponse> {
     if (!isVisionModel(model)) {
       throw new Error(
@@ -556,6 +559,7 @@ export class SafetyClient {
       messages,
       responseFormat,
       this.fallbackOptions,
+      fallbackModel,
     );
     const content = response.choices[0]?.message?.content;
 
@@ -594,6 +598,7 @@ export class SafetyClient {
       input,
       systemPrompt,
       model = DEFAULT_GUARD_MODEL,
+      fallbackModel,
       chunkSize = 8000,
     } = options;
 
@@ -607,7 +612,7 @@ export class SafetyClient {
 
     // Handle image inputs with vision models
     if (processed.type === "image") {
-      const result = await this.guardImage(processed, systemPrompt, model);
+      const result = await this.guardImage(processed, systemPrompt, model, fallbackModel);
       this.postUsage(result.usage);
       return result;
     }
@@ -634,7 +639,7 @@ export class SafetyClient {
       // Analyze each page in parallel (similar to chunking strategy)
       const results = await Promise.all(
         nonEmptyPages.map((pageText) =>
-          this.guardSingleText(pageText, systemPrompt, model),
+          this.guardSingleText(pageText, systemPrompt, model, fallbackModel),
         ),
       );
 
@@ -649,7 +654,7 @@ export class SafetyClient {
 
     // Skip chunking if disabled (chunkSize=0) or input is small enough
     if (chunkSize === 0 || text.length <= chunkSize) {
-      const result = await this.guardSingleText(text, systemPrompt, model);
+      const result = await this.guardSingleText(text, systemPrompt, model, fallbackModel);
       this.postUsage(result.usage);
       return result;
     }
@@ -657,7 +662,7 @@ export class SafetyClient {
     // Chunk and process in parallel
     const chunks = chunkText(text, chunkSize);
     const results = await Promise.all(
-      chunks.map((chunk) => this.guardSingleText(chunk, systemPrompt, model)),
+      chunks.map((chunk) => this.guardSingleText(chunk, systemPrompt, model, fallbackModel)),
     );
 
     // Aggregate with OR logic
@@ -672,7 +677,7 @@ export class SafetyClient {
    * @returns Response with redacted text, findings, and token usage
    */
   async redact(options: RedactOptions): Promise<RedactResponse> {
-    const { input, entities, model, rewrite } = options;
+    const { input, entities, model, fallbackModel, rewrite } = options;
 
     const systemPrompt = buildRedactSystemPrompt(entities, rewrite);
 
@@ -690,6 +695,7 @@ export class SafetyClient {
       messages,
       responseFormat,
       this.fallbackOptions,
+      fallbackModel,
     );
     const content = response.choices[0]?.message?.content;
 

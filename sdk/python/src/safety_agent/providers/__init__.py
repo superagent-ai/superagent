@@ -99,13 +99,21 @@ def get_provider(provider_name: str) -> Any:
     return provider
 
 
+RETRYABLE_STATUS_CODES = {429, 500, 502, 503}
+
+
 async def call_provider(
     model_string: str,
     messages: list[ChatMessage],
     response_format: ResponseFormat | None = None,
     fallback_options: FallbackOptions | None = None,
+    fallback_model: str | None = None,
 ) -> AnalysisResponse:
-    """Call an LLM provider with the given messages."""
+    """Call an LLM provider with the given messages.
+
+    If ``fallback_model`` is set and the primary model returns a retryable
+    status code, the request is re-issued against the fallback model.
+    """
     parsed = parse_model(model_string)
     provider = get_provider(parsed.provider)
 
@@ -159,6 +167,21 @@ async def call_provider(
                 )
 
                 if response.status_code != 200:
+                    if (
+                        fallback_model
+                        and response.status_code in RETRYABLE_STATUS_CODES
+                    ):
+                        print(
+                            f"Primary model {model_string} failed "
+                            f"({response.status_code}), falling back to "
+                            f"{fallback_model}"
+                        )
+                        return await call_provider(
+                            fallback_model,
+                            messages,
+                            response_format,
+                            fallback_options,
+                        )
                     raise RuntimeError(
                         f"Provider API error ({response.status_code}): {response.text}"
                     )
@@ -200,6 +223,21 @@ async def call_provider(
         )
 
         if response.status_code != 200:
+            if (
+                fallback_model
+                and response.status_code in RETRYABLE_STATUS_CODES
+            ):
+                print(
+                    f"Primary model {model_string} failed "
+                    f"({response.status_code}), falling back to "
+                    f"{fallback_model}"
+                )
+                return await call_provider(
+                    fallback_model,
+                    messages,
+                    response_format,
+                    fallback_options,
+                )
             raise RuntimeError(
                 f"Provider API error ({response.status_code}): {response.text}"
             )
