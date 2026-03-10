@@ -70,6 +70,30 @@ const client = createClient({
 
 The fallback URL can also be set via the `SUPERAGENT_FALLBACK_URL` environment variable.
 
+### Model Fallback
+
+When using third-party providers (e.g., Google Gemini), transient errors like 503 (high demand) or 429 (rate limited) can cause requests to fail. The SDK supports automatic model fallback: if the primary model returns a retryable error, the request is re-issued to a backup model you specify.
+
+```typescript
+const result = await client.guard({
+  input: "user message to analyze",
+  model: "google/gemini-2.5-flash-lite",
+  fallbackModel: "google/gemini-2.5-pro"
+});
+```
+
+If the primary model succeeds, `fallbackModel` is never called. If it returns a retryable status code (429, 500, 502, or 503), the SDK automatically retries with the fallback model. The fallback model can be from a different provider entirely:
+
+```typescript
+const result = await client.guard({
+  input: "user message to analyze",
+  model: "google/gemini-2.5-flash-lite",
+  fallbackModel: "openai/gpt-4o-mini"
+});
+```
+
+The `fallbackModel` option is available on `guard()`, `redact()`, and `scan()`. The fallback model gets a single attempt — there is no recursive fallback chain.
+
 ---
 
 ## Guard
@@ -95,6 +119,7 @@ if (result.classification === "block") {
 |--------|------|----------|---------|-------------|
 | `input` | `string \| Blob \| URL` | Yes | - | The input to analyze |
 | `model` | `string` | No | `superagent/guard-1.7b` | Model in `provider/model` format |
+| `fallbackModel` | `string` | No | - | Backup model used when primary returns 429/500/502/503 |
 | `systemPrompt` | `string` | No | - | Custom system prompt |
 | `chunkSize` | `number` | No | `8000` | Characters per chunk (0 to disable) |
 
@@ -155,6 +180,7 @@ console.log(result.redacted);
 |--------|------|----------|---------|-------------|
 | `input` | `string` | Yes | - | The text to redact |
 | `model` | `string` | Yes | - | Model in `provider/model` format |
+| `fallbackModel` | `string` | No | - | Backup model used when primary returns 429/500/502/503 |
 | `entities` | `string[]` | No | Default PII | Entity types to redact |
 | `rewrite` | `boolean` | No | `false` | Rewrite contextually instead of placeholders |
 
@@ -225,6 +251,7 @@ console.log(`Cost: $${response.usage.cost.toFixed(4)}`);
 | `repo` | `string` | Yes | - | Git repository URL (https:// or git@) |
 | `branch` | `string` | No | Default branch | Branch, tag, or commit to checkout |
 | `model` | `string` | No | `anthropic/claude-sonnet-4-5` | Model for OpenCode analysis |
+| `fallbackModel` | `string` | No | - | Backup model used when primary returns 429/500/502/503 |
 
 ### Response
 

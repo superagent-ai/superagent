@@ -70,6 +70,30 @@ client = create_client(
 
 The fallback URL can also be set via the `SUPERAGENT_FALLBACK_URL` environment variable.
 
+### Model Fallback
+
+When using third-party providers (e.g., Google Gemini), transient errors like 503 (high demand) or 429 (rate limited) can cause requests to fail. The SDK supports automatic model fallback: if the primary model returns a retryable error, the request is re-issued to a backup model you specify.
+
+```python
+result = await client.guard(
+    input="user message to analyze",
+    model="google/gemini-2.5-flash-lite",
+    fallback_model="google/gemini-2.5-pro"
+)
+```
+
+If the primary model succeeds, `fallback_model` is never called. If it returns a retryable status code (429, 500, 502, or 503), the SDK automatically retries with the fallback model. The fallback model can be from a different provider entirely:
+
+```python
+result = await client.guard(
+    input="user message to analyze",
+    model="google/gemini-2.5-flash-lite",
+    fallback_model="openai/gpt-4o-mini"
+)
+```
+
+The `fallback_model` option is available on `guard()`, `redact()`, and `scan()`. The fallback model gets a single attempt — there is no recursive fallback chain.
+
 ---
 
 ## Guard
@@ -92,6 +116,7 @@ if result.classification == "block":
 |--------|------|----------|---------|-------------|
 | `input` | `str \| bytes` | Yes | - | The input to analyze |
 | `model` | `str` | No | `superagent/guard-1.7b` | Model in `provider/model` format |
+| `fallback_model` | `str` | No | - | Backup model used when primary returns 429/500/502/503 |
 | `system_prompt` | `str` | No | - | Custom system prompt |
 | `chunk_size` | `int` | No | `8000` | Characters per chunk (0 to disable) |
 
@@ -148,6 +173,7 @@ print(result.redacted)
 |--------|------|----------|---------|-------------|
 | `input` | `str` | Yes | - | The text to redact |
 | `model` | `str` | Yes | - | Model in `provider/model` format |
+| `fallback_model` | `str` | No | - | Backup model used when primary returns 429/500/502/503 |
 | `entities` | `list[str]` | No | Default PII | Entity types to redact |
 | `rewrite` | `bool` | No | `False` | Rewrite contextually instead of placeholders |
 
@@ -216,6 +242,7 @@ print(f"Cost: ${response.usage.cost:.4f}")
 | `repo` | `str` | Yes | - | Git repository URL (https:// or git@) |
 | `branch` | `str` | No | Default branch | Branch, tag, or commit to checkout |
 | `model` | `str` | No | `anthropic/claude-sonnet-4-5` | Model for OpenCode analysis |
+| `fallback_model` | `str` | No | - | Backup model used when primary returns 429/500/502/503 |
 
 ### Response
 

@@ -241,6 +241,7 @@ class SafetyClient:
         input_text: str,
         system_prompt: str | None,
         model: str,
+        fallback_model: str | None = None,
     ) -> GuardResponse:
         """Guard a single chunk of text input (internal method)."""
         is_superagent = model.startswith("superagent/")
@@ -265,7 +266,7 @@ class SafetyClient:
             GUARD_RESPONSE_FORMAT if _supports_structured_output(model) else None
         )
         response = await call_provider(
-            model, messages, response_format, self._fallback_options
+            model, messages, response_format, self._fallback_options, fallback_model
         )
         content = response.choices[0].message.content
 
@@ -292,6 +293,7 @@ class SafetyClient:
         processed: ProcessedInput,
         system_prompt: str | None,
         model: str,
+        fallback_model: str | None = None,
     ) -> GuardResponse:
         """Guard an image input using vision model (internal method)."""
         if not is_vision_model(model):
@@ -323,7 +325,7 @@ class SafetyClient:
             GUARD_RESPONSE_FORMAT if _supports_structured_output(model) else None
         )
         response = await call_provider(
-            model, messages, response_format, self._fallback_options
+            model, messages, response_format, self._fallback_options, fallback_model
         )
         content = response.choices[0].message.content
 
@@ -350,6 +352,7 @@ class SafetyClient:
         input: GuardInput | None = None,
         *,
         model: str | None = None,
+        fallback_model: str | None = None,
         system_prompt: str | None = None,
         chunk_size: int = 8000,
         # Also accept GuardOptions-style kwargs
@@ -369,6 +372,7 @@ class SafetyClient:
         Args:
             input: The input to analyze - text, URL, or bytes
             model: Model in "provider/model" format. Defaults to superagent/guard-1.7b
+            fallback_model: Fallback model when the primary returns a retryable error (429/500/502/503)
             system_prompt: Optional custom system prompt
             chunk_size: Characters per chunk. Default: 8000. Set to 0 to disable chunking.
 
@@ -380,6 +384,7 @@ class SafetyClient:
             options = input
             input = options.input
             model = model or options.model
+            fallback_model = fallback_model or options.fallback_model
             system_prompt = system_prompt or options.system_prompt
             chunk_size = options.chunk_size
 
@@ -401,7 +406,7 @@ class SafetyClient:
 
         # Handle image inputs with vision models
         if processed.type == "image":
-            result = await self._guard_image(processed, system_prompt, model)
+            result = await self._guard_image(processed, system_prompt, model, fallback_model)
             self._post_usage(result.usage)
             return result
 
@@ -424,7 +429,7 @@ class SafetyClient:
             # Analyze each page in parallel
             results = await asyncio.gather(
                 *[
-                    self._guard_single_text(page_text, system_prompt, model)
+                    self._guard_single_text(page_text, system_prompt, model, fallback_model)
                     for page_text in non_empty_pages
                 ]
             )
@@ -439,7 +444,7 @@ class SafetyClient:
 
         # Skip chunking if disabled (chunk_size=0) or input is small enough
         if chunk_size == 0 or len(text) <= chunk_size:
-            result = await self._guard_single_text(text, system_prompt, model)
+            result = await self._guard_single_text(text, system_prompt, model, fallback_model)
             self._post_usage(result.usage)
             return result
 
@@ -447,7 +452,7 @@ class SafetyClient:
         chunks = _chunk_text(text, chunk_size)
         results = await asyncio.gather(
             *[
-                self._guard_single_text(chunk, system_prompt, model)
+                self._guard_single_text(chunk, system_prompt, model, fallback_model)
                 for chunk in chunks
             ]
         )
@@ -462,6 +467,7 @@ class SafetyClient:
         input: str | None = None,
         *,
         model: str | None = None,
+        fallback_model: str | None = None,
         entities: list[str] | None = None,
         rewrite: bool = False,
         # Also accept RedactOptions-style kwargs
@@ -473,6 +479,7 @@ class SafetyClient:
         Args:
             input: The input text to redact
             model: Model in "provider/model" format, e.g. "openai/gpt-4o"
+            fallback_model: Fallback model when the primary returns a retryable error (429/500/502/503)
             entities: Optional list of entity types to redact (overrides default entities)
             rewrite: When true, rewrites text contextually instead of using placeholders
 
@@ -484,6 +491,7 @@ class SafetyClient:
             options = input
             input = options.input
             model = model or options.model
+            fallback_model = fallback_model or options.fallback_model
             entities = entities or options.entities
             rewrite = options.rewrite
 
@@ -509,7 +517,7 @@ class SafetyClient:
             REDACT_RESPONSE_FORMAT if _supports_structured_output(model) else None
         )
         response = await call_provider(
-            model, messages, response_format, self._fallback_options
+            model, messages, response_format, self._fallback_options, fallback_model
         )
         content = response.choices[0].message.content
 

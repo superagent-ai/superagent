@@ -126,6 +126,9 @@ class GuardOptions:
     model: SupportedModel | None = None
     """Model in 'provider/model' format. Defaults to superagent/guard-1.7b."""
 
+    fallback_model: SupportedModel | None = None
+    """Fallback model to use when the primary model returns a retryable error (429/500/502/503)."""
+
     system_prompt: str | None = None
     """Optional custom system prompt that replaces the default guard prompt."""
 
@@ -164,6 +167,9 @@ class RedactOptions:
 
     model: SupportedModel
     """Model in 'provider/model' format, e.g. 'openai/gpt-4o'."""
+
+    fallback_model: SupportedModel | None = None
+    """Fallback model to use when the primary model returns a retryable error (429/500/502/503)."""
 
     entities: list[str] | None = None
     """Optional list of entity types to redact (overrides default entities)."""
@@ -288,6 +294,9 @@ class ScanOptions:
 
     model: str = "anthropic/claude-sonnet-4-5"
     """Model for OpenCode to use (provider/model format)."""
+
+    fallback_model: str | None = None
+    """Fallback model to use when the primary model returns a retryable error (429/500/502/503)."""
 
 
 @dataclass

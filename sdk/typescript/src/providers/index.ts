@@ -90,14 +90,19 @@ export function getProvider(providerName: string): ProviderConfig {
   return provider;
 }
 
+const RETRYABLE_STATUS_CODES = [429, 500, 502, 503];
+
 /**
- * Call an LLM provider with the given messages
+ * Call an LLM provider with the given messages.
+ * If `fallbackModelString` is set and the primary model returns a retryable
+ * status code, the request is re-issued against the fallback model.
  */
 export async function callProvider(
   modelString: string,
   messages: ChatMessage[],
   responseFormat?: ResponseFormat,
   fallbackOptions?: FallbackOptions,
+  fallbackModelString?: string,
 ): Promise<AnalysisResponse> {
   const { provider: providerName, model } = parseModel(modelString);
   const provider = getProvider(providerName);
@@ -150,6 +155,20 @@ export async function callProvider(
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        if (
+          fallbackModelString &&
+          RETRYABLE_STATUS_CODES.includes(response.status)
+        ) {
+          console.log(
+            `Primary model ${modelString} failed (${response.status}), falling back to ${fallbackModelString}`,
+          );
+          return callProvider(
+            fallbackModelString,
+            messages,
+            responseFormat,
+            fallbackOptions,
+          );
+        }
         const errorText = await response.text();
         throw new Error(
           `Provider API error (${response.status}): ${errorText}`,
@@ -207,6 +226,20 @@ export async function callProvider(
   });
 
   if (!response.ok) {
+    if (
+      fallbackModelString &&
+      RETRYABLE_STATUS_CODES.includes(response.status)
+    ) {
+      console.log(
+        `Primary model ${modelString} failed (${response.status}), falling back to ${fallbackModelString}`,
+      );
+      return callProvider(
+        fallbackModelString,
+        messages,
+        responseFormat,
+        fallbackOptions,
+      );
+    }
     const errorText = await response.text();
     throw new Error(`Provider API error (${response.status}): ${errorText}`);
   }
