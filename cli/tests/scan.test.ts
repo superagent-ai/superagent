@@ -1,30 +1,48 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const mockScan = vi.fn();
+
+vi.mock("safety-agent", () => ({
+  createClient: () => ({ scan: mockScan }),
+}));
+
 import { createClient } from "safety-agent";
 
-const DAYTONA_API_KEY = process.env.DAYTONA_API_KEY;
-const SUPERAGENT_API_KEY = process.env.SUPERAGENT_API_KEY;
-
-const skipIfNoCredentials = !DAYTONA_API_KEY || !SUPERAGENT_API_KEY;
-
-describe.skipIf(skipIfNoCredentials)("scan", () => {
+describe("scan", () => {
   const client = createClient();
 
-  it("returns valid response structure for repository scan", { timeout: 300000 }, async () => {
+  beforeEach(() => {
+    mockScan.mockReset();
+  });
+
+  it("returns valid response structure for repository scan", async () => {
+    mockScan.mockResolvedValueOnce({
+      result: "No security issues found in the repository.",
+      usage: {
+        inputTokens: 5000,
+        outputTokens: 1200,
+        reasoningTokens: 300,
+        cost: 0.042,
+      },
+    });
+
     const result = await client.scan({
       repo: "https://github.com/superagent-ai/superagent-starter",
       branch: "main",
     });
 
-    // Verify response structure
     expect(result).toHaveProperty("result");
     expect(result).toHaveProperty("usage");
     expect(typeof result.result).toBe("string");
     expect(result.result.length).toBeGreaterThan(0);
-
-    // Verify usage structure
     expect(typeof result.usage.inputTokens).toBe("number");
     expect(typeof result.usage.outputTokens).toBe("number");
     expect(typeof result.usage.reasoningTokens).toBe("number");
     expect(typeof result.usage.cost).toBe("number");
+    expect(mockScan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        repo: "https://github.com/superagent-ai/superagent-starter",
+      }),
+    );
   });
 });

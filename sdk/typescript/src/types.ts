@@ -30,14 +30,23 @@ type OpenAIModel =
   | "openai/gpt-4o-mini"
   | "openai/gpt-5"
   | "openai/gpt-5-chat-latest"
+  | "openai/gpt-5-codex"
   | "openai/gpt-5-mini"
   | "openai/gpt-5-nano"
   | "openai/gpt-5-pro"
-  | "openai/gpt-5-codex"
   | "openai/gpt-5.1"
   | "openai/gpt-5.1-chat-latest"
   | "openai/gpt-5.1-codex"
+  | "openai/gpt-5.1-codex-max"
   | "openai/gpt-5.1-codex-mini"
+  | "openai/gpt-5.2"
+  | "openai/gpt-5.2-chat-latest"
+  | "openai/gpt-5.2-codex"
+  | "openai/gpt-5.2-pro"
+  | "openai/gpt-5.3-codex"
+  | "openai/gpt-5.3-codex-spark"
+  | "openai/gpt-5.4"
+  | "openai/gpt-5.4-pro"
   | "openai/o1"
   | "openai/o1-mini"
   | "openai/o1-preview"
@@ -71,6 +80,7 @@ type AnthropicModel =
   | "anthropic/claude-opus-4-1"
   | "anthropic/claude-opus-4-5-20251101"
   | "anthropic/claude-opus-4-5"
+  | "anthropic/claude-opus-4-6"
   | "anthropic/claude-3-sonnet-20240229"
   | "anthropic/claude-3-5-sonnet-20240620"
   | "anthropic/claude-3-5-sonnet-20241022"
@@ -79,7 +89,8 @@ type AnthropicModel =
   | "anthropic/claude-sonnet-4-20250514"
   | "anthropic/claude-sonnet-4-0"
   | "anthropic/claude-sonnet-4-5-20250929"
-  | "anthropic/claude-sonnet-4-5";
+  | "anthropic/claude-sonnet-4-5"
+  | "anthropic/claude-sonnet-4-6";
 
 /**
  * Google model identifiers
@@ -102,7 +113,10 @@ type GoogleModel =
   | "google/gemini-2.5-pro"
   | "google/gemini-2.5-pro-preview-05-06"
   | "google/gemini-2.5-pro-preview-06-05"
+  | "google/gemini-3-flash-preview"
   | "google/gemini-3-pro-preview"
+  | "google/gemini-3.1-flash-lite-preview"
+  | "google/gemini-3.1-pro-preview"
   | "google/gemini-flash-latest"
   | "google/gemini-flash-lite-latest";
 
@@ -113,7 +127,12 @@ type GoogleModel =
  */
 type BedrockModel =
   // Anthropic Claude models (cross-region inference)
+  | "bedrock/us.anthropic.claude-opus-4-6-v1"
   | "bedrock/us.anthropic.claude-opus-4-5-20251101-v1:0"
+  | "bedrock/us.anthropic.claude-opus-4-1-20250805-v1:0"
+  | "bedrock/us.anthropic.claude-opus-4-20250514-v1:0"
+  | "bedrock/us.anthropic.claude-sonnet-4-6"
+  | "bedrock/us.anthropic.claude-sonnet-4-5-20250929-v1:0"
   | "bedrock/us.anthropic.claude-sonnet-4-20250514-v1:0"
   | "bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0"
   | "bedrock/us.anthropic.claude-3-7-sonnet-20250219-v1:0"
@@ -122,10 +141,32 @@ type BedrockModel =
   | "bedrock/us.anthropic.claude-3-sonnet-20240229-v1:0"
   | "bedrock/us.anthropic.claude-3-haiku-20240307-v1:0"
   | "bedrock/us.anthropic.claude-3-opus-20240229-v1:0"
+  // Anthropic Claude models (eu cross-region inference)
+  | "bedrock/eu.anthropic.claude-opus-4-6-v1"
+  | "bedrock/eu.anthropic.claude-opus-4-5-20251101-v1:0"
+  | "bedrock/eu.anthropic.claude-sonnet-4-6"
+  | "bedrock/eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
+  | "bedrock/eu.anthropic.claude-sonnet-4-20250514-v1:0"
+  | "bedrock/eu.anthropic.claude-haiku-4-5-20251001-v1:0"
+  // Anthropic Claude models (global cross-region inference)
+  | "bedrock/global.anthropic.claude-opus-4-6-v1"
+  | "bedrock/global.anthropic.claude-opus-4-5-20251101-v1:0"
+  | "bedrock/global.anthropic.claude-sonnet-4-6"
+  | "bedrock/global.anthropic.claude-sonnet-4-5-20250929-v1:0"
+  | "bedrock/global.anthropic.claude-sonnet-4-20250514-v1:0"
+  | "bedrock/global.anthropic.claude-haiku-4-5-20251001-v1:0"
   // Anthropic Claude models (standard)
+  | "bedrock/anthropic.claude-opus-4-6-v1"
+  | "bedrock/anthropic.claude-opus-4-5-20251101-v1:0"
+  | "bedrock/anthropic.claude-opus-4-1-20250805-v1:0"
+  | "bedrock/anthropic.claude-opus-4-20250514-v1:0"
+  | "bedrock/anthropic.claude-sonnet-4-6"
+  | "bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0"
   | "bedrock/anthropic.claude-sonnet-4-20250514-v1:0"
+  | "bedrock/anthropic.claude-haiku-4-5-20251001-v1:0"
   | "bedrock/anthropic.claude-3-7-sonnet-20250219-v1:0"
   | "bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0"
+  | "bedrock/anthropic.claude-3-5-sonnet-20240620-v1:0"
   | "bedrock/anthropic.claude-3-5-haiku-20241022-v1:0"
   | "bedrock/anthropic.claude-3-sonnet-20240229-v1:0"
   | "bedrock/anthropic.claude-3-haiku-20240307-v1:0"
@@ -143,6 +184,8 @@ type BedrockModel =
   | "bedrock/us.meta.llama3-1-70b-instruct-v1:0"
   | "bedrock/us.meta.llama3-1-8b-instruct-v1:0"
   // Meta Llama models (standard)
+  | "bedrock/meta.llama4-maverick-17b-instruct-v1:0"
+  | "bedrock/meta.llama4-scout-17b-instruct-v1:0"
   | "bedrock/meta.llama3-3-70b-instruct-v1:0"
   | "bedrock/meta.llama3-2-90b-instruct-v1:0"
   | "bedrock/meta.llama3-2-11b-instruct-v1:0"
@@ -160,21 +203,63 @@ type BedrockModel =
   | "bedrock/us.amazon.nova-lite-v1:0"
   | "bedrock/us.amazon.nova-micro-v1:0"
   // Amazon Nova models (standard)
-  | "bedrock/us.amazon.nova-2-lite-v1:0"
+  | "bedrock/amazon.nova-premier-v1:0"
   | "bedrock/amazon.nova-pro-v1:0"
   | "bedrock/amazon.nova-lite-v1:0"
   | "bedrock/amazon.nova-micro-v1:0"
+  | "bedrock/amazon.nova-2-lite-v1:0"
   // Amazon Titan Text models
   | "bedrock/amazon.titan-text-premier-v1:0"
   | "bedrock/amazon.titan-text-express-v1"
+  | "bedrock/amazon.titan-text-express-v1:0:8k"
   | "bedrock/amazon.titan-text-lite-v1"
+  // DeepSeek models
+  | "bedrock/deepseek.r1-v1:0"
+  | "bedrock/deepseek.v3-v1:0"
+  | "bedrock/deepseek.v3.2-v1:0"
+  // Google Gemma models
+  | "bedrock/google.gemma-3-27b-it"
+  | "bedrock/google.gemma-3-12b-it"
+  | "bedrock/google.gemma-3-4b-it"
   // Mistral AI models
   | "bedrock/us.mistral.mistral-large-3-675b-instruct"
+  | "bedrock/mistral.devstral-2-123b"
   | "bedrock/mistral.mistral-large-2407-v1:0"
   | "bedrock/mistral.mistral-large-2402-v1:0"
   | "bedrock/mistral.mistral-small-2402-v1:0"
+  | "bedrock/mistral.ministral-3-14b-instruct"
+  | "bedrock/mistral.ministral-3-8b-instruct"
   | "bedrock/mistral.mixtral-8x7b-instruct-v0:1"
   | "bedrock/mistral.mistral-7b-instruct-v0:2"
+  | "bedrock/mistral.voxtral-small-24b-2507"
+  | "bedrock/mistral.voxtral-mini-3b-2507"
+  // MiniMax models
+  | "bedrock/minimax.minimax-m2"
+  | "bedrock/minimax.minimax-m2.1"
+  // Moonshot / Kimi models
+  | "bedrock/moonshot.kimi-k2-thinking"
+  | "bedrock/moonshotai.kimi-k2.5"
+  // NVIDIA models
+  | "bedrock/nvidia.nemotron-nano-12b-v2"
+  | "bedrock/nvidia.nemotron-nano-9b-v2"
+  // OpenAI models
+  | "bedrock/openai.gpt-oss-120b-1:0"
+  | "bedrock/openai.gpt-oss-20b-1:0"
+  | "bedrock/openai.gpt-oss-safeguard-120b"
+  | "bedrock/openai.gpt-oss-safeguard-20b"
+  // Qwen models
+  | "bedrock/qwen.qwen3-coder-480b-a35b-v1:0"
+  | "bedrock/qwen.qwen3-coder-30b-a3b-v1:0"
+  | "bedrock/qwen.qwen3-235b-a22b-2507-v1:0"
+  | "bedrock/qwen.qwen3-32b-v1:0"
+  | "bedrock/qwen.qwen3-next-80b-a3b"
+  | "bedrock/qwen.qwen3-vl-235b-a22b"
+  // Writer models
+  | "bedrock/writer.palmyra-x4-v1:0"
+  | "bedrock/writer.palmyra-x5-v1:0"
+  // Z.AI / GLM models
+  | "bedrock/zai.glm-4.7"
+  | "bedrock/zai.glm-4.7-flash"
   // Cohere Command models
   | "bedrock/cohere.command-r-plus-v1:0"
   | "bedrock/cohere.command-r-v1:0"
@@ -196,13 +281,25 @@ type BedrockModel =
  */
 type VercelModel =
   // Alibaba Qwen models via Vercel
+  | "vercel/alibaba/qwen-3-14b"
+  | "vercel/alibaba/qwen-3-30b"
+  | "vercel/alibaba/qwen-3-32b"
+  | "vercel/alibaba/qwen-3-235b"
+  | "vercel/alibaba/qwen3-coder"
+  | "vercel/alibaba/qwen3-coder-30b-a3b"
+  | "vercel/alibaba/qwen3-coder-next"
   | "vercel/alibaba/qwen3-coder-plus"
   | "vercel/alibaba/qwen3-max"
+  | "vercel/alibaba/qwen3-max-preview"
+  | "vercel/alibaba/qwen3-max-thinking"
   | "vercel/alibaba/qwen3-next-80b-a3b-instruct"
   | "vercel/alibaba/qwen3-next-80b-a3b-thinking"
   | "vercel/alibaba/qwen3-vl-instruct"
   | "vercel/alibaba/qwen3-vl-thinking"
+  | "vercel/alibaba/qwen3.5-flash"
+  | "vercel/alibaba/qwen3.5-plus"
   // Amazon Nova models via Vercel
+  | "vercel/amazon/nova-2-lite"
   | "vercel/amazon/nova-pro"
   | "vercel/amazon/nova-lite"
   | "vercel/amazon/nova-micro"
@@ -211,19 +308,29 @@ type VercelModel =
   | "vercel/anthropic/claude-3-opus"
   | "vercel/anthropic/claude-3.5-haiku"
   | "vercel/anthropic/claude-3.5-sonnet"
+  | "vercel/anthropic/claude-3.5-sonnet-20240620"
   | "vercel/anthropic/claude-3.7-sonnet"
-  | "vercel/anthropic/claude-4-1-opus"
-  | "vercel/anthropic/claude-4-opus"
-  | "vercel/anthropic/claude-4-sonnet"
-  | "vercel/anthropic/claude-4.5-sonnet"
   | "vercel/anthropic/claude-haiku-4.5"
+  | "vercel/anthropic/claude-opus-4"
+  | "vercel/anthropic/claude-opus-4.1"
   | "vercel/anthropic/claude-opus-4.5"
+  | "vercel/anthropic/claude-opus-4.6"
+  | "vercel/anthropic/claude-sonnet-4"
+  | "vercel/anthropic/claude-sonnet-4.5"
+  | "vercel/anthropic/claude-sonnet-4.6"
+  // ByteDance models via Vercel
+  | "vercel/bytedance/seed-1.6"
+  | "vercel/bytedance/seed-1.8"
+  // Cohere models via Vercel
+  | "vercel/cohere/command-a"
   // DeepSeek models via Vercel
   | "vercel/deepseek/deepseek-r1"
-  | "vercel/deepseek/deepseek-r1-distill-llama-70b"
+  | "vercel/deepseek/deepseek-v3"
+  | "vercel/deepseek/deepseek-v3.1"
   | "vercel/deepseek/deepseek-v3.1-terminus"
+  | "vercel/deepseek/deepseek-v3.2"
   | "vercel/deepseek/deepseek-v3.2-exp"
-  | "vercel/deepseek/deepseek-v3.2-exp-thinking"
+  | "vercel/deepseek/deepseek-v3.2-thinking"
   // Google Gemini models via Vercel
   | "vercel/google/gemini-2.0-flash"
   | "vercel/google/gemini-2.0-flash-lite"
@@ -232,30 +339,62 @@ type VercelModel =
   | "vercel/google/gemini-2.5-flash-lite-preview-09-2025"
   | "vercel/google/gemini-2.5-flash-preview-09-2025"
   | "vercel/google/gemini-2.5-pro"
+  | "vercel/google/gemini-3-flash"
   | "vercel/google/gemini-3-pro-preview"
+  | "vercel/google/gemini-3.1-flash-lite-preview"
+  | "vercel/google/gemini-3.1-pro-preview"
+  // Meituan models via Vercel
+  | "vercel/meituan/longcat-flash-chat"
+  | "vercel/meituan/longcat-flash-thinking"
   // Meta Llama models via Vercel
+  | "vercel/meta/llama-3.1-8b"
+  | "vercel/meta/llama-3.1-70b"
+  | "vercel/meta/llama-3.2-1b"
+  | "vercel/meta/llama-3.2-3b"
+  | "vercel/meta/llama-3.2-11b"
+  | "vercel/meta/llama-3.2-90b"
   | "vercel/meta/llama-3.3-70b"
   | "vercel/meta/llama-4-maverick"
   | "vercel/meta/llama-4-scout"
   // Minimax models via Vercel
   | "vercel/minimax/minimax-m2"
+  | "vercel/minimax/minimax-m2.1"
+  | "vercel/minimax/minimax-m2.1-lightning"
+  | "vercel/minimax/minimax-m2.5"
   // Mistral models via Vercel
   | "vercel/mistral/codestral"
+  | "vercel/mistral/devstral-2"
+  | "vercel/mistral/devstral-small"
+  | "vercel/mistral/devstral-small-2"
   | "vercel/mistral/magistral-medium"
   | "vercel/mistral/magistral-small"
   | "vercel/mistral/ministral-3b"
   | "vercel/mistral/ministral-8b"
-  | "vercel/mistral/mistral-large"
+  | "vercel/mistral/ministral-14b"
+  | "vercel/mistral/mistral-large-3"
+  | "vercel/mistral/mistral-medium"
+  | "vercel/mistral/mistral-nemo"
   | "vercel/mistral/mistral-small"
   | "vercel/mistral/mixtral-8x22b-instruct"
   | "vercel/mistral/pixtral-12b"
   | "vercel/mistral/pixtral-large"
   // Moonshot AI models via Vercel
   | "vercel/moonshotai/kimi-k2"
+  | "vercel/moonshotai/kimi-k2-0905"
+  | "vercel/moonshotai/kimi-k2-thinking"
+  | "vercel/moonshotai/kimi-k2-thinking-turbo"
+  | "vercel/moonshotai/kimi-k2-turbo"
+  | "vercel/moonshotai/kimi-k2.5"
   // Morph models via Vercel
   | "vercel/morph/morph-v3-fast"
   | "vercel/morph/morph-v3-large"
+  // NVIDIA models via Vercel
+  | "vercel/nvidia/nemotron-3-nano-30b-a3b"
+  | "vercel/nvidia/nemotron-nano-9b-v2"
+  | "vercel/nvidia/nemotron-nano-12b-v2-vl"
   // OpenAI models via Vercel
+  | "vercel/openai/codex-mini"
+  | "vercel/openai/gpt-3.5-turbo"
   | "vercel/openai/gpt-4-turbo"
   | "vercel/openai/gpt-4.1"
   | "vercel/openai/gpt-4.1-mini"
@@ -266,11 +405,30 @@ type VercelModel =
   | "vercel/openai/gpt-5-codex"
   | "vercel/openai/gpt-5-mini"
   | "vercel/openai/gpt-5-nano"
+  | "vercel/openai/gpt-5-pro"
+  | "vercel/openai/gpt-5.1"
+  | "vercel/openai/gpt-5.1-codex"
+  | "vercel/openai/gpt-5.1-codex-max"
+  | "vercel/openai/gpt-5.1-codex-mini"
+  | "vercel/openai/gpt-5.1-instant"
+  | "vercel/openai/gpt-5.1-thinking"
+  | "vercel/openai/gpt-5.2"
+  | "vercel/openai/gpt-5.2-chat"
+  | "vercel/openai/gpt-5.2-codex"
+  | "vercel/openai/gpt-5.2-pro"
+  | "vercel/openai/gpt-5.3-chat"
+  | "vercel/openai/gpt-5.3-codex"
+  | "vercel/openai/gpt-5.4"
+  | "vercel/openai/gpt-5.4-pro"
+  | "vercel/openai/gpt-5-chat"
   | "vercel/openai/gpt-oss-120b"
   | "vercel/openai/gpt-oss-20b"
+  | "vercel/openai/gpt-oss-safeguard-20b"
   | "vercel/openai/o1"
   | "vercel/openai/o3"
+  | "vercel/openai/o3-deep-research"
   | "vercel/openai/o3-mini"
+  | "vercel/openai/o3-pro"
   | "vercel/openai/o4-mini"
   // Perplexity models via Vercel
   | "vercel/perplexity/sonar"
@@ -280,22 +438,28 @@ type VercelModel =
   // Vercel v0 models
   | "vercel/vercel/v0-1.0-md"
   | "vercel/vercel/v0-1.5-md"
+  // Xiaomi models via Vercel
+  | "vercel/xiaomi/mimo-v2-flash"
   // xAI Grok models via Vercel
-  | "vercel/xai/grok-2"
   | "vercel/xai/grok-2-vision"
   | "vercel/xai/grok-3"
   | "vercel/xai/grok-3-fast"
   | "vercel/xai/grok-3-mini"
   | "vercel/xai/grok-3-mini-fast"
   | "vercel/xai/grok-4"
-  | "vercel/xai/grok-4-fast"
   | "vercel/xai/grok-4-fast-non-reasoning"
+  | "vercel/xai/grok-4-fast-reasoning"
+  | "vercel/xai/grok-4.1-fast-non-reasoning"
+  | "vercel/xai/grok-4.1-fast-reasoning"
   | "vercel/xai/grok-code-fast-1"
   // ZAI GLM models via Vercel
   | "vercel/zai/glm-4.5"
   | "vercel/zai/glm-4.5-air"
   | "vercel/zai/glm-4.5v"
-  | "vercel/zai/glm-4.6";
+  | "vercel/zai/glm-4.6"
+  | "vercel/zai/glm-4.6v"
+  | "vercel/zai/glm-4.7"
+  | "vercel/zai/glm-5";
 
 /**
  * Groq model identifiers
@@ -309,12 +473,18 @@ type GroqModel =
   // Meta Llama models
   | "groq/llama-3.1-8b-instant"
   | "groq/llama-3.3-70b-versatile"
-  | "groq/allam-2-7b"
+  | "groq/llama-guard-3-8b"
   | "groq/meta-llama/llama-4-maverick-17b-128e-instruct"
   | "groq/meta-llama/llama-4-scout-17b-16e-instruct"
   | "groq/meta-llama/llama-guard-4-12b"
   | "groq/meta-llama/llama-prompt-guard-2-22m"
   | "groq/meta-llama/llama-prompt-guard-2-86m"
+  // DeepSeek models
+  | "groq/deepseek-r1-distill-llama-70b"
+  // Google models
+  | "groq/gemma2-9b-it"
+  // Mistral models
+  | "groq/mistral-saba-24b"
   // Moonshot AI models
   | "groq/moonshotai/kimi-k2-instruct"
   | "groq/moonshotai/kimi-k2-instruct-0905"
@@ -323,7 +493,8 @@ type GroqModel =
   | "groq/openai/gpt-oss-20b"
   | "groq/openai/gpt-oss-safeguard-20b"
   // Qwen models
-  | "groq/qwen/qwen3-32b";
+  | "groq/qwen/qwen3-32b"
+  | "groq/qwen-qwq-32b";
 
 /**
  * OpenRouter model identifiers
@@ -368,12 +539,15 @@ type OpenRouterModel =
   | "openrouter/anthropic/claude-opus-4"
   | "openrouter/anthropic/claude-opus-4.1"
   | "openrouter/anthropic/claude-opus-4.5"
+  | "openrouter/anthropic/claude-opus-4.6"
   | "openrouter/anthropic/claude-sonnet-4"
   | "openrouter/anthropic/claude-sonnet-4.5"
+  | "openrouter/anthropic/claude-sonnet-4.6"
   // Arcee AI models
   | "openrouter/arcee-ai/coder-large"
   | "openrouter/arcee-ai/maestro-reasoning"
   | "openrouter/arcee-ai/spotlight"
+  | "openrouter/arcee-ai/trinity-large-preview"
   | "openrouter/arcee-ai/trinity-mini"
   | "openrouter/arcee-ai/virtuoso-large"
   // ArliAI models
@@ -386,6 +560,10 @@ type OpenRouterModel =
   | "openrouter/baidu/ernie-4.5-vl-424b-a47b"
   // ByteDance models
   | "openrouter/bytedance/ui-tars-1.5-7b"
+  | "openrouter/bytedance-seed/seedream-4.5"
+  // Cognitivecomputations models
+  | "openrouter/cognitivecomputations/dolphin3.0-mistral-24b"
+  | "openrouter/cognitivecomputations/dolphin3.0-r1-mistral-24b"
   // Cohere models
   | "openrouter/cohere/command-a"
   | "openrouter/cohere/command-r-08-2024"
@@ -415,6 +593,8 @@ type OpenRouterModel =
   | "openrouter/deepseek/deepseek-v3.2-speciale"
   // EleutherAI models
   | "openrouter/eleutherai/llemma_7b"
+  // Featherless models
+  | "openrouter/featherless/qwerky-72b"
   // Google models
   | "openrouter/google/gemini-2.0-flash-001"
   | "openrouter/google/gemini-2.0-flash-lite-001"
@@ -427,8 +607,12 @@ type OpenRouterModel =
   | "openrouter/google/gemini-2.5-pro"
   | "openrouter/google/gemini-2.5-pro-preview"
   | "openrouter/google/gemini-2.5-pro-preview-05-06"
+  | "openrouter/google/gemini-2.5-pro-preview-06-05"
+  | "openrouter/google/gemini-3-flash-preview"
   | "openrouter/google/gemini-3-pro-image-preview"
   | "openrouter/google/gemini-3-pro-preview"
+  | "openrouter/google/gemini-3.1-pro-preview"
+  | "openrouter/google/gemini-3.1-pro-preview-customtools"
   | "openrouter/google/gemma-2-27b-it"
   | "openrouter/google/gemma-2-9b-it"
   | "openrouter/google/gemma-3-12b-it"
@@ -441,10 +625,13 @@ type OpenRouterModel =
   | "openrouter/ibm-granite/granite-4.0-h-micro"
   // Inception models
   | "openrouter/inception/mercury"
+  | "openrouter/inception/mercury-2"
   | "openrouter/inception/mercury-coder"
   // Inflection models
   | "openrouter/inflection/inflection-3-pi"
   | "openrouter/inflection/inflection-3-productivity"
+  // KwaiPilot models
+  | "openrouter/kwaipilot/kat-coder-pro"
   // Liquid models
   | "openrouter/liquid/lfm-2.2-6b"
   | "openrouter/liquid/lfm2-8b-a1b"
@@ -482,11 +669,16 @@ type OpenRouterModel =
   | "openrouter/minimax/minimax-01"
   | "openrouter/minimax/minimax-m1"
   | "openrouter/minimax/minimax-m2"
+  | "openrouter/minimax/minimax-m2.1"
+  | "openrouter/minimax/minimax-m2.5"
   // Mistral AI models
   | "openrouter/mistralai/codestral-2508"
+  | "openrouter/mistralai/devstral-2512"
   | "openrouter/mistralai/devstral-medium"
+  | "openrouter/mistralai/devstral-medium-2507"
   | "openrouter/mistralai/devstral-small"
   | "openrouter/mistralai/devstral-small-2505"
+  | "openrouter/mistralai/devstral-small-2507"
   | "openrouter/mistralai/magistral-medium-2506:thinking"
   | "openrouter/mistralai/ministral-14b-2512"
   | "openrouter/mistralai/ministral-3b"
@@ -520,6 +712,7 @@ type OpenRouterModel =
   | "openrouter/moonshotai/kimi-k2-0905"
   | "openrouter/moonshotai/kimi-k2-0905:exacto"
   | "openrouter/moonshotai/kimi-k2-thinking"
+  | "openrouter/moonshotai/kimi-k2.5"
   | "openrouter/moonshotai/kimi-linear-48b-a3b-instruct"
   // Morph models
   | "openrouter/morph/morph-v3-fast"
@@ -528,6 +721,7 @@ type OpenRouterModel =
   | "openrouter/neversleep/llama-3.1-lumimaid-8b"
   | "openrouter/neversleep/noromaid-20b"
   // NousResearch models
+  | "openrouter/nousresearch/deephermes-3-llama-3-8b-preview"
   | "openrouter/nousresearch/deephermes-3-mistral-24b-preview"
   | "openrouter/nousresearch/hermes-2-pro-llama-3-8b"
   | "openrouter/nousresearch/hermes-3-llama-3.1-405b"
@@ -538,6 +732,7 @@ type OpenRouterModel =
   | "openrouter/nvidia/llama-3.1-nemotron-70b-instruct"
   | "openrouter/nvidia/llama-3.1-nemotron-ultra-253b-v1"
   | "openrouter/nvidia/llama-3.3-nemotron-super-49b-v1.5"
+  | "openrouter/nvidia/nemotron-3-nano-30b-a3b"
   | "openrouter/nvidia/nemotron-nano-12b-v2-vl"
   | "openrouter/nvidia/nemotron-nano-9b-v2"
   // OpenAI models
@@ -576,7 +771,15 @@ type OpenRouterModel =
   | "openrouter/openai/gpt-5.1"
   | "openrouter/openai/gpt-5.1-chat"
   | "openrouter/openai/gpt-5.1-codex"
+  | "openrouter/openai/gpt-5.1-codex-max"
   | "openrouter/openai/gpt-5.1-codex-mini"
+  | "openrouter/openai/gpt-5.2"
+  | "openrouter/openai/gpt-5.2-chat"
+  | "openrouter/openai/gpt-5.2-codex"
+  | "openrouter/openai/gpt-5.2-pro"
+  | "openrouter/openai/gpt-5.3-codex"
+  | "openrouter/openai/gpt-5.4"
+  | "openrouter/openai/gpt-5.4-pro"
   | "openrouter/openai/gpt-oss-120b"
   | "openrouter/openai/gpt-oss-120b:exacto"
   | "openrouter/openai/gpt-oss-20b"
@@ -595,7 +798,11 @@ type OpenRouterModel =
   | "openrouter/opengvlab/internvl3-78b"
   // OpenRouter meta models
   | "openrouter/openrouter/auto"
+  | "openrouter/openrouter/aurora-alpha"
   | "openrouter/openrouter/bodybuilder"
+  | "openrouter/openrouter/free"
+  | "openrouter/openrouter/sherlock-dash-alpha"
+  | "openrouter/openrouter/sherlock-think-alpha"
   // Perplexity models
   | "openrouter/perplexity/sonar"
   | "openrouter/perplexity/sonar-deep-research"
@@ -623,11 +830,13 @@ type OpenRouterModel =
   | "openrouter/qwen/qwen3-14b"
   | "openrouter/qwen/qwen3-235b-a22b"
   | "openrouter/qwen/qwen3-235b-a22b-2507"
+  | "openrouter/qwen/qwen3-235b-a22b-07-25"
   | "openrouter/qwen/qwen3-235b-a22b-thinking-2507"
   | "openrouter/qwen/qwen3-30b-a3b"
   | "openrouter/qwen/qwen3-30b-a3b-instruct-2507"
   | "openrouter/qwen/qwen3-30b-a3b-thinking-2507"
   | "openrouter/qwen/qwen3-32b"
+  | "openrouter/qwen/qwen3-4b"
   | "openrouter/qwen/qwen3-8b"
   | "openrouter/qwen/qwen3-coder"
   | "openrouter/qwen/qwen3-coder-30b-a3b-instruct"
@@ -643,9 +852,13 @@ type OpenRouterModel =
   | "openrouter/qwen/qwen3-vl-30b-a3b-thinking"
   | "openrouter/qwen/qwen3-vl-8b-instruct"
   | "openrouter/qwen/qwen3-vl-8b-thinking"
+  | "openrouter/qwen/qwen3.5-397b-a17b"
+  | "openrouter/qwen/qwen3.5-plus-02-15"
   | "openrouter/qwen/qwq-32b"
   // Raifle models
   | "openrouter/raifle/sorcererlm-8x22b"
+  // Reka AI models
+  | "openrouter/rekaai/reka-flash-3"
   // Relace models
   | "openrouter/relace/relace-apply-3"
   // Sao10k models
@@ -654,8 +867,13 @@ type OpenRouterModel =
   | "openrouter/sao10k/l3.1-70b-hanami-x1"
   | "openrouter/sao10k/l3.1-euryale-70b"
   | "openrouter/sao10k/l3.3-euryale-70b"
+  // Sourceful models
+  | "openrouter/sourceful/riverflow-v2-fast-preview"
+  | "openrouter/sourceful/riverflow-v2-max-preview"
+  | "openrouter/sourceful/riverflow-v2-standard-preview"
   // Stepfun AI models
   | "openrouter/stepfun-ai/step3"
+  | "openrouter/stepfun/step-3.5-flash"
   // Switchpoint models
   | "openrouter/switchpoint/router"
   // Tencent models
@@ -668,6 +886,7 @@ type OpenRouterModel =
   | "openrouter/thedrummer/unslopnemo-12b"
   // THUDM models
   | "openrouter/thudm/glm-4.1v-9b-thinking"
+  | "openrouter/thudm/glm-z1-32b"
   // TNG Tech models
   | "openrouter/tngtech/deepseek-r1t-chimera"
   | "openrouter/tngtech/deepseek-r1t2-chimera"
@@ -683,13 +902,18 @@ type OpenRouterModel =
   | "openrouter/x-ai/grok-4-fast"
   | "openrouter/x-ai/grok-4.1-fast"
   | "openrouter/x-ai/grok-code-fast-1"
+  // Xiaomi models
+  | "openrouter/xiaomi/mimo-v2-flash"
   // Z-AI GLM models
   | "openrouter/z-ai/glm-4-32b"
   | "openrouter/z-ai/glm-4.5"
   | "openrouter/z-ai/glm-4.5-air"
   | "openrouter/z-ai/glm-4.5v"
   | "openrouter/z-ai/glm-4.6"
-  | "openrouter/z-ai/glm-4.6:exacto";
+  | "openrouter/z-ai/glm-4.6:exacto"
+  | "openrouter/z-ai/glm-4.7"
+  | "openrouter/z-ai/glm-4.7-flash"
+  | "openrouter/z-ai/glm-5";
 
 /**
  * Fireworks AI model identifiers
@@ -768,6 +992,13 @@ type FireworksModel =
   | "fireworks/accounts/fireworks/models/glm-4p5"
   | "fireworks/accounts/fireworks/models/glm-4p5-air"
   | "fireworks/accounts/fireworks/models/glm-4p6"
+  | "fireworks/accounts/fireworks/models/glm-4p7"
+  | "fireworks/accounts/fireworks/models/glm-5"
+  // MiniMax models
+  | "fireworks/accounts/fireworks/models/minimax-m2p1"
+  | "fireworks/accounts/fireworks/models/minimax-m2p5"
+  // Kimi/Moonshot models (additional)
+  | "fireworks/accounts/fireworks/models/kimi-k2p5"
   // Other models
   | "fireworks/accounts/fireworks/models/firefunction-v2"
   | "fireworks/accounts/fireworks/models/llama-3p1-nemotron-70b"

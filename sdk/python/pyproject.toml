@@ -1,6 +1,6 @@
 [project]
 name = "safety-agent"
-version = "0.1.7-rc1"
+version = "0.1.7-rc2"
 description = "A lightweight Python guardrail SDK for content safety"
 readme = "README.md"
 license = "MIT"

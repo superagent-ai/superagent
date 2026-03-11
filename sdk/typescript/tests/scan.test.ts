@@ -1,34 +1,56 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createClient } from "../src/index.js";
 
-const DAYTONA_API_KEY = process.env.DAYTONA_API_KEY;
-const SUPERAGENT_API_KEY = process.env.SUPERAGENT_API_KEY;
+describe("Scan Method", () => {
+  const originalEnv = process.env;
 
-const skipIfNoCredentials = !DAYTONA_API_KEY || !SUPERAGENT_API_KEY;
+  beforeEach(() => {
+    process.env = {
+      ...originalEnv,
+      SUPERAGENT_API_KEY: "test-key",
+    };
+    delete process.env.DAYTONA_API_KEY;
+  });
 
-describe.skipIf(skipIfNoCredentials)("Scan Method", () => {
-  const client = createClient();
+  afterEach(() => {
+    process.env = originalEnv;
+  });
 
-  it(
-    "should scan superagent-starter repository and return structured response",
-    { timeout: 300000 },
-    async () => {
-      const response = await client.scan({
-        repo: "https://github.com/superagent-ai/superagent-starter",
-        branch: "main",
-      });
+  describe("input validation", () => {
+    it("should reject empty repo URL", async () => {
+      const client = createClient({ apiKey: "test-key" });
 
-      // Check result field
-      expect(response.result).toBeDefined();
-      expect(typeof response.result).toBe("string");
-      expect(response.result.length).toBeGreaterThan(0);
+      await expect(client.scan({ repo: "" })).rejects.toThrow(
+        "Repository URL",
+      );
+    });
 
-      // Check usage field
-      expect(response.usage).toBeDefined();
-      expect(typeof response.usage.inputTokens).toBe("number");
-      expect(typeof response.usage.outputTokens).toBe("number");
-      expect(typeof response.usage.reasoningTokens).toBe("number");
-      expect(typeof response.usage.cost).toBe("number");
-    },
-  );
+    it("should require https:// or git@ URL scheme", async () => {
+      const client = createClient({ apiKey: "test-key" });
+
+      await expect(
+        client.scan({ repo: "http://github.com/user/repo" }),
+      ).rejects.toThrow("Repository URL must start with https:// or git@");
+
+      await expect(
+        client.scan({ repo: "ftp://github.com/user/repo" }),
+      ).rejects.toThrow("Repository URL must start with https:// or git@");
+    });
+
+    it("should require Daytona API key for valid URL", async () => {
+      const client = createClient({ apiKey: "test-key" });
+
+      await expect(
+        client.scan({ repo: "https://github.com/user/repo" }),
+      ).rejects.toThrow("Daytona API key required");
+    });
+
+    it("should require Daytona API key for git@ URL", async () => {
+      const client = createClient({ apiKey: "test-key" });
+
+      await expect(
+        client.scan({ repo: "git@github.com:user/repo.git" }),
+      ).rejects.toThrow("Daytona API key required");
+    });
+  });
 });
