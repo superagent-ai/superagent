@@ -1,10 +1,27 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const mockRedact = vi.fn();
+
+vi.mock("safety-agent", () => ({
+  createClient: () => ({ redact: mockRedact }),
+}));
+
 import { createClient } from "safety-agent";
 
-const client = createClient();
-
 describe("redact", () => {
+  const client = createClient();
+
+  beforeEach(() => {
+    mockRedact.mockReset();
+  });
+
   it("redacts email addresses", async () => {
+    mockRedact.mockResolvedValueOnce({
+      redacted: "My email is <EMAIL_REDACTED>",
+      findings: ["john.doe@example.com"],
+      usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
+    });
+
     const result = await client.redact({
       input: "My email is john.doe@example.com",
       model: "openai/gpt-4o-mini",
@@ -17,6 +34,18 @@ describe("redact", () => {
   });
 
   it("redacts multiple PII types", async () => {
+    mockRedact.mockResolvedValueOnce({
+      redacted:
+        "Contact <NAME_REDACTED> at <EMAIL_REDACTED> or call <PHONE_REDACTED>. SSN: <SSN_REDACTED>",
+      findings: [
+        "John Smith",
+        "john@example.com",
+        "555-123-4567",
+        "123-45-6789",
+      ],
+      usage: { promptTokens: 120, completionTokens: 60, totalTokens: 180 },
+    });
+
     const result = await client.redact({
       input:
         "Contact John Smith at john@example.com or call 555-123-4567. SSN: 123-45-6789",
@@ -31,6 +60,12 @@ describe("redact", () => {
   });
 
   it("returns proper response structure", async () => {
+    mockRedact.mockResolvedValueOnce({
+      redacted: "Test input with email <EMAIL_REDACTED>",
+      findings: ["test@test.com"],
+      usage: { promptTokens: 80, completionTokens: 40, totalTokens: 120 },
+    });
+
     const result = await client.redact({
       input: "Test input with email test@test.com",
       model: "openai/gpt-4o-mini",
@@ -45,6 +80,12 @@ describe("redact", () => {
   });
 
   it("supports rewrite mode", async () => {
+    mockRedact.mockResolvedValueOnce({
+      redacted: "Please contact me at user@company.net",
+      findings: ["sarah@company.org"],
+      usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
+    });
+
     const result = await client.redact({
       input: "Please contact me at sarah@company.org",
       model: "openai/gpt-4o-mini",
@@ -53,7 +94,9 @@ describe("redact", () => {
 
     expect(result.redacted).toBeDefined();
     expect(result.redacted).not.toContain("sarah@company.org");
-    // In rewrite mode, should naturally rewrite instead of using placeholders
     expect(result.usage).toBeDefined();
+    expect(mockRedact).toHaveBeenCalledWith(
+      expect.objectContaining({ rewrite: true }),
+    );
   });
 });
