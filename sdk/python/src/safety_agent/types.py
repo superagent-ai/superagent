@@ -2,8 +2,58 @@
 Type definitions for the Safety Agent SDK
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Literal, Union, TypedDict
+from typing import Awaitable, Callable, Literal, Optional, Union, TypedDict
+
+
+# =============================================================================
+# Observability Types
+# =============================================================================
+
+
+@dataclass
+class ObservabilityEvent:
+    """
+    Event emitted after each guard or redact call.
+
+    Register a callback via ``ClientConfig.on_guard`` / ``ClientConfig.on_redact``
+    to receive these events for logging, monitoring, or alerting.
+    """
+
+    method: Literal["guard", "redact"]
+    """Which SDK method produced this event."""
+
+    model: str
+    """The model string that was used (provider/model format)."""
+
+    input_preview: str
+    """First 200 characters of the input (truncated). Useful for debugging."""
+
+    classification: Literal["pass", "block"] | None
+    """Guard classification result.  None for redact events."""
+
+    violation_types: list[str]
+    """Violation types detected (empty list for redact or clean guard events)."""
+
+    prompt_tokens: int
+    """Prompt tokens consumed."""
+
+    completion_tokens: int
+    """Completion tokens consumed."""
+
+    total_tokens: int
+    """Total tokens consumed."""
+
+
+# Callback type accepted by ClientConfig.on_guard / on_redact.
+# May be sync (receives ObservabilityEvent, returns None) or
+# async (receives ObservabilityEvent, returns Awaitable[None]).
+ObservabilityCallback = Union[
+    Callable[["ObservabilityEvent"], None],
+    Callable[["ObservabilityEvent"], Awaitable[None]],
+]
 
 
 # =============================================================================
@@ -26,6 +76,26 @@ class ClientConfig:
 
     fallback_url: str | None = None
     """Custom fallback URL. If not provided, uses SUPERAGENT_FALLBACK_URL env var or built-in default."""
+
+    on_guard: ObservabilityCallback | None = None
+    """
+    Optional callback invoked after every ``guard()`` call.
+
+    The callback receives a single :class:`ObservabilityEvent` argument and
+    may be either synchronous or async::
+
+        def log_guard(event: ObservabilityEvent) -> None:
+            print(event.classification, event.total_tokens)
+
+        client = create_client(api_key="…", on_guard=log_guard)
+    """
+
+    on_redact: ObservabilityCallback | None = None
+    """
+    Optional callback invoked after every ``redact()`` call.
+
+    Works identically to ``on_guard`` but fires for redact operations.
+    """
 
 
 # =============================================================================

@@ -14,6 +14,8 @@ from .types import (
     ClientConfig,
     GuardInput,
     GuardOptions,
+    ObservabilityCallback,
+    ObservabilityEvent,
     RedactOptions,
     ScanOptions,
     GuardClassificationResult,
@@ -220,6 +222,8 @@ class SafetyClient:
             fallback_timeout=config.fallback_timeout if config else None,
             fallback_url=config.fallback_url if config else None,
         )
+        self._on_guard: ObservabilityCallback | None = config.on_guard if config else None
+        self._on_redact: ObservabilityCallback | None = config.on_redact if config else None
 
     def _post_usage(self, usage: TokenUsage) -> None:
         """Post usage metrics to Superagent dashboard (fire and forget)."""
@@ -235,6 +239,21 @@ class SafetyClient:
             )
         except Exception:
             pass  # Fire and forget - ignore errors
+
+    async def _fire_observability(
+        self,
+        callback: ObservabilityCallback | None,
+        event: ObservabilityEvent,
+    ) -> None:
+        """Invoke an observability callback, supporting both sync and async callables."""
+        if callback is None:
+            return
+        try:
+            result = callback(event)
+            if asyncio.iscoroutine(result):
+                await result
+        except Exception:
+            pass  # Observability callbacks must never break guard/redact flow
 
     async def _guard_single_text(
         self,
@@ -404,10 +423,29 @@ class SafetyClient:
         # Process the input (handle URLs, bytes, etc.)
         processed = await process_input(input)
 
+        # Capture a short preview of the raw input for observability events.
+        raw_input_str = (
+            input.decode("utf-8", errors="replace") if isinstance(input, bytes) else str(input)
+        )
+        input_preview = raw_input_str[:200]
+
         # Handle image inputs with vision models
         if processed.type == "image":
             result = await self._guard_image(processed, system_prompt, model, fallback_model)
             self._post_usage(result.usage)
+            await self._fire_observability(
+                self._on_guard,
+                ObservabilityEvent(
+                    method="guard",
+                    model=model,
+                    input_preview=input_preview,
+                    classification=result.classification,
+                    violation_types=result.violation_types,
+                    prompt_tokens=result.usage.prompt_tokens,
+                    completion_tokens=result.usage.completion_tokens,
+                    total_tokens=result.usage.total_tokens,
+                ),
+            )
             return result
 
         # Handle PDF inputs - analyze each page in parallel
@@ -416,7 +454,7 @@ class SafetyClient:
 
             if not non_empty_pages:
                 # PDF has no extractable text, return pass
-                return GuardResponse(
+                empty_result = GuardResponse(
                     classification="pass",
                     reasoning="PDF contains no extractable text content to analyze.",
                     violation_types=[],
@@ -425,6 +463,20 @@ class SafetyClient:
                         prompt_tokens=0, completion_tokens=0, total_tokens=0
                     ),
                 )
+                await self._fire_observability(
+                    self._on_guard,
+                    ObservabilityEvent(
+                        method="guard",
+                        model=model,
+                        input_preview=input_preview,
+                        classification=empty_result.classification,
+                        violation_types=empty_result.violation_types,
+                        prompt_tokens=0,
+                        completion_tokens=0,
+                        total_tokens=0,
+                    ),
+                )
+                return empty_result
 
             # Analyze each page in parallel
             results = await asyncio.gather(
@@ -437,6 +489,19 @@ class SafetyClient:
             # Aggregate with OR logic
             aggregated = _aggregate_guard_results(list(results))
             self._post_usage(aggregated.usage)
+            await self._fire_observability(
+                self._on_guard,
+                ObservabilityEvent(
+                    method="guard",
+                    model=model,
+                    input_preview=input_preview,
+                    classification=aggregated.classification,
+                    violation_types=aggregated.violation_types,
+                    prompt_tokens=aggregated.usage.prompt_tokens,
+                    completion_tokens=aggregated.usage.completion_tokens,
+                    total_tokens=aggregated.usage.total_tokens,
+                ),
+            )
             return aggregated
 
         # Handle text inputs (including document text)
@@ -446,6 +511,19 @@ class SafetyClient:
         if chunk_size == 0 or len(text) <= chunk_size:
             result = await self._guard_single_text(text, system_prompt, model, fallback_model)
             self._post_usage(result.usage)
+            await self._fire_observability(
+                self._on_guard,
+                ObservabilityEvent(
+                    method="guard",
+                    model=model,
+                    input_preview=input_preview,
+                    classification=result.classification,
+                    violation_types=result.violation_types,
+                    prompt_tokens=result.usage.prompt_tokens,
+                    completion_tokens=result.usage.completion_tokens,
+                    total_tokens=result.usage.total_tokens,
+                ),
+            )
             return result
 
         # Chunk and process in parallel
@@ -460,6 +538,19 @@ class SafetyClient:
         # Aggregate with OR logic
         aggregated = _aggregate_guard_results(list(results))
         self._post_usage(aggregated.usage)
+        await self._fire_observability(
+            self._on_guard,
+            ObservabilityEvent(
+                method="guard",
+                model=model,
+                input_preview=input_preview,
+                classification=aggregated.classification,
+                violation_types=aggregated.violation_types,
+                prompt_tokens=aggregated.usage.prompt_tokens,
+                completion_tokens=aggregated.usage.completion_tokens,
+                total_tokens=aggregated.usage.total_tokens,
+            ),
+        )
         return aggregated
 
     async def redact(
@@ -535,6 +626,19 @@ class SafetyClient:
                 usage=response.usage,
             )
             self._post_usage(redact_response.usage)
+            await self._fire_observability(
+                self._on_redact,
+                ObservabilityEvent(
+                    method="redact",
+                    model=model,
+                    input_preview=input[:200],
+                    classification=None,
+                    violation_types=[],
+                    prompt_tokens=redact_response.usage.prompt_tokens,
+                    completion_tokens=redact_response.usage.completion_tokens,
+                    total_tokens=redact_response.usage.total_tokens,
+                ),
+            )
             return redact_response
         except Exception as e:
             raise RuntimeError(f"Failed to parse redact response: {content}") from e
@@ -725,6 +829,8 @@ def create_client(
     enable_fallback: bool | None = None,
     fallback_timeout: float | None = None,
     fallback_url: str | None = None,
+    on_guard: ObservabilityCallback | None = None,
+    on_redact: ObservabilityCallback | None = None,
 ) -> SafetyClient:
     """
     Create a new Safety Agent client.
@@ -736,9 +842,22 @@ def create_client(
             Default: True for superagent provider.
         fallback_timeout: Timeout in seconds before falling back. Default: 5.0.
         fallback_url: Custom fallback URL. If not provided, uses env var or default.
+        on_guard: Optional callback invoked after every ``guard()`` call with an
+            :class:`ObservabilityEvent`.  May be sync or async.
+        on_redact: Optional callback invoked after every ``redact()`` call with an
+            :class:`ObservabilityEvent`.  May be sync or async.
 
     Returns:
         SafetyClient instance
+
+    Example::
+
+        from safety_agent import create_client, ObservabilityEvent
+
+        def log_event(event: ObservabilityEvent) -> None:
+            print(f"[{event.method}] {event.classification} – {event.total_tokens} tokens")
+
+        client = create_client(api_key="…", on_guard=log_event)
     """
     if config is None:
         config = ClientConfig(
@@ -746,6 +865,8 @@ def create_client(
             enable_fallback=enable_fallback,
             fallback_timeout=fallback_timeout,
             fallback_url=fallback_url,
+            on_guard=on_guard,
+            on_redact=on_redact,
         )
     elif api_key:
         # Override api_key if provided directly
@@ -754,5 +875,7 @@ def create_client(
             enable_fallback=enable_fallback or config.enable_fallback,
             fallback_timeout=fallback_timeout or config.fallback_timeout,
             fallback_url=fallback_url or config.fallback_url,
+            on_guard=on_guard or config.on_guard,
+            on_redact=on_redact or config.on_redact,
         )
     return SafetyClient(config)
