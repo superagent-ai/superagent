@@ -5,7 +5,7 @@ Input processor for handling various input types (text, URLs, images, PDFs)
 import base64
 import ipaddress
 import socket
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import httpx
 
@@ -187,13 +187,43 @@ async def _extract_pdf_pages(data: bytes) -> list[str]:
     return pages
 
 
+MAX_REDIRECTS = 5
+
+
 async def _fetch_url(url: str) -> ProcessedInput:
-    """Fetch content from a URL and return as ProcessedInput."""
-    # Validate URL for security before making any network requests
+    """Fetch content from a URL and return as ProcessedInput.
+
+    Follows up to ``MAX_REDIRECTS`` redirects, re-running ``_validate_url`` on
+    every hop. Automatic redirect following (``follow_redirects=True``) is
+    intentionally disabled so a server-controlled 3xx response cannot point the
+    fetcher at a private address that the original URL check would have
+    rejected (SSRF via Location header).
+    """
     _validate_url(url)
-    
+
     async with httpx.AsyncClient() as client:
-        response = await client.get(url, follow_redirects=True, timeout=30.0)
+        current_url = url
+        for _ in range(MAX_REDIRECTS + 1):
+            response = await client.get(
+                current_url, follow_redirects=False, timeout=30.0
+            )
+
+            if response.is_redirect:
+                location = response.headers.get("location")
+                if not location:
+                    raise RuntimeError(
+                        f"Failed to fetch URL: redirect response without Location header"
+                    )
+                next_url = urljoin(current_url, location)
+                _validate_url(next_url)
+                current_url = next_url
+                continue
+
+            break
+        else:
+            raise RuntimeError(
+                f"Failed to fetch URL: exceeded maximum of {MAX_REDIRECTS} redirects"
+            )
 
         if response.status_code != 200:
             raise RuntimeError(
