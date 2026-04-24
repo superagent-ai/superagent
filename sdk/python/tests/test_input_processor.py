@@ -256,3 +256,187 @@ class TestProcessInput:
         result = await process_input(b"Just some plain text bytes")
         assert result.type == "text"
         assert result.text == "Just some plain text bytes"
+
+
+# ---------------------------------------------------------------------------
+# Redirect SSRF protection
+# ---------------------------------------------------------------------------
+#
+# `_fetch_url` previously passed `follow_redirects=True` to httpx. That meant
+# a public URL (which passes `_validate_url`) could issue a 302 to an internal
+# address like 127.0.0.1 or 169.254.169.254 (AWS metadata) and httpx would
+# transparently follow it. These tests cover the manual redirect loop that
+# re-runs `_validate_url` on every hop.
+
+import httpx as _httpx  # noqa: E402
+
+from safety_agent.utils.input_processor import (  # noqa: E402
+    MAX_REDIRECTS,
+    _fetch_url,
+)
+
+
+_REAL_ASYNC_CLIENT = _httpx.AsyncClient
+
+
+class _FakeAsyncClient:
+    """Minimal async-context-manager stand-in for httpx.AsyncClient that
+    routes requests through an httpx.MockTransport so we can script
+    redirect chains without hitting the network."""
+
+    def __init__(self, *, transport: _httpx.MockTransport):
+        # Use the unpatched AsyncClient so we don't re-enter the fake.
+        self._inner = _REAL_ASYNC_CLIENT(transport=transport)
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        await self._inner.aclose()
+
+    async def get(self, url, *, follow_redirects=False, timeout=None):
+        return await self._inner.get(url, follow_redirects=follow_redirects, timeout=timeout)
+
+
+def _patch_client(transport: _httpx.MockTransport):
+    return patch(
+        "safety_agent.utils.input_processor.httpx.AsyncClient",
+        lambda: _FakeAsyncClient(transport=transport),
+    )
+
+
+class TestFetchUrlRedirectSsrf:
+    async def test_redirect_to_loopback_blocked(self):
+        """A public URL redirecting to 127.0.0.1 must raise, not silently fetch."""
+
+        def handler(request: _httpx.Request) -> _httpx.Response:
+            if request.url.host == "safe.example.com":
+                return _httpx.Response(302, headers={"location": "http://127.0.0.1/secret"})
+            # If the fetcher ever reaches 127.0.0.1, return a marker we can fail on.
+            return _httpx.Response(200, text="LEAKED INTERNAL DATA")
+
+        transport = _httpx.MockTransport(handler)
+        with _patch_client(transport):
+            with pytest.raises(ValueError, match="localhost access is not allowed"):
+                await _fetch_url("https://safe.example.com/r")
+
+    async def test_redirect_to_link_local_metadata_blocked(self):
+        """302 -> 169.254.169.254 (AWS/GCP metadata) must raise."""
+
+        def handler(request: _httpx.Request) -> _httpx.Response:
+            return _httpx.Response(
+                302,
+                headers={"location": "http://169.254.169.254/latest/meta-data/"},
+            )
+
+        transport = _httpx.MockTransport(handler)
+        with _patch_client(transport):
+            with pytest.raises(ValueError, match="private/internal IP addresses"):
+                await _fetch_url("https://safe.example.com/r")
+
+    async def test_redirect_relative_path_to_private_blocked(self):
+        """Relative redirects get resolved against the current URL, then revalidated.
+        A hostname that quietly resolves to a private IP still trips the check."""
+
+        def handler(request: _httpx.Request) -> _httpx.Response:
+            if request.url.host == "public.example.com":
+                return _httpx.Response(302, headers={"location": "http://10.0.0.1/secret"})
+            return _httpx.Response(200, text="LEAKED")
+
+        transport = _httpx.MockTransport(handler)
+        with _patch_client(transport):
+            with pytest.raises(ValueError, match="private/internal IP addresses"):
+                await _fetch_url("https://public.example.com/redir")
+
+    async def test_redirect_chain_public_to_public_ok(self):
+        """Legitimate public-to-public 302 chain must still succeed."""
+
+        def handler(request: _httpx.Request) -> _httpx.Response:
+            if request.url.host == "one.example.com":
+                return _httpx.Response(
+                    302, headers={"location": "https://two.example.com/final"}
+                )
+            return _httpx.Response(
+                200,
+                headers={"content-type": "text/plain"},
+                text="ok",
+            )
+
+        transport = _httpx.MockTransport(handler)
+        with _patch_client(transport):
+            result = await _fetch_url("https://one.example.com/a")
+
+        assert result.type == "text"
+        assert result.text == "ok"
+
+    async def test_too_many_redirects_raises(self):
+        """Redirect loops must terminate after MAX_REDIRECTS hops."""
+        calls = {"n": 0}
+
+        def handler(request: _httpx.Request) -> _httpx.Response:
+            calls["n"] += 1
+            # Keep bouncing between two public hosts; never return a terminal 200.
+            next_host = "a.example.com" if request.url.host == "b.example.com" else "b.example.com"
+            return _httpx.Response(
+                302, headers={"location": f"https://{next_host}/loop"}
+            )
+
+        transport = _httpx.MockTransport(handler)
+        with _patch_client(transport):
+            with pytest.raises(RuntimeError, match="exceeded maximum of .* redirects"):
+                await _fetch_url("https://a.example.com/loop")
+
+        # MAX_REDIRECTS + 1 request attempts (original + MAX_REDIRECTS hops).
+        assert calls["n"] == MAX_REDIRECTS + 1
+
+    async def test_redirect_without_location_raises(self):
+        """3xx response with a missing Location header is reported as an error
+        rather than silently swallowed."""
+
+        def handler(request: _httpx.Request) -> _httpx.Response:
+            return _httpx.Response(302, headers={})  # no location
+
+        transport = _httpx.MockTransport(handler)
+        with _patch_client(transport):
+            with pytest.raises(RuntimeError, match="without Location header"):
+                await _fetch_url("https://safe.example.com/r")
+
+    async def test_redirect_to_file_scheme_blocked(self):
+        """Location: file:///etc/passwd must be caught by _validate_url."""
+
+        def handler(request: _httpx.Request) -> _httpx.Response:
+            return _httpx.Response(302, headers={"location": "file:///etc/passwd"})
+
+        transport = _httpx.MockTransport(handler)
+        with _patch_client(transport):
+            with pytest.raises(ValueError, match="file:// protocol is not allowed"):
+                await _fetch_url("https://safe.example.com/r")
+
+    async def test_mime_fallback_uses_final_url_after_redirect(self):
+        """When Content-Type is missing, the MIME type must be inferred from
+        the final URL actually served, not the original pre-redirect URL.
+        Otherwise a redirect from /file.png -> /file.txt causes content to be
+        processed as the wrong type.
+
+        Note: pass ``content=b"..."`` rather than ``text="..."`` so httpx does
+        not auto-populate a Content-Type header — the whole point of the test
+        is to exercise the URL-inference fallback branch.
+        """
+
+        def handler(request: _httpx.Request) -> _httpx.Response:
+            if request.url.host == "one.example.com":
+                return _httpx.Response(
+                    302, headers={"location": "https://two.example.com/final.txt"}
+                )
+            return _httpx.Response(200, content=b"plain body")
+
+        transport = _httpx.MockTransport(handler)
+        with _patch_client(transport):
+            # Original URL extension (.png) would infer image/png; final URL
+            # extension (.txt) infers text/plain. If the fix regresses, this
+            # returns type="image" and fails on the text assertion below.
+            result = await _fetch_url("https://one.example.com/file.png")
+
+        assert result.type == "text"
+        assert result.mime_type == "text/plain"
+        assert result.text == "plain body"
