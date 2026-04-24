@@ -411,3 +411,32 @@ class TestFetchUrlRedirectSsrf:
         with _patch_client(transport):
             with pytest.raises(ValueError, match="file:// protocol is not allowed"):
                 await _fetch_url("https://safe.example.com/r")
+
+    async def test_mime_fallback_uses_final_url_after_redirect(self):
+        """When Content-Type is missing, the MIME type must be inferred from
+        the final URL actually served, not the original pre-redirect URL.
+        Otherwise a redirect from /file.png -> /file.txt causes content to be
+        processed as the wrong type.
+
+        Note: pass ``content=b"..."`` rather than ``text="..."`` so httpx does
+        not auto-populate a Content-Type header — the whole point of the test
+        is to exercise the URL-inference fallback branch.
+        """
+
+        def handler(request: _httpx.Request) -> _httpx.Response:
+            if request.url.host == "one.example.com":
+                return _httpx.Response(
+                    302, headers={"location": "https://two.example.com/final.txt"}
+                )
+            return _httpx.Response(200, content=b"plain body")
+
+        transport = _httpx.MockTransport(handler)
+        with _patch_client(transport):
+            # Original URL extension (.png) would infer image/png; final URL
+            # extension (.txt) infers text/plain. If the fix regresses, this
+            # returns type="image" and fails on the text assertion below.
+            result = await _fetch_url("https://one.example.com/file.png")
+
+        assert result.type == "text"
+        assert result.mime_type == "text/plain"
+        assert result.text == "plain body"

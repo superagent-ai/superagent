@@ -234,7 +234,7 @@ async def _fetch_url(url: str) -> ProcessedInput:
         content_type = response.headers.get("content-type", "").split(";")[0].strip()
 
         if not content_type:
-            content_type = _get_mime_type_from_url(url) or "text/plain"
+            content_type = _get_mime_type_from_url(current_url) or "text/plain"
 
         data = response.content
 
