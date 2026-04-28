@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/superagent-ai-superagent-badge.png)](https://mseep.ai/app/superagent-ai-superagent)
+
 <p align="center">
   <img src="logo.png" width="80" alt="Superagent" />
 </p>
