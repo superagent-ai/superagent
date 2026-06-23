@@ -12,7 +12,7 @@ vi.mock("node:dns/promises", () => ({
 }));
 
 describe("SSRF Protection - URL Validation", () => {
-  const client = createClient();
+  const client = createClient({ apiKey: "test-key" });
 
   beforeEach(() => {
     vi.clearAllMocks();
