@@ -11,6 +11,13 @@ export type {
   ClientConfig,
   GuardInput,
   GuardOptions,
+  GuardHooks,
+  GuardStartEvent,
+  GuardSegmentEvent,
+  GuardResultEvent,
+  GuardErrorEvent,
+  GuardSegmentKind,
+  GuardInputUnits,
   RedactOptions,
   ScanOptions,
   GuardClassificationResult,
@@ -53,3 +60,7 @@ export {
   buildRedactUserMessage,
   buildRedactSystemPrompt,
 } from "./prompts/redact.js";
+
+// Observability helpers
+export { createOtelGuardHooks } from "./observability/otel.js";
+export type { OtelGuardHookOptions, OtelTracerLike, OtelSpanLike } from "./observability/otel.js";

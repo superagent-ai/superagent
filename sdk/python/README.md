@@ -62,6 +62,40 @@ print(result.violation_types)  # ["prompt_injection", ...]
 print(result.cwe_codes)  # ["CWE-94", ...]
 ```
 
+### Observability Hooks
+
+```python
+from safety_agent import GuardHooks
+
+hooks = GuardHooks(
+    on_start=lambda event: print("Guard start:", event),
+    on_segment=lambda event: print("Segment result:", event),
+    on_result=lambda event: print("Guard result:", event),
+    on_error=lambda event: print("Guard error:", event),
+)
+
+result = await client.guard(
+    input="user message to analyze",
+    model="openai/gpt-4o-mini",
+    hooks=hooks,
+)
+```
+
+### OpenTelemetry
+
+```python
+from opentelemetry import trace
+from safety_agent import create_otel_guard_hooks
+
+tracer = trace.get_tracer("my-app")
+
+result = await client.guard(
+    input="user message to analyze",
+    model="openai/gpt-4o-mini",
+    hooks=create_otel_guard_hooks(tracer, include_segment_events=True),
+)
+```
+
 ### Input Types
 
 Guard supports multiple input types:
