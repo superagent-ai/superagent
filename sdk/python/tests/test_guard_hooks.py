@@ -12,7 +12,7 @@ from safety_agent.types import (
 
 
 async def test_guard_hooks_emit_events(monkeypatch):
-    async def fake_call_provider(model, messages, response_format=None):
+    async def fake_call_provider(model, messages, response_format=None, *args, **kwargs):
         return AnalysisResponse(
             id="test",
             usage=TokenUsage(prompt_tokens=1, completion_tokens=1, total_tokens=2),
@@ -55,7 +55,7 @@ async def test_guard_hooks_emit_events(monkeypatch):
 
 
 async def test_guard_hooks_emit_error(monkeypatch):
-    async def failing_call_provider(model, messages, response_format=None):
+    async def failing_call_provider(model, messages, response_format=None, *args, **kwargs):
         raise RuntimeError("provider failure")
 
     monkeypatch.setattr("safety_agent.client.call_provider", failing_call_provider)

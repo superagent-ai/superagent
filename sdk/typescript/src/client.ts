@@ -815,6 +815,7 @@ export class SafetyClient {
           // PDF has no extractable text, return pass
           const emptyResult: GuardResponse = {
             classification: "pass",
+            reasoning: "PDF contains no extractable text content to analyze.",
             violation_types: [],
             cwe_codes: [],
             usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
