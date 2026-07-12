@@ -58,6 +58,7 @@ describe("Redact", () => {
     "groq/llama-3.3-70b-versatile",
     "fireworks/accounts/fireworks/models/llama-v3p1-8b-instruct",
     "openrouter/openai/gpt-4o-mini",
+    "requesty/openai/gpt-4o-mini",
     "vercel/openai/gpt-4o-mini",
     "openai-compatible/gpt-4o-mini",
   ];
