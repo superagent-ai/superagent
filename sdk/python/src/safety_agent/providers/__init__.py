@@ -18,6 +18,7 @@ from .bedrock import bedrock_provider
 from .groq import groq_provider
 from .fireworks import fireworks_provider
 from .openrouter import openrouter_provider
+from .requesty import requesty_provider
 from .openai_compatible import openai_compatible_provider
 from .vercel import vercel_provider
 from .superagent import (
@@ -54,6 +55,7 @@ providers: dict[str, Any] = {
     "groq": groq_provider,
     "fireworks": fireworks_provider,
     "openrouter": openrouter_provider,
+    "requesty": requesty_provider,
     "vercel": vercel_provider,
     "superagent": superagent_provider,
 }
