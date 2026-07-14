@@ -38,6 +38,10 @@ export OPENAI_COMPATIBLE_API_KEY=sk-...
 export OPENAI_COMPATIBLE_BASE_URL=https://api.example.com/v1
 export OPENAI_COMPATIBLE_SUPPORTS_STRUCTURED_OUTPUT=true  # optional - set to true if the endpoint supports structured output
 
+# Example: DaoXE multi-model multi-protocol gateway (OpenAI-compatible base)
+# export OPENAI_COMPATIBLE_API_KEY=your-daoxe-api-key
+# export OPENAI_COMPATIBLE_BASE_URL=https://daoxe.com/v1
+
 # Anthropic
 export ANTHROPIC_API_KEY=sk-ant-...
 
@@ -92,6 +96,9 @@ await client.guard({
   model: "openai-compatible/my-model"
 });
 
+// OpenAI Compatible via DaoXE custom base (see section below)
+// model: "openai-compatible/<account-scoped-model-id>"
+
 // Anthropic
 await client.guard({
   input: "user message",
@@ -116,6 +123,47 @@ await client.guard({
   model: "openrouter/anthropic/claude-3-5-sonnet"
 });
 ```
+
+## Custom OpenAI-compatible base URL (example: DaoXE)
+
+Use the built-in **OpenAI Compatible** provider when your LLM traffic goes through a custom Chat Completions endpoint. Superagent calls `{OPENAI_COMPATIBLE_BASE_URL}/chat/completions` with Bearer auth.
+
+[DaoXE](https://daoxe.com) is a multi-model multi-protocol AI API gateway. It exposes OpenAI-compatible Chat Completions (and related paths) at a fixed base URL so Superagent can analyze traffic with models available on your DaoXE account.
+
+| Setting | Value |
+|---------|-------|
+| Provider | `openai-compatible` |
+| Base URL | `https://daoxe.com/v1` |
+| Env: API key | `OPENAI_COMPATIBLE_API_KEY` (DaoXE account API key) |
+| Env: base URL | `OPENAI_COMPATIBLE_BASE_URL=https://daoxe.com/v1` |
+| Model string | `openai-compatible/{model}` where `{model}` is an **exact model ID currently available to your DaoXE account** |
+
+```bash
+export OPENAI_COMPATIBLE_API_KEY=your-daoxe-api-key
+export OPENAI_COMPATIBLE_BASE_URL=https://daoxe.com/v1
+# optional if the selected model path supports it:
+# export OPENAI_COMPATIBLE_SUPPORTS_STRUCTURED_OUTPUT=true
+```
+
+```typescript
+import { createClient } from "safety-agent";
+
+const client = createClient();
+
+// Replace the model id with one returned for your DaoXE account
+// (for example from GET https://daoxe.com/v1/models with your key).
+await client.guard({
+  input: "user message",
+  model: "openai-compatible/your-account-model-id"
+});
+```
+
+Notes:
+
+- **Multi-protocol gateway:** DaoXE supports more than Chat Completions (for example OpenAI Responses and Anthropic Messages on the gateway). Superagent’s `openai-compatible` provider uses the **OpenAI Chat Completions** path only—set the base to `https://daoxe.com/v1` and a model that works for chat completions with your key.
+- **Account-scoped model IDs:** Prefer IDs from your DaoXE dashboard or `GET https://daoxe.com/v1/models`. Do not hardcode model names from screenshots or outdated blog posts.
+- **Availability:** DaoXE is **not available in mainland China**. Use it only where the service terms allow.
+- **Links:** [DaoXE](https://daoxe.com) · [public examples](https://github.com/seven7763/DaoXE-AI)
 
 ## Vision-Capable Models
 
