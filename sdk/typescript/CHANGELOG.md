@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+
+- Hardened remote URL inputs against SSRF while preserving downloads. DNS
+  results and redirect targets must be public, connections are pinned to
+  validated addresses, and downloads enforce redirect, timeout, and size
+  limits.
+
 ## [0.1.6] - 2025-12-22
 
 ### Added

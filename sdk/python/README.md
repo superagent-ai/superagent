@@ -71,6 +71,10 @@ Guard supports multiple input types:
 - **Bytes/Files**: Analyzed based on content type
 - **PDFs**: Text extracted and analyzed per page
 
+Remote URLs must resolve exclusively to public IP addresses. Redirect targets
+are revalidated, and downloads are limited to 5 redirects, 30 seconds, and
+25 MiB.
+
 ```python
 # URL input
 result = await client.guard(input="https://example.com/document.pdf")
