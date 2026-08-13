@@ -98,6 +98,9 @@ const result = await client.guard({
 - Uses OR logic: blocks if ANY page contains a violation
 - Text extraction only (no OCR for scanned PDFs)
 - Works with all text-capable models
+- Remote URLs must resolve exclusively to public IP addresses. Redirect targets
+  are revalidated, and downloads are limited to 5 redirects, 30 seconds, and
+  25 MiB.
 
 ### Image Support
 

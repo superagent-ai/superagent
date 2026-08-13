@@ -1,6 +1,6 @@
 {
   "name": "safety-agent",
-  "version": "0.1.7-rc2",
+  "version": "0.1.7",
   "description": "An open-source SDK for AI agent safety",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -33,7 +33,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/superagent-ai/superagent"
+    "url": "git+https://github.com/superagent-ai/superagent.git"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
@@ -42,11 +42,12 @@
     "vitest": "^4.0.18"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.17.0"
   },
   "dependencies": {
     "@daytonaio/sdk": "^0.138.0",
     "ipaddr.js": "^2.3.0",
+    "undici": "^6.28.0",
     "unpdf": "^1.4.0"
   },
   "overrides": {
