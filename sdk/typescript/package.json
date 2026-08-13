@@ -42,11 +42,12 @@
     "vitest": "^4.0.18"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.17.0"
   },
   "dependencies": {
     "@daytonaio/sdk": "^0.138.0",
     "ipaddr.js": "^2.3.0",
+    "undici": "^6.28.0",
     "unpdf": "^1.4.0"
   },
   "overrides": {

@@ -23,6 +23,7 @@ dependencies = [
     "httpx>=0.27.0",
     "pypdf>=5.0.0",
     "daytona-sdk>=0.129.0",
+    "aiohttp>=3.14.3",
 ]
 
 [project.urls]

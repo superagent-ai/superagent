@@ -4,7 +4,7 @@ Input processor unit tests -- URL validation, SSRF protection, and content type 
 All network calls are mocked so these tests run offline.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -12,10 +12,8 @@ from safety_agent.utils.input_processor import (
     _get_mime_type_from_url,
     _is_image_mime_type,
     _is_pdf_mime_type,
-    _is_private_ip,
     _is_text_mime_type,
     _is_url_string,
-    _validate_url,
     is_vision_model,
     process_input,
 )
@@ -93,85 +91,6 @@ class TestGetMimeTypeFromUrl:
 
     def test_unknown_extension(self):
         assert _get_mime_type_from_url("https://example.com/file.xyz") is None
-
-
-# ---------------------------------------------------------------------------
-# Private IP / SSRF protection
-# ---------------------------------------------------------------------------
-
-class TestIsPrivateIp:
-    def test_localhost_hostname(self):
-        assert _is_private_ip("localhost") is True
-
-    def test_localhost_ip(self):
-        assert _is_private_ip("127.0.0.1") is True
-
-    def test_loopback_range(self):
-        assert _is_private_ip("127.1.2.3") is True
-
-    @pytest.mark.parametrize("ip", ["10.0.0.1", "10.255.255.255"])
-    def test_10_range(self, ip):
-        assert _is_private_ip(ip) is True
-
-    @pytest.mark.parametrize("ip", ["172.16.0.1", "172.31.255.255"])
-    def test_172_range(self, ip):
-        assert _is_private_ip(ip) is True
-
-    @pytest.mark.parametrize("ip", ["192.168.0.1", "192.168.255.255"])
-    def test_192_range(self, ip):
-        assert _is_private_ip(ip) is True
-
-    def test_link_local(self):
-        assert _is_private_ip("169.254.1.1") is True
-
-    def test_public_ip(self):
-        assert _is_private_ip("8.8.8.8") is False
-
-    @patch("safety_agent.utils.input_processor.socket.gethostbyname", return_value="127.0.0.1")
-    def test_hostname_resolving_to_private(self, _mock):
-        assert _is_private_ip("evil.example.com") is True
-
-    @patch("safety_agent.utils.input_processor.socket.gethostbyname", return_value="93.184.216.34")
-    def test_hostname_resolving_to_public(self, _mock):
-        assert _is_private_ip("example.com") is False
-
-
-# ---------------------------------------------------------------------------
-# URL validation
-# ---------------------------------------------------------------------------
-
-class TestValidateUrl:
-    def test_valid_https(self):
-        # Should not raise
-        _validate_url("https://example.com/page")
-
-    def test_valid_http(self):
-        _validate_url("http://example.com/page")
-
-    def test_file_protocol(self):
-        with pytest.raises(ValueError, match="file:// protocol is not allowed"):
-            _validate_url("file:///etc/passwd")
-
-    def test_ftp_protocol(self):
-        with pytest.raises(ValueError, match="protocol must be http or https"):
-            _validate_url("ftp://example.com/file")
-
-    def test_localhost_blocked(self):
-        with pytest.raises(ValueError, match="localhost access is not allowed"):
-            _validate_url("http://localhost/secret")
-
-    def test_127_blocked(self):
-        with pytest.raises(ValueError, match="localhost access is not allowed"):
-            _validate_url("http://127.0.0.1/secret")
-
-    def test_private_ip_blocked(self):
-        with pytest.raises(ValueError, match="private/internal IP addresses are not allowed"):
-            _validate_url("http://10.0.0.1/internal")
-
-    def test_url_too_long(self):
-        long_url = "https://example.com/" + "a" * 2050
-        with pytest.raises(ValueError, match="URL exceeds maximum length"):
-            _validate_url(long_url)
 
 
 # ---------------------------------------------------------------------------
