@@ -65,6 +65,7 @@ Use the `provider/model` format when specifying models:
 | OpenAI | `openai/{model}` | `OPENAI_API_KEY` |
 | OpenAI Compatible | `openai-compatible/{model}` | `OPENAI_COMPATIBLE_API_KEY`<br>`OPENAI_COMPATIBLE_BASE_URL` |
 | OpenRouter | `openrouter/{provider}/{model}` | `OPENROUTER_API_KEY` |
+| Requesty | `requesty/{provider}/{model}` | `REQUESTY_API_KEY` |
 | Vercel AI Gateway | `vercel/{provider}/{model}` | `AI_GATEWAY_API_KEY` |
 
 
@@ -113,7 +114,7 @@ Images can be analyzed using vision-capable models:
 | **Anthropic** | `claude-3-*`, `claude-sonnet-4-*`, `claude-opus-4-*`, `claude-haiku-4-*` | Full image support |
 | **Google** | `gemini-*` | Full image support |
 
-Other providers (Fireworks, Groq, OpenRouter, Vercel, Bedrock) currently support text-only analysis.
+Other providers (Fireworks, Groq, OpenRouter, Requesty, Vercel, Bedrock) currently support text-only analysis.
 
 #### Supported Image Formats
 
