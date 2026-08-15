@@ -33,6 +33,19 @@ function errorResponse(status: number, message: string) {
   );
 }
 
+function retryAfterResponse(status: number, message: string, retryAfterSeconds: number) {
+  return new Response(
+    JSON.stringify({ error: { code: status, message, status: "RATE_LIMITED" } }),
+    {
+      status,
+      headers: {
+        "Content-Type": "application/json",
+        "Retry-After": String(retryAfterSeconds),
+      },
+    },
+  );
+}
+
 describe("Model Fallback", () => {
   const originalEnv = process.env;
 
@@ -233,5 +246,88 @@ describe("Model Fallback", () => {
 
     expect(result.choices[0].message.content).toContain("pass");
     expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("should wait Retry-After and retry the primary model on short 429", async () => {
+    vi.useFakeTimers();
+    const sleepSpy = vi.spyOn(globalThis, "setTimeout");
+    const fetchSpy = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(retryAfterResponse(429, "Rate limited", 2))
+      .mockResolvedValueOnce(jsonResponse(googleSuccessResponse()));
+
+    const promise = callProvider(
+      "google/gemini-2.5-flash-lite",
+      [{ role: "user", content: "test" }],
+      undefined,
+      undefined,
+      "google/gemini-2.5-pro",
+    );
+
+    // Advance the fake clock past the Retry-After sleep so the retry proceeds.
+    await vi.advanceTimersByTimeAsync(2000);
+    const result = await promise;
+
+    expect(result.choices[0].message.content).toContain("pass");
+    // Primary -> sleep -> primary again; no fallback involved.
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    const firstUrl = fetchSpy.mock.calls[0][0] as string;
+    const secondUrl = fetchSpy.mock.calls[1][0] as string;
+    expect(firstUrl).toContain("gemini-2.5-flash-lite");
+    expect(secondUrl).toContain("gemini-2.5-flash-lite");
+    expect(sleepSpy).toHaveBeenCalled();
+
+    vi.useRealTimers();
+  });
+
+  it("should fall back when Retry-After exceeds the threshold", async () => {
+    vi.useFakeTimers();
+    const fetchSpy = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(retryAfterResponse(429, "Rate limited", 60))
+      .mockResolvedValueOnce(jsonResponse(googleSuccessResponse()));
+
+    const promise = callProvider(
+      "google/gemini-2.5-flash-lite",
+      [{ role: "user", content: "test" }],
+      undefined,
+      undefined,
+      "google/gemini-2.5-pro",
+    );
+
+    await vi.advanceTimersByTimeAsync(0);
+    const result = await promise;
+
+    expect(result.choices[0].message.content).toContain("pass");
+    // No sleep: falls straight through to the fallback model.
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    const secondUrl = fetchSpy.mock.calls[1][0] as string;
+    expect(secondUrl).toContain("gemini-2.5-pro");
+
+    vi.useRealTimers();
+  });
+
+  it("should fall back when Retry-After is missing on a 429", async () => {
+    vi.useFakeTimers();
+    const fetchSpy = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(errorResponse(429, "Rate limited"))
+      .mockResolvedValueOnce(jsonResponse(googleSuccessResponse()));
+
+    const promise = callProvider(
+      "google/gemini-2.5-flash-lite",
+      [{ role: "user", content: "test" }],
+      undefined,
+      undefined,
+      "google/gemini-2.5-pro",
+    );
+
+    await vi.advanceTimersByTimeAsync(0);
+    const result = await promise;
+
+    expect(result.choices[0].message.content).toContain("pass");
+    // Existing behavior preserved: instant fallback, no wait.
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    const secondUrl = fetchSpy.mock.calls[1][0] as string;
+    expect(secondUrl).toContain("gemini-2.5-pro");
+
+    vi.useRealTimers();
   });
 });
