@@ -57,7 +57,8 @@ The SDK supports automatic fallback to an always-on endpoint when the primary Su
 const client = createClient({
   enableFallback: true,           // Enable fallback (default: true)
   fallbackTimeoutMs: 5000,        // Timeout before fallback (default: 5000ms)
-  fallbackUrl: "https://..."      // Custom fallback URL (optional)
+  fallbackUrl: "https://...",     // Custom fallback URL (optional)
+  retryAfterThresholdSeconds: 15  // Max Retry-After (s) honored before falling back
 });
 ```
 
@@ -67,6 +68,7 @@ const client = createClient({
 | `enableFallback` | `boolean` | `true` | Enable automatic fallback on timeout |
 | `fallbackTimeoutMs` | `number` | `5000` | Milliseconds to wait before falling back |
 | `fallbackUrl` | `string` | Built-in URL | Custom fallback endpoint URL |
+| `retryAfterThresholdSeconds` | `number` | `15` | Max `Retry-After` (seconds) honored on a 429 before falling back; shorter waits retry the primary model once |
 
 The fallback URL can also be set via the `SUPERAGENT_FALLBACK_URL` environment variable.
 

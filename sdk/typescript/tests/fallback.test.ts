@@ -81,12 +81,30 @@ describe("Client Fallback Options", () => {
         enableFallback: true,
         fallbackTimeoutMs: 3000,
         fallbackUrl: "https://custom.example.com/api/chat",
+        retryAfterThresholdSeconds: 30,
       };
       // Verify config shape is valid
       expect(config.enableFallback).toBe(true);
       expect(config.fallbackTimeoutMs).toBe(3000);
       expect(config.fallbackUrl).toBe("https://custom.example.com/api/chat");
+      expect(config.retryAfterThresholdSeconds).toBe(30);
     }).not.toThrow();
+  });
+
+  it("should pass retryAfterThresholdSeconds from ClientConfig into SafetyClient fallbackOptions", async () => {
+    // Regression: the threshold was only on FallbackOptions and never wired
+    // through ClientConfig / SafetyClient, so createClient users could not
+    // configure it despite the docs.
+    const { createClient } = await import("../src/index.js");
+    const client = createClient({
+      apiKey: "test-key",
+      retryAfterThresholdSeconds: 30,
+    });
+
+    const fallbackOptions = (client as unknown as {
+      fallbackOptions: { retryAfterThresholdSeconds?: number };
+    }).fallbackOptions;
+    expect(fallbackOptions.retryAfterThresholdSeconds).toBe(30);
   });
 });
 

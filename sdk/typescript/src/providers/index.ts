@@ -186,51 +186,15 @@ async function callProviderInternal(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), fallbackTimeoutMs);
 
+    let response: Response;
     try {
-      const response = await fetch(url, {
+      response = await fetch(url, {
         method: "POST",
         headers,
         body: JSON.stringify(requestBody),
         signal: controller.signal,
       });
-
       clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        if (
-          fallbackModelString &&
-          RETRYABLE_STATUS_CODES.includes(response.status)
-        ) {
-          const retried = await maybeRetryPrimaryAfterRetryAfter({
-            modelString,
-            messages,
-            responseFormat,
-            fallbackOptions,
-            fallbackModelString,
-            response,
-            retriedPrimaryAfterRetryAfter,
-          });
-          if (retried) {
-            return retried;
-          }
-          console.log(
-            `Primary model ${modelString} failed (${response.status}), falling back to ${fallbackModelString}`,
-          );
-          return callProvider(
-            fallbackModelString,
-            messages,
-            responseFormat,
-            fallbackOptions,
-          );
-        }
-        const errorText = await response.text();
-        throw new Error(
-          `Provider API error (${response.status}): ${errorText}`,
-        );
-      }
-
-      const responseData = await response.json();
-      return provider.transformResponse(responseData);
     } catch (error) {
       clearTimeout(timeoutId);
 
@@ -270,6 +234,47 @@ async function callProviderInternal(
       // Re-throw non-timeout errors
       throw error;
     }
+
+    // Response handling lives OUTSIDE the timeout catch: once a response has
+    // arrived the cold-start timeout concern is over, and a rejection from the
+    // Retry-After retry chain (or the fallback-model call) must not be
+    // misrouted to the always-on URL by the abort/timeout message heuristic
+    // above, which would mask the real provider error.
+    if (!response.ok) {
+      if (
+        fallbackModelString &&
+        RETRYABLE_STATUS_CODES.includes(response.status)
+      ) {
+        const retried = await maybeRetryPrimaryAfterRetryAfter({
+          modelString,
+          messages,
+          responseFormat,
+          fallbackOptions,
+          fallbackModelString,
+          response,
+          retriedPrimaryAfterRetryAfter,
+        });
+        if (retried) {
+          return retried;
+        }
+        console.log(
+          `Primary model ${modelString} failed (${response.status}), falling back to ${fallbackModelString}`,
+        );
+        return callProvider(
+          fallbackModelString,
+          messages,
+          responseFormat,
+          fallbackOptions,
+        );
+      }
+      const errorText = await response.text();
+      throw new Error(
+        `Provider API error (${response.status}): ${errorText}`,
+      );
+    }
+
+    const responseData = await response.json();
+    return provider.transformResponse(responseData);
   }
 
   // No fallback - standard request
