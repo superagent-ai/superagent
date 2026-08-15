@@ -435,6 +435,7 @@ export class SafetyClient {
       enableFallback: config?.enableFallback,
       fallbackTimeoutMs: config?.fallbackTimeoutMs,
       fallbackUrl: config?.fallbackUrl,
+      retryAfterThresholdSeconds: config?.retryAfterThresholdSeconds,
     };
   }
 

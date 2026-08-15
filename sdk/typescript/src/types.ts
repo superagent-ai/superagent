@@ -10,6 +10,13 @@ export interface ClientConfig {
   fallbackTimeoutMs?: number;
   /** Custom fallback URL. If not provided, uses SUPERAGENT_FALLBACK_URL env var or built-in default */
   fallbackUrl?: string;
+  /**
+   * Upper bound (in seconds) for honoring a provider-declared `Retry-After` on
+   * a 429 before falling back. Waits shorter than this are slept through and
+   * the primary model is retried once; longer or missing values preserve the
+   * current fallback behavior. Default: 15.
+   */
+  retryAfterThresholdSeconds?: number;
 }
 
 /**
