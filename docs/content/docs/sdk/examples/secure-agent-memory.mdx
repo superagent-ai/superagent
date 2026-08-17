@@ -1,0 +1,79 @@
+---
+title: Secure your agent's memory
+description: Guard against prompt injection and redact PII before content enters your agent's long-term memory using Superagent
+---
+
+When agents store conversations and documents in long-term memory, that memory becomes an attack surface: a poisoned document can plant a prompt-injection payload that fires on a later recall, and raw PII can be persisted indefinitely. Run Superagent **Guard** and **Redact** on content before it is stored, and guard queries before they hit the memory store.
+
+This example uses [Hindsight](https://github.com/vectorize-io/hindsight), an open-source long-term memory engine, via the [`hindsight-superagent`](https://pypi.org/project/hindsight-superagent/) package — a thin `SafeHindsight` wrapper that applies Superagent safety checks around each memory operation.
+
+## Prerequisites
+
+- Python 3.10 or higher
+- A Superagent API key ([sign up here](https://superagent.sh))
+- A running Hindsight instance ([quickstart](https://github.com/vectorize-io/hindsight#quick-start)) or a free [Hindsight Cloud](https://hindsight.vectorize.io) account
+
+## Install dependencies
+
+```bash title="Terminal"
+pip install hindsight-superagent
+```
+
+Set your environment variables:
+
+```bash title=".env"
+SUPERAGENT_API_KEY=your-key
+```
+
+## Guard and redact on write, guard on read
+
+`SafeHindsight` wraps the Hindsight client. On `retain`, content is guarded for injection and then redacted of PII before storage. On `recall`/`reflect`, the query is guarded before it reaches the memory store.
+
+```python title="secure_memory.py"
+import asyncio
+from hindsight_superagent import SafeHindsight
+
+safe = SafeHindsight(
+    bank_id="user-123",
+    hindsight_api_url="http://localhost:8888",  # or omit for Hindsight Cloud
+    guard_model="openai/gpt-4.1-nano",
+    redact_model="openai/gpt-4.1-nano",
+)
+
+async def main():
+    # Content is guarded (injection blocked) and PII is redacted before storage
+    await safe.retain("John's email is john@acme.com and he prefers dark mode")
+
+    # The query is guarded before recall runs
+    results = await safe.recall("What are the user's preferences?")
+    for r in results.results:
+        print(r.text)
+
+    await safe.aclose()
+
+asyncio.run(main())
+```
+
+The stored memory keeps the useful fact ("prefers dark mode") while the PII ("john@acme.com") is stripped by Redact, and any retain or query carrying an injection payload is blocked by Guard before it can reach the memory store.
+
+## How it works
+
+```text
+Content → Guard (block injection) → Redact (strip PII) → store in memory
+Query   → Guard (block injection) → recall / reflect
+```
+
+Guard and Redact run per item, so bulk ingestion is protected too. If Guard blocks any item in a batch, the whole batch is aborted before anything is written:
+
+```python
+await safe.retain_batch([
+    {"content": "John's email is john@acme.com"},
+    {"content": "Phone: 555-1234", "context": "contacts"},
+])
+```
+
+## Resources
+
+- [hindsight-superagent on PyPI](https://pypi.org/project/hindsight-superagent/)
+- [Integration source](https://github.com/vectorize-io/hindsight/tree/main/hindsight-integrations/superagent)
+- [Superagent Python SDK](/docs/sdk/sdk/python)
