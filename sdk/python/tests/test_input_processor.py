@@ -70,6 +70,18 @@ class TestMimeTypeHelpers:
     def test_non_pdf(self):
         assert _is_pdf_mime_type("text/plain") is False
 
+    # Media types are case-insensitive per RFC 7231 3.1.1.1, and real servers
+    # send non-lowercase Content-Type headers - the mime helpers must not
+    # depend on the caller having already normalized the case.
+    def test_pdf_mime_type_uppercase(self):
+        assert _is_pdf_mime_type("APPLICATION/PDF") is True
+
+    def test_image_mime_type_uppercase(self):
+        assert _is_image_mime_type("IMAGE/PNG") is True
+
+    def test_text_mime_type_mixed_case(self):
+        assert _is_text_mime_type("Text/Html") is True
+
 
 class TestGetMimeTypeFromUrl:
     @pytest.mark.parametrize("url,expected", [
