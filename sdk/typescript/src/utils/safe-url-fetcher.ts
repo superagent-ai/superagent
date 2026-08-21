@@ -1,5 +1,5 @@
 import { lookup } from "node:dns/promises";
-import * as ipaddr from "ipaddr.js";
+import ipaddr from "ipaddr.js";
 import { Agent, fetch as undiciFetch } from "undici";
 
 const MAX_URL_LENGTH = 2048;
