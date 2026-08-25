@@ -19,6 +19,12 @@
   <img src="https://img.shields.io/badge/Y%20Combinator-Backed-orange" alt="Y Combinator" />
   <img src="https://img.shields.io/github/stars/superagent-ai/superagent?style=social" alt="GitHub stars" />
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" />
+  <a href="https://www.superagent.sh/">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://www.superagent.sh/api/badge/superagent-ai/superagent/shield.svg?theme=dark&accent=teal&variant=streak">
+    <img alt="Security posture verified by Superagent" src="https://www.superagent.sh/api/badge/superagent-ai/superagent/shield.svg?theme=light&accent=teal&variant=streak">
+  </picture>
+</a>
 </p>
 
 ---
