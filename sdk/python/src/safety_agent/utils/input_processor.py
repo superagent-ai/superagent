@@ -40,11 +40,13 @@ def _is_url_string(input_str: str) -> bool:
 
 def _is_image_mime_type(mime_type: str) -> bool:
     """Check if MIME type is an image."""
+    mime_type = mime_type.lower()
     return any(mime_type.startswith(t) for t in IMAGE_MIME_TYPES)
 
 
 def _is_text_mime_type(mime_type: str) -> bool:
     """Check if MIME type is text-based."""
+    mime_type = mime_type.lower()
     return (
         any(mime_type.startswith(t) for t in TEXT_MIME_TYPES)
         or mime_type.startswith("text/")
@@ -53,6 +55,7 @@ def _is_text_mime_type(mime_type: str) -> bool:
 
 def _is_pdf_mime_type(mime_type: str) -> bool:
     """Check if MIME type is PDF."""
+    mime_type = mime_type.lower()
     return any(mime_type.startswith(t) for t in PDF_MIME_TYPES)
 
 
