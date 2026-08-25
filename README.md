@@ -169,17 +169,16 @@ export SUPERAGENT_API_KEY=your-key
 - **Low latency** — Optimized for runtime use
 - **Open source** — MIT license with full transparency
 
-## Open-Weight Models
+## Security
 
-Run Guard on your own infrastructure. No API calls, no data leaving your environment.
+Read [SECURITY.md](SECURITY.md)
 
-| Model | Parameters | Use Case |
-|-------|------------|----------|
-| [superagent-guard-0.6b](https://huggingface.co/superagent-ai/superagent-guard-0.6b) | 0.6B | Fast inference, edge deployment |
-| [superagent-guard-1.7b](https://huggingface.co/superagent-ai/superagent-guard-1.7b) | 1.7B | Balanced speed and accuracy |
-| [superagent-guard-4b](https://huggingface.co/superagent-ai/superagent-guard-4b) | 4B | Maximum accuracy |
-
-GGUF versions for CPU: [0.6b-gguf](https://huggingface.co/superagent-ai/superagent-guard-0.6b-gguf) · [1.7b-gguf](https://huggingface.co/superagent-ai/superagent-guard-1.7b-gguf) · [4b-gguf](https://huggingface.co/superagent-ai/superagent-guard-4b-gguf)
+<a href="https://www.superagent.sh">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://www.superagent.sh/api/badge/superagent-ai/superagent/card.svg?theme=dark&accent=teal">
+    <img alt="Security posture verified by Superagent" src="https://www.superagent.sh/api/badge/superagent-ai/superagent/card.svg?theme=light&accent=teal">
+  </picture>
+</a>
 
 ## Resources
 
