@@ -26,6 +26,30 @@ export interface FallbackOptions {
   fallbackTimeoutMs?: number;
   /** Custom fallback URL. If not provided, uses env var or default */
   fallbackUrl?: string;
+  /**
+   * Upper bound (in seconds) for honoring a provider-declared `Retry-After` on a 429.
+   * Waits shorter than this are slept through and the primary model is retried once,
+   * instead of instantly burning the fallback on the same rate-limit burst. Longer or
+   * missing `Retry-After` values preserve the current fallback behavior. Default: 15.
+   */
+  retryAfterThresholdSeconds?: number;
+}
+
+const DEFAULT_RETRY_AFTER_THRESHOLD_SECONDS = 15;
+
+function parseRetryAfterSeconds(header: string | null): number | null {
+  if (!header) {
+    return null;
+  }
+  const seconds = Number.parseInt(header, 10);
+  if (Number.isNaN(seconds) || seconds < 0) {
+    return null;
+  }
+  return seconds;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -104,6 +128,24 @@ export async function callProvider(
   fallbackOptions?: FallbackOptions,
   fallbackModelString?: string,
 ): Promise<AnalysisResponse> {
+  return callProviderInternal(
+    modelString,
+    messages,
+    responseFormat,
+    fallbackOptions,
+    fallbackModelString,
+    false,
+  );
+}
+
+async function callProviderInternal(
+  modelString: string,
+  messages: ChatMessage[],
+  responseFormat?: ResponseFormat,
+  fallbackOptions?: FallbackOptions,
+  fallbackModelString?: string,
+  retriedPrimaryAfterRetryAfter = false,
+): Promise<AnalysisResponse> {
   const { provider: providerName, model } = parseModel(modelString);
   const provider = getProvider(providerName);
 
@@ -144,39 +186,15 @@ export async function callProvider(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), fallbackTimeoutMs);
 
+    let response: Response;
     try {
-      const response = await fetch(url, {
+      response = await fetch(url, {
         method: "POST",
         headers,
         body: JSON.stringify(requestBody),
         signal: controller.signal,
       });
-
       clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        if (
-          fallbackModelString &&
-          RETRYABLE_STATUS_CODES.includes(response.status)
-        ) {
-          console.log(
-            `Primary model ${modelString} failed (${response.status}), falling back to ${fallbackModelString}`,
-          );
-          return callProvider(
-            fallbackModelString,
-            messages,
-            responseFormat,
-            fallbackOptions,
-          );
-        }
-        const errorText = await response.text();
-        throw new Error(
-          `Provider API error (${response.status}): ${errorText}`,
-        );
-      }
-
-      const responseData = await response.json();
-      return provider.transformResponse(responseData);
     } catch (error) {
       clearTimeout(timeoutId);
 
@@ -216,6 +234,47 @@ export async function callProvider(
       // Re-throw non-timeout errors
       throw error;
     }
+
+    // Response handling lives OUTSIDE the timeout catch: once a response has
+    // arrived the cold-start timeout concern is over, and a rejection from the
+    // Retry-After retry chain (or the fallback-model call) must not be
+    // misrouted to the always-on URL by the abort/timeout message heuristic
+    // above, which would mask the real provider error.
+    if (!response.ok) {
+      if (
+        fallbackModelString &&
+        RETRYABLE_STATUS_CODES.includes(response.status)
+      ) {
+        const retried = await maybeRetryPrimaryAfterRetryAfter({
+          modelString,
+          messages,
+          responseFormat,
+          fallbackOptions,
+          fallbackModelString,
+          response,
+          retriedPrimaryAfterRetryAfter,
+        });
+        if (retried) {
+          return retried;
+        }
+        console.log(
+          `Primary model ${modelString} failed (${response.status}), falling back to ${fallbackModelString}`,
+        );
+        return callProvider(
+          fallbackModelString,
+          messages,
+          responseFormat,
+          fallbackOptions,
+        );
+      }
+      const errorText = await response.text();
+      throw new Error(
+        `Provider API error (${response.status}): ${errorText}`,
+      );
+    }
+
+    const responseData = await response.json();
+    return provider.transformResponse(responseData);
   }
 
   // No fallback - standard request
@@ -230,6 +289,18 @@ export async function callProvider(
       fallbackModelString &&
       RETRYABLE_STATUS_CODES.includes(response.status)
     ) {
+      const retried = await maybeRetryPrimaryAfterRetryAfter({
+        modelString,
+        messages,
+        responseFormat,
+        fallbackOptions,
+        fallbackModelString,
+        response,
+        retriedPrimaryAfterRetryAfter,
+      });
+      if (retried) {
+        return retried;
+      }
       console.log(
         `Primary model ${modelString} failed (${response.status}), falling back to ${fallbackModelString}`,
       );
@@ -246,6 +317,62 @@ export async function callProvider(
 
   const responseData = await response.json();
   return provider.transformResponse(responseData);
+}
+
+/**
+ * On a 429 with a short, valid `Retry-After`, wait out the cooldown and retry
+ * the primary model once instead of instantly burning the fallback on the same
+ * rate-limit burst. Returns the retried response when handled; `null` when the
+ * caller should proceed with its normal fallback path (no/missing/long/weird
+ * `Retry-After`, or a retry already happened this call chain).
+ */
+async function maybeRetryPrimaryAfterRetryAfter(params: {
+  modelString: string;
+  messages: ChatMessage[];
+  responseFormat?: ResponseFormat;
+  fallbackOptions?: FallbackOptions;
+  fallbackModelString?: string;
+  response: Response;
+  retriedPrimaryAfterRetryAfter: boolean;
+}): Promise<AnalysisResponse | null> {
+  const {
+    modelString,
+    messages,
+    responseFormat,
+    fallbackOptions,
+    fallbackModelString,
+    response,
+    retriedPrimaryAfterRetryAfter,
+  } = params;
+
+  if (response.status !== 429 || retriedPrimaryAfterRetryAfter) {
+    return null;
+  }
+
+  const retryAfterSeconds = parseRetryAfterSeconds(
+    response.headers?.get("retry-after") ?? null,
+  );
+  const thresholdSeconds =
+    fallbackOptions?.retryAfterThresholdSeconds ??
+    DEFAULT_RETRY_AFTER_THRESHOLD_SECONDS;
+
+  if (retryAfterSeconds === null || retryAfterSeconds > thresholdSeconds) {
+    return null;
+  }
+
+  console.log(
+    `Primary model ${modelString} rate-limited (429), retrying after ${retryAfterSeconds}s (Retry-After)`,
+  );
+  await sleep(retryAfterSeconds * 1000);
+
+  return callProviderInternal(
+    modelString,
+    messages,
+    responseFormat,
+    fallbackOptions,
+    fallbackModelString,
+    true,
+  );
 }
 
 export type { ProviderConfig, ResponseFormat, JsonSchema } from "./types.js";
