@@ -48,6 +48,14 @@ function guardResponse(classification: "pass" | "block"): AnalysisResponse {
   };
 }
 
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+}
+
 describe("Guard - File/URL Input", () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>;
 
@@ -221,6 +229,51 @@ describe("Guard - File/URL Input", () => {
 
       expect(response.classification).toBe("pass");
       expect(mockCallProvider).toHaveBeenCalledTimes(2);
+    });
+
+    it("should limit concurrent PDF-page analysis", async () => {
+      const firstGate = deferred<void>();
+      const secondGate = deferred<void>();
+      let callIndex = 0;
+      let inFlight = 0;
+      let peakInFlight = 0;
+
+      mockProcessInput.mockResolvedValueOnce({
+        type: "pdf",
+        pages: ["Page 1", "Page 2", "Page 3", "Page 4"],
+        mimeType: "application/pdf",
+      });
+      mockCallProvider.mockImplementation(async () => {
+        const index = callIndex++;
+        inFlight += 1;
+        peakInFlight = Math.max(peakInFlight, inFlight);
+
+        if (index === 0) await firstGate.promise;
+        if (index === 1) await secondGate.promise;
+
+        inFlight -= 1;
+        return guardResponse(index === 1 ? "block" : "pass");
+      });
+
+      const client = createClient({ apiKey: "test-key" });
+      const guardPromise = client.guard({
+        input: "https://example.com/doc.pdf",
+        model: "openai/gpt-4o-mini",
+        maxConcurrency: 2,
+      });
+
+      await vi.waitFor(() => {
+        expect(mockCallProvider).toHaveBeenCalledTimes(2);
+      });
+      expect(peakInFlight).toBe(2);
+
+      secondGate.resolve();
+      await Promise.resolve();
+      firstGate.resolve();
+
+      const response = await guardPromise;
+      expect(mockCallProvider).toHaveBeenCalledTimes(4);
+      expect(response.classification).toBe("block");
     });
 
     it("should return pass for empty PDF", async () => {

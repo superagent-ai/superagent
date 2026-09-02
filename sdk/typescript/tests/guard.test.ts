@@ -54,6 +54,14 @@ function guardResponse(
   };
 }
 
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+}
+
 describe("Guard", () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>;
 
@@ -278,6 +286,62 @@ describe("Guard", () => {
       expect(response.cwe_codes).toContain("CWE-89");
       expect(response.cwe_codes).toContain("CWE-79");
     });
+
+    it("should limit concurrent chunk analysis and preserve result ordering", async () => {
+      const firstGate = deferred<void>();
+      const secondGate = deferred<void>();
+      let callIndex = 0;
+      let inFlight = 0;
+      let peakInFlight = 0;
+
+      mockCallProvider.mockImplementation(async () => {
+        const index = callIndex++;
+        inFlight += 1;
+        peakInFlight = Math.max(peakInFlight, inFlight);
+
+        if (index === 0) await firstGate.promise;
+        if (index === 1) await secondGate.promise;
+
+        inFlight -= 1;
+        return guardResponse("pass", { reasoning: `result-${index}` });
+      });
+
+      const client = createClient({ apiKey: "test-key" });
+      const guardPromise = client.guard({
+        input: "Safe content. ".repeat(100),
+        model: "openai/gpt-4o-mini",
+        chunkSize: 50,
+        maxConcurrency: 2,
+      });
+
+      await vi.waitFor(() => {
+        expect(mockCallProvider).toHaveBeenCalledTimes(2);
+      });
+      expect(peakInFlight).toBe(2);
+
+      secondGate.resolve();
+      await Promise.resolve();
+      firstGate.resolve();
+
+      const response = await guardPromise;
+      expect(mockCallProvider.mock.calls.length).toBeGreaterThan(2);
+      expect(response.reasoning).toBe("result-0");
+    });
+
+    it.each([0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
+      "should reject invalid maxConcurrency value %s",
+      async (maxConcurrency) => {
+        const client = createClient({ apiKey: "test-key" });
+
+        await expect(
+          client.guard({
+            input: "Safe content",
+            model: "openai/gpt-4o-mini",
+            maxConcurrency,
+          }),
+        ).rejects.toThrow("maxConcurrency must be a positive integer");
+      },
+    );
   });
 
   describe("structured output", () => {

@@ -2,6 +2,7 @@
 Guard unit tests – mocks call_provider to avoid hitting real APIs.
 """
 
+import asyncio
 import json
 from unittest.mock import AsyncMock, patch
 
@@ -12,6 +13,7 @@ from safety_agent.types import (
     AnalysisResponse,
     AnalysisResponseChoice,
     ChatMessage,
+    ProcessedInput,
     TokenUsage,
 )
 
@@ -228,6 +230,126 @@ class TestGuardChunking:
         assert response.usage.total_tokens == (
             response.usage.prompt_tokens + response.usage.completion_tokens
         )
+
+    async def test_limits_concurrent_chunk_analysis_and_preserves_result_order(
+        self, mock_call_provider
+    ):
+        first_gate = asyncio.Event()
+        second_gate = asyncio.Event()
+        started = asyncio.Event()
+        call_index = 0
+        in_flight = 0
+        peak_in_flight = 0
+
+        async def provider(*_args, **_kwargs):
+            nonlocal call_index, in_flight, peak_in_flight
+            index = call_index
+            call_index += 1
+            in_flight += 1
+            peak_in_flight = max(peak_in_flight, in_flight)
+            if in_flight == 2:
+                started.set()
+
+            if index == 0:
+                await first_gate.wait()
+            elif index == 1:
+                await second_gate.wait()
+
+            in_flight -= 1
+            return _guard_response("pass", reasoning=f"result-{index}")
+
+        mock_call_provider.side_effect = provider
+        client = create_client(api_key="test-key")
+        guard_task = asyncio.create_task(
+            client.guard(
+                input="Safe content. " * 100,
+                model="openai/gpt-4o-mini",
+                chunk_size=50,
+                max_concurrency=2,
+            )
+        )
+
+        await asyncio.wait_for(started.wait(), timeout=1)
+        assert mock_call_provider.call_count == 2
+        assert peak_in_flight == 2
+
+        second_gate.set()
+        await asyncio.sleep(0)
+        first_gate.set()
+
+        response = await guard_task
+        assert mock_call_provider.call_count > 2
+        assert response.reasoning == "result-0"
+
+    async def test_limits_concurrent_pdf_page_analysis(self, mock_call_provider):
+        first_gate = asyncio.Event()
+        second_gate = asyncio.Event()
+        started = asyncio.Event()
+        call_index = 0
+        in_flight = 0
+        peak_in_flight = 0
+
+        async def provider(*_args, **_kwargs):
+            nonlocal call_index, in_flight, peak_in_flight
+            index = call_index
+            call_index += 1
+            in_flight += 1
+            peak_in_flight = max(peak_in_flight, in_flight)
+            if in_flight == 2:
+                started.set()
+
+            if index == 0:
+                await first_gate.wait()
+            elif index == 1:
+                await second_gate.wait()
+
+            in_flight -= 1
+            return _guard_response("block" if index == 1 else "pass")
+
+        mock_call_provider.side_effect = provider
+        client = create_client(api_key="test-key")
+
+        with patch(
+            "safety_agent.client.process_input", new_callable=AsyncMock
+        ) as mock_process_input:
+            mock_process_input.return_value = ProcessedInput(
+                type="pdf",
+                pages=["Page 1", "Page 2", "Page 3", "Page 4"],
+                mime_type="application/pdf",
+            )
+            guard_task = asyncio.create_task(
+                client.guard(
+                    input="ignored",
+                    model="openai/gpt-4o-mini",
+                    max_concurrency=2,
+                )
+            )
+
+            await asyncio.wait_for(started.wait(), timeout=1)
+            assert mock_call_provider.call_count == 2
+            assert peak_in_flight == 2
+
+            second_gate.set()
+            await asyncio.sleep(0)
+            first_gate.set()
+
+            response = await guard_task
+
+        assert mock_call_provider.call_count == 4
+        assert response.classification == "block"
+
+    @pytest.mark.parametrize("max_concurrency", [0, -1, 1.5, True])
+    async def test_invalid_max_concurrency_raises(
+        self, mock_call_provider, max_concurrency
+    ):
+        client = create_client(api_key="test-key")
+
+        with pytest.raises(ValueError, match="max_concurrency must be a positive integer"):
+            await client.guard(
+                input="Test",
+                model="openai/gpt-4o-mini",
+                max_concurrency=max_concurrency,
+            )
 
 
 class TestGuardErrors:
