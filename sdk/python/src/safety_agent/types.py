@@ -989,6 +989,9 @@ class GuardOptions:
     chunk_size: int = 8000
     """Characters per chunk. Default: 8000. Set to 0 to disable chunking."""
 
+    max_concurrency: int | None = None
+    """Maximum number of chunk or PDF-page analyses to run concurrently."""
+
 
 @dataclass
 class GuardClassificationResult:

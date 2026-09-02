@@ -6,7 +6,8 @@ import asyncio
 import json
 import os
 import re
-from typing import Any
+from collections.abc import Awaitable, Callable
+from typing import Any, TypeVar
 
 import httpx
 
@@ -33,6 +34,9 @@ from .prompts.redact import build_redact_system_prompt, build_redact_user_messag
 from .prompts.scan import SCAN_SYSTEM_PROMPT
 from .schemas import GUARD_RESPONSE_FORMAT, REDACT_RESPONSE_FORMAT
 from .utils.input_processor import process_input, is_vision_model
+
+T = TypeVar("T")
+R = TypeVar("R")
 
 
 def _chunk_text(text: str, chunk_size: int) -> list[str]:
@@ -103,6 +107,24 @@ def _aggregate_guard_results(results: list[GuardResponse]) -> GuardResponse:
             total_tokens=sum(r.usage.total_tokens for r in results),
         ),
     )
+
+
+async def _map_with_concurrency(
+    items: list[T],
+    max_concurrency: int | None,
+    mapper: Callable[[T], Awaitable[R]],
+) -> list[R]:
+    """Map items with a per-call limit while preserving input order."""
+    if not items:
+        return []
+
+    semaphore = asyncio.Semaphore(max_concurrency or len(items))
+
+    async def run(item: T) -> R:
+        async with semaphore:
+            return await mapper(item)
+
+    return list(await asyncio.gather(*(run(item) for item in items)))
 
 
 def _parse_json_response(content: str) -> dict[str, Any]:
@@ -355,6 +377,7 @@ class SafetyClient:
         fallback_model: str | None = None,
         system_prompt: str | None = None,
         chunk_size: int = 8000,
+        max_concurrency: int | None = None,
         # Also accept GuardOptions-style kwargs
         **kwargs: Any,
     ) -> GuardResponse:
@@ -375,6 +398,7 @@ class SafetyClient:
             fallback_model: Fallback model when the primary returns a retryable error (429/500/502/503)
             system_prompt: Optional custom system prompt
             chunk_size: Characters per chunk. Default: 8000. Set to 0 to disable chunking.
+            max_concurrency: Maximum number of chunk or PDF-page analyses to run concurrently.
 
         Returns:
             Response with classification result and token usage
@@ -387,6 +411,7 @@ class SafetyClient:
             fallback_model = fallback_model or options.fallback_model
             system_prompt = system_prompt or options.system_prompt
             chunk_size = options.chunk_size
+            max_concurrency = options.max_concurrency
 
         # Handle input passed via kwargs
         if input is None:
@@ -400,6 +425,19 @@ class SafetyClient:
         # Validate chunk_size is non-negative
         if chunk_size < 0:
             raise ValueError(f"chunk_size must be non-negative, got {chunk_size}")
+
+        if (
+            max_concurrency is not None
+            and (
+                isinstance(max_concurrency, bool)
+                or not isinstance(max_concurrency, int)
+                or max_concurrency <= 0
+            )
+        ):
+            raise ValueError(
+                "max_concurrency must be a positive integer, "
+                f"got {max_concurrency}"
+            )
 
         # Process the input (handle URLs, bytes, etc.)
         processed = await process_input(input)
@@ -427,11 +465,12 @@ class SafetyClient:
                 )
 
             # Analyze each page in parallel
-            results = await asyncio.gather(
-                *[
-                    self._guard_single_text(page_text, system_prompt, model, fallback_model)
-                    for page_text in non_empty_pages
-                ]
+            results = await _map_with_concurrency(
+                non_empty_pages,
+                max_concurrency,
+                lambda page_text: self._guard_single_text(
+                    page_text, system_prompt, model, fallback_model
+                ),
             )
 
             # Aggregate with OR logic
@@ -450,11 +489,12 @@ class SafetyClient:
 
         # Chunk and process in parallel
         chunks = _chunk_text(text, chunk_size)
-        results = await asyncio.gather(
-            *[
-                self._guard_single_text(chunk, system_prompt, model, fallback_model)
-                for chunk in chunks
-            ]
+        results = await _map_with_concurrency(
+            chunks,
+            max_concurrency,
+            lambda chunk: self._guard_single_text(
+                chunk, system_prompt, model, fallback_model
+            ),
         )
 
         # Aggregate with OR logic

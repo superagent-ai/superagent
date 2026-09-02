@@ -61,6 +61,29 @@ function chunkText(text: string, chunkSize: number): string[] {
   return chunks.filter((c) => c.length > 0);
 }
 
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  maxConcurrency: number | undefined,
+  mapper: (item: T) => Promise<R>,
+): Promise<R[]> {
+  if (items.length === 0) return [];
+
+  const workerCount = Math.min(maxConcurrency ?? items.length, items.length);
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+
+  const worker = async (): Promise<void> => {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= items.length) return;
+      results[index] = await mapper(items[index]);
+    }
+  };
+
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return results;
+}
+
 /**
  * Aggregate multiple guard results using OR logic
  * Block if ANY chunk is blocked, merge all violations
@@ -600,11 +623,21 @@ export class SafetyClient {
       model = DEFAULT_GUARD_MODEL,
       fallbackModel,
       chunkSize = 8000,
+      maxConcurrency,
     } = options;
 
     // Validate chunkSize is non-negative
     if (chunkSize < 0) {
       throw new Error(`chunkSize must be non-negative, got ${chunkSize}`);
+    }
+
+    if (
+      maxConcurrency !== undefined &&
+      (!Number.isInteger(maxConcurrency) || maxConcurrency <= 0)
+    ) {
+      throw new Error(
+        `maxConcurrency must be a positive integer, got ${maxConcurrency}`,
+      );
     }
 
     // Process the input (handle URLs, Blobs, etc.)
@@ -637,10 +670,11 @@ export class SafetyClient {
       }
 
       // Analyze each page in parallel (similar to chunking strategy)
-      const results = await Promise.all(
-        nonEmptyPages.map((pageText) =>
+      const results = await mapWithConcurrency(
+        nonEmptyPages,
+        maxConcurrency,
+        (pageText) =>
           this.guardSingleText(pageText, systemPrompt, model, fallbackModel),
-        ),
       );
 
       // Aggregate with OR logic - block if ANY page contains violation
@@ -661,8 +695,10 @@ export class SafetyClient {
 
     // Chunk and process in parallel
     const chunks = chunkText(text, chunkSize);
-    const results = await Promise.all(
-      chunks.map((chunk) => this.guardSingleText(chunk, systemPrompt, model, fallbackModel)),
+    const results = await mapWithConcurrency(
+      chunks,
+      maxConcurrency,
+      (chunk) => this.guardSingleText(chunk, systemPrompt, model, fallbackModel),
     );
 
     // Aggregate with OR logic
