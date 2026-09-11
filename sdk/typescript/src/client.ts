@@ -412,6 +412,26 @@ function supportsStructuredOutput(modelString: string): boolean {
     return false;
   }
 
+
+  // Requesty forwards response_format to the upstream vendor. Verified with
+  // json_schema on OpenAI, Gemini and Claude 4.x models.
+  if (provider === "requesty") {
+    if (model.startsWith("openai/")) {
+      return !model.includes("safeguard");
+    }
+    if (model.startsWith("google/gemini-")) {
+      return true;
+    }
+    if (model.startsWith("anthropic/claude-")) {
+      return (
+        model.includes("sonnet-4") ||
+        model.includes("opus-4") ||
+        model.includes("haiku-4")
+      );
+    }
+    return false;
+  }
+
   return false;
 }
 

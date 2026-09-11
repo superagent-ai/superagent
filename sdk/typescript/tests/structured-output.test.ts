@@ -294,6 +294,46 @@ describe("Structured Output Support", () => {
     });
   });
 
+  describe("Requesty provider", () => {
+    it("should use structured output for requesty openai models", async () => {
+      expect(
+        await callsWithResponseFormat("requesty/openai/gpt-4o-mini"),
+      ).toBe(true);
+    });
+
+    it("should NOT use structured output for requesty openai safeguard models", async () => {
+      expect(
+        await callsWithResponseFormat("requesty/openai/gpt-oss-safeguard-20b"),
+      ).toBe(false);
+    });
+
+    it("should use structured output for requesty google gemini", async () => {
+      expect(
+        await callsWithResponseFormat("requesty/google/gemini-2.5-flash"),
+      ).toBe(true);
+    });
+
+    it("should use structured output for requesty anthropic sonnet-4-5", async () => {
+      expect(
+        await callsWithResponseFormat("requesty/anthropic/claude-sonnet-4-5"),
+      ).toBe(true);
+    });
+
+    it("should NOT use structured output for requesty anthropic claude 3 haiku", async () => {
+      expect(
+        await callsWithResponseFormat(
+          "requesty/anthropic/claude-3-haiku-20240307",
+        ),
+      ).toBe(false);
+    });
+
+    it("should NOT use structured output for unknown requesty vendors", async () => {
+      expect(
+        await callsWithResponseFormat("requesty/mistral/mistral-large-latest"),
+      ).toBe(false);
+    });
+  });
+
   describe("OpenAI-compatible provider", () => {
     it("should NOT use structured output by default", async () => {
       delete process.env.OPENAI_COMPATIBLE_SUPPORTS_STRUCTURED_OUTPUT;

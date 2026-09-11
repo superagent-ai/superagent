@@ -185,6 +185,17 @@ def _supports_structured_output(model_string: str) -> bool:
             return True
         return False
 
+    if provider == "requesty":
+        # Requesty forwards response_format to the upstream vendor. Verified
+        # with json_schema on OpenAI, Gemini and Claude 4.x models.
+        if model.startswith("openai/"):
+            return "safeguard" not in model
+        if model.startswith("google/gemini-"):
+            return True
+        if model.startswith("anthropic/claude-"):
+            return any(x in model for x in ["sonnet-4", "opus-4", "haiku-4"])
+        return False
+
     return False
 
 
