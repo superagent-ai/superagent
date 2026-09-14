@@ -132,11 +132,15 @@ async def call_provider(
     headers = provider.auth_header(api_key)
     url = provider.build_url(provider.base_url, parsed.model)
 
-    # Special handling for Bedrock (AWS Signature V4)
+    # Body to send. Bedrock (AWS Signature V4) signs the exact payload bytes,
+    # so post the signed string verbatim instead of letting httpx re-serialize
+    # the dict (httpx uses compact separators, which changes the hash).
+    request_kwargs: dict[str, Any] = {"json": request_body}
     if parsed.provider == "bedrock":
         import json
         payload = json.dumps(request_body)
         headers = provider.get_signed_headers(url, "POST", payload, api_key)
+        request_kwargs = {"content": payload.encode("utf-8")}
 
     # Determine if fallback is enabled (default: True for superagent provider)
     is_superagent = parsed.provider == "superagent"
@@ -160,7 +164,7 @@ async def call_provider(
                     client.post(
                         url,
                         headers=headers,
-                        json=request_body,
+                        **request_kwargs,
                         timeout=60.0,
                     ),
                     timeout=fallback_timeout,
@@ -200,7 +204,7 @@ async def call_provider(
                 fallback_response = await client.post(
                     fallback_url,
                     headers=headers,
-                    json=request_body,
+                    **request_kwargs,
                     timeout=60.0,
                 )
 
@@ -218,7 +222,7 @@ async def call_provider(
         response = await client.post(
             url,
             headers=headers,
-            json=request_body,
+            **request_kwargs,
             timeout=60.0,
         )
 
