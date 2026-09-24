@@ -1085,6 +1085,8 @@ export interface GuardOptions {
   fallbackModel?: SupportedModel;
   /** Characters per chunk. Default: 8000. Set to 0 to disable chunking. */
   chunkSize?: number;
+  /** Max concurrent provider requests when analyzing multiple chunks or PDF pages. Default: unbounded. */
+  maxConcurrency?: number;
 }
 
 /**

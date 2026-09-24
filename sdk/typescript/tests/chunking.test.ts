@@ -218,4 +218,76 @@ describe("Guard Chunking", () => {
       expect(response.cwe_codes).toContain("CWE-79");
     });
   });
+
+  describe("maxConcurrency", () => {
+    it("should cap in-flight provider calls at maxConcurrency", async () => {
+      const largeInput = "A ".repeat(5000);
+      let inFlight = 0;
+      let maxInFlight = 0;
+      mockCallProvider.mockImplementation(async () => {
+        inFlight++;
+        maxInFlight = Math.max(maxInFlight, inFlight);
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        inFlight--;
+        return guardResponse("pass");
+      });
+
+      const client = createClient({ apiKey: "test-key" });
+      await client.guard({
+        input: largeInput,
+        model: "openai/gpt-4o-mini",
+        chunkSize: 100,
+        maxConcurrency: 3,
+      });
+
+      expect(mockCallProvider.mock.calls.length).toBeGreaterThan(3);
+      expect(maxInFlight).toBeLessThanOrEqual(3);
+    });
+
+    it("should allow full concurrency when maxConcurrency is not set", async () => {
+      const largeInput = "A ".repeat(5000);
+      let inFlight = 0;
+      let maxInFlight = 0;
+      mockCallProvider.mockImplementation(async () => {
+        inFlight++;
+        maxInFlight = Math.max(maxInFlight, inFlight);
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        inFlight--;
+        return guardResponse("pass");
+      });
+
+      const client = createClient({ apiKey: "test-key" });
+      await client.guard({
+        input: largeInput,
+        model: "openai/gpt-4o-mini",
+        chunkSize: 100,
+      });
+
+      expect(maxInFlight).toBe(mockCallProvider.mock.calls.length);
+    });
+
+    it("should throw for a non-positive maxConcurrency", async () => {
+      const client = createClient({ apiKey: "test-key" });
+
+      await expect(
+        client.guard({
+          input: "What's the weather like today?",
+          model: "openai/gpt-4o-mini",
+          maxConcurrency: 0,
+        }),
+      ).rejects.toThrow("maxConcurrency must be a positive integer");
+    });
+
+    it("should throw for a non-integer maxConcurrency", async () => {
+      const client = createClient({ apiKey: "test-key" });
+
+      await expect(
+        client.guard({
+          input: "What's the weather like today?",
+          model: "openai/gpt-4o-mini",
+          maxConcurrency: 1.5,
+        }),
+      ).rejects.toThrow("maxConcurrency must be a positive integer");
+    });
+  });
 });

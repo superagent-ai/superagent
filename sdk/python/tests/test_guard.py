@@ -2,6 +2,7 @@
 Guard unit tests – mocks call_provider to avoid hitting real APIs.
 """
 
+import asyncio
 import json
 from unittest.mock import AsyncMock, patch
 
@@ -228,6 +229,66 @@ class TestGuardChunking:
         assert response.usage.total_tokens == (
             response.usage.prompt_tokens + response.usage.completion_tokens
         )
+
+
+class TestGuardMaxConcurrency:
+    """Verify max_concurrency bounds in-flight provider calls."""
+
+    async def test_caps_in_flight_calls(self, mock_call_provider):
+        in_flight = 0
+        max_in_flight = 0
+
+        async def tracked(*_args, **_kwargs):
+            nonlocal in_flight, max_in_flight
+            in_flight += 1
+            max_in_flight = max(max_in_flight, in_flight)
+            await asyncio.sleep(0.005)
+            in_flight -= 1
+            return _guard_response("pass")
+
+        mock_call_provider.side_effect = tracked
+        client = create_client(api_key="test-key")
+
+        await client.guard(
+            input="A " * 5000,
+            model="openai/gpt-4o-mini",
+            chunk_size=100,
+            max_concurrency=3,
+        )
+
+        assert mock_call_provider.call_count > 3
+        assert max_in_flight <= 3
+
+    async def test_full_concurrency_when_unset(self, mock_call_provider):
+        in_flight = 0
+        max_in_flight = 0
+
+        async def tracked(*_args, **_kwargs):
+            nonlocal in_flight, max_in_flight
+            in_flight += 1
+            max_in_flight = max(max_in_flight, in_flight)
+            await asyncio.sleep(0.005)
+            in_flight -= 1
+            return _guard_response("pass")
+
+        mock_call_provider.side_effect = tracked
+        client = create_client(api_key="test-key")
+
+        await client.guard(
+            input="A " * 5000,
+            model="openai/gpt-4o-mini",
+            chunk_size=100,
+        )
+
+        assert max_in_flight == mock_call_provider.call_count
+
+    async def test_non_positive_max_concurrency_raises(self, mock_call_provider):
+        client = create_client(api_key="test-key")
+
+        with pytest.raises(ValueError, match="max_concurrency must be a positive integer"):
+            await client.guard(
+                input="Test", model="openai/gpt-4o-mini", max_concurrency=0
+            )
 
 
 class TestGuardErrors:
