@@ -6,7 +6,7 @@ import asyncio
 import json
 import os
 import re
-from typing import Any
+from typing import Any, Awaitable, Callable, TypeVar
 
 import httpx
 
@@ -68,6 +68,30 @@ def _chunk_text(text: str, chunk_size: int) -> list[str]:
         start = end
 
     return chunks
+
+
+T = TypeVar("T")
+R = TypeVar("R")
+
+
+async def _gather_with_concurrency(
+    items: list[T],
+    fn: Callable[[T], Awaitable[R]],
+    max_concurrency: int | None = None,
+) -> list[R]:
+    """Runs `fn` over `items` with at most `max_concurrency` in flight, preserving order.
+    Unset or >= len(items) falls back to plain `asyncio.gather`.
+    """
+    if not max_concurrency or max_concurrency >= len(items):
+        return list(await asyncio.gather(*[fn(item) for item in items]))
+
+    semaphore = asyncio.Semaphore(max_concurrency)
+
+    async def bounded(item: T) -> R:
+        async with semaphore:
+            return await fn(item)
+
+    return list(await asyncio.gather(*[bounded(item) for item in items]))
 
 
 def _aggregate_guard_results(results: list[GuardResponse]) -> GuardResponse:
@@ -355,6 +379,7 @@ class SafetyClient:
         fallback_model: str | None = None,
         system_prompt: str | None = None,
         chunk_size: int = 8000,
+        max_concurrency: int | None = None,
         # Also accept GuardOptions-style kwargs
         **kwargs: Any,
     ) -> GuardResponse:
@@ -375,6 +400,7 @@ class SafetyClient:
             fallback_model: Fallback model when the primary returns a retryable error (429/500/502/503)
             system_prompt: Optional custom system prompt
             chunk_size: Characters per chunk. Default: 8000. Set to 0 to disable chunking.
+            max_concurrency: Max concurrent provider requests for multi-chunk/PDF-page analysis. Default: unbounded.
 
         Returns:
             Response with classification result and token usage
@@ -387,6 +413,7 @@ class SafetyClient:
             fallback_model = fallback_model or options.fallback_model
             system_prompt = system_prompt or options.system_prompt
             chunk_size = options.chunk_size
+            max_concurrency = options.max_concurrency
 
         # Handle input passed via kwargs
         if input is None:
@@ -400,6 +427,11 @@ class SafetyClient:
         # Validate chunk_size is non-negative
         if chunk_size < 0:
             raise ValueError(f"chunk_size must be non-negative, got {chunk_size}")
+
+        if max_concurrency is not None and max_concurrency < 1:
+            raise ValueError(
+                f"max_concurrency must be a positive integer, got {max_concurrency}"
+            )
 
         # Process the input (handle URLs, bytes, etc.)
         processed = await process_input(input)
@@ -427,15 +459,16 @@ class SafetyClient:
                 )
 
             # Analyze each page in parallel
-            results = await asyncio.gather(
-                *[
-                    self._guard_single_text(page_text, system_prompt, model, fallback_model)
-                    for page_text in non_empty_pages
-                ]
+            results = await _gather_with_concurrency(
+                non_empty_pages,
+                lambda page_text: self._guard_single_text(
+                    page_text, system_prompt, model, fallback_model
+                ),
+                max_concurrency,
             )
 
             # Aggregate with OR logic
-            aggregated = _aggregate_guard_results(list(results))
+            aggregated = _aggregate_guard_results(results)
             self._post_usage(aggregated.usage)
             return aggregated
 
@@ -450,15 +483,14 @@ class SafetyClient:
 
         # Chunk and process in parallel
         chunks = _chunk_text(text, chunk_size)
-        results = await asyncio.gather(
-            *[
-                self._guard_single_text(chunk, system_prompt, model, fallback_model)
-                for chunk in chunks
-            ]
+        results = await _gather_with_concurrency(
+            chunks,
+            lambda chunk: self._guard_single_text(chunk, system_prompt, model, fallback_model),
+            max_concurrency,
         )
 
         # Aggregate with OR logic
-        aggregated = _aggregate_guard_results(list(results))
+        aggregated = _aggregate_guard_results(results)
         self._post_usage(aggregated.usage)
         return aggregated
 
