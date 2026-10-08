@@ -192,6 +192,18 @@ function supportsStructuredOutput(modelString: string): boolean {
     );
   }
 
+  // Atlas Cloud: measured against the live gateway (2026-10-08) rather than
+  // assumed. DeepSeek, GLM-5.3 and LongCat returned schema-valid JSON for a
+  // strict json_schema; qwen3.5-flash and glm-5 rejected the request outright,
+  // so anything unverified falls back to prompt-based JSON.
+  if (provider === "atlascloud") {
+    return (
+      model.startsWith("deepseek-ai/") ||
+      model.startsWith("meituan-longcat/") ||
+      model.startsWith("zai-org/glm-5.3")
+    );
+  }
+
   // OpenRouter supports structured outputs for many models
   // Models with structured_outputs in their supported_parameters array
   if (provider === "openrouter") {
