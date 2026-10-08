@@ -8,6 +8,7 @@ import { vercelProvider } from "./vercel.js";
 import { groqProvider } from "./groq.js";
 import { fireworksProvider } from "./fireworks.js";
 import { openrouterProvider } from "./openrouter.js";
+import { atlascloudProvider } from "./atlascloud.js";
 import {
   superagentProvider,
   getFallbackUrl,
@@ -46,6 +47,7 @@ export const providers: Record<string, ProviderConfig> = {
   groq: groqProvider,
   fireworks: fireworksProvider,
   openrouter: openrouterProvider,
+  atlascloud: atlascloudProvider,
   superagent: superagentProvider,
 };
 

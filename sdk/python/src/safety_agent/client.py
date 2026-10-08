@@ -176,6 +176,15 @@ def _supports_structured_output(model_string: str) -> bool:
     if provider == "anthropic":
         return any(x in model for x in ["sonnet-4-5", "opus-4-1"])
 
+    # Atlas Cloud: measured against the live gateway (2026-10-08) rather than
+    # assumed. DeepSeek, GLM-5.3 and LongCat returned schema-valid JSON for a
+    # strict json_schema; qwen3.5-flash and glm-5 rejected the request outright,
+    # so anything unverified falls back to prompt-based JSON.
+    if provider == "atlascloud":
+        return model.startswith(
+            ("deepseek-ai/", "meituan-longcat/", "zai-org/glm-5.3")
+        )
+
     if provider == "openrouter":
         # OpenAI models via OpenRouter
         if model.startswith("openai/"):

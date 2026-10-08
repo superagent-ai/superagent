@@ -1017,6 +1017,53 @@ type SuperagentModel =
 /**
  * Supported model identifiers for all providers
  */
+/**
+ * Atlas Cloud models (OpenAI-compatible gateway)
+ * One key for DeepSeek, GLM, Kimi, Qwen, MiniMax and others.
+ * Full list: https://api.atlascloud.ai/v1/models
+ */
+type AtlasCloudModel =
+  // DeepSeek
+  | "atlascloud/deepseek-ai/DeepSeek-V3.2-Exp"
+  | "atlascloud/deepseek-ai/deepseek-v3.2"
+  | "atlascloud/deepseek-ai/deepseek-v4-flash"
+  | "atlascloud/deepseek-ai/deepseek-v4-flash-0731"
+  | "atlascloud/deepseek-ai/deepseek-v4-pro"
+  | "atlascloud/deepseek-ai/deepseek-v4-pro-0813"
+  | "atlascloud/deepseek-ai/deepseek-v4.1-flash"
+  // Zhipu GLM
+  | "atlascloud/zai-org/glm-5"
+  | "atlascloud/zai-org/glm-5.1"
+  | "atlascloud/zai-org/glm-5.2"
+  | "atlascloud/zai-org/glm-5.3"
+  | "atlascloud/zai-org/glm-5.3-flash"
+  // Moonshot Kimi
+  | "atlascloud/moonshotai/kimi-k2.5"
+  | "atlascloud/moonshotai/kimi-k2.6"
+  | "atlascloud/moonshotai/kimi-k2.7-code"
+  | "atlascloud/moonshotai/kimi-k3"
+  // Alibaba Qwen
+  | "atlascloud/qwen/qwen3.5-122b-a10b"
+  | "atlascloud/qwen/qwen3.5-27b"
+  | "atlascloud/qwen/qwen3.5-35b-a3b"
+  | "atlascloud/qwen/qwen3.5-397b-a17b"
+  | "atlascloud/qwen/qwen3.5-flash"
+  | "atlascloud/qwen/qwen3.5-plus"
+  | "atlascloud/qwen/qwen3.6-35b-a3b"
+  | "atlascloud/qwen/qwen3.6-plus"
+  | "atlascloud/qwen/qwen3.7-max"
+  | "atlascloud/qwen/qwen3.7-plus"
+  | "atlascloud/qwen/qwen3.8-27b"
+  | "atlascloud/qwen/qwen3.8-max"
+  // MiniMax
+  | "atlascloud/minimaxai/minimax-m2.5"
+  | "atlascloud/minimaxai/minimax-m2.7"
+  | "atlascloud/minimaxai/minimax-m3"
+  // Meituan LongCat
+  | "atlascloud/meituan-longcat/longcat-2.0"
+  // Tencent Hunyuan
+  | "atlascloud/tencent/hy3";
+
 export type SupportedModel =
   | OpenAIModel
   | OpenAICompatibleModel
@@ -1027,6 +1074,7 @@ export type SupportedModel =
   | GroqModel
   | FireworksModel
   | OpenRouterModel
+  | AtlasCloudModel
   | SuperagentModel;
 
 /**
