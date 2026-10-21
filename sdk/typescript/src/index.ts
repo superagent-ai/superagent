@@ -33,6 +33,32 @@ export { processInput, isVisionModel } from "./utils/input-processor.js";
 
 // Provider exports (for advanced usage)
 export { providers, parseModel, getProvider } from "./providers/index.js";
+export {
+  ORCAROUTER_DEFAULT_API_BASE_URL,
+  getOrcaRouterBaseUrl,
+  buildOrcaRouterUrl,
+} from "./providers/orcarouter.js";
+export {
+  ORCAROUTER_SEED_MODELS,
+  TEXT_ENDPOINT_TYPES,
+  NON_TEXT_ENDPOINT_TYPES,
+  OrcaRouterCatalogError,
+  parseOrcaRouterCatalog,
+  filterOrcaRouterModels,
+  fetchOrcaRouterCatalog,
+  listOrcaRouterModels,
+  isOrcaRouterModelCompatible,
+  resetOrcaRouterCatalogCache,
+} from "./providers/orcarouter-catalog.js";
+export type {
+  OrcaRouterCapability,
+  OrcaRouterCatalog,
+  OrcaRouterCatalogErrorCode,
+  OrcaRouterCatalogSource,
+  OrcaRouterModel,
+  OrcaRouterModelFilter,
+  FetchOrcaRouterCatalogOptions,
+} from "./providers/orcarouter-catalog.js";
 export type {
   ProviderConfig,
   ResponseFormat,

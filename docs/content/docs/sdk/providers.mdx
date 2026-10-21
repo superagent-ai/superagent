@@ -20,6 +20,7 @@ Superagent SDK works with any language model. Use the `provider/model` format wh
 | OpenAI | `openai/{model}` | `OPENAI_API_KEY` |
 | OpenAI Compatible | `openai-compatible/{model}` | `OPENAI_COMPATIBLE_API_KEY`<br/>`OPENAI_COMPATIBLE_BASE_URL` |
 | OpenRouter | `openrouter/{provider}/{model}` | `OPENROUTER_API_KEY` |
+| OrcaRouter | `orcarouter/{provider}/{model}` | `ORCAROUTER_API_KEY` |
 | Vercel AI Gateway | `vercel/{provider}/{model}` | `AI_GATEWAY_API_KEY` |
 
 ## Environment Setup
@@ -56,6 +57,10 @@ export AWS_BEDROCK_REGION=us-east-1  # optional
 
 # OpenRouter
 export OPENROUTER_API_KEY=...
+
+# OrcaRouter
+export ORCAROUTER_API_KEY=sk-orca-...
+export ORCA_API_BASE_URL=https://api.orcarouter.ai/v1  # optional override
 
 # Vercel AI Gateway
 export AI_GATEWAY_API_KEY=...
@@ -115,7 +120,89 @@ await client.guard({
   input: "user message",
   model: "openrouter/anthropic/claude-3-5-sonnet"
 });
+
+// OrcaRouter (nested vendor/model)
+await client.guard({
+  input: "user message",
+  model: "orcarouter/deepseek/deepseek-v4-pro"
+});
 ```
+
+## OrcaRouter
+
+[OrcaRouter](https://www.orcarouter.ai) is an OpenAI-compatible AI gateway:
+one endpoint (`https://api.orcarouter.ai/v1`) and one `sk-orca-…` API key in
+front of many model providers. Model IDs keep their vendor namespace, so the
+SDK model string is `orcarouter/{vendor}/{model}`.
+
+It also runs gateway-level, zero-trust security for AI agents on the same
+endpoint — screening every prompt/response and governing every tool call on a
+default-deny basis, with no application code changes.
+
+### Model catalog
+
+The model list comes from the gateway itself (`GET /v1/models`), fetched with
+your own key, so it only contains models your workspace can call:
+
+```typescript
+import { fetchOrcaRouterCatalog, listOrcaRouterModels } from "safety-agent";
+
+const chatModels = await listOrcaRouterModels({ capability: "chat" });
+const visionModels = await listOrcaRouterModels({
+  capability: "chat",
+  inputModalities: ["image"],
+});
+const embeddingModels = await listOrcaRouterModels({ capability: "embedding" });
+
+const catalog = await fetchOrcaRouterCatalog({ capability: "chat" });
+catalog.source;   // "live" | "last-known-good" | "seed"
+catalog.degraded; // true when the live catalog was unavailable
+```
+
+Capabilities are derived strictly from catalog metadata:
+
+| Capability | Requirement |
+|------------|-------------|
+| Text chat | A text endpoint family: `openai`, `openai-response`, `anthropic`, or `gemini` |
+| Embedding | The `embeddings` endpoint family |
+| Image generation | The `image-generation` endpoint family |
+| Image input | `architecture.input_modalities` declares `image` |
+
+Models that do not declare a modality are excluded, so image input fails closed
+for text-only models instead of being guessed from the model name. If the live
+catalog is unreachable the SDK returns a `degraded` catalog built from the last
+successful fetch, or a small verified seed list.
+
+`ORCA_API_BASE_URL` overrides the inference origin; `ORCA_BASE_URL` is honoured
+as a shared fallback. Remote origins must use HTTPS.
+
+### Security workloads
+
+For security-oriented guard and review workloads, the recommended default model
+is **OrcaCyber Zero** (`orcarouter/orcacyber-zero`), with `orcarouter/fusion` as
+the fallback when the key does not have OrcaCyber Zero unlocked:
+
+```typescript
+await client.guard({
+  input: "user message",
+  model: "orcarouter/orcacyber-zero",
+  fallbackModel: "orcarouter/fusion",
+});
+```
+
+```python
+await client.guard(
+    input="user message",
+    model="orcarouter/orcacyber-zero",
+    fallback_model="orcarouter/fusion",
+)
+```
+
+OrcaCyber Zero requires business verification on your OrcaRouter workspace; until
+it is unlocked the gateway returns `model_access_denied` for that model, which is
+why the fallback is recommended. Either way, the same endpoint carries the
+gateway's defense stack — Agent Firewall, Guardrails, and the OrcaCode Review
+merge gate.
 
 ## Vision-Capable Models
 
@@ -126,6 +213,7 @@ For image analysis, use a vision-capable model:
 | **OpenAI** | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`, `gpt-4.1` |
 | **Anthropic** | `claude-3-*`, `claude-sonnet-4-*`, `claude-opus-4-*`, `claude-haiku-4-*` |
 | **Google** | `gemini-*` |
+| **OrcaRouter** | Models whose catalog record declares `image` in `architecture.input_modalities` |
 
 Other providers (Fireworks, Groq, OpenRouter, Vercel, Bedrock) currently support text-only analysis.
 

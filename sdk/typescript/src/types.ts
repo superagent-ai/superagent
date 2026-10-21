@@ -497,6 +497,14 @@ type GroqModel =
   | "groq/qwen-qwq-32b";
 
 /**
+ * OrcaRouter model identifiers
+ * Accepts any model under the orcarouter provider, keeping the gateway's
+ * `vendor/model` namespace (e.g. `orcarouter/openai/gpt-5.5`).
+ * https://www.orcarouter.ai
+ */
+type OrcaRouterModelId = `orcarouter/${string}`;
+
+/**
  * OpenRouter model identifiers
  * Unified API gateway for 300+ LLMs
  * https://openrouter.ai/docs
@@ -1027,6 +1035,7 @@ export type SupportedModel =
   | GroqModel
   | FireworksModel
   | OpenRouterModel
+  | OrcaRouterModelId
   | SuperagentModel;
 
 /**

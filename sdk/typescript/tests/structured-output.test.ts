@@ -180,6 +180,24 @@ describe("Structured Output Support", () => {
     });
   });
 
+  describe("OrcaRouter provider", () => {
+    it("should NOT use structured output for orcarouter models", async () => {
+      // OrcaRouter's catalog does not advertise structured-output support, so
+      // we fail closed and rely on the JSON-tolerant response parser.
+      expect(
+        await callsWithResponseFormat("orcarouter/orcarouter/fusion"),
+      ).toBe(false);
+    });
+
+    it("should NOT use structured output for orcarouter vendor models", async () => {
+      expect(
+        await callsWithResponseFormat(
+          "orcarouter/openai/gpt-5.5",
+        ),
+      ).toBe(false);
+    });
+  });
+
   describe("OpenRouter provider", () => {
     it("should use structured output for openrouter openai models", async () => {
       expect(
