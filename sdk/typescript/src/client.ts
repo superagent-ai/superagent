@@ -30,6 +30,7 @@ import {
 import { SCAN_SYSTEM_PROMPT } from "./prompts/scan.js";
 import { GUARD_RESPONSE_FORMAT, REDACT_RESPONSE_FORMAT } from "./schemas.js";
 import { processInput, isVisionModel } from "./utils/input-processor.js";
+import { isOrcaRouterModelCompatible } from "./providers/orcarouter-catalog.js";
 
 /**
  * Split text into chunks at word boundaries
@@ -190,6 +191,14 @@ function supportsStructuredOutput(modelString: string): boolean {
       model === "claude-sonnet-4-5" ||
       model === "claude-opus-4-1"
     );
+  }
+
+  // OrcaRouter does not advertise structured-output support in its model
+  // catalog, so we fail closed rather than guessing from model names.
+  // The guard prompt already asks for JSON, and parseJsonResponse tolerates
+  // fenced output.
+  if (provider === "orcarouter") {
+    return false;
   }
 
   // OpenRouter supports structured outputs for many models
@@ -523,7 +532,19 @@ export class SafetyClient {
     model: string,
     fallbackModel?: string,
   ): Promise<GuardResponse> {
-    if (!isVisionModel(model)) {
+    if (model.startsWith("orcarouter/")) {
+      // OrcaRouter declares input modalities in its model catalog. Use that
+      // metadata instead of guessing from the model name; models that do not
+      // declare image input are rejected.
+      const compatible = await isOrcaRouterModelCompatible(model, ["image"]);
+      if (!compatible) {
+        throw new Error(
+          `Model ${model} is not listed for image input in the OrcaRouter model catalog ` +
+            `(it must declare "image" in architecture.input_modalities). ` +
+            `Use listOrcaRouterModels({ inputModalities: ["image"] }) to see compatible models.`,
+        );
+      }
+    } else if (!isVisionModel(model)) {
       throw new Error(
         `Model ${model} does not support vision. Use a vision-capable model like gpt-4o, claude-3-*, or gemini-*.`,
       );

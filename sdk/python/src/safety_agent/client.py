@@ -33,6 +33,7 @@ from .prompts.redact import build_redact_system_prompt, build_redact_user_messag
 from .prompts.scan import SCAN_SYSTEM_PROMPT
 from .schemas import GUARD_RESPONSE_FORMAT, REDACT_RESPONSE_FORMAT
 from .utils.input_processor import process_input, is_vision_model
+from .providers.orcarouter_catalog import is_orcarouter_model_compatible
 
 
 def _chunk_text(text: str, chunk_size: int) -> list[str]:
@@ -176,6 +177,11 @@ def _supports_structured_output(model_string: str) -> bool:
     if provider == "anthropic":
         return any(x in model for x in ["sonnet-4-5", "opus-4-1"])
 
+    if provider == "orcarouter":
+        # OrcaRouter's model catalog does not advertise structured-output
+        # support, so fail closed rather than guessing from model names.
+        return False
+
     if provider == "openrouter":
         # OpenAI models via OpenRouter
         if model.startswith("openai/"):
@@ -296,7 +302,20 @@ class SafetyClient:
         fallback_model: str | None = None,
     ) -> GuardResponse:
         """Guard an image input using vision model (internal method)."""
-        if not is_vision_model(model):
+        if model.startswith("orcarouter/"):
+            # OrcaRouter declares input modalities in its model catalog. Use
+            # that metadata instead of guessing from the model name; models
+            # that do not declare image input are rejected.
+            compatible = await is_orcarouter_model_compatible(model, ["image"])
+            if not compatible:
+                raise ValueError(
+                    f"Model {model} is not listed for image input in the OrcaRouter "
+                    'model catalog (it must declare "image" in '
+                    "architecture.input_modalities). Use "
+                    'list_orcarouter_models(input_modalities=["image"]) to see '
+                    "compatible models."
+                )
+        elif not is_vision_model(model):
             raise ValueError(
                 f"Model {model} does not support vision. "
                 "Use a vision-capable model like gpt-4o, claude-3-*, or gemini-*."
